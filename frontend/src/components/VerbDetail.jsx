@@ -2,9 +2,83 @@ import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
 import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
+import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
+
+/* 예문 뜻·원리 보기 — 첫 클릭 시 /analyze 호출, 이후 토글만 */
+function ExampleAnalysis({ koreanText }) {
+  const [state,      setState]      = useState('idle')   // idle | loading | done | error
+  const [showDetail, setShowDetail] = useState(false)
+  const [breakdown,  setBreakdown]  = useState(null)
+
+  async function handleToggle() {
+    // 데이터 없으면 API 호출
+    if (!breakdown) {
+      setState('loading')
+      try {
+        const res = await fetch(`${API_URL}/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: koreanText }),
+        })
+        if (!res.ok) throw new Error()
+        const data = await res.json()
+        setBreakdown(data.breakdown ?? [])
+        setState('done')
+        setShowDetail(true)
+      } catch {
+        setState('error')
+      }
+      return
+    }
+    setShowDetail(v => !v)
+  }
+
+  return (
+    <div>
+      {/* 구분선 */}
+      <div style={{ borderTop: '1px solid #f0f0f0', margin: '12px 0 10px' }} />
+
+      {/* 토글 버튼 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {state === 'loading' ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="spinner" style={{ width: 12, height: 12, borderTopColor: PRIMARY, borderColor: `${PRIMARY}33` }} />
+            <span style={{ fontSize: 11, color: '#aaa' }}>분석 중...</span>
+          </div>
+        ) : state === 'error' ? (
+          <button onClick={handleToggle} style={btnStyle('#e53e3e', '#fff5f5', '#fed7d7')}>
+            다시 시도
+          </button>
+        ) : (
+          <DetailToggleButton
+            showDetail={showDetail}
+            onToggle={handleToggle}
+          />
+        )}
+      </div>
+
+      {/* 분해 패널 */}
+      {breakdown && showDetail && breakdown.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <BreakdownTable breakdown={breakdown} showDetail={showDetail} />
+          <BreakdownCards breakdown={breakdown} showDetail={showDetail} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function btnStyle(color, bg, border) {
+  return {
+    height: 26, padding: '0 10px', borderRadius: 13,
+    fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+    cursor: 'pointer', border: `1.5px solid ${border}`,
+    backgroundColor: bg, color: color,
+  }
+}
 
 /* 후리가나 형식 "漢字(よみ)" 파싱 → span 렌더링 */
 function RubyText({ text }) {
@@ -278,6 +352,9 @@ export default function VerbDetail({ verb, onBack }) {
                 <PitchGraph accentData={ex.accentData} furigana={ex.furigana} hideHeader />
               </div>
             )}
+
+            {/* 뜻·원리 보기 */}
+            <ExampleAnalysis koreanText={ex.korean} />
           </div>
         ))}
       </div>

@@ -145,17 +145,21 @@ export default function VerbDetail({ verb, onBack }) {
         <p style={styles.sectionTitle}>예문</p>
         {verb.examples.map((ex, i) => (
           <div key={i} style={styles.exampleCard}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-              <span style={{ fontSize: 13, color: '#888' }}>{ex.korean}</span>
-              <RubyText text={ex.japanese} />
-              <span style={{ fontSize: 12, color: '#5CA9CE' }}>{ex.reading}</span>
-              {ex.accentData && ex.furigana && (
-                <div style={{ marginTop: 4, overflowX: 'auto' }}>
-                  <PitchGraph accentData={ex.accentData} furigana={ex.furigana} hideHeader />
-                </div>
-              )}
+            {/* 텍스트 + 버튼 행 */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 13, color: '#888' }}>{ex.korean}</span>
+                <RubyText text={ex.japanese} />
+                <span style={{ fontSize: 12, color: '#5CA9CE' }}>{ex.reading}</span>
+              </div>
+              <PracticeButton japanesePlain={ex.plain} />
             </div>
-            <PracticeButton japanesePlain={ex.plain} />
+            {/* 억양 그래프 — 전체 너비 사용 */}
+            {ex.accentData && ex.furigana && (
+              <div style={{ marginTop: 8, overflowX: 'auto' }}>
+                <PitchGraph accentData={ex.accentData} furigana={ex.furigana} hideHeader />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -247,8 +251,8 @@ const styles = {
     borderRadius: 12,
     padding: '14px 16px',
     display: 'flex',
-    alignItems: 'center',
-    gap: 12,
+    flexDirection: 'column',
+    gap: 0,
   },
   practiceBtn: {
     flexShrink: 0,

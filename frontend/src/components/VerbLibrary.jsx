@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { VERBS, getRankTabs } from '../data/verbs'
-import VerbDetail from './VerbDetail'
 
 const PRIMARY = '#5CA9CE'
 
@@ -11,11 +11,11 @@ const SORT_OPTIONS = [
 ]
 
 export default function VerbLibrary() {
-  const rankTabs = useMemo(() => getRankTabs(VERBS, 10), [])
+  const navigate  = useNavigate()
+  const rankTabs  = useMemo(() => getRankTabs(VERBS, 10), [])
 
-  const [selectedTab,  setSelectedTab]  = useState(rankTabs[0]?.id ?? '')
-  const [sortBy,       setSortBy]       = useState('rank')
-  const [selectedVerb, setSelectedVerb] = useState(null)
+  const [selectedTab, setSelectedTab] = useState(rankTabs[0]?.id ?? '')
+  const [sortBy,      setSortBy]      = useState('rank')
 
   const currentTab = rankTabs.find(t => t.id === selectedTab) ?? rankTabs[0]
 
@@ -29,10 +29,6 @@ export default function VerbLibrary() {
       return 0
     })
   }, [currentTab, sortBy])
-
-  if (selectedVerb) {
-    return <VerbDetail verb={selectedVerb} onBack={() => setSelectedVerb(null)} />
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -88,7 +84,7 @@ export default function VerbLibrary() {
           {filteredVerbs.map(verb => (
             <button
               key={verb.id}
-              onClick={() => setSelectedVerb(verb)}
+              onClick={() => navigate(`/verbs/${verb.id}`)}
               style={styles.verbCard}
             >
               <span style={styles.rankBadge}>#{verb.rank}</span>

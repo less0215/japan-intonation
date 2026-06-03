@@ -1,25 +1,30 @@
 import { useState, useEffect } from 'react'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
 import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
 import VerbLibrary from './components/VerbLibrary'
+import VerbDetailPage from './components/VerbDetailPage'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 
 export default function App() {
-  const [tab, setTab]                  = useState('translate') // 'translate' | 'verbs'
+  const location  = useLocation()
+  const navigate  = useNavigate()
+
+  // 현재 탭: /verbs로 시작하면 'verbs', 아니면 'translate'
+  const tab = location.pathname.startsWith('/verbs') ? 'verbs' : 'translate'
+
   const [loading, setLoading]         = useState(false)
   const [result, setResult]           = useState(null)
-  const [inputText, setInputText]     = useState('')   // 현재 변환한 한국어 원문
+  const [inputText, setInputText]     = useState('')
   const [error, setError]             = useState(null)
 
-  // 저장 관련
   const [saved, setSaved]             = useState(false)
   const [showSignup, setShowSignup]   = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
-  // 로그인 사용자 (localStorage 유지)
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('tickjapan_user')) } catch { return null }
   })
@@ -29,7 +34,6 @@ export default function App() {
     else      localStorage.removeItem('tickjapan_user')
   }, [user])
 
-  /* ── 변환 요청 */
   async function handleAnalyze(text) {
     setLoading(true)
     setError(null)
@@ -71,42 +75,29 @@ export default function App() {
     }
   }
 
-  /* ── 저장 버튼 클릭 */
   function handleSave() {
-    if (!user) {
-      setShowSignup(true)  // 비로그인 → 회원가입 모달
-    } else {
-      doSave(user)         // 로그인 → 바로 저장
-    }
+    if (!user) setShowSignup(true)
+    else       doSave(user)
   }
 
-  /* ── 실제 저장 API 호출 */
   async function doSave(currentUser) {
     try {
       const res = await fetch(`${API_URL}/saves`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: currentUser.user_id,
-          input_text: inputText,
-          result,
-        }),
+        body: JSON.stringify({ user_id: currentUser.user_id, input_text: inputText, result }),
       })
       if (!res.ok) throw new Error()
       setSaved(true)
-    } catch {
-      /* 실패 시 무시 */
-    }
+    } catch { /* 실패 시 무시 */ }
   }
 
-  /* ── 회원가입 완료 후 */
   function handleSignupSuccess(newUser) {
     setUser(newUser)
     setShowSignup(false)
-    doSave(newUser)   // 가입 즉시 저장
+    doSave(newUser)
   }
 
-  /* ── 저장 목록에서 항목 선택 → 결과 복원 */
   function handleSelectSaved(savedResult, savedInput) {
     setResult(savedResult)
     setInputText(savedInput)
@@ -114,9 +105,10 @@ export default function App() {
   }
 
   const hasContent = loading || error || result
+  const isVerbsTab = tab === 'verbs'
 
   return (
-    <div className={hasContent || tab === 'verbs' ? 'page' : 'page page--center'}>
+    <div className={hasContent || isVerbsTab ? 'page' : 'page page--center'}>
       <div className="container">
 
         {/* 앱 헤더 */}
@@ -141,12 +133,12 @@ export default function App() {
         {/* 탭 네비게이션 */}
         <div style={{ display: 'flex', gap: 6 }}>
           {[
-            { id: 'translate', label: '변환기',   activeColor: '#111111' },
-            { id: 'verbs',     label: '동사 학습', activeColor: '#5CA9CE' },
+            { id: 'translate', label: '변환기',    path: '/',      activeColor: '#111111' },
+            { id: 'verbs',     label: '동사 학습',  path: '/verbs', activeColor: '#5CA9CE' },
           ].map(t => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => navigate(t.path)}
               style={{
                 height: 36,
                 padding: '0 16px',
@@ -166,49 +158,35 @@ export default function App() {
           ))}
         </div>
 
-        {/* 동사 학습 탭 */}
-        {tab === 'verbs' && <VerbLibrary />}
-
-        {/* 변환기 탭 */}
-        {tab === 'translate' && (
-          <>
-            <SearchBar onAnalyze={handleAnalyze} loading={loading} />
-            {error   && <div className="error-box">{error}</div>}
-            {loading && (
-              <div className="loading-box">
-                <span className="spinner" style={{ borderColor: 'rgba(92,169,206,0.3)', borderTopColor: '#5CA9CE' }} />
-                <span className="loading-text">번역 및 악센트 분석 중...</span>
-              </div>
-            )}
-            {result && (
-              <ResultCard
-                data={result}
-                onSave={handleSave}
-                saved={saved}
-              />
-            )}
-          </>
-        )}
+        {/* 라우트 */}
+        <Routes>
+          <Route path="/verbs/:id" element={<VerbDetailPage />} />
+          <Route path="/verbs"     element={<VerbLibrary />} />
+          <Route path="*" element={
+            <>
+              <SearchBar onAnalyze={handleAnalyze} loading={loading} />
+              {error   && <div className="error-box">{error}</div>}
+              {loading && (
+                <div className="loading-box">
+                  <span className="spinner" style={{ borderColor: 'rgba(92,169,206,0.3)', borderTopColor: '#5CA9CE' }} />
+                  <span className="loading-text">번역 및 악센트 분석 중...</span>
+                </div>
+              )}
+              {result && (
+                <ResultCard data={result} onSave={handleSave} saved={saved} />
+              )}
+            </>
+          } />
+        </Routes>
 
       </div>
 
-      {/* 회원가입 모달 */}
       {showSignup && (
-        <SignupModal
-          onSuccess={handleSignupSuccess}
-          onClose={() => setShowSignup(false)}
-        />
+        <SignupModal onSuccess={handleSignupSuccess} onClose={() => setShowSignup(false)} />
       )}
-
-      {/* 저장 목록 드로어 */}
       {showHistory && user && (
-        <HistoryDrawer
-          user={user}
-          onClose={() => setShowHistory(false)}
-          onSelect={handleSelectSaved}
-        />
+        <HistoryDrawer user={user} onClose={() => setShowHistory(false)} onSelect={handleSelectSaved} />
       )}
-
     </div>
   )
 }

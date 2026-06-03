@@ -19,10 +19,10 @@ export default function CopyButton({ getText }) {
     <button
       onClick={handleCopy}
       title="복사"
+      className="copy-btn"
       style={{
-        ...styles.btn,
         borderColor: copied ? '#5CA9CE' : '#e2e8f0',
-        color: copied ? '#5CA9CE' : '#888888',
+        color: copied ? '#5CA9CE' : '#aaaaaa',
       }}
     >
       {copied ? <IconCheck /> : <IconCopy />}
@@ -30,10 +30,9 @@ export default function CopyButton({ getText }) {
   )
 }
 
-/* 복사 아이콘 (SVG inline) */
 function IconCopy() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="9" y="9" width="13" height="13" rx="2" />
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
@@ -41,28 +40,11 @@ function IconCopy() {
   )
 }
 
-/* 체크 아이콘 (SVG inline) */
 function IconCheck() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   )
-}
-
-const styles = {
-  btn: {
-    width: '34px',
-    height: '34px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'transparent',
-    border: '1.5px solid',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'border-color 0.2s, color 0.2s',
-    flexShrink: 0,
-  },
 }

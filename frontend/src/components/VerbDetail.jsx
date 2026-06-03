@@ -3,7 +3,8 @@ import PitchGraph from './PitchGraph'
 import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
 
-const PRIMARY = '#5CA9CE'
+const PRIMARY  = '#5CA9CE'
+const API_URL  = 'https://japan-intonation-production.up.railway.app'
 
 /* 후리가나 형식 "漢字(よみ)" 파싱 → span 렌더링 */
 function RubyText({ text }) {
@@ -85,12 +86,22 @@ function SaveExampleButton({ example, onNeedSignup }) {
   )
 }
 
-/* 말하기 연습 버튼 */
+/* 말하기 연습 (성별 토글 + 재생) */
 function PracticeButton({ japanesePlain }) {
-  const [state, setState] = useState('idle') // idle | loading | playing
+  const [state,  setState]  = useState('idle')    // idle | loading | playing
+  const [gender, setGender] = useState('female')
   const audioRef = useRef(null)
 
-  async function handleClick() {
+  function handleGender(g) {
+    if (state === 'playing') {
+      audioRef.current?.pause()
+      audioRef.current = null
+      setState('idle')
+    }
+    setGender(g)
+  }
+
+  async function handlePlay() {
     if (state === 'playing') {
       audioRef.current?.pause()
       audioRef.current = null
@@ -104,7 +115,7 @@ function PracticeButton({ japanesePlain }) {
       const res = await fetch(`${API_URL}/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: japanesePlain, gender: 'female' }),
+        body: JSON.stringify({ text: japanesePlain, gender }),
       })
       if (!res.ok) throw new Error()
       const blob  = await res.blob()
@@ -121,15 +132,35 @@ function PracticeButton({ japanesePlain }) {
   }
 
   return (
-    <button onClick={handleClick} style={styles.practiceBtn}>
-      {state === 'loading' ? (
-        <span className="spinner" style={{ width: 13, height: 13, borderTopColor: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }} />
-      ) : state === 'playing' ? (
-        '⏸ 일시정지'
-      ) : (
-        '▶ 말하기 연습'
-      )}
-    </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
+      {/* 성별 토글 */}
+      <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1.5px solid #e8e8e8' }}>
+        {[{ v: 'female', l: '여성' }, { v: 'male', l: '남성' }].map(({ v, l }) => (
+          <button
+            key={v}
+            onClick={() => handleGender(v)}
+            style={{
+              flex: 1,
+              height: 28,
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              border: 'none',
+              backgroundColor: gender === v ? PRIMARY : '#fff',
+              color:           gender === v ? '#fff' : '#aaa',
+              transition: 'all 0.15s',
+            }}
+          >{l}</button>
+        ))}
+      </div>
+      {/* 재생 버튼 */}
+      <button onClick={handlePlay} style={styles.practiceBtn}>
+        {state === 'loading' ? (
+          <span className="spinner" style={{ width: 13, height: 13, borderTopColor: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }} />
+        ) : state === 'playing' ? '⏸ 일시정지' : '▶ 말하기 연습'}
+      </button>
+    </div>
   )
 }
 
@@ -243,7 +274,7 @@ export default function VerbDetail({ verb, onBack }) {
             </div>
             {/* 억양 그래프 — 전체 너비 사용 */}
             {ex.accentData && ex.furigana && (
-              <div style={{ marginTop: 8, overflowX: 'auto' }}>
+              <div style={{ marginTop: 8, minWidth: 0 }}>
                 <PitchGraph accentData={ex.accentData} furigana={ex.furigana} hideHeader />
               </div>
             )}

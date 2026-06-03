@@ -22,17 +22,11 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# CORS 설정 — Vercel 프로덕션 + 로컬 개발 서버 모두 허용
+# CORS 설정 — 모든 출처 허용 (public API, 인증 불필요)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://japan-intonation.vercel.app",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

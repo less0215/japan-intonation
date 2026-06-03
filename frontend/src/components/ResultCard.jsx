@@ -124,111 +124,77 @@ function ConjugationPanel({ steps }) {
   )
 }
 
-/* ── 문장 분해 행 (데스크탑) — 활용 단계 포함 */
-function BreakdownRow({ row, index, expanded, onToggle }) {
+/* ── 보조 탭: 뜻 + 활용 원리 패널 */
+function DetailPanel({ row }) {
   const hasSteps = row.conjugation_steps && row.conjugation_steps.length > 0
-  const bg = index % 2 === 1 ? '#f9f9f9' : 'transparent'
   return (
-    <>
-      <div
-        className="breakdown-row"
-        style={{ backgroundColor: bg, borderTop: '0.5px solid #eeeeee', cursor: hasSteps ? 'pointer' : 'default', userSelect: 'none' }}
-        onClick={hasSteps ? onToggle : undefined}
-      >
-        {/* 단위 + 뜻 */}
-        <div className="breakdown-unit-wrap">
-          <span className="breakdown-unit">
-            {row.unit}
-            {hasSteps && (
-              <span style={{ marginLeft: 5, fontSize: 10, color: PRIMARY, fontWeight: 700, verticalAlign: 'middle' }}>
-                {expanded ? '▲' : '▼'}
-              </span>
-            )}
-          </span>
-          {row.korean_meaning && (
-            <span className="breakdown-meaning">{row.korean_meaning}</span>
-          )}
-        </div>
-        <span className="breakdown-cell">{row.hiragana}</span>
-        <span className="breakdown-cell">{row.korean_pronunciation}</span>
-        <span className="breakdown-cell"><span className="pos-badge">{row.part_of_speech}</span></span>
-      </div>
-      {hasSteps && expanded && (
-        <div className="breakdown-conjugation" style={{ backgroundColor: bg }}>
-          <ConjugationPanel steps={row.conjugation_steps} />
-        </div>
+    <div style={{
+      margin: '0 14px 10px',
+      padding: '12px 14px',
+      background: '#f8fbfe',
+      border: `1px solid ${PRIMARY}22`,
+      borderRadius: 10,
+    }}>
+      {row.korean_meaning && (
+        <p style={{ fontSize: 13, color: '#444', marginBottom: hasSteps ? 10 : 0 }}>
+          <span style={{ fontSize: 11, color: '#aaa', marginRight: 6 }}>뜻</span>
+          {row.korean_meaning}
+        </p>
       )}
-    </>
+      {hasSteps && <ConjugationPanel steps={row.conjugation_steps} />}
+    </div>
   )
 }
 
 /* ── 문장 분해 테이블 (데스크탑) */
-function BreakdownTable({ breakdown }) {
-  const [expanded, setExpanded] = useState({})
-  const toggle = (i) => setExpanded(prev => ({ ...prev, [i]: !prev[i] }))
-
+function BreakdownTable({ breakdown, showDetail }) {
   return (
-    <div className="breakdown-table" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr 1fr auto' }}>
-      <div className="breakdown-row breakdown-header" style={{ gridColumn: '1 / -1', display: 'contents' }}>
-        {['단위 / 뜻', '히라가나', '한글 발음', '품사'].map(h => (
+    <div className="breakdown-table">
+      <div className="breakdown-row breakdown-header">
+        {['단위', '히라가나', '한글 발음', '품사'].map(h => (
           <span key={h} className="breakdown-header-cell">{h}</span>
         ))}
       </div>
       {breakdown.map((row, i) => (
-        <BreakdownRow
-          key={i}
-          row={row}
-          index={i}
-          expanded={!!expanded[i]}
-          onToggle={() => toggle(i)}
-        />
+        <div key={i}>
+          <div
+            className="breakdown-row"
+            style={{ backgroundColor: i % 2 === 1 ? '#f9f9f9' : 'transparent', borderTop: '0.5px solid #eeeeee' }}
+          >
+            <span className="breakdown-unit">{row.unit}</span>
+            <span className="breakdown-cell">{row.hiragana}</span>
+            <span className="breakdown-cell">{row.korean_pronunciation}</span>
+            <span className="breakdown-cell"><span className="pos-badge">{row.part_of_speech}</span></span>
+          </div>
+          {showDetail && (row.korean_meaning || (row.conjugation_steps && row.conjugation_steps.length > 0)) && (
+            <DetailPanel row={row} />
+          )}
+        </div>
       ))}
     </div>
   )
 }
 
 /* ── 문장 분해 카드 (모바일) */
-function BreakdownCards({ breakdown }) {
-  const [expanded, setExpanded] = useState({})
-  const toggle = (i) => setExpanded(prev => ({ ...prev, [i]: !prev[i] }))
-
+function BreakdownCards({ breakdown, showDetail }) {
   return (
     <div className="breakdown-cards">
-      {breakdown.map((row, i) => {
-        const hasSteps = row.conjugation_steps && row.conjugation_steps.length > 0
-        return (
-          <div key={i} className="breakdown-card-item">
-            <div
-              className="breakdown-card-top"
-              style={{ cursor: hasSteps ? 'pointer' : 'default' }}
-              onClick={hasSteps ? () => toggle(i) : undefined}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className="breakdown-card-unit">{row.unit}</span>
-                {row.korean_meaning && (
-                  <span style={{ fontSize: 12, color: '#555' }}>{row.korean_meaning}</span>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className="pos-badge">{row.part_of_speech}</span>
-                {hasSteps && (
-                  <span style={{ fontSize: 11, color: PRIMARY, fontWeight: 700 }}>
-                    {expanded[i] ? '▲' : '▼'}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="breakdown-card-bottom">
-              <span className="breakdown-card-sub">{row.hiragana}</span>
-              <span className="breakdown-card-dot">·</span>
-              <span className="breakdown-card-sub">{row.korean_pronunciation}</span>
-            </div>
-            {hasSteps && expanded[i] && (
-              <ConjugationPanel steps={row.conjugation_steps} />
-            )}
+      {breakdown.map((row, i) => (
+        <div key={i} className="breakdown-card-item">
+          <div className="breakdown-card-top">
+            <span className="breakdown-card-unit">{row.unit}</span>
+            <span className="pos-badge">{row.part_of_speech}</span>
           </div>
-        )
-      })}
+          <div className="breakdown-card-bottom">
+            <span className="breakdown-card-sub">{row.hiragana}</span>
+            <span className="breakdown-card-dot">·</span>
+            <span className="breakdown-card-sub">{row.korean_pronunciation}</span>
+          </div>
+          {showDetail && (row.korean_meaning || (row.conjugation_steps && row.conjugation_steps.length > 0)) && (
+            <DetailPanel row={row} />
+          )}
+        </div>
+      ))}
     </div>
   )
 }
@@ -264,6 +230,7 @@ export default function ResultCard({ data, onSave, saved }) {
 
   const [gender, setGender]         = useState('female')
   const [audioState, setAudioState] = useState('idle')
+  const [showDetail, setShowDetail] = useState(false)
   const audioRef = useRef(null)
 
   const segments = parseFurigana(furigana_html)
@@ -346,10 +313,27 @@ export default function ResultCard({ data, onSave, saved }) {
       <div className="section">
         <div className="section-header">
           <span className="section-label">문장 분해</span>
-          <span style={{ fontSize: 11, color: '#aaa' }}>동사·형용사는 ▼ 클릭 시 활용 원리 표시</span>
+          <button
+            onClick={() => setShowDetail(v => !v)}
+            style={{
+              height: 26,
+              padding: '0 10px',
+              borderRadius: 13,
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              border: `1.5px solid ${showDetail ? PRIMARY : '#e0e0e0'}`,
+              backgroundColor: showDetail ? `${PRIMARY}15` : 'transparent',
+              color: showDetail ? PRIMARY : '#aaa',
+              transition: 'all 0.15s',
+            }}
+          >
+            {showDetail ? '원리 닫기' : '뜻 · 원리 보기'}
+          </button>
         </div>
-        <BreakdownTable breakdown={breakdown} />
-        <BreakdownCards breakdown={breakdown} />
+        <BreakdownTable breakdown={breakdown} showDetail={showDetail} />
+        <BreakdownCards breakdown={breakdown} showDetail={showDetail} />
       </div>
 
       {/* ── 저장 버튼 */}

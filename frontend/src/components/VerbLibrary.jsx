@@ -43,8 +43,7 @@ export default function VerbLibrary() {
       }}>
         <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>📖</span>
         <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
-          현대 일본어 균형 말뭉치 <strong style={{ color: '#555' }}>BCCWJ (2011)</strong> 기준 사용 빈도 상위 50개 동사입니다.
-          소설·신문뿐 아니라 온라인 포럼, TV 자막 등 다양한 텍스트를 균형 있게 반영한 코퍼스입니다.
+          일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 50개 동사입니다. <span style={{ color: '#aaa' }}>(BCCWJ, 2011)</span>
         </p>
       </div>
 

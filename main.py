@@ -139,7 +139,9 @@ class SavedResult(Base):
     result_json = Column(Text, nullable=False)
     created_at  = Column(DateTime, default=datetime.datetime.utcnow)
 
-engine       = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# SQLite는 check_same_thread 필요, PostgreSQL은 불필요
+_connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base.metadata.create_all(bind=engine)
 

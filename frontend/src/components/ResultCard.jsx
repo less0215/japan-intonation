@@ -70,7 +70,7 @@ function SaveButton({ onSave, saved }) {
   )
 }
 
-export default function ResultCard({ data, onSave, saved }) {
+export default function ResultCard({ data, onSave, saved, inputText }) {
   const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = data
 
   const [gender, setGender]         = useState('female')
@@ -113,16 +113,22 @@ export default function ResultCard({ data, onSave, saved }) {
   return (
     <div className="card">
 
-      {/* 섹션 1: 일본어 + 발음 */}
+      {/* 섹션 1: 한국어 입력 → 일본어 → 발음 */}
       <div className="section">
         <div className="section-header">
-          <span className="section-label">일본어</span>
+          {/* 한국어 입력문 — 프라이머리 컬러 */}
+          {inputText && (
+            <span style={{ fontSize: 13, fontWeight: 700, color: PRIMARY, flex: 1, minWidth: 0, wordBreak: 'break-all' }}>
+              {inputText}
+            </span>
+          )}
           <div className="header-actions">
             <CopyButton getText={() => furigana_html} />
             <GenderToggle gender={gender} onChange={handleGenderChange} />
             <PlayButton audioState={audioState} onToggle={handlePlayToggle} />
           </div>
         </div>
+        {/* 일본어 */}
         <p className="japanese-text">
           {segments.map((seg, i) =>
             seg.type === 'ruby' ? (
@@ -130,6 +136,7 @@ export default function ResultCard({ data, onSave, saved }) {
             ) : <span key={i}>{seg.content}</span>
           )}
         </p>
+        {/* 한국어 발음 */}
         <p className="pronunciation-text">{korean_pronunciation}</p>
       </div>
 

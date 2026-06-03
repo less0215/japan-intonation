@@ -81,6 +81,63 @@ function btnStyle(color, bg, border) {
   }
 }
 
+/* 漢字(よみ) → 純한자가나 (TTS에 넘길 텍스트에서 루비 제거) */
+const stripFurigana = (text) => text.replace(/\([^)）]+\)/g, '')
+
+/* 활용형 TTS 버튼 — 작은 원형 스피커 */
+function FormTTSButton({ text }) {
+  const [state, setState] = useState('idle')
+  const audioRef = useRef(null)
+
+  async function handlePlay() {
+    if (state === 'playing') {
+      audioRef.current?.pause(); audioRef.current = null; setState('idle'); return
+    }
+    if (state === 'loading') return
+    setState('loading')
+    try {
+      const res = await fetch(`${API_URL}/tts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: stripFurigana(text), gender: 'female' }),
+      })
+      if (!res.ok) throw new Error()
+      const blob  = await res.blob()
+      const url   = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => { setState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      audio.onerror = () => { setState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      await audio.play()
+      setState('playing')
+    } catch { setState('idle') }
+  }
+
+  return (
+    <button
+      onClick={handlePlay}
+      title={state === 'playing' ? '정지' : '발음 듣기'}
+      style={{
+        width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        border: `1px solid ${state === 'playing' ? PRIMARY : '#e0e0e0'}`,
+        backgroundColor: state === 'playing' ? `${PRIMARY}18` : 'transparent',
+        cursor: 'pointer',
+      }}
+    >
+      {state === 'loading' ? (
+        <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+      ) : state === 'playing' ? (
+        <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      ) : (
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb" stroke="none"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+      )}
+    </button>
+  )
+}
+
 /* 후리가나 형식 "漢字(よみ)" 파싱 → span 렌더링 */
 function RubyText({ text }) {
   const regex = /([^\s()（）]+?)\(([^)）]+)\)/g
@@ -249,16 +306,17 @@ function ConjSection({ title, titleJp, rows }) {
       </div>
       <div style={styles.tableWrap}>
         {/* 헤더 */}
-        <div style={{ ...styles.tableRow, backgroundColor: '#f7f7f7' }}>
+        <div style={{ ...styles.tableRow, gridTemplateColumns: '1fr 2fr 26px', backgroundColor: '#f7f7f7' }}>
           <span style={styles.headerCell}>구분</span>
           <span style={styles.headerCell}>표현</span>
+          <span />
         </div>
         {rows.map((row, i) => (
           <div key={i} style={{
             ...styles.tableRow,
+            gridTemplateColumns: '1fr 2fr 26px',
             borderTop: '1px solid #f0f0f0',
             backgroundColor: i % 2 === 1 ? '#fafafa' : 'transparent',
-            // 현재·과거 그룹 사이 시각적 구분
             ...(i === 4 ? { borderTop: '2px solid #e8e8e8' } : {}),
           }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>
@@ -269,6 +327,7 @@ function ConjSection({ title, titleJp, rows }) {
               <RubyText text={row.text} />
               <span style={styles.readingForm}>{row.ruby}</span>
             </div>
+            <FormTTSButton text={row.text} />
           </div>
         ))}
       </div>
@@ -384,9 +443,9 @@ export default function VerbDetail({ verb, onBack }) {
             {/* ① 텍스트 + 버튼 — 좌우 padding */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '14px 16px 0' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 13, color: '#888' }}>{ex.korean}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: PRIMARY }}>{ex.korean}</span>
                 <RubyText text={ex.japanese} />
-                <span style={{ fontSize: 12, color: '#5CA9CE' }}>{ex.reading}</span>
+                <span style={{ fontSize: 12, color: '#888' }}>{ex.reading}</span>
                 {ex.pattern && <PatternBadge pattern={ex.pattern} />}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>

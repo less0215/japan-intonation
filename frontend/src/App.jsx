@@ -234,7 +234,7 @@ export default function App() {
                 </div>
               )}
               {result && (
-                <ResultCard data={result} onSave={handleSave} saved={saved} />
+                <ResultCard data={result} onSave={handleSave} saved={saved} inputText={inputText} />
               )}
             </>
           } />

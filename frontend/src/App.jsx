@@ -3,10 +3,12 @@ import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
 import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
+import VerbLibrary from './components/VerbLibrary'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 
 export default function App() {
+  const [tab, setTab]                  = useState('translate') // 'translate' | 'verbs'
   const [loading, setLoading]         = useState(false)
   const [result, setResult]           = useState(null)
   const [inputText, setInputText]     = useState('')   // 현재 변환한 한국어 원문
@@ -114,7 +116,7 @@ export default function App() {
   const hasContent = loading || error || result
 
   return (
-    <div className={hasContent ? 'page' : 'page page--center'}>
+    <div className={hasContent || tab === 'verbs' ? 'page' : 'page page--center'}>
       <div className="container">
 
         {/* 앱 헤더 */}
@@ -125,7 +127,7 @@ export default function App() {
               일본어 변환기
             </span>
           </h1>
-          {user && (
+          {user && tab === 'translate' && (
             <button className="history-btn" onClick={() => setShowHistory(true)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -136,21 +138,56 @@ export default function App() {
           )}
         </div>
 
-        <SearchBar onAnalyze={handleAnalyze} loading={loading} />
+        {/* 탭 네비게이션 */}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[
+            { id: 'translate', label: '변환기' },
+            { id: 'verbs',     label: '동사 학습' },
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                height: 36,
+                padding: '0 16px',
+                borderRadius: 20,
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                border: 'none',
+                backgroundColor: tab === t.id ? '#111111' : '#f0f0f0',
+                color:           tab === t.id ? '#ffffff' : '#666666',
+                transition: 'all 0.15s',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-        {error   && <div className="error-box">{error}</div>}
-        {loading && (
-          <div className="loading-box">
-            <span className="spinner" style={{ borderColor: 'rgba(92,169,206,0.3)', borderTopColor: '#5CA9CE' }} />
-            <span className="loading-text">번역 및 악센트 분석 중...</span>
-          </div>
-        )}
-        {result && (
-          <ResultCard
-            data={result}
-            onSave={handleSave}
-            saved={saved}
-          />
+        {/* 동사 학습 탭 */}
+        {tab === 'verbs' && <VerbLibrary />}
+
+        {/* 변환기 탭 */}
+        {tab === 'translate' && (
+          <>
+            <SearchBar onAnalyze={handleAnalyze} loading={loading} />
+            {error   && <div className="error-box">{error}</div>}
+            {loading && (
+              <div className="loading-box">
+                <span className="spinner" style={{ borderColor: 'rgba(92,169,206,0.3)', borderTopColor: '#5CA9CE' }} />
+                <span className="loading-text">번역 및 악센트 분석 중...</span>
+              </div>
+            )}
+            {result && (
+              <ResultCard
+                data={result}
+                onSave={handleSave}
+                saved={saved}
+              />
+            )}
+          </>
         )}
 
       </div>

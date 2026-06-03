@@ -484,12 +484,12 @@ body {
 .modal-sheet {
   background: #ffffff;
   border-radius: 20px 20px 0 0;
-  padding: 28px 24px 40px;
+  padding: 20px 24px 44px;
   width: 100%;
   max-width: 500px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .modal-handle {
@@ -497,20 +497,20 @@ body {
   height: 4px;
   background: #e0e0e0;
   border-radius: 2px;
-  margin: 0 auto -4px;
+  margin: 0 auto 4px;
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   color: #111111;
+  margin-bottom: 6px;
 }
 
 .modal-subtitle {
   font-size: 13px;
-  color: #888888;
-  margin-top: -8px;
-  line-height: 1.5;
+  color: #aaaaaa;
+  line-height: 1.6;
 }
 
 .modal-input {

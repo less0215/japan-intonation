@@ -42,7 +42,7 @@ app.add_middleware(
 # 상수
 # ──────────────────────────────────────────────
 
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 # Gemini에게 전달할 번역 프롬프트
 # — 순수 JSON만 반환하도록 명시 (마크다운 코드블록 금지)
@@ -224,24 +224,26 @@ def translate_korean_to_japanese(korean_text: str) -> dict:
     # 503 등 일시적 오류 시 최대 3회 재시도 (1초 간격)
     import time
     last_error = None
-    for attempt in range(3):
+    for attempt in range(2):  # 최대 1회 재시도 (서버 부하 방지)
         try:
             response = client.models.generate_content(
                 model=GEMINI_MODEL,
                 contents=full_prompt,
             )
-            break  # 성공 시 루프 탈출
+            break
         except Exception as e:
             last_error = e
             err_str = str(e)
-            # 일시적 서버 오류(503/429)면 재시도, 그 외엔 즉시 실패
-            if "503" in err_str or "429" in err_str or "UNAVAILABLE" in err_str:
-                print(f"[Gemini 재시도 {attempt + 1}/3] {err_str[:80]}")
-                time.sleep(5)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                # 쿼터 초과 — 재시도 없이 즉시 안내
+                raise HTTPException(status_code=429, detail="번역 서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.")
+            elif "503" in err_str or "UNAVAILABLE" in err_str:
+                print(f"[Gemini 재시도 {attempt + 1}/2] {err_str[:80]}")
+                time.sleep(1)
             else:
                 raise HTTPException(status_code=502, detail=f"Gemini API 오류: {err_str}")
     else:
-        raise HTTPException(status_code=503, detail=f"Gemini 서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
+        raise HTTPException(status_code=503, detail="Gemini 서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
 
     # 응답 텍스트 추출
     raw = response.text.strip() if response.text else ""

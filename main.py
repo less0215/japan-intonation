@@ -22,10 +22,11 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# CORS 설정 — Vite 개발 서버(5173) + React 기본(3000) 모두 허용
+# CORS 설정 — Vercel 프로덕션 + 로컬 개발 서버 모두 허용
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://japan-intonation.vercel.app",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",

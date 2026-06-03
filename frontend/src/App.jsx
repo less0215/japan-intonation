@@ -154,7 +154,7 @@ export default function App() {
   const isVerbsTab = tab === 'verbs'
 
   return (
-    <div className={hasContent || isVerbsTab || (!isVerbsTab && dailyVerb) ? 'page' : 'page page--center'}>
+    <div className={hasContent || isVerbsTab ? 'page' : 'page page--center'}>
       <div className="container">
 
         {/* 앱 헤더 */}

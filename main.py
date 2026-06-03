@@ -1,8 +1,12 @@
 import datetime
+import hashlib
+import hmac
 import io
 import json
 import os
+import random
 import re
+import uuid
 
 import requests
 from bs4 import BeautifulSoup
@@ -38,7 +42,7 @@ app.add_middleware(
 # 상수
 # ──────────────────────────────────────────────
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-2.0-flash"
 
 # Gemini에게 전달할 번역 프롬프트
 # — 순수 JSON만 반환하도록 명시 (마크다운 코드블록 금지)
@@ -111,6 +115,10 @@ TTS_VOICE_MAP = {
     "male":   "ja-JP-Wavenet-D",
 }
 
+# ── SMS 인증번호 임시 저장 (메모리 캐시, 5분 유효)
+# 키: 전화번호, 값: {code, expires_at}
+_sms_codes: dict[str, dict] = {}
+
 # TTS 메모리 캐시 — 키: "{text}_{gender}", 값: mp3 바이너리
 # 서버 재시작 시 초기화됨
 _tts_cache: dict[str, bytes] = {}
@@ -167,6 +175,14 @@ class TTSRequest(BaseModel):
     text: str
     gender: str  # "female" | "male"
 
+class SendCodeRequest(BaseModel):
+    phone: str
+
+class VerifyCodeRequest(BaseModel):
+    name: str
+    phone: str
+    code: str
+
 class SignupRequest(BaseModel):
     name: str
     phone: str
@@ -221,7 +237,7 @@ def translate_korean_to_japanese(korean_text: str) -> dict:
             # 일시적 서버 오류(503/429)면 재시도, 그 외엔 즉시 실패
             if "503" in err_str or "429" in err_str or "UNAVAILABLE" in err_str:
                 print(f"[Gemini 재시도 {attempt + 1}/3] {err_str[:80]}")
-                time.sleep(1)
+                time.sleep(5)
             else:
                 raise HTTPException(status_code=502, detail=f"Gemini API 오류: {err_str}")
     else:
@@ -508,5 +524,101 @@ def delete_save(save_id: int, user_id: int):
         db.delete(row)
         db.commit()
         return {"message": "삭제되었습니다."}
+    finally:
+        db.close()
+
+
+# ──────────────────────────────────────────────
+# 솔라API(CoolSMS) SMS 인증
+# ──────────────────────────────────────────────
+
+def _coolsms_auth_header() -> str:
+    """솔라API HMAC-SHA256 인증 헤더 생성."""
+    api_key    = os.environ.get("COOLSMS_API_KEY", "")
+    api_secret = os.environ.get("COOLSMS_API_SECRET", "")
+    date  = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    salt  = uuid.uuid4().hex
+    sig   = hmac.new(
+        api_secret.encode("utf-8"),
+        (date + salt).encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return f"HMAC-SHA256 ApiKey={api_key}, Date={date}, Salt={salt}, Signature={sig}"
+
+
+@app.post("/auth/send-code")
+def send_code(req: SendCodeRequest):
+    """6자리 인증번호를 생성해 SMS로 발송한다."""
+    phone = req.phone.strip().replace("-", "")
+    if len(phone) < 10:
+        raise HTTPException(status_code=400, detail="올바른 휴대폰 번호를 입력해 주세요.")
+
+    api_key    = os.environ.get("COOLSMS_API_KEY")
+    sender     = os.environ.get("COOLSMS_SENDER")
+    if not api_key or not sender:
+        raise HTTPException(status_code=500, detail="SMS 설정이 되어 있지 않습니다.")
+
+    # 6자리 인증번호 생성
+    code = str(random.randint(100000, 999999))
+
+    # 메모리에 저장 (5분 유효)
+    _sms_codes[phone] = {
+        "code": code,
+        "expires_at": datetime.datetime.utcnow() + datetime.timedelta(minutes=5),
+    }
+
+    # 솔라API 문자 발송
+    try:
+        res = requests.post(
+            "https://api.coolsms.co.kr/messages/v4/send",
+            headers={
+                "Authorization": _coolsms_auth_header(),
+                "Content-Type": "application/json",
+            },
+            json={
+                "message": {
+                    "to": phone,
+                    "from": sender,
+                    "text": f"[틱재팬] 인증번호: {code}",
+                }
+            },
+            timeout=10,
+        )
+        if not res.ok:
+            raise HTTPException(status_code=502, detail=f"SMS 발송 실패: {res.text}")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"SMS 서버 연결 오류: {str(e)}")
+
+    return {"message": "인증번호가 발송되었습니다."}
+
+
+@app.post("/auth/verify-code", response_model=SignupResponse)
+def verify_code(req: VerifyCodeRequest):
+    """인증번호 확인 후 가입/로그인 처리."""
+    phone = req.phone.strip().replace("-", "")
+
+    entry = _sms_codes.get(phone)
+    if not entry:
+        raise HTTPException(status_code=400, detail="인증번호를 먼저 발송해 주세요.")
+    if datetime.datetime.utcnow() > entry["expires_at"]:
+        del _sms_codes[phone]
+        raise HTTPException(status_code=400, detail="인증번호가 만료되었습니다. 다시 발송해 주세요.")
+    if entry["code"] != req.code.strip():
+        raise HTTPException(status_code=400, detail="인증번호가 올바르지 않습니다.")
+
+    # 인증 성공 → 코드 삭제
+    del _sms_codes[phone]
+
+    # 기존 사용자면 로그인, 없으면 가입
+    db = SessionLocal()
+    try:
+        existing = db.query(User).filter(User.phone == phone).first()
+        if existing:
+            return SignupResponse(user_id=existing.id, name=existing.name, is_new=False)
+        new_user = User(name=req.name.strip(), phone=phone)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True)
     finally:
         db.close()

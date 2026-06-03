@@ -1,3 +1,4 @@
+import datetime
 import io
 import json
 import os
@@ -12,6 +13,8 @@ from google import genai
 from google.api_core.client_options import ClientOptions
 from google.cloud import texttospeech
 from pydantic import BaseModel
+from sqlalchemy import Column, DateTime, Integer, String, Text, create_engine
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 # ──────────────────────────────────────────────
 # FastAPI 앱 초기화
@@ -113,6 +116,34 @@ TTS_VOICE_MAP = {
 _tts_cache: dict[str, bytes] = {}
 
 # ──────────────────────────────────────────────
+# DB 설정 (SQLite)
+# ──────────────────────────────────────────────
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./tickjapan.db")
+
+class Base(DeclarativeBase):
+    pass
+
+class User(Base):
+    __tablename__ = "users"
+    id         = Column(Integer, primary_key=True, index=True)
+    name       = Column(String(100), nullable=False)
+    phone      = Column(String(20), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class SavedResult(Base):
+    __tablename__ = "saved_results"
+    id          = Column(Integer, primary_key=True, index=True)
+    user_id     = Column(Integer, nullable=False, index=True)
+    input_text  = Column(String(500), nullable=False)
+    result_json = Column(Text, nullable=False)
+    created_at  = Column(DateTime, default=datetime.datetime.utcnow)
+
+engine       = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+Base.metadata.create_all(bind=engine)
+
+# ──────────────────────────────────────────────
 # Pydantic 스키마
 # ──────────────────────────────────────────────
 
@@ -133,6 +164,20 @@ class BreakdownEntry(BaseModel):
 class TTSRequest(BaseModel):
     text: str
     gender: str  # "female" | "male"
+
+class SignupRequest(BaseModel):
+    name: str
+    phone: str
+
+class SignupResponse(BaseModel):
+    user_id: int
+    name: str
+    is_new: bool   # True=신규, False=기존 사용자 로그인
+
+class SaveRequest(BaseModel):
+    user_id: int
+    input_text: str
+    result: dict
 
 class AnalyzeResponse(BaseModel):
     japanese: str
@@ -366,3 +411,100 @@ def tts(req: TTSRequest):
         media_type="audio/mpeg",
         headers={"Content-Disposition": "inline; filename=speech.mp3"},
     )
+
+
+# ──────────────────────────────────────────────
+# 회원가입 / 로그인 (이름 + 휴대폰)
+# ──────────────────────────────────────────────
+
+@app.post("/auth/signup", response_model=SignupResponse)
+def signup(req: SignupRequest):
+    """이름 + 휴대폰으로 가입. 이미 존재하면 로그인 처리."""
+    if not req.name.strip() or not req.phone.strip():
+        raise HTTPException(status_code=400, detail="이름과 휴대폰 번호를 입력해 주세요.")
+
+    db = SessionLocal()
+    try:
+        existing = db.query(User).filter(User.phone == req.phone).first()
+        if existing:
+            # 기존 사용자 → 로그인
+            return SignupResponse(user_id=existing.id, name=existing.name, is_new=False)
+        # 신규 사용자 생성
+        new_user = User(name=req.name.strip(), phone=req.phone.strip())
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True)
+    finally:
+        db.close()
+
+
+# ──────────────────────────────────────────────
+# 결과 저장 / 조회 / 삭제
+# ──────────────────────────────────────────────
+
+@app.post("/saves")
+def save_result(req: SaveRequest):
+    """변환 결과를 저장한다."""
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == req.user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        saved = SavedResult(
+            user_id=req.user_id,
+            input_text=req.input_text,
+            result_json=json.dumps(req.result, ensure_ascii=False),
+        )
+        db.add(saved)
+        db.commit()
+        db.refresh(saved)
+        return {"id": saved.id}
+    finally:
+        db.close()
+
+
+@app.get("/saves/{user_id}")
+def get_saves(user_id: int):
+    """저장된 결과 목록을 반환한다."""
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        rows = (
+            db.query(SavedResult)
+            .filter(SavedResult.user_id == user_id)
+            .order_by(SavedResult.created_at.desc())
+            .all()
+        )
+        return [
+            {
+                "id": r.id,
+                "input_text": r.input_text,
+                "japanese": json.loads(r.result_json).get("japanese", ""),
+                "result": json.loads(r.result_json),
+                "created_at": r.created_at.isoformat(),
+            }
+            for r in rows
+        ]
+    finally:
+        db.close()
+
+
+@app.delete("/saves/{save_id}")
+def delete_save(save_id: int, user_id: int):
+    """저장된 결과를 삭제한다."""
+    db = SessionLocal()
+    try:
+        row = db.query(SavedResult).filter(
+            SavedResult.id == save_id,
+            SavedResult.user_id == user_id,
+        ).first()
+        if not row:
+            raise HTTPException(status_code=404, detail="항목을 찾을 수 없습니다.")
+        db.delete(row)
+        db.commit()
+        return {"message": "삭제되었습니다."}
+    finally:
+        db.close()

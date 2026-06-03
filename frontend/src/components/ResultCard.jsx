@@ -118,8 +118,33 @@ function BreakdownCards({ breakdown }) {
   )
 }
 
+/* ── 저장 버튼 */
+function SaveButton({ onSave, saved }) {
+  return (
+    <button
+      className={`save-btn ${saved ? 'save-btn--saved' : ''}`}
+      onClick={onSave}
+      disabled={saved}
+    >
+      {saved ? (
+        <>✓ 저장됨</>
+      ) : (
+        <>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          저장하기
+        </>
+      )}
+    </button>
+  )
+}
+
 /* ── 메인 컴포넌트 */
-export default function ResultCard({ data }) {
+export default function ResultCard({ data, onSave, saved }) {
   const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = data
 
   const [gender, setGender]       = useState('female')
@@ -215,6 +240,11 @@ export default function ResultCard({ data }) {
         {/* 데스크탑: 테이블 / 모바일: 카드 (CSS로 전환) */}
         <BreakdownTable breakdown={breakdown} />
         <BreakdownCards breakdown={breakdown} />
+      </div>
+
+      {/* ── 저장 버튼 */}
+      <div style={{ padding: '0 16px 18px' }}>
+        <SaveButton onSave={onSave} saved={saved} />
       </div>
 
     </div>

@@ -3,7 +3,7 @@ import PitchGraph from './PitchGraph'
 import CopyButton from './CopyButton'
 
 const PRIMARY    = '#5CA9CE'
-const API_URL    = 'http://localhost:8000'
+const API_URL    = 'https://japan-intonation-production.up.railway.app'
 
 /* ── 유틸: furigana_html 문자열 파싱
  * 입력: "日本語(にほんご)を勉強(べんきょう)しています"

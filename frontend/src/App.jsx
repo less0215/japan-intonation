@@ -2,7 +2,7 @@ import { useState } from 'react'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = 'https://japan-intonation-production.up.railway.app'
 
 export default function App() {
   const [loading, setLoading]   = useState(false)

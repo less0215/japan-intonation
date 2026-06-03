@@ -1,0 +1,16 @@
+# 환경변수
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store
+
+# 빌드 결과물
+dist/
+build/

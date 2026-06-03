@@ -265,9 +265,9 @@ function ConjSection({ title, titleJp, rows }) {
               {CONJ_LABELS[i]}
             </span>
             <div style={styles.formCell}>
-              <span style={styles.japaneseForm}>{row.text}</span>
-              <span style={styles.readingForm}>{row.ruby}</span>
               <span style={styles.meaningForm}>{row.meaning}</span>
+              <RubyText text={row.text} />
+              <span style={styles.readingForm}>{row.ruby}</span>
             </div>
           </div>
         ))}
@@ -492,20 +492,15 @@ const styles = {
     flexDirection: 'column',
     gap: 2,
   },
-  japaneseForm: {
-    fontSize: 16,
-    fontWeight: 500,
-    fontFamily: "'Noto Sans JP', sans-serif",
-    color: '#111',
-  },
   readingForm: {
     fontSize: 12,
-    color: PRIMARY,
-    fontWeight: 500,
+    color: '#888',
+    fontWeight: 400,
   },
   meaningForm: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: 13,
+    color: PRIMARY,
+    fontWeight: 700,
   },
   sectionTitle: {
     fontSize: 15,

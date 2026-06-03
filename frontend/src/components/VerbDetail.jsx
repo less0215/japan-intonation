@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
+import SignupModal from './SignupModal'
+import { useUser } from '../context/UserContext'
 
-const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
 
 /* 후리가나 형식 "漢字(よみ)" 파싱 → span 렌더링 */
@@ -30,6 +31,57 @@ function RubyText({ text }) {
         )
       )}
     </span>
+  )
+}
+
+/* 예문 저장 버튼 */
+function SaveExampleButton({ example, onNeedSignup }) {
+  const { user, saveResult } = useUser()
+  const [state, setState] = useState('idle') // idle | saving | saved
+
+  async function handleSave() {
+    if (state === 'saved') return
+
+    // 저장할 result 포맷 — HistoryDrawer가 읽는 구조에 맞춤
+    const result = {
+      japanese:             example.japanese,
+      furigana:             example.furigana ?? '',
+      korean_pronunciation: example.reading,
+      furigana_html:        example.japanese,
+      accent_data:          (example.accentData ?? []).map((p, i) => ({
+        phrase_id:  String(p.phrase_id ?? i),
+        mora_count: p.mora_count,
+        accent:     p.accent,
+      })),
+      breakdown: [],
+    }
+
+    if (!user) {
+      // 비로그인 → 부모가 모달 띄우고 완료되면 저장 처리
+      onNeedSignup(result)
+      return
+    }
+
+    setState('saving')
+    try {
+      await saveResult(user, example.korean, result)
+      setState('saved')
+    } catch {
+      setState('idle')
+    }
+  }
+
+  return (
+    <button onClick={handleSave} style={{
+      ...styles.saveBtn,
+      backgroundColor: state === 'saved' ? '#e6f7ee' : '#f7f7f7',
+      color:           state === 'saved' ? '#38a169' : '#666',
+      border:          state === 'saved' ? '1.5px solid #9ae6b4' : '1.5px solid #e8e8e8',
+    }}>
+      {state === 'saving' ? (
+        <span className="spinner" style={{ width: 11, height: 11, borderTopColor: '#666', borderColor: 'rgba(0,0,0,0.15)' }} />
+      ) : state === 'saved' ? '✓ 저장됨' : '저장하기'}
+    </button>
   )
 }
 
@@ -121,7 +173,27 @@ function FormTable({ form }) {
 
 /* 메인 컴포넌트 */
 export default function VerbDetail({ verb, onBack }) {
+  const { setUser, saveResult } = useUser()
+  // 비로그인 저장 시도 시: 저장할 result를 임시 보관하고 모달 표시
+  const [pendingSave, setPendingSave] = useState(null) // { inputText, result }
+  const [showSignup,  setShowSignup]  = useState(false)
+
+  function handleNeedSignup(inputText, result) {
+    setPendingSave({ inputText, result })
+    setShowSignup(true)
+  }
+
+  async function handleSignupSuccess(newUser) {
+    setUser(newUser)
+    setShowSignup(false)
+    if (pendingSave) {
+      try { await saveResult(newUser, pendingSave.inputText, pendingSave.result) } catch { /* 무시 */ }
+      setPendingSave(null)
+    }
+  }
+
   return (
+    <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* 뒤로가기 + 제목 */}
@@ -154,14 +226,20 @@ export default function VerbDetail({ verb, onBack }) {
         <p style={styles.sectionTitle}>예문</p>
         {verb.examples.map((ex, i) => (
           <div key={i} style={styles.exampleCard}>
-            {/* 텍스트 + 버튼 행 */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            {/* 텍스트 + 버튼들 행 */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: 13, color: '#888' }}>{ex.korean}</span>
                 <RubyText text={ex.japanese} />
                 <span style={{ fontSize: 12, color: '#5CA9CE' }}>{ex.reading}</span>
               </div>
-              <PracticeButton japanesePlain={ex.plain} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                <PracticeButton japanesePlain={ex.plain} />
+                <SaveExampleButton
+                  example={ex}
+                  onNeedSignup={(result) => handleNeedSignup(ex.korean, result)}
+                />
+              </div>
             </div>
             {/* 억양 그래프 — 전체 너비 사용 */}
             {ex.accentData && ex.furigana && (
@@ -175,6 +253,15 @@ export default function VerbDetail({ verb, onBack }) {
       )}
 
     </div>
+
+    {/* 회원가입 / 로그인 모달 */}
+    {showSignup && (
+      <SignupModal
+        onSuccess={handleSignupSuccess}
+        onClose={() => { setShowSignup(false); setPendingSave(null) }}
+      />
+    )}
+  </>
   )
 }
 
@@ -265,7 +352,6 @@ const styles = {
     gap: 0,
   },
   practiceBtn: {
-    flexShrink: 0,
     height: 36,
     padding: '0 14px',
     backgroundColor: PRIMARY,
@@ -278,7 +364,22 @@ const styles = {
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 4,
     whiteSpace: 'nowrap',
+  },
+  saveBtn: {
+    height: 32,
+    padding: '0 12px',
+    borderRadius: 8,
+    fontSize: 12,
+    fontWeight: 600,
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    whiteSpace: 'nowrap',
+    transition: 'all 0.15s',
   },
 }

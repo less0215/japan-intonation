@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
@@ -6,12 +6,14 @@ import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
+import { useUser } from './context/UserContext'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 
 export default function App() {
   const location  = useLocation()
   const navigate  = useNavigate()
+  const { user, setUser, saveResult } = useUser()
 
   // 현재 탭: /verbs로 시작하면 'verbs', 아니면 'translate'
   const tab = location.pathname.startsWith('/verbs') ? 'verbs' : 'translate'
@@ -24,15 +26,6 @@ export default function App() {
   const [saved, setSaved]             = useState(false)
   const [showSignup, setShowSignup]   = useState(false)
   const [showHistory, setShowHistory] = useState(false)
-
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tickjapan_user')) } catch { return null }
-  })
-
-  useEffect(() => {
-    if (user) localStorage.setItem('tickjapan_user', JSON.stringify(user))
-    else      localStorage.removeItem('tickjapan_user')
-  }, [user])
 
   async function handleAnalyze(text) {
     setLoading(true)
@@ -82,12 +75,7 @@ export default function App() {
 
   async function doSave(currentUser) {
     try {
-      const res = await fetch(`${API_URL}/saves`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: currentUser.user_id, input_text: inputText, result }),
-      })
-      if (!res.ok) throw new Error()
+      await saveResult(currentUser, inputText, result)
       setSaved(true)
     } catch { /* 실패 시 무시 */ }
   }

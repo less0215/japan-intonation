@@ -44,6 +44,18 @@ app.add_middleware(
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
+# Gemini 클라이언트 — 요청마다 재생성하지 않고 앱 시작 시 1회 초기화
+_gemini_client: genai.Client | None = None
+
+def get_gemini_client() -> genai.Client:
+    global _gemini_client
+    if _gemini_client is None:
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY 환경변수가 설정되지 않았습니다.")
+        _gemini_client = genai.Client(api_key=api_key)
+    return _gemini_client
+
 # Gemini에게 전달할 번역 프롬프트
 # — 순수 JSON만 반환하도록 명시 (마크다운 코드블록 금지)
 TRANSLATION_PROMPT = """You are a Korean-to-Japanese translation expert.
@@ -122,6 +134,10 @@ _sms_codes: dict[str, dict] = {}
 # TTS 메모리 캐시 — 키: "{text}_{gender}", 값: mp3 바이너리
 # 서버 재시작 시 초기화됨
 _tts_cache: dict[str, bytes] = {}
+
+# 번역 결과 캐시 — 키: 한국어 원문, 값: AnalyzeResponse dict
+# 동일 문장을 반복 변환할 때 Gemini + OJAD 호출을 생략
+_analyze_cache: dict[str, dict] = {}
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)
@@ -211,24 +227,25 @@ class AnalyzeResponse(BaseModel):
 
 def translate_korean_to_japanese(korean_text: str) -> dict:
     """한국어 문장을 Gemini API로 번역하여 구조화된 데이터를 반환한다."""
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY 환경변수가 설정되지 않았습니다.")
+    import time
 
-    # Gemini 클라이언트 초기화
-    client = genai.Client(api_key=api_key)
+    client = get_gemini_client()
 
     # 시스템 프롬프트 + 사용자 입력을 하나의 메시지로 조합
     full_prompt = f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}"
 
-    # 503 등 일시적 오류 시 최대 3회 재시도 (1초 간격)
-    import time
+    # thinking_budget=0 으로 추론 단계를 생략 → 응답 속도 대폭 향상
+    gen_config = genai.types.GenerateContentConfig(
+        thinking_config=genai.types.ThinkingConfig(thinking_budget=0)
+    )
+
     last_error = None
     for attempt in range(2):  # 최대 1회 재시도 (서버 부하 방지)
         try:
             response = client.models.generate_content(
                 model=GEMINI_MODEL,
                 contents=full_prompt,
+                config=gen_config,
             )
             break
         except Exception as e:
@@ -344,19 +361,28 @@ def analyze(req: AnalyzeRequest):
     """
     한국어 문장을 받아 일본어 번역 + OJAD 악센트 배열을 반환한다.
 
-    1. Gemini API로 한국어 → 일본어 번역 + breakdown 생성
-    2. 번역 결과를 OJAD에 보내 악센트 배열 파싱
+    1. 캐시 조회 — 동일 문장은 즉시 반환
+    2. Gemini API로 한국어 → 일본어 번역 + breakdown 생성 (thinking 비활성화)
+    3. 번역 결과를 OJAD에 보내 악센트 배열 파싱
     """
-    if not req.text.strip():
+    text = req.text.strip()
+    if not text:
         raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
 
+    # ── 캐시 조회 ──────────────────────────────
+    if text in _analyze_cache:
+        print(f"[Analyze 캐시 HIT] {text[:40]!r}")
+        cached = _analyze_cache[text]
+        return AnalyzeResponse(**cached)
+    # ───────────────────────────────────────────
+
     # 1단계: 한국어 → 일본어 번역 (Gemini)
-    translation = translate_korean_to_japanese(req.text)
+    translation = translate_korean_to_japanese(text)
 
     # 2단계: OJAD 악센트 파싱
     accent_data = fetch_accent_data(translation["ojad_input"])
 
-    return AnalyzeResponse(
+    result = AnalyzeResponse(
         japanese=translation["japanese"],
         furigana=translation["furigana"],
         korean_pronunciation=translation["korean_pronunciation"],
@@ -364,6 +390,15 @@ def analyze(req: AnalyzeRequest):
         accent_data=[AccentEntry(**entry) for entry in accent_data],
         breakdown=[BreakdownEntry(**entry) for entry in translation["breakdown"]],
     )
+
+    # 결과를 캐시에 저장 (최대 500개, 초과 시 오래된 항목 제거)
+    if len(_analyze_cache) >= 500:
+        oldest_key = next(iter(_analyze_cache))
+        del _analyze_cache[oldest_key]
+    _analyze_cache[text] = result.model_dump()
+    print(f"[Analyze 캐시 저장] {text[:40]!r}")
+
+    return result
 
 
 @app.post("/tts")

@@ -5,7 +5,7 @@ const GRAPH_BTM = 82
 const LABEL_Y   = 100
 const SVG_H     = 115
 const MORA_W    = 40
-const PAD       = 8   // SVG 좌우 여백 — 원 테두리 잘림 방지
+const PAD       = 8
 
 /* 히라가나 문자열을 모라 배열로 분리 */
 function splitMora(hiragana) {
@@ -26,14 +26,14 @@ function splitMora(hiragana) {
   return mora
 }
 
-/* accent 배열 → SVG cubic bezier 경로 */
+/* accent 배열 → SVG cubic bezier 경로 + 변곡점 인덱스 */
 function buildPaths(accent, count) {
   const pts = accent.slice(0, count).map((v, i) => ({
     x: PAD + MORA_W / 2 + i * MORA_W,
     y: v === 0 ? LOW_Y : HIGH_Y,
   }))
 
-  if (pts.length < 2) return { line: '', fill: '', pts }
+  if (pts.length < 2) return { line: '', fill: '', pts, inflections: new Set([0]) }
 
   let line = `M ${pts[0].x} ${pts[0].y}`
   for (let i = 1; i < pts.length; i++) {
@@ -47,13 +47,18 @@ function buildPaths(accent, count) {
   const first = pts[0]
   const fill  = `${line} L ${last.x} ${GRAPH_BTM} L ${first.x} ${GRAPH_BTM} Z`
 
-  return { line, fill, pts }
+  /* 변곡점: 피치가 바뀌는 지점 + 시작 + 끝 */
+  const inflections = new Set([0, count - 1])
+  for (let i = 1; i < count; i++) {
+    if (accent[i] !== accent[i - 1]) {
+      inflections.add(i - 1)
+      inflections.add(i)
+    }
+  }
+
+  return { line, fill, pts, inflections }
 }
 
-/*
- * 호출하는 쪽에서 overflow-x:auto 래퍼를 제공해야 함.
- * 이 컴포넌트 자체는 inline-flex로 자연스러운 너비를 가짐.
- */
 export default function PitchGraph({ accentData, furigana, hideHeader = false }) {
   const allMora = splitMora(furigana)
 
@@ -69,7 +74,7 @@ export default function PitchGraph({ accentData, furigana, hideHeader = false })
         if (count === 0) return null
 
         const svgW = count * MORA_W + PAD * 2
-        const { line, fill, pts } = buildPaths(phrase.accent, count)
+        const { line, fill, pts, inflections } = buildPaths(phrase.accent, count)
 
         return (
           <div key={phrase.phrase_id} style={{ flexShrink: 0 }}>
@@ -79,17 +84,23 @@ export default function PitchGraph({ accentData, furigana, hideHeader = false })
               viewBox={`0 0 ${svgW} ${SVG_H}`}
               style={{ display: 'block' }}
             >
+              {/* 채움 */}
               {fill && (
                 <path d={fill} fill={PRIMARY} fillOpacity={0.08} stroke="none" />
               )}
+              {/* 선 */}
               {line && (
                 <path d={line} fill="none" stroke={PRIMARY} strokeWidth={2.5}
                   strokeLinecap="round" strokeLinejoin="round" />
               )}
-              {pts.map((pt, i) => (
-                <circle key={i} cx={pt.x} cy={pt.y} r={4.5}
-                  fill="#ffffff" stroke={PRIMARY} strokeWidth={2} />
-              ))}
+              {/* 변곡점만 점 표시 */}
+              {pts.map((pt, i) =>
+                inflections.has(i) ? (
+                  <circle key={i} cx={pt.x} cy={pt.y} r={4}
+                    fill="#ffffff" stroke={PRIMARY} strokeWidth={2} />
+                ) : null
+              )}
+              {/* 모라 라벨 */}
               {mora.map((m, i) => (
                 <text
                   key={i}

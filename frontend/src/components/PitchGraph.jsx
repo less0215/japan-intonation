@@ -4,8 +4,8 @@ const LOW_Y     = 68
 const GRAPH_BTM = 82
 const LABEL_Y   = 100
 const SVG_H     = 115
-const MORA_W    = 40
-const PAD       = 8
+const MORA_W    = 34   // 40 → 34: 그래프 컴팩트화, 긴 문장도 카드 안에 들어오도록
+const PAD       = 6
 
 /* 히라가나 문자열을 모라 배열로 분리 */
 function splitMora(hiragana) {

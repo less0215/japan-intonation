@@ -380,13 +380,13 @@ export default function VerbDetail({ verb, onBack }) {
         <p style={styles.sectionTitle}>예문</p>
         {verb.examples.map((ex, i) => (
           <div key={i} style={styles.exampleCard}>
-            {/* 텍스트 + 버튼들 행 */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+
+            {/* ① 텍스트 + 버튼 — 좌우 padding */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '14px 16px 0' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: 13, color: '#888' }}>{ex.korean}</span>
                 <RubyText text={ex.japanese} />
                 <span style={{ fontSize: 12, color: '#5CA9CE' }}>{ex.reading}</span>
-                {/* 문법 패턴 뱃지 */}
                 {ex.pattern && <PatternBadge pattern={ex.pattern} />}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
@@ -397,15 +397,26 @@ export default function VerbDetail({ verb, onBack }) {
                 />
               </div>
             </div>
-            {/* 억양 그래프 — 전체 너비 사용 */}
+
+            {/* ② 억양 그래프 — padding 없이 카드 full-width, overflow-x 스크롤 */}
             {ex.accentData && ex.furigana && (
-              <div style={{ marginTop: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginLeft: -16, marginRight: -16, paddingLeft: 16 }}>
+              <div style={{
+                marginTop: 10,
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                WebkitOverflowScrolling: 'touch',
+                paddingLeft: 16,
+                paddingBottom: 4,
+              }}>
                 <PitchGraph accentData={ex.accentData} furigana={ex.furigana} hideHeader />
               </div>
             )}
 
-            {/* 뜻·원리 보기 */}
-            <ExampleAnalysis koreanText={ex.korean} />
+            {/* ③ 뜻·원리 보기 — 좌우 padding */}
+            <div style={{ padding: '0 16px 14px' }}>
+              <ExampleAnalysis koreanText={ex.korean} />
+            </div>
+
           </div>
         ))}
       </div>
@@ -505,7 +516,8 @@ const styles = {
     background: '#ffffff',
     border: '1.5px solid #eeeeee',
     borderRadius: 12,
-    padding: '14px 16px',
+    padding: 0,           /* 섹션별로 개별 padding — 그래프 full-width 스크롤을 위해 */
+    overflow: 'hidden',   /* borderRadius 안쪽 clip */
     display: 'flex',
     flexDirection: 'column',
     gap: 0,

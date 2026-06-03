@@ -135,16 +135,21 @@ function BreakdownRow({ row, index, expanded, onToggle }) {
         style={{ backgroundColor: bg, borderTop: '0.5px solid #eeeeee', cursor: hasSteps ? 'pointer' : 'default', userSelect: 'none' }}
         onClick={hasSteps ? onToggle : undefined}
       >
-        <span className="breakdown-unit">
-          {row.unit}
-          {hasSteps && (
-            <span style={{ marginLeft: 5, fontSize: 10, color: PRIMARY, fontWeight: 700, verticalAlign: 'middle' }}>
-              {expanded ? '▲' : '▼'}
-            </span>
+        {/* 단위 + 뜻 */}
+        <div className="breakdown-unit-wrap">
+          <span className="breakdown-unit">
+            {row.unit}
+            {hasSteps && (
+              <span style={{ marginLeft: 5, fontSize: 10, color: PRIMARY, fontWeight: 700, verticalAlign: 'middle' }}>
+                {expanded ? '▲' : '▼'}
+              </span>
+            )}
+          </span>
+          {row.korean_meaning && (
+            <span className="breakdown-meaning">{row.korean_meaning}</span>
           )}
-        </span>
+        </div>
         <span className="breakdown-cell">{row.hiragana}</span>
-        <span className="breakdown-cell" style={{ color: '#333', fontWeight: 500 }}>{row.korean_meaning}</span>
         <span className="breakdown-cell">{row.korean_pronunciation}</span>
         <span className="breakdown-cell"><span className="pos-badge">{row.part_of_speech}</span></span>
       </div>
@@ -165,7 +170,7 @@ function BreakdownTable({ breakdown }) {
   return (
     <div className="breakdown-table" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr 1fr auto' }}>
       <div className="breakdown-row breakdown-header" style={{ gridColumn: '1 / -1', display: 'contents' }}>
-        {['단위', '히라가나', '뜻', '한글 발음', '품사'].map(h => (
+        {['단위 / 뜻', '히라가나', '한글 발음', '품사'].map(h => (
           <span key={h} className="breakdown-header-cell">{h}</span>
         ))}
       </div>

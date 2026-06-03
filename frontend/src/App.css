@@ -287,7 +287,7 @@ body {
 
 .breakdown-row {
   display: grid;
-  grid-template-columns: 1.3fr 1.1fr 1.1fr 1.1fr 0.8fr;
+  grid-template-columns: 1.4fr 1.2fr 1.2fr 0.8fr;
   align-items: center;
   padding: 10px 14px;
   gap: 8px;
@@ -311,11 +311,24 @@ body {
   letter-spacing: 0.5px;
 }
 
+.breakdown-unit-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .breakdown-unit {
   font-size: 17px;
   font-weight: 500;
   font-family: 'Noto Sans JP', sans-serif;
   color: #111111;
+  line-height: 1.2;
+}
+
+.breakdown-meaning {
+  font-size: 11px;
+  color: #aaaaaa;
+  line-height: 1;
 }
 
 .breakdown-cell {

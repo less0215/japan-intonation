@@ -65,35 +65,47 @@ Do NOT wrap it in markdown code blocks (no ```json). No explanation. No extra te
 
 Use this exact structure:
 {
-  "japanese": "日本語を勉強しています",
-  "furigana": "にほんごをべんきょうしています",
-  "korean_pronunciation": "니혼고오 벤쿄-시테이마스",
-  "ojad_input": "日本語を勉強しています",
-  "furigana_html": "日本語(にほんご)を勉強(べんきょう)しています",
+  "japanese": "毎日、日本語を勉強しています",
+  "furigana": "まいにちにほんごをべんきょうしています",
+  "korean_pronunciation": "마이니치, 니혼고오 벤쿄-시테이마스",
+  "ojad_input": "毎日、日本語を勉強しています",
+  "furigana_html": "毎日(まいにち)、日本語(にほんご)を勉強(べんきょう)しています",
   "breakdown": [
     {
-      "unit": "日本語",
-      "hiragana": "にほんご",
-      "korean_pronunciation": "니혼고",
-      "part_of_speech": "명사"
+      "unit": "毎日",
+      "hiragana": "まいにち",
+      "korean_pronunciation": "마이니치",
+      "korean_meaning": "매일",
+      "part_of_speech": "부사",
+      "conjugation_steps": null
     },
     {
       "unit": "を",
       "hiragana": "を",
       "korean_pronunciation": "오",
-      "part_of_speech": "조사"
+      "korean_meaning": "~을/를",
+      "part_of_speech": "조사",
+      "conjugation_steps": null
     },
     {
       "unit": "勉強",
       "hiragana": "べんきょう",
       "korean_pronunciation": "벤쿄-",
-      "part_of_speech": "명사"
+      "korean_meaning": "공부",
+      "part_of_speech": "명사",
+      "conjugation_steps": null
     },
     {
       "unit": "しています",
       "hiragana": "しています",
       "korean_pronunciation": "시테이마스",
-      "part_of_speech": "동사"
+      "korean_meaning": "하고 있습니다",
+      "part_of_speech": "동사",
+      "conjugation_steps": [
+        {"step": 1, "form": "する", "label": "기본형 (사전형)", "note": "する (불규칙 동사)"},
+        {"step": 2, "form": "して", "label": "て형", "note": "する → して (불규칙 활용)"},
+        {"step": 3, "form": "しています", "label": "て형 + います", "note": "진행·상태를 나타냄 / 정중체"}
+      ]
     }
   ]
 }
@@ -104,9 +116,13 @@ Rules:
 - "korean_pronunciation": full sentence pronunciation in Korean characters
 - "ojad_input": same as "japanese" (no furigana markup)
 - "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
-  Example: 日本語(にほんご)を勉強(べんきょう)しています
-- "breakdown": every character of the sentence split into grammatical units, no gaps or overlaps.
-  "part_of_speech" must be one of: 명사/동사/형용사/부사/조사/조동사/접속사/감탄사/기타
+- "breakdown": every token of the sentence split into grammatical units, no gaps or overlaps.
+  - "korean_meaning": the Korean meaning of this specific unit (word/particle/ending)
+  - "part_of_speech": one of 명사/동사/형용사/부사/조사/조동사/접속사/감탄사/기타
+  - "conjugation_steps": null for uninflected words (nouns, particles, adverbs).
+    For conjugated/inflected forms (verbs, i-adjectives, na-adjectives), provide an ordered array showing
+    the derivation from dictionary form to the surface form used in the sentence.
+    Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
 """
 
 OJAD_URL = "https://www.gavo.t.u-tokyo.ac.jp/ojad/phrasing/index"
@@ -181,11 +197,19 @@ class AccentEntry(BaseModel):
     mora_count: int
     accent: list[int]
 
+class ConjugationStep(BaseModel):
+    step: int
+    form: str
+    label: str
+    note: str
+
 class BreakdownEntry(BaseModel):
     unit: str
     hiragana: str
     korean_pronunciation: str
+    korean_meaning: str = ""
     part_of_speech: str
+    conjugation_steps: list[ConjugationStep] | None = None
 
 class TTSRequest(BaseModel):
     text: str

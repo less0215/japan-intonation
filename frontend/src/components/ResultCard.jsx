@@ -9,7 +9,7 @@ const API_URL = 'https://japan-intonation-production.up.railway.app'
  * → [{type:'ruby', kanji, reading} | {type:'text', content}]
  */
 function parseFurigana(str) {
-  const regex = /([^\s()（）]+?)\(([^)）]+)\)/g
+  const regex = /([^\s()（）]+?)\(([^)（）]+)\)/g
   const segments = []
   let lastIndex = 0
   let match
@@ -45,7 +45,7 @@ function GenderToggle({ gender, onChange }) {
   )
 }
 
-/* ── 재생 버튼 (idle / loading / playing) */
+/* ── 재생 버튼 */
 function PlayButton({ audioState, onToggle }) {
   return (
     <button
@@ -72,26 +72,111 @@ function IconPause() {
   return <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>
 }
 
+/* ── 활용 단계 펼침 패널 */
+function ConjugationPanel({ steps }) {
+  return (
+    <div style={{
+      margin: '10px 0 4px',
+      padding: '12px 14px',
+      background: '#f8fbfe',
+      border: `1px solid ${PRIMARY}33`,
+      borderRadius: 10,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 0,
+    }}>
+      <p style={{ fontSize: 11, fontWeight: 700, color: PRIMARY, letterSpacing: '0.3px', marginBottom: 8 }}>
+        활용 원리
+      </p>
+      {steps.map((s, i) => (
+        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* 화살표 연결선 */}
+          {i > 0 && (
+            <div style={{ paddingLeft: 20, color: '#ccc', fontSize: 14, lineHeight: 1, margin: '3px 0' }}>↓</div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            {/* 단계 번호 */}
+            <span style={{
+              width: 18, height: 18, borderRadius: '50%',
+              backgroundColor: PRIMARY, color: '#fff',
+              fontSize: 10, fontWeight: 700,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>{s.step}</span>
+            {/* 형태 */}
+            <span style={{
+              fontFamily: "'Noto Sans JP', sans-serif",
+              fontSize: 15, fontWeight: 600, color: '#111',
+            }}>{s.form}</span>
+            {/* 레이블 */}
+            <span style={{
+              fontSize: 12, color: '#666',
+              background: '#f0f0f0', borderRadius: 6, padding: '1px 7px',
+            }}>{s.label}</span>
+          </div>
+          {/* 설명 */}
+          <p style={{ fontSize: 12, color: '#888', margin: '2px 0 0 26px', lineHeight: 1.5 }}>
+            {s.note}
+          </p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ── 문장 분해 행 (데스크탑) — 활용 단계 포함 */
+function BreakdownRow({ row, index, expanded, onToggle }) {
+  const hasSteps = row.conjugation_steps && row.conjugation_steps.length > 0
+  const bg = index % 2 === 1 ? '#f9f9f9' : 'transparent'
+  return (
+    <>
+      <div
+        className="breakdown-row"
+        style={{ backgroundColor: bg, borderTop: '0.5px solid #eeeeee', cursor: hasSteps ? 'pointer' : 'default', userSelect: 'none' }}
+        onClick={hasSteps ? onToggle : undefined}
+      >
+        <span className="breakdown-unit">
+          {row.unit}
+          {hasSteps && (
+            <span style={{ marginLeft: 5, fontSize: 10, color: PRIMARY, fontWeight: 700, verticalAlign: 'middle' }}>
+              {expanded ? '▲' : '▼'}
+            </span>
+          )}
+        </span>
+        <span className="breakdown-cell">{row.hiragana}</span>
+        <span className="breakdown-cell" style={{ color: '#333', fontWeight: 500 }}>{row.korean_meaning}</span>
+        <span className="breakdown-cell">{row.korean_pronunciation}</span>
+        <span className="breakdown-cell"><span className="pos-badge">{row.part_of_speech}</span></span>
+      </div>
+      {hasSteps && expanded && (
+        <div className="breakdown-conjugation" style={{ backgroundColor: bg }}>
+          <ConjugationPanel steps={row.conjugation_steps} />
+        </div>
+      )}
+    </>
+  )
+}
+
 /* ── 문장 분해 테이블 (데스크탑) */
 function BreakdownTable({ breakdown }) {
+  const [expanded, setExpanded] = useState({})
+  const toggle = (i) => setExpanded(prev => ({ ...prev, [i]: !prev[i] }))
+
   return (
-    <div className="breakdown-table">
-      <div className="breakdown-row breakdown-header">
-        {['단위', '히라가나', '한글 발음', '품사'].map(h => (
+    <div className="breakdown-table" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr 1fr auto' }}>
+      <div className="breakdown-row breakdown-header" style={{ gridColumn: '1 / -1', display: 'contents' }}>
+        {['단위', '히라가나', '뜻', '한글 발음', '품사'].map(h => (
           <span key={h} className="breakdown-header-cell">{h}</span>
         ))}
       </div>
       {breakdown.map((row, i) => (
-        <div
+        <BreakdownRow
           key={i}
-          className="breakdown-row"
-          style={{ backgroundColor: i % 2 === 1 ? '#f9f9f9' : 'transparent', borderTop: '0.5px solid #eeeeee' }}
-        >
-          <span className="breakdown-unit">{row.unit}</span>
-          <span className="breakdown-cell">{row.hiragana}</span>
-          <span className="breakdown-cell">{row.korean_pronunciation}</span>
-          <span className="breakdown-cell"><span className="pos-badge">{row.part_of_speech}</span></span>
-        </div>
+          row={row}
+          index={i}
+          expanded={!!expanded[i]}
+          onToggle={() => toggle(i)}
+        />
       ))}
     </div>
   )
@@ -99,21 +184,46 @@ function BreakdownTable({ breakdown }) {
 
 /* ── 문장 분해 카드 (모바일) */
 function BreakdownCards({ breakdown }) {
+  const [expanded, setExpanded] = useState({})
+  const toggle = (i) => setExpanded(prev => ({ ...prev, [i]: !prev[i] }))
+
   return (
     <div className="breakdown-cards">
-      {breakdown.map((row, i) => (
-        <div key={i} className="breakdown-card-item">
-          <div className="breakdown-card-top">
-            <span className="breakdown-card-unit">{row.unit}</span>
-            <span className="pos-badge">{row.part_of_speech}</span>
+      {breakdown.map((row, i) => {
+        const hasSteps = row.conjugation_steps && row.conjugation_steps.length > 0
+        return (
+          <div key={i} className="breakdown-card-item">
+            <div
+              className="breakdown-card-top"
+              style={{ cursor: hasSteps ? 'pointer' : 'default' }}
+              onClick={hasSteps ? () => toggle(i) : undefined}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span className="breakdown-card-unit">{row.unit}</span>
+                {row.korean_meaning && (
+                  <span style={{ fontSize: 12, color: '#555' }}>{row.korean_meaning}</span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span className="pos-badge">{row.part_of_speech}</span>
+                {hasSteps && (
+                  <span style={{ fontSize: 11, color: PRIMARY, fontWeight: 700 }}>
+                    {expanded[i] ? '▲' : '▼'}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="breakdown-card-bottom">
+              <span className="breakdown-card-sub">{row.hiragana}</span>
+              <span className="breakdown-card-dot">·</span>
+              <span className="breakdown-card-sub">{row.korean_pronunciation}</span>
+            </div>
+            {hasSteps && expanded[i] && (
+              <ConjugationPanel steps={row.conjugation_steps} />
+            )}
           </div>
-          <div className="breakdown-card-bottom">
-            <span className="breakdown-card-sub">{row.hiragana}</span>
-            <span className="breakdown-card-dot">·</span>
-            <span className="breakdown-card-sub">{row.korean_pronunciation}</span>
-          </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -147,7 +257,7 @@ function SaveButton({ onSave, saved }) {
 export default function ResultCard({ data, onSave, saved }) {
   const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = data
 
-  const [gender, setGender]       = useState('female')
+  const [gender, setGender]         = useState('female')
   const [audioState, setAudioState] = useState('idle')
   const audioRef = useRef(null)
 
@@ -199,7 +309,6 @@ export default function ResultCard({ data, onSave, saved }) {
 
       {/* ── 섹션 1: 일본어 + 그래프 + 한글 발음 */}
       <div className="section">
-        {/* 헤더 */}
         <div className="section-header">
           <span className="section-label">일본어</span>
           <div className="header-actions">
@@ -209,7 +318,6 @@ export default function ResultCard({ data, onSave, saved }) {
           </div>
         </div>
 
-        {/* 일본어 텍스트 (후리가나 인라인) */}
         <p className="japanese-text">
           {segments.map((seg, i) =>
             seg.type === 'ruby' ? (
@@ -223,10 +331,7 @@ export default function ResultCard({ data, onSave, saved }) {
           )}
         </p>
 
-        {/* 피치 그래프 */}
         <PitchGraph accentData={accent_data} furigana={furigana} hideHeader />
-
-        {/* 한글 발음 */}
         <p className="pronunciation-text">{korean_pronunciation}</p>
       </div>
 
@@ -236,8 +341,8 @@ export default function ResultCard({ data, onSave, saved }) {
       <div className="section">
         <div className="section-header">
           <span className="section-label">문장 분해</span>
+          <span style={{ fontSize: 11, color: '#aaa' }}>동사·형용사는 ▼ 클릭 시 활용 원리 표시</span>
         </div>
-        {/* 데스크탑: 테이블 / 모바일: 카드 (CSS로 전환) */}
         <BreakdownTable breakdown={breakdown} />
         <BreakdownCards breakdown={breakdown} />
       </div>

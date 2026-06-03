@@ -135,12 +135,21 @@ export default function VerbDetail({ verb, onBack }) {
         </div>
       </div>
 
+      {/* 준비 중 안내 */}
+      {verb.forms.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: '#bbb', fontSize: 15 }}>
+          콘텐츠 준비 중이에요 😊<br />
+          <span style={{ fontSize: 13 }}>곧 추가될 예정입니다.</span>
+        </div>
+      )}
+
       {/* 활용 테이블들 */}
       {verb.forms.map((form, i) => (
         <FormTable key={i} form={form} />
       ))}
 
       {/* 예문 */}
+      {verb.examples.length > 0 && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <p style={styles.sectionTitle}>예문</p>
         {verb.examples.map((ex, i) => (
@@ -163,6 +172,7 @@ export default function VerbDetail({ verb, onBack }) {
           </div>
         ))}
       </div>
+      )}
 
     </div>
   )

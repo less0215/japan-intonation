@@ -141,8 +141,8 @@ export default function App() {
         {/* 탭 네비게이션 */}
         <div style={{ display: 'flex', gap: 6 }}>
           {[
-            { id: 'translate', label: '변환기' },
-            { id: 'verbs',     label: '동사 학습' },
+            { id: 'translate', label: '변환기',   activeColor: '#111111' },
+            { id: 'verbs',     label: '동사 학습', activeColor: '#5CA9CE' },
           ].map(t => (
             <button
               key={t.id}
@@ -156,7 +156,7 @@ export default function App() {
                 fontFamily: 'inherit',
                 cursor: 'pointer',
                 border: 'none',
-                backgroundColor: tab === t.id ? '#111111' : '#f0f0f0',
+                backgroundColor: tab === t.id ? t.activeColor : '#f0f0f0',
                 color:           tab === t.id ? '#ffffff' : '#666666',
                 transition: 'all 0.15s',
               }}

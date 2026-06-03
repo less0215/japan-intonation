@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import PitchGraph from './PitchGraph'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
@@ -148,6 +149,11 @@ export default function VerbDetail({ verb, onBack }) {
               <span style={{ fontSize: 13, color: '#888' }}>{ex.korean}</span>
               <RubyText text={ex.japanese} />
               <span style={{ fontSize: 12, color: '#5CA9CE' }}>{ex.reading}</span>
+              {ex.accentData && ex.furigana && (
+                <div style={{ marginTop: 4, overflowX: 'auto' }}>
+                  <PitchGraph accentData={ex.accentData} furigana={ex.furigana} hideHeader />
+                </div>
+              )}
             </div>
             <PracticeButton japanesePlain={ex.plain} />
           </div>

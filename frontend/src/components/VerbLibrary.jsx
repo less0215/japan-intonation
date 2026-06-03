@@ -1,57 +1,81 @@
-import { useState } from 'react'
-import { CATEGORIES, VERBS } from '../data/verbs'
+import { useState, useMemo } from 'react'
+import { VERBS, getRankTabs } from '../data/verbs'
 import VerbDetail from './VerbDetail'
 
-/* 동사 학습 — 카테고리 목록 + 동사 카드 */
+const PRIMARY = '#5CA9CE'
+
+const SORT_OPTIONS = [
+  { id: 'rank',    label: '순위순' },
+  { id: 'ja',     label: '일본어순' },
+  { id: 'ko',     label: '한국어순' },
+]
+
 export default function VerbLibrary() {
-  const [selectedCategory, setSelectedCategory] = useState('basic')
-  const [selectedVerb, setSelectedVerb]         = useState(null)
+  const rankTabs = useMemo(() => getRankTabs(VERBS, 10), [])
 
-  // 선택된 카테고리의 동사 필터링
-  const filteredVerbs = VERBS.filter(v => v.category === selectedCategory)
+  const [selectedTab,  setSelectedTab]  = useState(rankTabs[0]?.id ?? '')
+  const [sortBy,       setSortBy]       = useState('rank')
+  const [selectedVerb, setSelectedVerb] = useState(null)
 
-  // 동사 상세 페이지
+  const currentTab = rankTabs.find(t => t.id === selectedTab) ?? rankTabs[0]
+
+  const filteredVerbs = useMemo(() => {
+    if (!currentTab) return []
+    const inRange = VERBS.filter(v => v.rank >= currentTab.start && v.rank <= currentTab.end)
+    return [...inRange].sort((a, b) => {
+      if (sortBy === 'rank') return a.rank - b.rank
+      if (sortBy === 'ja')   return a.verb.localeCompare(b.verb, 'ja')
+      if (sortBy === 'ko')   return a.meaning.localeCompare(b.meaning, 'ko')
+      return 0
+    })
+  }, [currentTab, sortBy])
+
   if (selectedVerb) {
-    return (
-      <VerbDetail
-        verb={selectedVerb}
-        onBack={() => setSelectedVerb(null)}
-      />
-    )
+    return <VerbDetail verb={selectedVerb} onBack={() => setSelectedVerb(null)} />
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-      {/* 카테고리 탭 */}
-      <div style={styles.categoryWrap}>
-        {CATEGORIES.map(cat => {
-          const active   = cat.id === selectedCategory
-          const count    = VERBS.filter(v => v.category === cat.id).length
+      {/* 순위 탭 */}
+      <div style={styles.tabRow}>
+        {rankTabs.map(tab => {
+          const active = tab.id === selectedTab
           return (
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+              key={tab.id}
+              onClick={() => setSelectedTab(tab.id)}
               style={{
-                ...styles.categoryBtn,
-                backgroundColor: active ? '#5CA9CE' : '#ffffff',
+                ...styles.tabBtn,
+                backgroundColor: active ? PRIMARY : '#ffffff',
                 color:           active ? '#ffffff' : '#555555',
-                border:          active ? 'none'    : '1.5px solid #e8e8e8',
+                border:          active ? 'none' : '1.5px solid #e8e8e8',
               }}
             >
-              {cat.name}
-              {count > 0 && (
-                <span style={{
-                  ...styles.countBadge,
-                  backgroundColor: active ? 'rgba(255,255,255,0.25)' : '#f0f0f0',
-                  color:           active ? '#ffffff' : '#888888',
-                }}>
-                  {count}
-                </span>
-              )}
+              {tab.label}
             </button>
           )
         })}
+      </div>
+
+      {/* 정렬 */}
+      <div style={styles.sortRow}>
+        <span style={{ fontSize: 12, color: '#aaa', marginRight: 4 }}>정렬</span>
+        {SORT_OPTIONS.map(opt => (
+          <button
+            key={opt.id}
+            onClick={() => setSortBy(opt.id)}
+            style={{
+              ...styles.sortBtn,
+              backgroundColor: sortBy === opt.id ? '#f0f9ff' : 'transparent',
+              color:           sortBy === opt.id ? PRIMARY : '#888',
+              fontWeight:      sortBy === opt.id ? 700 : 400,
+              border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid #e8e8e8',
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       {/* 동사 카드 목록 */}
@@ -67,6 +91,7 @@ export default function VerbLibrary() {
               onClick={() => setSelectedVerb(verb)}
               style={styles.verbCard}
             >
+              <span style={styles.rankBadge}>#{verb.rank}</span>
               <span style={styles.verbJapanese}>{verb.verb}</span>
               <span style={styles.verbReading}>{verb.reading}</span>
               <span style={styles.verbMeaning}>{verb.meaning}</span>
@@ -79,30 +104,35 @@ export default function VerbLibrary() {
 }
 
 const styles = {
-  categoryWrap: {
+  tabRow: {
     display: 'flex',
     flexWrap: 'wrap',
     gap: 8,
   },
-  categoryBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
+  tabBtn: {
     height: 36,
     padding: '0 14px',
     borderRadius: 20,
     fontSize: 13,
-    fontWeight: 500,
+    fontWeight: 600,
     fontFamily: 'inherit',
     cursor: 'pointer',
     transition: 'all 0.15s',
     whiteSpace: 'nowrap',
   },
-  countBadge: {
-    fontSize: 11,
-    fontWeight: 600,
-    borderRadius: 10,
-    padding: '1px 7px',
+  sortRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sortBtn: {
+    height: 28,
+    padding: '0 10px',
+    borderRadius: 14,
+    fontSize: 12,
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
   },
   verbGrid: {
     display: 'grid',
@@ -113,7 +143,7 @@ const styles = {
     background: '#ffffff',
     border: '1.5px solid #e8e8e8',
     borderRadius: 12,
-    padding: '16px 12px',
+    padding: '14px 12px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -121,6 +151,16 @@ const styles = {
     cursor: 'pointer',
     transition: 'border-color 0.15s',
     fontFamily: 'inherit',
+  },
+  rankBadge: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: PRIMARY,
+    backgroundColor: '#f0f9ff',
+    borderRadius: 8,
+    padding: '1px 7px',
+    alignSelf: 'flex-end',
+    marginBottom: 2,
   },
   verbJapanese: {
     fontSize: 22,
@@ -130,7 +170,7 @@ const styles = {
   },
   verbReading: {
     fontSize: 12,
-    color: '#5CA9CE',
+    color: PRIMARY,
     fontWeight: 500,
   },
   verbMeaning: {

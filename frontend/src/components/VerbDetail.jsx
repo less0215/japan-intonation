@@ -86,94 +86,124 @@ const stripFurigana = (text) => text.replace(/\([^)）]+\)/g, '')
 const toHiragana   = (text) =>
   text.replace(/[^\s()（）]+?\(([^)）]+)\)/g, '$1').replace(/[？。、！↑\s]/g, '')
 
-/* 활용형 행 컴포넌트 — TTS + 억양 그래프 (클릭 시 fetch) */
+/* 활용형 행 — TTS(스피커) + 억양(파형 버튼) 독립 */
 function FormRow({ row, index, gender, borderStyle }) {
-  const [audioState, setAudioState] = useState('idle')
-  const [accentData, setAccentData] = useState(null)  // null=미요청, []이상=완료
+  const [audioState,   setAudioState]   = useState('idle')
+  const [accentState,  setAccentState]  = useState('idle')   // idle|loading|done|error
+  const [accentData,   setAccentData]   = useState(null)
+  const [showGraph,    setShowGraph]    = useState(false)
   const audioRef = useRef(null)
 
   const plainText = stripFurigana(row.text)
   const furigana  = toHiragana(row.text)
 
+  /* ── TTS 재생 */
   async function handlePlay() {
     if (audioState === 'playing') {
       audioRef.current?.pause(); audioRef.current = null; setAudioState('idle'); return
     }
     if (audioState === 'loading') return
     setAudioState('loading')
-
-    // TTS + 억양 동시 요청
-    const fetches = [
-      fetch(`${API_URL}/tts`, {
+    try {
+      const res = await fetch(`${API_URL}/tts`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: plainText, gender }),
-      }),
-    ]
-    if (accentData === null) {
-      fetches.push(
-        fetch(`${API_URL}/accent`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ japanese: plainText }),
-        })
-      )
-    }
-
-    try {
-      const results = await Promise.allSettled(fetches)
-
-      // TTS 처리
-      const ttsRes = results[0]
-      if (ttsRes.status === 'fulfilled' && ttsRes.value.ok) {
-        const blob  = await ttsRes.value.blob()
-        const url   = URL.createObjectURL(blob)
-        const audio = new Audio(url)
-        audioRef.current = audio
-        audio.onended = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
-        audio.onerror = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
-        await audio.play()
-        setAudioState('playing')
-      } else {
-        setAudioState('idle')
-      }
-
-      // 억양 처리 (첫 요청 시만)
-      if (accentData === null && results[1]?.status === 'fulfilled' && results[1].value.ok) {
-        const json = await results[1].value.json()
-        setAccentData(json.accent_data ?? [])
-      }
+      })
+      if (!res.ok) throw new Error()
+      const blob  = await res.blob()
+      const url   = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      audio.onerror = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      await audio.play()
+      setAudioState('playing')
     } catch { setAudioState('idle') }
   }
+
+  /* ── 억양 그래프 토글 */
+  async function handleGraph() {
+    // 이미 로드된 경우 → 토글만
+    if (accentData !== null) { setShowGraph(v => !v); return }
+    if (accentState === 'loading') return
+
+    setAccentState('loading')
+    setShowGraph(true)
+    try {
+      const res = await fetch(`${API_URL}/accent`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ japanese: plainText }),
+      })
+      if (!res.ok) throw new Error()
+      const json = await res.json()
+      setAccentData(json.accent_data ?? [])
+      setAccentState('done')
+    } catch {
+      setAccentState('error')
+      setShowGraph(false)
+    }
+  }
+
+  const graphActive = showGraph && accentData && accentData.length > 0
 
   return (
     <div style={{ borderTop: borderStyle?.borderTop, backgroundColor: borderStyle?.bg }}>
       {/* 표현 행 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 28px', padding: '9px 12px', gap: 8, alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', padding: '9px 12px', gap: 8, alignItems: 'center' }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>{CONJ_LABELS[index]}</span>
         <div style={styles.formCell}>
           <span style={styles.meaningForm}>{row.meaning}</span>
           <RubyText text={row.text} />
           <span style={styles.readingForm}>{row.ruby}</span>
         </div>
-        {/* 스피커 버튼 */}
-        <button onClick={handlePlay} title={audioState === 'playing' ? '정지' : '발음 듣기'} style={{
-          width: 26, height: 26, borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
-          backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
-          cursor: 'pointer', flexShrink: 0,
-        }}>
-          {audioState === 'loading' ? (
-            <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
-          ) : audioState === 'playing' ? (
-            <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-          ) : (
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/></svg>
-          )}
-        </button>
+        {/* 버튼 묶음 */}
+        <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexShrink: 0 }}>
+          {/* 억양 그래프 버튼 */}
+          <button onClick={handleGraph} title="억양 그래프" style={{
+            width: 26, height: 26, borderRadius: 6,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+            backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent',
+            cursor: 'pointer',
+          }}>
+            {accentState === 'loading' ? (
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+            ) : (
+              /* 파형 아이콘 */
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+                <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
+                  stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+              </svg>
+            )}
+          </button>
+          {/* TTS 스피커 버튼 */}
+          <button onClick={handlePlay} title={audioState === 'playing' ? '정지' : '발음 듣기'} style={{
+            width: 26, height: 26, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+            backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
+            cursor: 'pointer',
+          }}>
+            {audioState === 'loading' ? (
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+            ) : audioState === 'playing' ? (
+              <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            ) : (
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/></svg>
+            )}
+          </button>
+        </div>
       </div>
-      {/* 억양 그래프 (로드 후 표시) */}
-      {accentData && accentData.length > 0 && furigana && (
-        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 12px 8px' }}>
+
+      {/* 억양 그래프 */}
+      {showGraph && accentState === 'loading' && (
+        <div style={{ padding: '6px 12px 10px', color: '#aaa', fontSize: 12 }}>
+          <span className="spinner" style={{ width: 10, height: 10, borderTopColor: PRIMARY, borderColor: '#e0e0e0', display: 'inline-block', marginRight: 6 }} />
+          억양 불러오는 중...
+        </div>
+      )}
+      {graphActive && furigana && (
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '2px 12px 10px' }}>
           <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
         </div>
       )}
@@ -579,7 +609,7 @@ const styles = {
   tableWrap: {
     border: '1.5px solid #eeeeee',
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: 'visible',   /* 억양 그래프가 행 아래로 펼쳐지도록 */
   },
   tableRow: {
     display: 'grid',

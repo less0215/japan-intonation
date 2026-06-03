@@ -26,9 +26,9 @@ function splitMora(hiragana) {
 }
 
 /* accent 배열 → SVG cubic bezier 경로 */
-function buildPaths(accent, moraCount) {
+function buildPaths(accent, moraCount, pad = 0) {
   const pts = accent.slice(0, moraCount).map((v, i) => ({
-    x: MORA_W / 2 + i * MORA_W,
+    x: MORA_W / 2 + i * MORA_W + pad,
     y: v === 0 ? LOW_Y : HIGH_Y,
   }))
 
@@ -54,17 +54,18 @@ export default function PitchGraph({ accentData, furigana, hideHeader = false })
   const allMora = splitMora(furigana)
 
   return (
-    <div>
-      {/* 구(phrase) 단위로 그래프 렌더 */}
+    /* 너비를 100%로 제한하고 가로 스크롤 허용 — SVG가 카드 밖으로 잘리지 않게 */
+    <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <div
         className="pitch-graph-wrap"
-        style={{ display: 'flex', gap: '12px', marginTop: hideHeader ? 0 : '12px' }}
+        style={{ display: 'inline-flex', gap: '12px', marginTop: hideHeader ? 0 : '12px', paddingRight: 8 }}
       >
         {accentData.map((phrase, pi) => {
           const offset = accentData.slice(0, pi).reduce((s, p) => s + p.mora_count, 0)
           const mora   = allMora.slice(offset, offset + phrase.mora_count)
-          const svgW   = phrase.mora_count * MORA_W
-          const { line, fill, pts } = buildPaths(phrase.accent, phrase.mora_count)
+          const PAD    = 8  // 좌우 여백 — 원 테두리 잘림 방지
+          const svgW   = phrase.mora_count * MORA_W + PAD * 2
+          const { line, fill, pts } = buildPaths(phrase.accent, phrase.mora_count, PAD)
 
           return (
             <div key={phrase.phrase_id} style={{ flexShrink: 0 }}>
@@ -88,7 +89,7 @@ export default function PitchGraph({ accentData, furigana, hideHeader = false })
                 {mora.map((m, i) => (
                   <text
                     key={i}
-                    x={MORA_W / 2 + i * MORA_W}
+                    x={MORA_W / 2 + i * MORA_W + PAD}
                     y={LABEL_Y}
                     textAnchor="middle"
                     fontSize="12"

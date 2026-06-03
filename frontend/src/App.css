@@ -274,8 +274,7 @@ body {
 
 /* ── 피치 그래프 */
 .pitch-graph-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  /* overflow은 외부 wrapper div가 담당 */
 }
 
 /* ── 문장 분해: 데스크탑 테이블 */

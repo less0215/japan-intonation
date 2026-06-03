@@ -47,16 +47,7 @@ function buildPaths(accent, count) {
   const first = pts[0]
   const fill  = `${line} L ${last.x} ${GRAPH_BTM} L ${first.x} ${GRAPH_BTM} Z`
 
-  /* 변곡점: 피치가 바뀌는 지점 + 시작 + 끝 */
-  const inflections = new Set([0, count - 1])
-  for (let i = 1; i < count; i++) {
-    if (accent[i] !== accent[i - 1]) {
-      inflections.add(i - 1)
-      inflections.add(i)
-    }
-  }
-
-  return { line, fill, pts, inflections }
+  return { line, fill }
 }
 
 export default function PitchGraph({ accentData, furigana, hideHeader = false }) {
@@ -74,7 +65,7 @@ export default function PitchGraph({ accentData, furigana, hideHeader = false })
         if (count === 0) return null
 
         const svgW = count * MORA_W + PAD * 2
-        const { line, fill, pts, inflections } = buildPaths(phrase.accent, count)
+        const { line, fill } = buildPaths(phrase.accent, count)
 
         return (
           <div key={phrase.phrase_id} style={{ flexShrink: 0 }}>
@@ -93,13 +84,7 @@ export default function PitchGraph({ accentData, furigana, hideHeader = false })
                 <path d={line} fill="none" stroke={PRIMARY} strokeWidth={2.5}
                   strokeLinecap="round" strokeLinejoin="round" />
               )}
-              {/* 변곡점만 점 표시 */}
-              {pts.map((pt, i) =>
-                inflections.has(i) ? (
-                  <circle key={i} cx={pt.x} cy={pt.y} r={4}
-                    fill="#ffffff" stroke={PRIMARY} strokeWidth={2} />
-                ) : null
-              )}
+              {/* 점 없음 — 선만 표시 (OJAD 스타일) */}
               {/* 모라 라벨 */}
               {mora.map((m, i) => (
                 <text

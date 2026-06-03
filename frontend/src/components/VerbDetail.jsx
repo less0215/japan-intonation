@@ -81,60 +81,103 @@ function btnStyle(color, bg, border) {
   }
 }
 
-/* 漢字(よみ) → 純한자가나 (TTS에 넘길 텍스트에서 루비 제거) */
+/* 漢字(よみ) → 순수 히라가나 (PitchGraph furigana용) */
 const stripFurigana = (text) => text.replace(/\([^)）]+\)/g, '')
+const toHiragana   = (text) =>
+  text.replace(/[^\s()（）]+?\(([^)）]+)\)/g, '$1').replace(/[？。、！↑\s]/g, '')
 
-/* 활용형 TTS 버튼 — 작은 원형 스피커 */
-function FormTTSButton({ text }) {
-  const [state, setState] = useState('idle')
+/* 활용형 행 컴포넌트 — TTS + 억양 그래프 (클릭 시 fetch) */
+function FormRow({ row, index, gender, borderStyle }) {
+  const [audioState, setAudioState] = useState('idle')
+  const [accentData, setAccentData] = useState(null)  // null=미요청, []이상=완료
   const audioRef = useRef(null)
 
+  const plainText = stripFurigana(row.text)
+  const furigana  = toHiragana(row.text)
+
   async function handlePlay() {
-    if (state === 'playing') {
-      audioRef.current?.pause(); audioRef.current = null; setState('idle'); return
+    if (audioState === 'playing') {
+      audioRef.current?.pause(); audioRef.current = null; setAudioState('idle'); return
     }
-    if (state === 'loading') return
-    setState('loading')
-    try {
-      const res = await fetch(`${API_URL}/tts`, {
+    if (audioState === 'loading') return
+    setAudioState('loading')
+
+    // TTS + 억양 동시 요청
+    const fetches = [
+      fetch(`${API_URL}/tts`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: stripFurigana(text), gender: 'female' }),
-      })
-      if (!res.ok) throw new Error()
-      const blob  = await res.blob()
-      const url   = URL.createObjectURL(blob)
-      const audio = new Audio(url)
-      audioRef.current = audio
-      audio.onended = () => { setState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
-      audio.onerror = () => { setState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
-      await audio.play()
-      setState('playing')
-    } catch { setState('idle') }
+        body: JSON.stringify({ text: plainText, gender }),
+      }),
+    ]
+    if (accentData === null) {
+      fetches.push(
+        fetch(`${API_URL}/accent`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ japanese: plainText }),
+        })
+      )
+    }
+
+    try {
+      const results = await Promise.allSettled(fetches)
+
+      // TTS 처리
+      const ttsRes = results[0]
+      if (ttsRes.status === 'fulfilled' && ttsRes.value.ok) {
+        const blob  = await ttsRes.value.blob()
+        const url   = URL.createObjectURL(blob)
+        const audio = new Audio(url)
+        audioRef.current = audio
+        audio.onended = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+        audio.onerror = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+        await audio.play()
+        setAudioState('playing')
+      } else {
+        setAudioState('idle')
+      }
+
+      // 억양 처리 (첫 요청 시만)
+      if (accentData === null && results[1]?.status === 'fulfilled' && results[1].value.ok) {
+        const json = await results[1].value.json()
+        setAccentData(json.accent_data ?? [])
+      }
+    } catch { setAudioState('idle') }
   }
 
   return (
-    <button
-      onClick={handlePlay}
-      title={state === 'playing' ? '정지' : '발음 듣기'}
-      style={{
-        width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: `1px solid ${state === 'playing' ? PRIMARY : '#e0e0e0'}`,
-        backgroundColor: state === 'playing' ? `${PRIMARY}18` : 'transparent',
-        cursor: 'pointer',
-      }}
-    >
-      {state === 'loading' ? (
-        <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
-      ) : state === 'playing' ? (
-        <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-      ) : (
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb" stroke="none"/>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-        </svg>
+    <div style={{ borderTop: borderStyle?.borderTop, backgroundColor: borderStyle?.bg }}>
+      {/* 표현 행 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 28px', padding: '9px 12px', gap: 8, alignItems: 'center' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>{CONJ_LABELS[index]}</span>
+        <div style={styles.formCell}>
+          <span style={styles.meaningForm}>{row.meaning}</span>
+          <RubyText text={row.text} />
+          <span style={styles.readingForm}>{row.ruby}</span>
+        </div>
+        {/* 스피커 버튼 */}
+        <button onClick={handlePlay} title={audioState === 'playing' ? '정지' : '발음 듣기'} style={{
+          width: 26, height: 26, borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+          backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
+          cursor: 'pointer', flexShrink: 0,
+        }}>
+          {audioState === 'loading' ? (
+            <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+          ) : audioState === 'playing' ? (
+            <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          ) : (
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/></svg>
+          )}
+        </button>
+      </div>
+      {/* 억양 그래프 (로드 후 표시) */}
+      {accentData && accentData.length > 0 && furigana && (
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 12px 8px' }}>
+          <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
+        </div>
       )}
-    </button>
+    </div>
   )
 }
 
@@ -298,37 +341,48 @@ function PracticeButton({ japanesePlain }) {
 
 /* 정중체 / 보통체 각 8행 테이블 */
 function ConjSection({ title, titleJp, rows }) {
+  const [gender, setGender] = useState('female')
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span style={styles.formTitle}>{title}</span>
-        <span style={{ fontSize: 12, color: '#aaa' }}>{titleJp}</span>
+      {/* 섹션 헤더: 제목 + 성별 토글 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <span style={styles.formTitle}>{title}</span>
+          <span style={{ fontSize: 12, color: '#aaa' }}>{titleJp}</span>
+        </div>
+        {/* 성별 토글 */}
+        <div style={{ display: 'flex', border: '1.5px solid #e8e8e8', borderRadius: 8, overflow: 'hidden' }}>
+          {[{ v: 'female', l: '여성' }, { v: 'male', l: '남성' }].map(({ v, l }) => (
+            <button key={v} onClick={() => setGender(v)} style={{
+              height: 26, padding: '0 10px', fontSize: 11, fontWeight: 600,
+              fontFamily: 'inherit', cursor: 'pointer', border: 'none',
+              backgroundColor: gender === v ? PRIMARY : '#fff',
+              color:           gender === v ? '#fff' : '#aaa',
+              transition: 'all 0.15s',
+            }}>{l}</button>
+          ))}
+        </div>
       </div>
+
       <div style={styles.tableWrap}>
         {/* 헤더 */}
-        <div style={{ ...styles.tableRow, gridTemplateColumns: '1fr 2fr 26px', backgroundColor: '#f7f7f7' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 28px', padding: '8px 12px', gap: 8, backgroundColor: '#f7f7f7' }}>
           <span style={styles.headerCell}>구분</span>
           <span style={styles.headerCell}>표현</span>
           <span />
         </div>
         {rows.map((row, i) => (
-          <div key={i} style={{
-            ...styles.tableRow,
-            gridTemplateColumns: '1fr 2fr 26px',
-            borderTop: '1px solid #f0f0f0',
-            backgroundColor: i % 2 === 1 ? '#fafafa' : 'transparent',
-            ...(i === 4 ? { borderTop: '2px solid #e8e8e8' } : {}),
-          }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>
-              {CONJ_LABELS[i]}
-            </span>
-            <div style={styles.formCell}>
-              <span style={styles.meaningForm}>{row.meaning}</span>
-              <RubyText text={row.text} />
-              <span style={styles.readingForm}>{row.ruby}</span>
-            </div>
-            <FormTTSButton text={row.text} />
-          </div>
+          <FormRow
+            key={i}
+            row={row}
+            index={i}
+            gender={gender}
+            borderStyle={{
+              borderTop: i === 4 ? '2px solid #e8e8e8' : '1px solid #f0f0f0',
+              bg: i % 2 === 1 ? '#fafafa' : 'transparent',
+            }}
+          />
         ))}
       </div>
     </div>

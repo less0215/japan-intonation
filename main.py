@@ -152,8 +152,10 @@ _sms_codes: dict[str, dict] = {}
 _tts_cache: dict[str, bytes] = {}
 
 # 번역 결과 캐시 — 키: 한국어 원문, 값: AnalyzeResponse dict
-# 동일 문장을 반복 변환할 때 Gemini + OJAD 호출을 생략
 _analyze_cache: dict[str, dict] = {}
+
+# 억양 전용 캐시 — 키: 일본어 원문, 값: accent_data list
+_accent_cache: dict[str, list] = {}
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)
@@ -423,6 +425,29 @@ def analyze(req: AnalyzeRequest):
     print(f"[Analyze 캐시 저장] {text[:40]!r}")
 
     return result
+
+
+class AccentRequest(BaseModel):
+    japanese: str
+
+@app.post("/accent")
+def get_accent(req: AccentRequest):
+    """일본어 텍스트를 받아 OJAD 억양 데이터를 반환한다. (동사 활용형 억양 표시용)"""
+    text = req.japanese.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="입력이 비어 있습니다.")
+
+    if text in _accent_cache:
+        return {"accent_data": _accent_cache[text]}
+
+    accent_data = fetch_accent_data(text)
+
+    if len(_accent_cache) >= 500:
+        oldest = next(iter(_accent_cache))
+        del _accent_cache[oldest]
+    _accent_cache[text] = accent_data
+
+    return {"accent_data": [AccentEntry(**e) for e in accent_data]}
 
 
 @app.post("/tts")

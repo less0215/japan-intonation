@@ -33,6 +33,21 @@ export default function VerbLibrary() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
+      {/* 출처 안내 */}
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', gap: 8,
+        padding: '11px 14px',
+        background: '#f8f9fa',
+        border: '1px solid #e8e8e8',
+        borderRadius: 10,
+      }}>
+        <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>📖</span>
+        <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
+          현대 일본어 균형 말뭉치 <strong style={{ color: '#555' }}>BCCWJ (2011)</strong> 기준 사용 빈도 상위 50개 동사입니다.
+          소설·신문뿐 아니라 온라인 포럼, TV 자막 등 다양한 텍스트를 균형 있게 반영한 코퍼스입니다.
+        </p>
+      </div>
+
       {/* 순위 탭 */}
       <div style={styles.tabRow}>
         {rankTabs.map(tab => {

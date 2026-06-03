@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
@@ -7,25 +7,87 @@ import HistoryDrawer from './components/HistoryDrawer'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import { useUser } from './context/UserContext'
+import { VERBS } from './data/verbs'
 
-const API_URL = 'https://japan-intonation-production.up.railway.app'
+const API_URL   = 'https://japan-intonation-production.up.railway.app'
+const PRIMARY   = '#5CA9CE'
+
+/* ── 오늘의 단어: 앱 실행 시 VERBS에서 랜덤 1개 선택 */
+function pickDailyVerb(verbs) {
+  const pool = verbs.filter(v => v.conjugations) // 데이터 있는 동사만
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+/* ── 오늘의 단어 카드 */
+function DailyVerbCard({ verb, onNavigate }) {
+  return (
+    <div
+      onClick={() => onNavigate(`/verbs/${verb.id}`)}
+      style={{
+        background: `linear-gradient(135deg, ${PRIMARY}18 0%, ${PRIMARY}08 100%)`,
+        border: `1.5px solid ${PRIMARY}33`,
+        borderRadius: 14,
+        padding: '16px 18px',
+        cursor: 'pointer',
+        transition: 'box-shadow 0.15s',
+        userSelect: 'none',
+      }}
+    >
+      {/* 헤더 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: PRIMARY, letterSpacing: '0.5px' }}>
+          ✦ 오늘의 단어
+        </span>
+        <span style={{
+          fontSize: 10, color: PRIMARY, background: `${PRIMARY}18`,
+          borderRadius: 8, padding: '2px 8px', fontWeight: 600,
+        }}>
+          #{verb.rank}위
+        </span>
+      </div>
+
+      {/* 단어 */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+        <span style={{
+          fontFamily: "'Noto Sans JP', sans-serif",
+          fontSize: 32, fontWeight: 600, color: '#111',
+          letterSpacing: '-0.5px',
+        }}>
+          {verb.verb}
+        </span>
+        <span style={{ fontSize: 14, color: PRIMARY, fontWeight: 600 }}>
+          {verb.reading}
+        </span>
+        <span style={{ fontSize: 14, color: '#666' }}>
+          {verb.meaning}
+        </span>
+      </div>
+
+      {/* 자세히 보기 링크 */}
+      <div style={{ marginTop: 10, fontSize: 12, color: PRIMARY, fontWeight: 600 }}>
+        활용표 · 예문 보기 →
+      </div>
+    </div>
+  )
+}
 
 export default function App() {
   const location  = useLocation()
   const navigate  = useNavigate()
   const { user, setUser, saveResult } = useUser()
 
-  // 현재 탭: /verbs로 시작하면 'verbs', 아니면 'translate'
   const tab = location.pathname.startsWith('/verbs') ? 'verbs' : 'translate'
 
   const [loading, setLoading]         = useState(false)
   const [result, setResult]           = useState(null)
   const [inputText, setInputText]     = useState('')
   const [error, setError]             = useState(null)
-
   const [saved, setSaved]             = useState(false)
   const [showSignup, setShowSignup]   = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+
+  // 앱 실행 시 1회 랜덤 선택 (useMemo로 리렌더 시 고정)
+  const dailyVerb = useMemo(() => pickDailyVerb(VERBS), [])
 
   async function handleAnalyze(text) {
     setLoading(true)
@@ -43,9 +105,8 @@ export default function App() {
 
     try {
       let res
-      try {
-        res = await fetchAnalyze()
-      } catch {
+      try { res = await fetchAnalyze() }
+      catch {
         await new Promise(r => setTimeout(r, 2000))
         res = await fetchAnalyze()
       }
@@ -58,7 +119,6 @@ export default function App() {
         else
           throw new Error('요청을 처리할 수 없습니다. 다시 시도해 주세요.')
       }
-
       setResult(await res.json())
     } catch (err) {
       const isFetchError = err.name === 'TypeError' || err.message.includes('fetch') || err.message.includes('network')
@@ -74,10 +134,8 @@ export default function App() {
   }
 
   async function doSave(currentUser) {
-    try {
-      await saveResult(currentUser, inputText, result)
-      setSaved(true)
-    } catch { /* 실패 시 무시 */ }
+    try { await saveResult(currentUser, inputText, result); setSaved(true) }
+    catch { /* 실패 시 무시 */ }
   }
 
   function handleSignupSuccess(newUser) {
@@ -96,7 +154,7 @@ export default function App() {
   const isVerbsTab = tab === 'verbs'
 
   return (
-    <div className={hasContent || isVerbsTab ? 'page' : 'page page--center'}>
+    <div className={hasContent || isVerbsTab || (!isVerbsTab && dailyVerb) ? 'page' : 'page page--center'}>
       <div className="container">
 
         {/* 앱 헤더 */}
@@ -104,7 +162,7 @@ export default function App() {
           <h1 className="app-title">
             틱재팬{' '}
             <span style={{ fontWeight: 400, color: '#888888', fontSize: '14px' }}>
-              일본어 변환기
+              일본어 번역기
             </span>
           </h1>
           {user && tab === 'translate' && (
@@ -119,31 +177,40 @@ export default function App() {
         </div>
 
         {/* 탭 네비게이션 */}
-        <div style={{ display: 'flex', gap: 6 }}>
-          {[
-            { id: 'translate', label: '변환기',    path: '/',      activeColor: '#111111' },
-            { id: 'verbs',     label: '동사 학습',  path: '/verbs', activeColor: '#5CA9CE' },
-          ].map(t => (
-            <button
-              key={t.id}
-              onClick={() => navigate(t.path)}
-              style={{
-                height: 36,
-                padding: '0 16px',
-                borderRadius: 20,
-                fontSize: 13,
-                fontWeight: 600,
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-                border: 'none',
-                backgroundColor: tab === t.id ? t.activeColor : '#f0f0f0',
-                color:           tab === t.id ? '#ffffff' : '#666666',
-                transition: 'all 0.15s',
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {/* 번역기 탭 */}
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              height: 36, padding: '0 16px', borderRadius: 20,
+              fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+              cursor: 'pointer', border: 'none',
+              backgroundColor: tab === 'translate' ? '#111111' : '#f0f0f0',
+              color:           tab === 'translate' ? '#ffffff' : '#666666',
+              transition: 'all 0.15s',
+            }}
+          >
+            번역기
+          </button>
+
+          {/* 동사 TOP50 탭 — 강조형 */}
+          <button
+            onClick={() => navigate('/verbs')}
+            style={{
+              height: 36, padding: '0 14px', borderRadius: 20,
+              fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+              cursor: 'pointer',
+              border: tab === 'verbs' ? 'none' : `1.5px solid ${PRIMARY}55`,
+              backgroundColor: tab === 'verbs' ? PRIMARY : `${PRIMARY}12`,
+              color:           tab === 'verbs' ? '#ffffff' : PRIMARY,
+              transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', gap: 4,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{ fontSize: 11 }}>🎌</span>
+            일본인이 자주 쓰는 동사 TOP50
+          </button>
         </div>
 
         {/* 라우트 */}
@@ -152,11 +219,17 @@ export default function App() {
           <Route path="/verbs"     element={<VerbLibrary />} />
           <Route path="*" element={
             <>
+              {/* 오늘의 단어 — 결과 없을 때만 표시 */}
+              {!hasContent && dailyVerb && (
+                <DailyVerbCard verb={dailyVerb} onNavigate={navigate} />
+              )}
+
               <SearchBar onAnalyze={handleAnalyze} loading={loading} />
-              {error   && <div className="error-box">{error}</div>}
+
+              {error && <div className="error-box">{error}</div>}
               {loading && (
                 <div className="loading-box">
-                  <span className="spinner" style={{ borderColor: 'rgba(92,169,206,0.3)', borderTopColor: '#5CA9CE' }} />
+                  <span className="spinner" style={{ borderColor: 'rgba(92,169,206,0.3)', borderTopColor: PRIMARY }} />
                   <span className="loading-text">번역 및 악센트 분석 중...</span>
                 </div>
               )}

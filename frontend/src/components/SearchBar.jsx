@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-/* 한국어 입력창 + 변환 버튼 */
+/* 한국어 입력창 + 번역 버튼 */
 export default function SearchBar({ onAnalyze, loading }) {
   const [text, setText] = useState('')
 
@@ -29,7 +29,7 @@ export default function SearchBar({ onAnalyze, loading }) {
         className="search-btn"
         style={{ opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}
       >
-        {loading ? <span className="spinner" /> : '변환'}
+        {loading ? <span className="spinner" /> : '번역'}
       </button>
     </form>
   )

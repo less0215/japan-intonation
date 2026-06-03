@@ -3,6 +3,7 @@ import PitchGraph from './PitchGraph'
 import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
 import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
+import { CONJ_LABELS } from '../data/verbs'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -238,40 +239,88 @@ function PracticeButton({ japanesePlain }) {
   )
 }
 
-/* 활용 테이블 */
-function FormTable({ form }) {
+/* 정중체 / 보통체 각 8행 테이블 */
+function ConjSection({ title, titleJp, rows }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <p style={styles.formTitle}>
-        {form.name} <span style={{ color: '#aaa', fontSize: 12 }}>{form.nameJp}</span>
-      </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span style={styles.formTitle}>{title}</span>
+        <span style={{ fontSize: 12, color: '#aaa' }}>{titleJp}</span>
+      </div>
       <div style={styles.tableWrap}>
         {/* 헤더 */}
         <div style={{ ...styles.tableRow, backgroundColor: '#f7f7f7' }}>
           <span style={styles.headerCell}>구분</span>
-          <span style={styles.headerCell}>정중체 (です・ます)</span>
-          <span style={styles.headerCell}>보통체 (辞書形)</span>
+          <span style={styles.headerCell}>표현</span>
         </div>
-        {/* 행 */}
-        {form.rows.map((row, i) => (
-          <div key={i} style={{ ...styles.tableRow, borderTop: '1px solid #f0f0f0', backgroundColor: i % 2 === 1 ? '#fafafa' : 'transparent' }}>
-            <div style={styles.labelCell}>
-              <span style={{ fontWeight: 600, fontSize: 13, color: '#333' }}>{row.label}</span>
-              {row.sub && <span style={{ fontSize: 11, color: '#aaa' }}>{row.sub}</span>}
-            </div>
+        {rows.map((row, i) => (
+          <div key={i} style={{
+            ...styles.tableRow,
+            borderTop: '1px solid #f0f0f0',
+            backgroundColor: i % 2 === 1 ? '#fafafa' : 'transparent',
+            // 현재·과거 그룹 사이 시각적 구분
+            ...(i === 4 ? { borderTop: '2px solid #e8e8e8' } : {}),
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>
+              {CONJ_LABELS[i]}
+            </span>
             <div style={styles.formCell}>
-              <span style={styles.japaneseForm}>{row.formal.text}</span>
-              <span style={styles.readingForm}>{row.formal.ruby}</span>
-              <span style={styles.meaningForm}>{row.formal.meaning}</span>
-            </div>
-            <div style={styles.formCell}>
-              <span style={styles.japaneseForm}>{row.casual.text}</span>
-              <span style={styles.readingForm}>{row.casual.ruby}</span>
-              <span style={styles.meaningForm}>{row.casual.meaning}</span>
+              <span style={styles.japaneseForm}>{row.text}</span>
+              <span style={styles.readingForm}>{row.ruby}</span>
+              <span style={styles.meaningForm}>{row.meaning}</span>
             </div>
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+function ConjugationTable({ conjugations }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <ConjSection title="정중체" titleJp="(です・ます体)" rows={conjugations.formal} />
+      <ConjSection title="보통체" titleJp="(普通体)" rows={conjugations.casual} />
+    </div>
+  )
+}
+
+/* 예문 문법 패턴 뱃지 + 설명 */
+function PatternBadge({ pattern }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ marginTop: 6 }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          height: 22, padding: '0 8px',
+          borderRadius: 11,
+          fontSize: 11, fontWeight: 700,
+          fontFamily: 'inherit', cursor: 'pointer',
+          backgroundColor: open ? `${PRIMARY}15` : '#f5f5f5',
+          color: open ? PRIMARY : '#888',
+          border: `1px solid ${open ? PRIMARY + '44' : '#e8e8e8'}`,
+          transition: 'all 0.15s',
+        }}
+      >
+        <span style={{ fontSize: 10 }}>📌</span>
+        {pattern.name}
+        <span style={{ fontSize: 9, opacity: 0.7 }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div style={{
+          marginTop: 6, padding: '10px 12px',
+          background: '#f8fbfe',
+          border: `1px solid ${PRIMARY}22`,
+          borderRadius: 8,
+          display: 'flex', flexDirection: 'column', gap: 3,
+        }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#222' }}>{pattern.name}</span>
+          <span style={{ fontSize: 13, color: PRIMARY, fontWeight: 600 }}>{pattern.meaning}</span>
+          <span style={{ fontSize: 12, color: '#777', lineHeight: 1.5 }}>{pattern.note}</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -313,17 +362,17 @@ export default function VerbDetail({ verb, onBack }) {
       </div>
 
       {/* 준비 중 안내 */}
-      {verb.forms.length === 0 && (
+      {!verb.conjugations && (
         <div style={{ textAlign: 'center', padding: '48px 0', color: '#bbb', fontSize: 15 }}>
           콘텐츠 준비 중이에요 😊<br />
           <span style={{ fontSize: 13 }}>곧 추가될 예정입니다.</span>
         </div>
       )}
 
-      {/* 활용 테이블들 */}
-      {verb.forms.map((form, i) => (
-        <FormTable key={i} form={form} />
-      ))}
+      {/* 활용 테이블 (정중체 + 보통체) */}
+      {verb.conjugations && (
+        <ConjugationTable conjugations={verb.conjugations} />
+      )}
 
       {/* 예문 */}
       {verb.examples.length > 0 && (
@@ -337,6 +386,8 @@ export default function VerbDetail({ verb, onBack }) {
                 <span style={{ fontSize: 13, color: '#888' }}>{ex.korean}</span>
                 <RubyText text={ex.japanese} />
                 <span style={{ fontSize: 12, color: '#5CA9CE' }}>{ex.reading}</span>
+                {/* 문법 패턴 뱃지 */}
+                {ex.pattern && <PatternBadge pattern={ex.pattern} />}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                 <PracticeButton japanesePlain={ex.plain} />
@@ -408,8 +459,8 @@ const styles = {
   },
   tableRow: {
     display: 'grid',
-    gridTemplateColumns: '1fr 2fr 2fr',
-    padding: '10px 12px',
+    gridTemplateColumns: '1fr 2fr',
+    padding: '9px 12px',
     gap: 8,
     alignItems: 'start',
   },

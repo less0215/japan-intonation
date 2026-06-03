@@ -50,65 +50,63 @@ function buildPaths(accent, count) {
   return { line, fill, pts }
 }
 
-/* hideHeader: ResultCard 안에서 헤더 없이 그래프만 표시할 때 */
+/*
+ * 호출하는 쪽에서 overflow-x:auto 래퍼를 제공해야 함.
+ * 이 컴포넌트 자체는 inline-flex로 자연스러운 너비를 가짐.
+ */
 export default function PitchGraph({ accentData, furigana, hideHeader = false }) {
   const allMora = splitMora(furigana)
 
   return (
-    /*
-     * minWidth:0 이 핵심 — flex 자식의 기본값 minWidth:auto를 제거해야
-     * overflow-x:auto 가 실제로 작동해서 SVG가 카드 밖으로 잘리지 않음
-     */
-    <div style={{ minWidth: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-      <div
-        className="pitch-graph-wrap"
-        style={{ display: 'inline-flex', gap: 12, marginTop: hideHeader ? 0 : 12 }}
-      >
-        {accentData.map((phrase, pi) => {
-          const offset = accentData.slice(0, pi).reduce((s, p) => s + p.mora_count, 0)
-          // 실제 furigana 기준 모라 수를 우선 사용 — 데이터 불일치 방어
-          const mora   = allMora.slice(offset, offset + phrase.mora_count)
-          const count  = mora.length                      // 실제 표시할 모라 수
-          const svgW   = count * MORA_W + PAD * 2
-          const { line, fill, pts } = buildPaths(phrase.accent, count)
+    <div
+      className="pitch-graph-wrap"
+      style={{ display: 'inline-flex', gap: 12, marginTop: hideHeader ? 0 : 12 }}
+    >
+      {accentData.map((phrase, pi) => {
+        const offset = accentData.slice(0, pi).reduce((s, p) => s + p.mora_count, 0)
+        const mora   = allMora.slice(offset, offset + phrase.mora_count)
+        const count  = mora.length
+        if (count === 0) return null
 
-          return (
-            <div key={phrase.phrase_id} style={{ flexShrink: 0 }}>
-              <svg
-                width={svgW}
-                height={SVG_H}
-                viewBox={`0 0 ${svgW} ${SVG_H}`}
-                style={{ display: 'block', overflow: 'visible' }}
-              >
-                {fill && (
-                  <path d={fill} fill={PRIMARY} fillOpacity={0.08} stroke="none" />
-                )}
-                {line && (
-                  <path d={line} fill="none" stroke={PRIMARY} strokeWidth={2.5}
-                    strokeLinecap="round" strokeLinejoin="round" />
-                )}
-                {pts.map((pt, i) => (
-                  <circle key={i} cx={pt.x} cy={pt.y} r={4.5}
-                    fill="#ffffff" stroke={PRIMARY} strokeWidth={2} />
-                ))}
-                {mora.map((m, i) => (
-                  <text
-                    key={i}
-                    x={PAD + MORA_W / 2 + i * MORA_W}
-                    y={LABEL_Y}
-                    textAnchor="middle"
-                    fontSize="12"
-                    fill="#555555"
-                    fontFamily="'Noto Sans JP', sans-serif"
-                  >
-                    {m}
-                  </text>
-                ))}
-              </svg>
-            </div>
-          )
-        })}
-      </div>
+        const svgW = count * MORA_W + PAD * 2
+        const { line, fill, pts } = buildPaths(phrase.accent, count)
+
+        return (
+          <div key={phrase.phrase_id} style={{ flexShrink: 0 }}>
+            <svg
+              width={svgW}
+              height={SVG_H}
+              viewBox={`0 0 ${svgW} ${SVG_H}`}
+              style={{ display: 'block' }}
+            >
+              {fill && (
+                <path d={fill} fill={PRIMARY} fillOpacity={0.08} stroke="none" />
+              )}
+              {line && (
+                <path d={line} fill="none" stroke={PRIMARY} strokeWidth={2.5}
+                  strokeLinecap="round" strokeLinejoin="round" />
+              )}
+              {pts.map((pt, i) => (
+                <circle key={i} cx={pt.x} cy={pt.y} r={4.5}
+                  fill="#ffffff" stroke={PRIMARY} strokeWidth={2} />
+              ))}
+              {mora.map((m, i) => (
+                <text
+                  key={i}
+                  x={PAD + MORA_W / 2 + i * MORA_W}
+                  y={LABEL_Y}
+                  textAnchor="middle"
+                  fontSize="12"
+                  fill="#555555"
+                  fontFamily="'Noto Sans JP', sans-serif"
+                >
+                  {m}
+                </text>
+              ))}
+            </svg>
+          </div>
+        )
+      })}
     </div>
   )
 }

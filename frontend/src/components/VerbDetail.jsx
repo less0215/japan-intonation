@@ -274,7 +274,7 @@ export default function VerbDetail({ verb, onBack }) {
             </div>
             {/* 억양 그래프 — 전체 너비 사용 */}
             {ex.accentData && ex.furigana && (
-              <div style={{ marginTop: 8, minWidth: 0 }}>
+              <div style={{ marginTop: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginLeft: -16, marginRight: -16, paddingLeft: 16 }}>
                 <PitchGraph accentData={ex.accentData} furigana={ex.furigana} hideHeader />
               </div>
             )}

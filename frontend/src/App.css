@@ -156,7 +156,7 @@ body {
 .card {
   border: 1.5px solid #e8e8e8;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;   /* 그래프 잘림 방지 — 카드 자체는 visible */
   background: #ffffff;
 }
 

@@ -303,8 +303,12 @@ export default function ResultCard({ data, onSave, saved }) {
           )}
         </p>
 
-        <PitchGraph accentData={accent_data} furigana={furigana} hideHeader />
         <p className="pronunciation-text">{korean_pronunciation}</p>
+      </div>
+
+      {/* 피치 그래프 — 카드 full-width, 패딩 밖에 배치해 overflow:hidden 잘림 방지 */}
+      <div style={{ padding: '0 20px 4px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <PitchGraph accentData={accent_data} furigana={furigana} hideHeader />
       </div>
 
       <hr className="divider" />

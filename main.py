@@ -58,7 +58,7 @@ def get_gemini_client() -> genai.Client:
 
 # Gemini에게 전달할 번역 프롬프트
 # — 순수 JSON만 반환하도록 명시 (마크다운 코드블록 금지)
-TRANSLATION_PROMPT = """You are a Korean-to-Japanese translation expert.
+TRANSLATION_PROMPT = """You are a Korean-to-Japanese translation expert with deep knowledge of Tokyo Japanese pitch accent.
 
 When given a Korean sentence, respond with ONLY a valid JSON object.
 Do NOT wrap it in markdown code blocks (no ```json). No explanation. No extra text. Pure JSON only.
@@ -68,8 +68,12 @@ Use this exact structure:
   "japanese": "毎日、日本語を勉強しています",
   "furigana": "まいにちにほんごをべんきょうしています",
   "korean_pronunciation": "마이니치, 니혼고오 벤쿄-시테이마스",
-  "ojad_input": "毎日、日本語を勉強しています",
   "furigana_html": "毎日(まいにち)、日本語(にほんご)を勉強(べんきょう)しています",
+  "accent_data": [
+    {"phrase_id": "0", "mora_count": 4, "accent": [0, 1, 1, 1]},
+    {"phrase_id": "1", "mora_count": 5, "accent": [0, 1, 1, 1, 1]},
+    {"phrase_id": "2", "mora_count": 9, "accent": [1, 0, 0, 0, 0, 1, 1, 1, 1]}
+  ],
   "breakdown": [
     {
       "unit": "毎日",
@@ -112,16 +116,22 @@ Use this exact structure:
 
 Rules:
 - "japanese": natural Japanese translation using kanji where appropriate
-- "furigana": FULL reading in hiragana only (no kanji) — used for pitch graph mora labels
+- "furigana": FULL reading in hiragana only (no kanji, no spaces) — concatenation of ALL morae in order
 - "korean_pronunciation": full sentence pronunciation in Korean characters
-- "ojad_input": same as "japanese" (no furigana markup)
 - "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
-- "breakdown": every token of the sentence split into grammatical units, no gaps or overlaps.
-  - "korean_meaning": the Korean meaning of this specific unit (word/particle/ending)
+- "accent_data": Tokyo Japanese pitch accent per phrase/word group.
+  Split the sentence into natural accent phrases (usually 2–5 morae each).
+  Each phrase: {"phrase_id": "<index as string>", "mora_count": <int>, "accent": [0 or 1, ...]}.
+  accent array length MUST equal mora_count. 0 = Low pitch, 1 = High pitch.
+  The sum of all mora_count values MUST equal the total mora count of "furigana".
+  Use accurate Tokyo-dialect pitch accent patterns:
+    - 平板型 (type 0): [0,1,1,1,...] — rises after 1st mora, stays high
+    - 頭高型 (type 1): [1,0,0,0,...] — high on 1st mora, drops immediately
+    - 中高型 / 尾高型: place downstep at the correct position
+- "breakdown": every token split into grammatical units, no gaps or overlaps.
+  - "korean_meaning": Korean meaning of this unit
   - "part_of_speech": one of 명사/동사/형용사/부사/조사/조동사/접속사/감탄사/기타
-  - "conjugation_steps": null for uninflected words (nouns, particles, adverbs).
-    For conjugated/inflected forms (verbs, i-adjectives, na-adjectives), provide an ordered array showing
-    the derivation from dictionary form to the surface form used in the sentence.
+  - "conjugation_steps": null for uninflected words; array for conjugated forms
     Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
 """
 
@@ -309,7 +319,7 @@ def translate_korean_to_japanese(korean_text: str) -> dict:
         )
 
     # 필수 키 검증
-    required_keys = {"japanese", "furigana", "korean_pronunciation", "ojad_input", "furigana_html", "breakdown"}
+    required_keys = {"japanese", "furigana", "korean_pronunciation", "furigana_html", "accent_data", "breakdown"}
     missing = required_keys - result.keys()
     if missing:
         raise HTTPException(status_code=502, detail=f"Gemini 응답에 누락된 키: {missing}")
@@ -402,14 +412,14 @@ def analyze(req: AnalyzeRequest):
         return AnalyzeResponse(**cached)
     # ───────────────────────────────────────────
 
-    # 1단계: 한국어 → 일본어 번역 (Gemini)
+    # 1단계: 한국어 → 일본어 번역 + 억양 데이터 (Gemini 단일 호출)
     translation = translate_korean_to_japanese(text)
 
-    # 2단계: OJAD 악센트 파싱 (실패해도 번역 결과는 반환)
+    # Gemini가 직접 제공한 억양 데이터 사용 (OJAD 불필요)
+    raw_accent = translation.get("accent_data", [])
     try:
-        accent_data = fetch_accent_data(translation["ojad_input"])
-    except Exception as e:
-        print(f"[OJAD 실패 — 억양 없이 반환] {e}")
+        accent_data = [AccentEntry(**e) for e in raw_accent]
+    except Exception:
         accent_data = []
 
     result = AnalyzeResponse(
@@ -417,7 +427,7 @@ def analyze(req: AnalyzeRequest):
         furigana=translation["furigana"],
         korean_pronunciation=translation["korean_pronunciation"],
         furigana_html=translation["furigana_html"],
-        accent_data=[AccentEntry(**entry) for entry in accent_data],
+        accent_data=accent_data,
         breakdown=[BreakdownEntry(**entry) for entry in translation["breakdown"]],
     )
 

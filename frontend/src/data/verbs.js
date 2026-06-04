@@ -32,6 +32,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'iu', rank: 1, verb: '言う', reading: '이우', meaning: '말하다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '言(い)います',             ruby: '이이마스',          meaning: '말합니다' },
@@ -101,6 +102,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'suru', rank: 2, verb: 'する', reading: '스루', meaning: '하다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: 'します',             ruby: '시마스',        meaning: '합니다' },
@@ -168,6 +170,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'aru', rank: 3, verb: 'ある', reading: '아루', meaning: '있다 (사물)',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: 'あります',             ruby: '아리마스',        meaning: '있습니다' },
@@ -234,6 +237,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'naru', rank: 4, verb: 'なる', reading: '나루', meaning: '되다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: 'なります',             ruby: '나리마스',        meaning: '됩니다' },
@@ -301,6 +305,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'omou', rank: 5, verb: '思う', reading: '오모우', meaning: '생각하다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '思(おも)います',             ruby: '오모이마스',          meaning: '생각합니다' },
@@ -369,6 +374,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'iku', rank: 6, verb: '行く', reading: '이쿠', meaning: '가다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '行(い)きます',             ruby: '이키마스',          meaning: '갑니다' },
@@ -436,6 +442,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'kuru', rank: 7, verb: '来る', reading: '쿠루', meaning: '오다',
+    accentType: 1,
     conjugations: {
       formal: [
         { text: '来(き)ます',             ruby: '키마스',          meaning: '옵니다' },
@@ -502,6 +509,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'miru', rank: 8, verb: '見る', reading: '미루', meaning: '보다',
+    accentType: 1,
     conjugations: {
       formal: [
         { text: '見(み)ます',             ruby: '미마스',          meaning: '봅니다' },
@@ -569,6 +577,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'yaru', rank: 9, verb: 'やる', reading: '야루', meaning: '하다 (구어)',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: 'やります',             ruby: '야리마스',        meaning: '합니다' },
@@ -635,6 +644,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'iru', rank: 10, verb: 'いる', reading: '이루', meaning: '있다 (사람·동물)',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: 'います',             ruby: '이마스',        meaning: '있습니다' },
@@ -704,6 +714,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'dekiru', rank: 11, verb: 'できる', reading: '데키루', meaning: '할 수 있다; 생기다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: 'できます',             ruby: '데키마스',          meaning: '할 수 있습니다' },
@@ -768,6 +779,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'motsu', rank: 12, verb: '持つ', reading: '모츠', meaning: '가지다; 들다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '持(も)ちます',             ruby: '모치마스',          meaning: '가집니다' },
@@ -832,6 +844,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'deru', rank: 13, verb: '出る', reading: '데루', meaning: '나오다; 나가다',
+    accentType: 1,
     conjugations: {
       formal: [
         { text: '出(で)ます',             ruby: '데마스',          meaning: '나갑니다' },
@@ -897,6 +910,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'kangaeru', rank: 14, verb: '考える', reading: '캉가에루', meaning: '생각하다; 고려하다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '考(かんが)えます',             ruby: '캉가에마스',          meaning: '생각합니다' },
@@ -961,6 +975,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'wakaru', rank: 15, verb: '分かる', reading: '와카루', meaning: '알다; 이해하다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '分(わ)かります',             ruby: '와카리마스',          meaning: '알겠습니다' },
@@ -1026,6 +1041,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'hairu', rank: 16, verb: '入る', reading: '하이루', meaning: '들어가다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '入(はい)ります',             ruby: '하이리마스',          meaning: '들어갑니다' },
@@ -1090,6 +1106,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'tsukuru', rank: 17, verb: '作る', reading: '츠쿠루', meaning: '만들다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '作(つく)ります',             ruby: '츠쿠리마스',          meaning: '만듭니다' },
@@ -1154,6 +1171,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'kiku', rank: 18, verb: '聞く', reading: '키쿠', meaning: '듣다; 묻다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '聞(き)きます',             ruby: '키키마스',          meaning: '듣습니다' },
@@ -1219,6 +1237,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'tsukau', rank: 19, verb: '使う', reading: '츠카우', meaning: '사용하다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '使(つか)います',             ruby: '츠카이마스',          meaning: '사용합니다' },
@@ -1283,6 +1302,7 @@ export const VERBS = [
    * ══════════════════════════════════════════════════ */
   {
     id: 'toru', rank: 20, verb: '取る', reading: '토루', meaning: '잡다; 가져가다',
+    accentType: 0,
     conjugations: {
       formal: [
         { text: '取(と)ります',             ruby: '토리마스',          meaning: '가져갑니다' },

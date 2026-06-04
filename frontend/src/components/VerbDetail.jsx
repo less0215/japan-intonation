@@ -86,16 +86,41 @@ const stripFurigana = (text) => text.replace(/\([^)）]+\)/g, '')
 const toHiragana   = (text) =>
   text.replace(/[^\s()（）]+?\(([^)）]+)\)/g, '$1').replace(/[？。、！↑\s]/g, '')
 
+/* 히라가나 → 모라 배열 (PitchGraph의 splitMora와 동일) */
+function splitMoraLocal(hiragana) {
+  const smallKana = new Set(['ぁ','ぃ','ぅ','ぇ','ぉ','ゃ','ゅ','ょ','っ','ァ','ィ','ゥ','ェ','ォ','ャ','ュ','ョ','ッ'])
+  const chars = [...hiragana]; const mora = []
+  for (let i = 0; i < chars.length; i++) {
+    if (i + 1 < chars.length && smallKana.has(chars[i + 1])) { mora.push(chars[i] + chars[i + 1]); i++ }
+    else mora.push(chars[i])
+  }
+  return mora
+}
+
+/*
+ * accentType 기반 로컬 악센트 계산 (OJAD 없이 즉시)
+ *   0 = 平板型 (LH…H) : [0, 1, 1, 1, ...]
+ *   1 = 頭高型 (HL…L) : [1, 0, 0, 0, ...]
+ */
+function computeAccentLocal(furigana, accentType) {
+  const mora = splitMoraLocal(furigana)
+  if (mora.length === 0) return null
+  const accent = mora.map((_, i) =>
+    accentType === 1 ? (i === 0 ? 1 : 0) : (i === 0 ? 0 : 1)
+  )
+  return [{ phrase_id: '0', mora_count: mora.length, accent }]
+}
+
 /* 활용형 행 — TTS(스피커) + 억양(파형 버튼) 독립 */
-function FormRow({ row, index, gender, borderStyle }) {
-  const [audioState,   setAudioState]   = useState('idle')
-  const [accentState,  setAccentState]  = useState('idle')   // idle|loading|done|error
-  const [accentData,   setAccentData]   = useState(null)
-  const [showGraph,    setShowGraph]    = useState(false)
+function FormRow({ row, index, gender, accentType, borderStyle }) {
+  const [audioState, setAudioState] = useState('idle')
+  const [showGraph,  setShowGraph]  = useState(false)
   const audioRef = useRef(null)
 
-  const plainText = stripFurigana(row.text)
-  const furigana  = toHiragana(row.text)
+  const plainText  = stripFurigana(row.text)
+  const furigana   = toHiragana(row.text)
+  // OJAD 대신 로컬 계산 — 즉시, API 불필요
+  const accentData = furigana ? computeAccentLocal(furigana, accentType ?? 0) : null
 
   /* ── TTS 재생 */
   async function handlePlay() {
@@ -121,30 +146,7 @@ function FormRow({ row, index, gender, borderStyle }) {
     } catch { setAudioState('idle') }
   }
 
-  /* ── 억양 그래프 토글 */
-  async function handleGraph() {
-    // 이미 로드된 경우 → 토글만
-    if (accentData !== null) { setShowGraph(v => !v); return }
-    if (accentState === 'loading') return
-
-    setAccentState('loading')
-    setShowGraph(true)
-    try {
-      const res = await fetch(`${API_URL}/accent`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ japanese: plainText }),
-      })
-      if (!res.ok) throw new Error()
-      const json = await res.json()
-      setAccentData(json.accent_data ?? [])
-      setAccentState('done')
-    } catch {
-      setAccentState('error')
-      setShowGraph(false)
-    }
-  }
-
-  const graphActive = showGraph && accentData && accentData.length > 0
+  const graphActive = showGraph && accentData
 
   return (
     <div style={{ borderTop: borderStyle?.borderTop, backgroundColor: borderStyle?.bg }}>
@@ -159,22 +161,21 @@ function FormRow({ row, index, gender, borderStyle }) {
         {/* 버튼 묶음 */}
         <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexShrink: 0 }}>
           {/* 억양 그래프 버튼 */}
-          <button onClick={handleGraph} title="억양 그래프" style={{
-            width: 26, height: 26, borderRadius: 6,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
-            backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent',
-            cursor: 'pointer',
-          }}>
-            {accentState === 'loading' ? (
-              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
-            ) : (
-              /* 파형 아이콘 */
-              <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
-                <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
-                  stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-              </svg>
-            )}
+          <button
+            onClick={() => setShowGraph(v => !v)}
+            title="억양 그래프"
+            style={{
+              width: 26, height: 26, borderRadius: 6,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+              backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent',
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+              <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
+                stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+            </svg>
           </button>
           {/* TTS 스피커 버튼 */}
           <button onClick={handlePlay} title={audioState === 'playing' ? '정지' : '발음 듣기'} style={{
@@ -195,13 +196,7 @@ function FormRow({ row, index, gender, borderStyle }) {
         </div>
       </div>
 
-      {/* 억양 그래프 */}
-      {showGraph && accentState === 'loading' && (
-        <div style={{ padding: '6px 12px 10px', color: '#aaa', fontSize: 12 }}>
-          <span className="spinner" style={{ width: 10, height: 10, borderTopColor: PRIMARY, borderColor: '#e0e0e0', display: 'inline-block', marginRight: 6 }} />
-          억양 불러오는 중...
-        </div>
-      )}
+      {/* 억양 그래프 — 즉시 렌더 */}
       {graphActive && furigana && (
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '2px 12px 10px' }}>
           <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
@@ -370,7 +365,7 @@ function PracticeButton({ japanesePlain }) {
 }
 
 /* 정중체 / 보통체 각 8행 테이블 */
-function ConjSection({ title, titleJp, rows }) {
+function ConjSection({ title, titleJp, rows, accentType }) {
   const [gender, setGender] = useState('female')
 
   return (
@@ -408,6 +403,7 @@ function ConjSection({ title, titleJp, rows }) {
             row={row}
             index={i}
             gender={gender}
+            accentType={accentType}
             borderStyle={{
               borderTop: i === 4 ? '2px solid #e8e8e8' : '1px solid #f0f0f0',
               bg: i % 2 === 1 ? '#fafafa' : 'transparent',
@@ -419,11 +415,11 @@ function ConjSection({ title, titleJp, rows }) {
   )
 }
 
-function ConjugationTable({ conjugations }) {
+function ConjugationTable({ conjugations, accentType }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <ConjSection title="정중체" titleJp="(です・ます体)" rows={conjugations.formal} />
-      <ConjSection title="보통체" titleJp="(普通体)" rows={conjugations.casual} />
+      <ConjSection title="정중체" titleJp="(です・ます体)" rows={conjugations.formal} accentType={accentType} />
+      <ConjSection title="보통체" titleJp="(普通体)" rows={conjugations.casual} accentType={accentType} />
     </div>
   )
 }
@@ -514,7 +510,7 @@ export default function VerbDetail({ verb, onBack }) {
 
       {/* 활용 테이블 (정중체 + 보통체) */}
       {verb.conjugations && (
-        <ConjugationTable conjugations={verb.conjugations} />
+        <ConjugationTable conjugations={verb.conjugations} accentType={verb.accentType ?? 0} />
       )}
 
       {/* 예문 */}

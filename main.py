@@ -337,7 +337,7 @@ def fetch_accent_data(japanese_text: str) -> list[dict]:
     }
 
     try:
-        response = requests.post(OJAD_URL, data=payload, headers=OJAD_HEADERS, timeout=15)
+        response = requests.post(OJAD_URL, data=payload, headers=OJAD_HEADERS, timeout=8)
         response.raise_for_status()
     except requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="OJAD 서버 요청 시간이 초과되었습니다 (15초).")
@@ -405,8 +405,12 @@ def analyze(req: AnalyzeRequest):
     # 1단계: 한국어 → 일본어 번역 (Gemini)
     translation = translate_korean_to_japanese(text)
 
-    # 2단계: OJAD 악센트 파싱
-    accent_data = fetch_accent_data(translation["ojad_input"])
+    # 2단계: OJAD 악센트 파싱 (실패해도 번역 결과는 반환)
+    try:
+        accent_data = fetch_accent_data(translation["ojad_input"])
+    except Exception as e:
+        print(f"[OJAD 실패 — 억양 없이 반환] {e}")
+        accent_data = []
 
     result = AnalyzeResponse(
         japanese=translation["japanese"],

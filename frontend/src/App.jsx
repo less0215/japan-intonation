@@ -84,6 +84,7 @@ export default function App() {
   const [error, setError]             = useState(null)
   const [saved, setSaved]             = useState(false)
   const [showSignup, setShowSignup]   = useState(false)
+  const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login'
   const [showHistory, setShowHistory] = useState(false)
 
   // 앱 실행 시 1회 랜덤 선택 (useMemo로 리렌더 시 고정)
@@ -129,8 +130,17 @@ export default function App() {
   }
 
   function handleSave() {
-    if (!user) setShowSignup(true)
+    if (!user) { setSignupMode('save'); setShowSignup(true) }
     else       doSave(user)
+  }
+
+  function handleLoginClick() {
+    setSignupMode('login')
+    setShowSignup(true)
+  }
+
+  function handleLogout() {
+    setUser(null)
   }
 
   async function doSave(currentUser) {
@@ -141,7 +151,8 @@ export default function App() {
   function handleSignupSuccess(newUser) {
     setUser(newUser)
     setShowSignup(false)
-    doSave(newUser)
+    // 저장 모드일 때만 자동 저장
+    if (signupMode === 'save' && result) doSave(newUser)
   }
 
   function handleSelectSaved(savedResult, savedInput) {
@@ -165,15 +176,53 @@ export default function App() {
               일본어 번역기
             </span>
           </h1>
-          {user && tab === 'translate' && (
-            <button className="history-btn" onClick={() => setShowHistory(true)}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-              </svg>
-              저장 목록
-            </button>
-          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {user ? (
+              <>
+                {/* 저장 목록 버튼 */}
+                {tab === 'translate' && (
+                  <button className="history-btn" onClick={() => setShowHistory(true)}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                    </svg>
+                    저장 목록
+                  </button>
+                )}
+                {/* 사용자 정보 + 로그아웃 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: '#888' }}>{user.name}</span>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      fontSize: 11, color: '#aaa', background: 'none',
+                      border: '1px solid #e8e8e8', borderRadius: 6,
+                      padding: '3px 8px', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* 비로그인: 로그인 버튼 */
+              <button
+                onClick={handleLoginClick}
+                style={{
+                  height: 32, padding: '0 14px', borderRadius: 8,
+                  fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
+                  cursor: 'pointer',
+                  border: `1.5px solid ${PRIMARY}55`,
+                  backgroundColor: `${PRIMARY}10`,
+                  color: PRIMARY,
+                  transition: 'all 0.15s',
+                }}
+              >
+                로그인
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 탭 네비게이션 */}
@@ -243,7 +292,11 @@ export default function App() {
       </div>
 
       {showSignup && (
-        <SignupModal onSuccess={handleSignupSuccess} onClose={() => setShowSignup(false)} />
+        <SignupModal
+          mode={signupMode}
+          onSuccess={handleSignupSuccess}
+          onClose={() => setShowSignup(false)}
+        />
       )}
       {showHistory && user && (
         <HistoryDrawer user={user} onClose={() => setShowHistory(false)} onSelect={handleSelectSaved} />

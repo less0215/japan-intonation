@@ -18,7 +18,7 @@ function formatTime(seconds) {
   return `${m}:${s}`
 }
 
-export default function SignupModal({ onSuccess, onClose }) {
+export default function SignupModal({ onSuccess, onClose, mode = 'save' }) {
   const [step, setStep]         = useState('input')   // 'input' | 'verify'
   const [name, setName]         = useState('')
   const [phone, setPhone]       = useState('')
@@ -126,10 +126,14 @@ export default function SignupModal({ onSuccess, onClose }) {
         <div className="modal-handle" />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
-          <p className="modal-title">저장하기</p>
+          <p className="modal-title">
+            {mode === 'login' ? '로그인' : '저장하기'}
+          </p>
           <p className="modal-subtitle">
             {step === 'input'
-              ? '처음 저장 시 간단한 정보가 필요해요'
+              ? mode === 'login'
+                ? '가입 시 사용한 휴대폰 번호로 로그인하세요'
+                : '처음 저장 시 간단한 정보가 필요해요'
               : `${phone} 으로 인증번호를 발송했어요`}
           </p>
         </div>

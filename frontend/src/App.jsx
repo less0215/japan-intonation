@@ -132,6 +132,14 @@ export default function App() {
       const data = await res.json()
       setResult(data)
       doSave(user, text, data)
+      // GA4 커스텀 이벤트 전송
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'analyze', {
+          input_text: text,
+          japanese: data.japanese,
+          is_logged_in: !!user,
+        })
+      }
     } catch (err) {
       const isFetchError = err.name === 'TypeError' || err.message.includes('fetch') || err.message.includes('network')
       setError(isFetchError ? '서버가 시작되는 중입니다. 잠시 후 다시 시도해 주세요.' : err.message)

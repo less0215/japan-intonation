@@ -129,7 +129,9 @@ export default function App() {
         else
           throw new Error('요청을 처리할 수 없습니다. 다시 시도해 주세요.')
       }
-      setResult(await res.json())
+      const data = await res.json()
+      setResult(data)
+      doSave(user, text, data)
     } catch (err) {
       const isFetchError = err.name === 'TypeError' || err.message.includes('fetch') || err.message.includes('network')
       setError(isFetchError ? '서버가 시작되는 중입니다. 잠시 후 다시 시도해 주세요.' : err.message)
@@ -140,7 +142,7 @@ export default function App() {
 
   function handleSave() {
     if (!user) { setSignupMode('save'); setShowSignup(true) }
-    else       doSave(user)
+    else       doSave(user, inputText, result)
   }
 
   function handleLoginClick() {
@@ -152,8 +154,8 @@ export default function App() {
     setUser(null)
   }
 
-  async function doSave(currentUser) {
-    try { await saveResult(currentUser, inputText, result); setSaved(true) }
+  async function doSave(currentUser, text, data) {
+    try { await saveResult(currentUser ?? null, text ?? inputText, data ?? result); setSaved(true) }
     catch { /* 실패 시 무시 */ }
   }
 
@@ -161,7 +163,7 @@ export default function App() {
     setUser(newUser)
     setShowSignup(false)
     // 저장 모드일 때만 자동 저장
-    if (signupMode === 'save' && result) doSave(newUser)
+    if (signupMode === 'save' && result) doSave(newUser, inputText, result)
   }
 
   function handleSelectSaved(savedResult, savedInput) {

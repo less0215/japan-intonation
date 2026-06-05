@@ -185,11 +185,12 @@ class User(Base):
 
 class SavedResult(Base):
     __tablename__ = "saved_results"
-    id          = Column(Integer, primary_key=True, index=True)
-    user_id     = Column(Integer, nullable=False, index=True)
-    input_text  = Column(String(500), nullable=False)
-    result_json = Column(Text, nullable=False)
-    created_at  = Column(DateTime, default=datetime.datetime.utcnow)
+    id           = Column(Integer, primary_key=True, index=True)
+    user_id      = Column(Integer, nullable=True, index=True)
+    anonymous_id = Column(String(36), nullable=True, index=True)
+    input_text   = Column(String(500), nullable=False)
+    result_json  = Column(Text, nullable=False)
+    created_at   = Column(DateTime, default=datetime.datetime.utcnow)
 
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
@@ -245,7 +246,8 @@ class SignupResponse(BaseModel):
     is_new: bool   # True=신규, False=기존 사용자 로그인
 
 class SaveRequest(BaseModel):
-    user_id: int
+    user_id: int | None = None
+    anonymous_id: str | None = None
     input_text: str
     result: dict
 
@@ -563,14 +565,19 @@ def signup(req: SignupRequest):
 
 @app.post("/saves")
 def save_result(req: SaveRequest):
-    """변환 결과를 저장한다."""
+    """변환 결과를 저장한다. 로그인 사용자는 user_id, 비로그인은 anonymous_id로 저장."""
+    if not req.user_id and not req.anonymous_id:
+        raise HTTPException(status_code=400, detail="user_id 또는 anonymous_id가 필요합니다.")
+
     db = SessionLocal()
     try:
-        user = db.query(User).filter(User.id == req.user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        if req.user_id:
+            user = db.query(User).filter(User.id == req.user_id).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
         saved = SavedResult(
             user_id=req.user_id,
+            anonymous_id=req.anonymous_id if not req.user_id else None,
             input_text=req.input_text,
             result_json=json.dumps(req.result, ensure_ascii=False),
         )

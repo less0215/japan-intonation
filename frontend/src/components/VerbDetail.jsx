@@ -515,22 +515,53 @@ export default function VerbDetail({ verb, onBack }) {
     <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* 뒤로가기 + 제목 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={onBack} style={styles.backBtn}>
-          ← 목록
-        </button>
-        <div>
-          <span style={styles.verbTitle}>{verb.verb}</span>
-          <span style={styles.verbSub}> · {verb.reading} · {verb.meaning}</span>
+      {/* 뒤로 가기 */}
+      <button onClick={onBack} style={styles.backBtn}>← 목록으로</button>
+
+      {/* 헤더 카드 — WordDetail과 동일한 스타일로 통일 */}
+      <div style={{
+        background: `linear-gradient(135deg, ${PRIMARY}18 0%, ${PRIMARY}08 100%)`,
+        border: `1.5px solid ${PRIMARY}33`,
+        borderRadius: 14,
+        padding: '18px 20px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 700, color: PRIMARY,
+            background: `${PRIMARY}18`, borderRadius: 8, padding: '2px 8px',
+          }}>
+            동사 #{verb.rank}위
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 36, fontWeight: 500, fontFamily: "'Noto Sans JP', sans-serif" }}>
+            {verb.verb}
+          </span>
+          <span style={{ fontSize: 16, color: PRIMARY, fontWeight: 600 }}>
+            {verb.reading}
+          </span>
+        </div>
+        <div style={{ fontSize: 16, color: '#555', marginTop: 4 }}>
+          {verb.meaning}
         </div>
       </div>
 
-      {/* 준비 중 안내 */}
+      {/* 준비 중 안내 — WordDetail과 동일한 스타일로 통일 */}
       {!verb.conjugations && (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: '#bbb', fontSize: 15 }}>
-          콘텐츠 준비 중이에요 😊<br />
-          <span style={{ fontSize: 13 }}>곧 추가될 예정입니다.</span>
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          padding: '48px 20px',
+          background: '#fafafa',
+          borderRadius: 14,
+          border: '1.5px dashed #e0e0e0',
+        }}>
+          <span style={{ fontSize: 32, marginBottom: 12 }}>🚧</span>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#555', margin: '0 0 6px' }}>
+            곧 업데이트 됩니다
+          </p>
+          <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>
+            이 단어의 활용 데이터를 준비 중이에요.
+          </p>
         </div>
       )}
 
@@ -547,14 +578,14 @@ export default function VerbDetail({ verb, onBack }) {
           <div key={i} style={styles.exampleCard}>
 
             {/* ① 텍스트 + 버튼 — 좌우 padding */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '14px 16px 0' }}>
+            <div className="example-card-body">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: PRIMARY }}>{ex.korean}</span>
                 <RubyText text={ex.japanese} />
                 <span style={{ fontSize: 12, color: '#888' }}>{ex.reading}</span>
                 {ex.pattern && <PatternBadge pattern={ex.pattern} />}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+              <div className="example-card-actions">
                 <PracticeButton japanesePlain={ex.plain} />
                 <SaveExampleButton
                   example={ex}

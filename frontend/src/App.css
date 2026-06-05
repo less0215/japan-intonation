@@ -406,23 +406,63 @@ body {
 }
 
 /* ══════════════════════════════════════
+   탭 네비게이션 (가로 스크롤)
+══════════════════════════════════════ */
+.tab-nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE/Edge */
+  padding-bottom: 2px;        /* 클리핑 방지 */
+}
+.tab-nav::-webkit-scrollbar {
+  display: none;              /* Chrome/Safari */
+}
+
+/* ══════════════════════════════════════
+   예문 카드 본문 (텍스트 + 버튼)
+══════════════════════════════════════ */
+.example-card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 16px 0;
+}
+
+.example-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
    모바일 반응형 (480px 이하)
 ══════════════════════════════════════ */
 @media (max-width: 480px) {
   .page {
-    padding: 24px 14px 60px;
+    padding: 20px 14px 60px;
   }
 
   .container {
-    gap: 16px;
+    gap: 14px;
   }
 
   .app-title {
-    font-size: 20px;
+    font-size: 18px;
+  }
+
+  /* 헤더: 이름 + 버튼이 많을 때 줄바꿈 허용 */
+  .app-header {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .section {
-    padding: 16px 14px;
+    padding: 14px 12px;
     gap: 12px;
   }
 
@@ -437,6 +477,21 @@ body {
 
   .breakdown-cards {
     display: flex;
+  }
+
+  /* 예문 카드 버튼 열: 모바일에서 텍스트 아래로 이동 */
+  .example-card-body {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .example-card-actions {
+    flex-direction: row;
+    align-self: stretch;
+  }
+
+  .example-card-actions > * {
+    flex: 1;
   }
 }
 

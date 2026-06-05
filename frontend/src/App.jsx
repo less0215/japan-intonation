@@ -235,7 +235,7 @@ export default function App() {
         </div>
 
         {/* 탭 네비게이션 */}
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div className="tab-nav">
           {/* 번역기 탭 */}
           <button
             onClick={() => navigate('/')}

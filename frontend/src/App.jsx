@@ -239,19 +239,13 @@ export default function App() {
           {/* 번역기 탭 */}
           <button
             onClick={() => navigate('/')}
-            style={{
-              height: 36, padding: '0 16px', borderRadius: 20,
-              fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
-              cursor: 'pointer', border: 'none',
-              backgroundColor: tab === 'translate' ? '#111111' : '#f0f0f0',
-              color:           tab === 'translate' ? '#ffffff' : '#666666',
-              transition: 'all 0.15s',
-            }}
+            className="tab-btn tab-btn--dark"
+            data-active={tab === 'translate'}
           >
             번역기
           </button>
 
-          {/* 동사 TOP100 탭 */}
+          {/* 품사 탭 */}
           {[
             { key: 'verbs',  path: '/verbs',  label: '동사 TOP100' },
             { key: 'adj-i',  path: '/adj-i',  label: 'い형용사 TOP100' },
@@ -261,16 +255,8 @@ export default function App() {
             <button
               key={key}
               onClick={() => navigate(path)}
-              style={{
-                height: 36, padding: '0 14px', borderRadius: 20,
-                fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-                cursor: 'pointer',
-                border: tab === key ? 'none' : `1.5px solid ${PRIMARY}55`,
-                backgroundColor: tab === key ? PRIMARY : `${PRIMARY}12`,
-                color:           tab === key ? '#ffffff' : PRIMARY,
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-              }}
+              className="tab-btn tab-btn--primary"
+              data-active={tab === key}
             >
               {label}
             </button>

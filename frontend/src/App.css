@@ -410,16 +410,61 @@ body {
 ══════════════════════════════════════ */
 .tab-nav {
   display: flex;
+  flex-wrap: nowrap;          /* 절대 줄바꿈 금지 */
   gap: 6px;
   align-items: center;
-  overflow-x: auto;
+  overflow-x: scroll;         /* 항상 스크롤 가능 */
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE/Edge */
-  padding-bottom: 2px;        /* 클리핑 방지 */
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+  /* 스크롤 스냅 — 탭이 절반씩 잘리지 않도록 */
+  scroll-snap-type: x proximity;
 }
-.tab-nav::-webkit-scrollbar {
-  display: none;              /* Chrome/Safari */
+.tab-nav::-webkit-scrollbar { display: none; }
+
+/* 탭 버튼 공통 */
+.tab-btn {
+  flex-shrink: 0;             /* 절대 축소 금지 */
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;        /* 텍스트 줄바꿈 절대 금지 */
+  line-height: 36px;          /* 세로 중앙 정렬 보장 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  scroll-snap-align: start;
+}
+
+/* 번역기 탭 (검정) */
+.tab-btn--dark {
+  border: none;
+  background-color: #f0f0f0;
+  color: #666666;
+}
+.tab-btn--dark[data-active="true"] {
+  background-color: #111111;
+  color: #ffffff;
+}
+
+/* 품사 탭 (파랑) */
+.tab-btn--primary {
+  border: 1.5px solid #5CA9CE55;
+  background-color: #5CA9CE12;
+  color: #5CA9CE;
+}
+.tab-btn--primary[data-active="true"] {
+  border: none;
+  background-color: #5CA9CE;
+  color: #ffffff;
 }
 
 /* ══════════════════════════════════════

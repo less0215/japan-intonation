@@ -144,7 +144,10 @@ function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
     { id: 'formal', label: '정중체', labelJp: isNoun ? 'です体' : 'です・ます体' },
     { id: 'casual', label: '보통체', labelJp: '普通体' },
   ]
-  const rows = tab === 'formal' ? conjugations.formal : conjugations.casual
+  // 데이터 키: adj/noun은 'plain', verb는 'casual' — 둘 다 대응
+  const rows = tab === 'formal'
+    ? (conjugations.formal ?? [])
+    : (conjugations.plain ?? conjugations.casual ?? [])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -188,7 +191,7 @@ function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
           <FormRow
             key={`${tab}-${i}`}
             row={row} index={i}
-            conjLabel={conjLabels[i] ?? ''}
+            conjLabel={conjLabels?.[i] ?? row.meaning ?? ''}
             gender={gender}
             accentType={accentType}
             borderStyle={{

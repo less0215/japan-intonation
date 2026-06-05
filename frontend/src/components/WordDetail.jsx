@@ -1,0 +1,411 @@
+import { useState, useRef } from 'react'
+import PitchGraph from './PitchGraph'
+
+const PRIMARY  = '#5CA9CE'
+const API_URL  = 'https://japan-intonation-production.up.railway.app'
+
+const smallKana = new Set(['ぁ','ぃ','ぅ','ぇ','ぉ','ゃ','ゅ','ょ','っ','ァ','ィ','ゥ','ェ','ォ','ャ','ュ','ョ','ッ'])
+function splitMora(h) {
+  const chars = [...h]; const mora = []
+  for (let i = 0; i < chars.length; i++) {
+    if (i + 1 < chars.length && smallKana.has(chars[i + 1])) { mora.push(chars[i] + chars[i + 1]); i++ }
+    else mora.push(chars[i])
+  }
+  return mora
+}
+function computeAccent(hiragana, accentType) {
+  const mora = splitMora(hiragana)
+  if (!mora.length) return null
+  const n = accentType ?? 0
+  const accent = mora.map((_, i) => {
+    if (n === 0) return i === 0 ? 0 : 1
+    if (i === 0) return n === 1 ? 1 : 0
+    return i < n ? 1 : 0
+  })
+  return [{ phrase_id: '0', mora_count: mora.length, accent }]
+}
+
+function stripFurigana(text) {
+  return text.replace(/[（(][^）)]+[）)]/g, '').replace(/[（(）)]/g, '')
+}
+
+function toHiragana(text) {
+  return text.replace(/[^（(）)]+\(([^)）]+)\)/g, (_, r) => r)
+             .replace(/[（(）)]/g, '')
+             .replace(/[^぀-ゟ゠-ヿ]/g, '')
+}
+
+function RubyText({ text }) {
+  const regex = /([^\s()（）]+?)\(([^)）]+)\)/g
+  const parts = []; let last = 0, match
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push({ type: 'plain', text: text.slice(last, match.index) })
+    parts.push({ type: 'ruby', kanji: match[1], reading: match[2] })
+    last = match.index + match[0].length
+  }
+  if (last < text.length) parts.push({ type: 'plain', text: text.slice(last) })
+  return (
+    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 17, fontWeight: 500 }}>
+      {parts.map((p, i) =>
+        p.type === 'ruby' ? (
+          <ruby key={i}>{p.kanji}<rt style={{ fontSize: 10, color: '#888' }}>{p.reading}</rt></ruby>
+        ) : <span key={i}>{p.text}</span>
+      )}
+    </span>
+  )
+}
+
+/* 활용형 행 — TTS + 억양 그래프 */
+function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {
+  const [audioState, setAudioState] = useState('idle')
+  const [showGraph,  setShowGraph]  = useState(false)
+  const audioRef = useRef(null)
+
+  const plainText = stripFurigana(row.text)
+  const furigana  = toHiragana(row.text) || row.ruby?.replace(/[^぀-ゟ゠-ヿ]/g, '') || ''
+  const accentData = furigana ? computeAccent(furigana, accentType ?? 0) : null
+  const graphActive = showGraph && accentData
+
+  async function handlePlay() {
+    if (audioState === 'playing') {
+      audioRef.current?.pause(); audioRef.current = null; setAudioState('idle'); return
+    }
+    if (audioState === 'loading') return
+    setAudioState('loading')
+    try {
+      const res = await fetch(`${API_URL}/tts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: plainText, gender }),
+      })
+      if (!res.ok) throw new Error()
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      audio.onerror = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      await audio.play(); setAudioState('playing')
+    } catch { setAudioState('idle') }
+  }
+
+  return (
+    <div style={{ borderTop: borderStyle?.borderTop, backgroundColor: borderStyle?.bg }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', padding: '9px 12px', gap: 8, alignItems: 'center' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>{conjLabel}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 12, color: '#888' }}>{row.meaning}</span>
+          <RubyText text={row.text} />
+          <span style={{ fontSize: 11, color: '#aaa' }}>{row.ruby}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexShrink: 0 }}>
+          <button onClick={() => setShowGraph(v => !v)} title="억양 그래프" style={{
+            width: 26, height: 26, borderRadius: 6,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+            backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent', cursor: 'pointer',
+          }}>
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+              <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
+                stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+            </svg>
+          </button>
+          <button onClick={handlePlay} title={audioState === 'playing' ? '정지' : '발음 듣기'} style={{
+            width: 26, height: 26, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+            backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent', cursor: 'pointer',
+          }}>
+            {audioState === 'loading' ? (
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+            ) : audioState === 'playing' ? (
+              <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            ) : (
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/></svg>
+            )}
+          </button>
+        </div>
+      </div>
+      {graphActive && furigana && (
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '2px 12px 10px' }}>
+          <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* 활용 테이블 — 탭 방식 */
+function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
+  const [tab,    setTab]    = useState('formal')
+  const [gender, setGender] = useState('female')
+
+  const isNoun = wordType === 'noun'
+  const tabs = [
+    { id: 'formal', label: '정중체', labelJp: isNoun ? 'です体' : 'です・ます体' },
+    { id: 'casual', label: '보통체', labelJp: '普通体' },
+  ]
+  const rows = tab === 'formal' ? conjugations.formal : conjugations.casual
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* 탭 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', border: '1.5px solid #e8e8e8', borderRadius: 10, overflow: 'hidden' }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{
+              padding: '7px 18px', fontSize: 13, fontWeight: 700,
+              fontFamily: 'inherit', cursor: 'pointer', border: 'none',
+              backgroundColor: tab === t.id ? PRIMARY : '#fff',
+              color:           tab === t.id ? '#fff' : '#aaa',
+              transition: 'all 0.15s',
+            }}>
+              {t.label}
+              <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 4, opacity: 0.8 }}>{t.labelJp}</span>
+            </button>
+          ))}
+        </div>
+        {/* 성별 토글 */}
+        <div style={{ display: 'flex', border: '1.5px solid #e8e8e8', borderRadius: 8, overflow: 'hidden' }}>
+          {[{ v: 'female', l: '여성' }, { v: 'male', l: '남성' }].map(({ v, l }) => (
+            <button key={v} onClick={() => setGender(v)} style={{
+              height: 26, padding: '0 10px', fontSize: 11, fontWeight: 600,
+              fontFamily: 'inherit', cursor: 'pointer', border: 'none',
+              backgroundColor: gender === v ? PRIMARY : '#fff',
+              color:           gender === v ? '#fff' : '#aaa',
+              transition: 'all 0.15s',
+            }}>{l}</button>
+          ))}
+        </div>
+      </div>
+      {/* 테이블 */}
+      <div style={{ border: '1px solid #f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 28px', padding: '8px 12px', gap: 8, backgroundColor: '#f7f7f7' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>구분</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>표현</span>
+          <span />
+        </div>
+        {rows.map((row, i) => (
+          <FormRow
+            key={`${tab}-${i}`}
+            row={row} index={i}
+            conjLabel={conjLabels[i] ?? ''}
+            gender={gender}
+            accentType={accentType}
+            borderStyle={{
+              borderTop: i === 0 ? 'none' : '1px solid #f0f0f0',
+              bg: i % 2 === 1 ? '#fafafa' : 'transparent',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* 예문 카드 */
+function ExampleCard({ example }) {
+  const [showGraph, setShowGraph] = useState(false)
+  const [audioState, setAudioState] = useState('idle')
+  const [showPattern, setShowPattern] = useState(false)
+  const audioRef = useRef(null)
+
+  async function handlePlay() {
+    if (audioState === 'playing') {
+      audioRef.current?.pause(); audioRef.current = null; setAudioState('idle'); return
+    }
+    if (audioState === 'loading') return
+    setAudioState('loading')
+    try {
+      const res = await fetch(`${API_URL}/tts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: example.plain, gender: 'female' }),
+      })
+      if (!res.ok) throw new Error()
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      audio.onerror = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      await audio.play(); setAudioState('playing')
+    } catch { setAudioState('idle') }
+  }
+
+  const graphActive = showGraph && example.accentData?.length > 0
+
+  return (
+    <div style={{ border: '1px solid #f0f0f0', borderRadius: 10, padding: '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <span style={{ fontSize: 13, color: '#888' }}>{example.korean}</span>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 500, color: '#111', lineHeight: 1.6 }}
+            dangerouslySetInnerHTML={{ __html: example.japanese }} />
+          <span style={{ fontSize: 12, color: '#aaa' }}>{example.reading}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+          {example.accentData?.length > 0 && (
+            <button onClick={() => setShowGraph(v => !v)} title="억양 그래프" style={{
+              width: 26, height: 26, borderRadius: 6, border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+              backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+                <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
+                  stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+              </svg>
+            </button>
+          )}
+          <button onClick={handlePlay} title="발음 듣기" style={{
+            width: 26, height: 26, borderRadius: '50%', cursor: 'pointer',
+            border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+            backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {audioState === 'loading' ? (
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+            ) : audioState === 'playing' ? (
+              <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            ) : (
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/></svg>
+            )}
+          </button>
+        </div>
+      </div>
+      {graphActive && (
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: 4 }}>
+          <PitchGraph accentData={example.accentData} furigana={example.furigana} hideHeader />
+        </div>
+      )}
+      {example.pattern && (
+        <>
+          <button onClick={() => setShowPattern(v => !v)} style={{
+            alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 4,
+            height: 22, padding: '0 8px', borderRadius: 11, fontSize: 11, fontWeight: 700,
+            fontFamily: 'inherit', cursor: 'pointer',
+            backgroundColor: showPattern ? `${PRIMARY}15` : '#f5f5f5',
+            color: showPattern ? PRIMARY : '#888',
+            border: `1px solid ${showPattern ? PRIMARY + '44' : '#e8e8e8'}`,
+            transition: 'all 0.15s',
+          }}>
+            <span style={{ fontSize: 10 }}>📌</span>
+            {example.pattern.name}
+            <span style={{ fontSize: 9, opacity: 0.7 }}>{showPattern ? '▲' : '▼'}</span>
+          </button>
+          {showPattern && (
+            <div style={{ padding: '10px 12px', background: '#f8fbfe', border: `1px solid ${PRIMARY}22`, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#222' }}>{example.pattern.name}</span>
+              <span style={{ fontSize: 13, color: PRIMARY, fontWeight: 600 }}>{example.pattern.meaning}</span>
+              <span style={{ fontSize: 12, color: '#777', lineHeight: 1.5 }}>{example.pattern.note}</span>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+/* 메인 컴포넌트 */
+export default function WordDetail({ item, wordType, conjLabels, onBack }) {
+  const accentData = item.hiragana ? computeAccent(item.hiragana, item.accentType ?? 0) : null
+  const isNoun = wordType === 'noun'
+  const hasData = !!item.conjugations
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* 뒤로가기 + 제목 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={onBack} style={styles.backBtn}>← 목록</button>
+        <div>
+          <span style={styles.wordTitle}>{item.word}</span>
+          <span style={styles.wordSub}> · {item.reading} · {item.meaning}</span>
+        </div>
+      </div>
+
+      {/* 헤더 카드 */}
+      <div style={{
+        background: `linear-gradient(135deg, ${PRIMARY}18 0%, ${PRIMARY}08 100%)`,
+        border: `1.5px solid ${PRIMARY}33`, borderRadius: 14, padding: '16px 18px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 36, fontWeight: 600, color: '#111' }}>
+            {item.word}
+          </span>
+          <span style={{ fontSize: 14, color: PRIMARY, fontWeight: 600 }}>{item.reading}</span>
+          <span style={{ fontSize: 14, color: '#666' }}>{item.meaning}</span>
+          <span style={{
+            fontSize: 10, color: PRIMARY, background: `${PRIMARY}18`,
+            borderRadius: 8, padding: '2px 8px', fontWeight: 700,
+          }}>#{item.rank}위</span>
+        </div>
+        {accentData && (
+          <div style={{ marginTop: 8 }}>
+            <PitchGraph accentData={accentData} furigana={item.hiragana} hideHeader />
+          </div>
+        )}
+      </div>
+
+      {/* 준비 중 */}
+      {!hasData && (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: '#bbb', fontSize: 15 }}>
+          콘텐츠 준비 중이에요 😊<br />
+          <span style={{ fontSize: 13 }}>곧 추가될 예정입니다.</span>
+        </div>
+      )}
+
+      {/* 활용 테이블 */}
+      {hasData && (
+        <ConjugationTable
+          conjugations={item.conjugations}
+          conjLabels={conjLabels}
+          accentType={item.accentType ?? 0}
+          wordType={wordType}
+        />
+      )}
+
+      {/* 자주 쓰는 표현 (명사 전용) */}
+      {isNoun && item.expressions?.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <p style={styles.sectionTitle}>자주 쓰는 표현</p>
+          <div style={{ border: '1px solid #f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
+            {item.expressions.map((exp, i) => (
+              <div key={i} style={{
+                display: 'grid', gridTemplateColumns: '1fr 1fr',
+                padding: '10px 14px', gap: 8, alignItems: 'center',
+                borderTop: i === 0 ? 'none' : '1px solid #f0f0f0',
+                backgroundColor: i % 2 === 1 ? '#fafafa' : 'transparent',
+              }}>
+                <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, fontWeight: 500 }}>{exp.text}</span>
+                <span style={{ fontSize: 12, color: '#888' }}>{exp.meaning}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 예문 */}
+      {item.examples?.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <p style={styles.sectionTitle}>예문</p>
+          {item.examples.map((ex, i) => <ExampleCard key={i} example={ex} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const styles = {
+  backBtn: {
+    height: 32, padding: '0 12px', borderRadius: 8,
+    fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+    cursor: 'pointer', border: '1.5px solid #e8e8e8',
+    backgroundColor: '#fff', color: '#666',
+  },
+  wordTitle: {
+    fontFamily: "'Noto Sans JP', sans-serif",
+    fontSize: 24, fontWeight: 600, color: '#111',
+  },
+  wordSub: { fontSize: 14, color: '#888' },
+  sectionTitle: {
+    fontSize: 13, fontWeight: 700, color: '#555', margin: 0,
+  },
+}

@@ -99,15 +99,19 @@ function splitMoraLocal(hiragana) {
 
 /*
  * accentType 기반 로컬 악센트 계산 (OJAD 없이 즉시)
- *   0 = 平板型 (LH…H) : [0, 1, 1, 1, ...]
- *   1 = 頭高型 (HL…L) : [1, 0, 0, 0, ...]
+ *   0 = 平板型  (LH…H) : [0, 1, 1, ...]
+ *   1 = 頭高型  (HL…L) : [1, 0, 0, ...]
+ *   n≥2 = 中高型 (ドロップがn拍目の後): [0, 1…1, 0, 0, ...]
  */
 function computeAccentLocal(furigana, accentType) {
   const mora = splitMoraLocal(furigana)
   if (mora.length === 0) return null
-  const accent = mora.map((_, i) =>
-    accentType === 1 ? (i === 0 ? 1 : 0) : (i === 0 ? 0 : 1)
-  )
+  const n = accentType ?? 0
+  const accent = mora.map((_, i) => {
+    if (n === 0) return i === 0 ? 0 : 1
+    if (i === 0) return n === 1 ? 1 : 0
+    return i < n ? 1 : 0
+  })
   return [{ phrase_id: '0', mora_count: mora.length, accent }]
 }
 
@@ -370,13 +374,8 @@ function ConjSection({ title, titleJp, rows, accentType }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      {/* 섹션 헤더: 제목 + 성별 토글 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={styles.formTitle}>{title}</span>
-          <span style={{ fontSize: 12, color: '#aaa' }}>{titleJp}</span>
-        </div>
-        {/* 성별 토글 */}
+      {/* 성별 토글 (오른쪽 정렬) */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <div style={{ display: 'flex', border: '1.5px solid #e8e8e8', borderRadius: 8, overflow: 'hidden' }}>
           {[{ v: 'female', l: '여성' }, { v: 'male', l: '남성' }].map(({ v, l }) => (
             <button key={v} onClick={() => setGender(v)} style={{
@@ -416,10 +415,37 @@ function ConjSection({ title, titleJp, rows, accentType }) {
 }
 
 function ConjugationTable({ conjugations, accentType }) {
+  const [tab, setTab] = useState('formal')
+  const tabs = [
+    { id: 'formal', label: '정중체', labelJp: 'です・ます体' },
+    { id: 'casual', label: '보통체', labelJp: '普通体' },
+  ]
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <ConjSection title="정중체" titleJp="(です・ます体)" rows={conjugations.formal} accentType={accentType} />
-      <ConjSection title="보통체" titleJp="(普通体)" rows={conjugations.casual} accentType={accentType} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* 탭 */}
+      <div style={{ display: 'flex', border: '1.5px solid #e8e8e8', borderRadius: 10, overflow: 'hidden', alignSelf: 'flex-start' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            padding: '7px 18px', fontSize: 13, fontWeight: 700,
+            fontFamily: 'inherit', cursor: 'pointer', border: 'none',
+            backgroundColor: tab === t.id ? PRIMARY : '#fff',
+            color:           tab === t.id ? '#fff' : '#aaa',
+            transition: 'all 0.15s',
+          }}>
+            {t.label}
+            <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 4, opacity: 0.8 }}>
+              {t.labelJp}
+            </span>
+          </button>
+        ))}
+      </div>
+      <ConjSection
+        key={tab}
+        title={tab === 'formal' ? '정중체' : '보통체'}
+        titleJp={tab === 'formal' ? '(です・ます体)' : '(普通体)'}
+        rows={tab === 'formal' ? conjugations.formal : conjugations.casual}
+        accentType={accentType}
+      />
     </div>
   )
 }

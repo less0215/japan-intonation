@@ -1,34 +1,36 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { VERBS, getRankTabs } from '../data/verbs'
 
 const PRIMARY = '#5CA9CE'
 
 const SORT_OPTIONS = [
-  { id: 'rank',    label: '순위순' },
-  { id: 'ja',     label: '일본어순' },
-  { id: 'ko',     label: '한국어순' },
+  { id: 'rank', label: '순위순' },
+  { id: 'ja',   label: '일본어순' },
+  { id: 'ko',   label: '한국어순' },
 ]
 
-export default function VerbLibrary() {
+/* wordType: 'adj-i' | 'adj-na' | 'noun' */
+export default function WordLibrary({ items, wordType, getRankTabs, description }) {
   const navigate  = useNavigate()
-  const rankTabs  = useMemo(() => getRankTabs(VERBS, 10), [])
+  const rankTabs  = useMemo(() => getRankTabs(items, 10), [items])
 
   const [selectedTab, setSelectedTab] = useState(rankTabs[0]?.id ?? '')
   const [sortBy,      setSortBy]      = useState('rank')
 
   const currentTab = rankTabs.find(t => t.id === selectedTab) ?? rankTabs[0]
 
-  const filteredVerbs = useMemo(() => {
+  const filteredItems = useMemo(() => {
     if (!currentTab) return []
-    const inRange = VERBS.filter(v => v.rank >= currentTab.start && v.rank <= currentTab.end)
+    const inRange = items.filter(v => v.rank >= currentTab.start && v.rank <= currentTab.end)
     return [...inRange].sort((a, b) => {
       if (sortBy === 'rank') return a.rank - b.rank
       if (sortBy === 'ja')   return a.verb.localeCompare(b.verb, 'ja')
       if (sortBy === 'ko')   return a.meaning.localeCompare(b.meaning, 'ko')
       return 0
     })
-  }, [currentTab, sortBy])
+  }, [currentTab, sortBy, items])
+
+  const isComingSoon = currentTab && currentTab.start > 10
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -43,7 +45,7 @@ export default function VerbLibrary() {
       }}>
         <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>📖</span>
         <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
-          일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 동사입니다. <span style={{ color: '#aaa' }}>(BCCWJ, 2011)</span>
+          {description} <span style={{ color: '#aaa' }}>(BCCWJ, 2011)</span>
         </p>
       </div>
 
@@ -68,46 +70,55 @@ export default function VerbLibrary() {
         })}
       </div>
 
-      {/* 정렬 */}
-      <div style={styles.sortRow}>
-        <span style={{ fontSize: 12, color: '#aaa', marginRight: 4 }}>정렬</span>
-        {SORT_OPTIONS.map(opt => (
-          <button
-            key={opt.id}
-            onClick={() => setSortBy(opt.id)}
-            style={{
-              ...styles.sortBtn,
-              backgroundColor: sortBy === opt.id ? '#f0f9ff' : 'transparent',
-              color:           sortBy === opt.id ? PRIMARY : '#888',
-              fontWeight:      sortBy === opt.id ? 700 : 400,
-              border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid #e8e8e8',
-            }}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
-      {/* 동사 카드 목록 */}
-      {filteredVerbs.length === 0 ? (
-        <div style={styles.empty}>
-          <p style={{ fontSize: 15, color: '#aaaaaa' }}>아직 준비 중이에요 😊</p>
+      {/* 11위 이상: 업데이트 예정 메시지 */}
+      {isComingSoon ? (
+        <div style={styles.comingSoon}>
+          <span style={{ fontSize: 32, marginBottom: 12 }}>🚧</span>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#555', margin: '0 0 6px' }}>
+            곧 업데이트 됩니다
+          </p>
+          <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>
+            {currentTab.start}~{currentTab.end}위 데이터를 준비 중이에요.
+          </p>
         </div>
       ) : (
-        <div style={styles.verbGrid}>
-          {filteredVerbs.map(verb => (
-            <button
-              key={verb.id}
-              onClick={() => navigate(`/verbs/${verb.id}`)}
-              style={styles.verbCard}
-            >
-              <span style={styles.rankBadge}>#{verb.rank}</span>
-              <span style={styles.verbJapanese}>{verb.verb}</span>
-              <span style={styles.verbReading}>{verb.reading}</span>
-              <span style={styles.verbMeaning}>{verb.meaning}</span>
-            </button>
-          ))}
-        </div>
+        <>
+          {/* 정렬 */}
+          <div style={styles.sortRow}>
+            <span style={{ fontSize: 12, color: '#aaa', marginRight: 4 }}>정렬</span>
+            {SORT_OPTIONS.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setSortBy(opt.id)}
+                style={{
+                  ...styles.sortBtn,
+                  backgroundColor: sortBy === opt.id ? '#f0f9ff' : 'transparent',
+                  color:           sortBy === opt.id ? PRIMARY : '#888',
+                  fontWeight:      sortBy === opt.id ? 700 : 400,
+                  border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid #e8e8e8',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 카드 목록 */}
+          <div style={styles.verbGrid}>
+            {filteredItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => navigate(`/${wordType}/${item.id}`)}
+                style={styles.verbCard}
+              >
+                <span style={styles.rankBadge}>#{item.rank}</span>
+                <span style={styles.verbJapanese}>{item.verb}</span>
+                <span style={styles.verbReading}>{item.reading}</span>
+                <span style={styles.verbMeaning}>{item.meaning}</span>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
@@ -188,8 +199,13 @@ const styles = {
     color: '#888888',
     marginTop: 2,
   },
-  empty: {
-    textAlign: 'center',
-    padding: '60px 0',
+  comingSoon: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '60px 20px',
+    background: '#fafafa',
+    borderRadius: 14,
+    border: '1.5px dashed #e0e0e0',
   },
 }

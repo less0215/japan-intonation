@@ -6,8 +6,13 @@ import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
+import WordLibrary from './components/WordLibrary'
+import WordDetailPage from './components/WordDetailPage'
 import { useUser } from './context/UserContext'
 import { VERBS } from './data/verbs'
+import { ADJ_I, getRankTabs as getAdjITabs } from './data/adjI'
+import { ADJ_NA, getRankTabs as getAdjNaTabs } from './data/adjNa'
+import { NOUNS, getRankTabs as getNounTabs } from './data/nouns'
 
 const API_URL   = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY   = '#5CA9CE'
@@ -76,7 +81,11 @@ export default function App() {
   const navigate  = useNavigate()
   const { user, setUser, saveResult } = useUser()
 
-  const tab = location.pathname.startsWith('/verbs') ? 'verbs' : 'translate'
+  const tab = location.pathname.startsWith('/verbs')   ? 'verbs'
+            : location.pathname.startsWith('/adj-i')   ? 'adj-i'
+            : location.pathname.startsWith('/adj-na')  ? 'adj-na'
+            : location.pathname.startsWith('/noun')    ? 'noun'
+            : 'translate'
 
   const [loading, setLoading]         = useState(false)
   const [result, setResult]           = useState(null)
@@ -162,10 +171,10 @@ export default function App() {
   }
 
   const hasContent = loading || error || result
-  const isVerbsTab = tab === 'verbs'
+  const isWordTab = tab !== 'translate'
 
   return (
-    <div className={hasContent || isVerbsTab ? 'page' : 'page page--center'}>
+    <div className={hasContent || isWordTab ? 'page' : 'page page--center'}>
       <div className="container">
 
         {/* 앱 헤더 */}
@@ -242,30 +251,63 @@ export default function App() {
             번역기
           </button>
 
-          {/* 동사 TOP50 탭 — 강조형 */}
-          <button
-            onClick={() => navigate('/verbs')}
-            style={{
-              height: 36, padding: '0 14px', borderRadius: 20,
-              fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-              cursor: 'pointer',
-              border: tab === 'verbs' ? 'none' : `1.5px solid ${PRIMARY}55`,
-              backgroundColor: tab === 'verbs' ? PRIMARY : `${PRIMARY}12`,
-              color:           tab === 'verbs' ? '#ffffff' : PRIMARY,
-              transition: 'all 0.15s',
-              display: 'flex', alignItems: 'center', gap: 4,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span style={{ fontSize: 11 }}>🎌</span>
-            일본인이 자주 쓰는 동사 TOP50
-          </button>
+          {/* 동사 TOP100 탭 */}
+          {[
+            { key: 'verbs',  path: '/verbs',  label: '동사 TOP100' },
+            { key: 'adj-i',  path: '/adj-i',  label: 'い형용사 TOP100' },
+            { key: 'adj-na', path: '/adj-na', label: 'な형용사 TOP100' },
+            { key: 'noun',   path: '/noun',   label: '명사 TOP100' },
+          ].map(({ key, path, label }) => (
+            <button
+              key={key}
+              onClick={() => navigate(path)}
+              style={{
+                height: 36, padding: '0 14px', borderRadius: 20,
+                fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                cursor: 'pointer',
+                border: tab === key ? 'none' : `1.5px solid ${PRIMARY}55`,
+                backgroundColor: tab === key ? PRIMARY : `${PRIMARY}12`,
+                color:           tab === key ? '#ffffff' : PRIMARY,
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* 라우트 */}
         <Routes>
           <Route path="/verbs/:id" element={<VerbDetailPage />} />
           <Route path="/verbs"     element={<VerbLibrary />} />
+          <Route path="/adj-i/:id" element={<WordDetailPage wordType="adj-i" />} />
+          <Route path="/adj-i"     element={
+            <WordLibrary
+              items={ADJ_I}
+              wordType="adj-i"
+              getRankTabs={getAdjITabs}
+              description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 い형용사입니다."
+            />
+          } />
+          <Route path="/adj-na/:id" element={<WordDetailPage wordType="adj-na" />} />
+          <Route path="/adj-na"     element={
+            <WordLibrary
+              items={ADJ_NA}
+              wordType="adj-na"
+              getRankTabs={getAdjNaTabs}
+              description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 な형용사입니다."
+            />
+          } />
+          <Route path="/noun/:id" element={<WordDetailPage wordType="noun" />} />
+          <Route path="/noun"     element={
+            <WordLibrary
+              items={NOUNS}
+              wordType="noun"
+              getRankTabs={getNounTabs}
+              description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 명사입니다."
+            />
+          } />
           <Route path="*" element={
             <>
               {/* 오늘의 단어 — 결과 없을 때만 표시 */}

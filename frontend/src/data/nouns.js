@@ -201,7 +201,7 @@ export const NOUNS = [
         japanese: '私(わたし)は自分(じぶん)らしく生(い)きたい。',
         plain:    '私は自分らしく生きたい。',
         reading:  '와타시와 지붕라시쿠 이키타이.',
-        pattern:  { name: '自分らしく', meaning: '자기답게', note: '〜らしく는 '~답게'의 부사형. 자신의 본모습대로 살고 싶다는 표현' },
+        pattern:  { name: '自分らしく', meaning: '자기답게', note: '〜らしく는 "~답게"의 부사형. 자신의 본모습대로 살고 싶다는 표현' },
         furigana: 'わたしはじぶんらしくいきたい',
         accentData: [
           { phrase_id: 0, mora_count: 13, accent: [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0] },

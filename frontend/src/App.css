@@ -322,6 +322,14 @@ body {
   color: #555555;
 }
 
+/* 단어 뜻 — 테이블(데스크탑) 행 아래 전체 너비로 항상 표시 */
+.breakdown-meaning-cell {
+  padding: 0 14px 10px;
+  font-size: 13px;
+  color: #5CA9CE;
+  font-weight: 600;
+}
+
 .pos-badge {
   display: inline-block;
   font-size: 11px;
@@ -371,6 +379,14 @@ body {
 .breakdown-card-sub {
   font-size: 13px;
   color: #888888;
+}
+
+/* 단어 뜻 — 모바일 카드에서 발음 아래 항상 표시 */
+.breakdown-card-meaning {
+  font-size: 14px;
+  color: #5CA9CE;
+  font-weight: 600;
+  margin-top: 2px;
 }
 
 .breakdown-card-dot {

@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react'
  */
 const DEBOUNCE_MS = 800
 
-export default function SearchBar({ onAnalyze, loading, onTyping }) {
+export default function SearchBar({ onAnalyze, loading, onTyping, onClear }) {
   const [text, setText] = useState('')
   const timerRef = useRef(null)
   const lastSubmittedRef = useRef('')
@@ -29,7 +29,13 @@ export default function SearchBar({ onAnalyze, loading, onTyping }) {
     setText(value)
     clearTimeout(timerRef.current)
     const trimmed = value.trim()
-    if (!trimmed) { onTyping?.(false); return }
+    if (!trimmed) {
+      // 입력을 모두 지우면 이전 결과도 함께 제거
+      onTyping?.(false)
+      lastSubmittedRef.current = ''
+      onClear?.()
+      return
+    }
     // 입력 즉시 "번역 중" 신호 → 디바운스 후 자동 번역
     onTyping?.(true)
     timerRef.current = setTimeout(() => submit(value), DEBOUNCE_MS)

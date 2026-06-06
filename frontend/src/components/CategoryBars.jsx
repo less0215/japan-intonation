@@ -3,27 +3,23 @@
  */
 
 const CATEGORIES = [
-  { key: 'verbs',  path: '/verbs',  label: '동사',     emoji: '🏃' },
-  { key: 'adj-i',  path: '/adj-i',  label: 'い형용사', emoji: '🌸' },
-  { key: 'adj-na', path: '/adj-na', label: 'な형용사', emoji: '✨' },
-  { key: 'noun',   path: '/noun',   label: '명사',     emoji: '📦' },
+  { key: 'verbs',  path: '/verbs',  label: '일본인이 많이 쓰는 동사 TOP100' },
+  { key: 'adj-i',  path: '/adj-i',  label: '일본인이 많이 쓰는 い형용사 TOP100' },
+  { key: 'adj-na', path: '/adj-na', label: '일본인이 많이 쓰는 な형용사 TOP100' },
+  { key: 'noun',   path: '/noun',   label: '일본인이 많이 쓰는 명사 TOP100' },
 ]
 
 export default function CategoryBars({ current, onNavigate }) {
   return (
     <div className="cat-bars">
-      {CATEGORIES.map(({ key, path, label, emoji }) => (
+      {CATEGORIES.map(({ key, path, label }) => (
         <button
           key={key}
           className="cat-bar"
           data-active={current === key}
           onClick={() => onNavigate(path)}
         >
-          <span className="cat-bar-emoji">{emoji}</span>
-          <span className="cat-bar-text">
-            <span className="cat-bar-label">{label}</span>
-            <span className="cat-bar-sub">TOP 100</span>
-          </span>
+          <span className="cat-bar-label">{label}</span>
           <svg className="cat-bar-chevron" width="18" height="18" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />

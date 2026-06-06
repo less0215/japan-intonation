@@ -201,6 +201,16 @@ export default function App() {
     if (signupMode === 'save' && result) doSave(newUser, inputText, result)
   }
 
+  // 입력을 모두 지웠을 때 — 이전 결과/상태 초기화
+  function handleClear() {
+    setResult(null)
+    setError(null)
+    setTyping(false)
+    setBreakdownLoading(false)
+    setInputText('')
+    setSaved(false)
+  }
+
   function handleSelectSaved(savedResult, savedInput) {
     setBreakdownLoading(false)   // 저장된 결과는 분해가 이미 포함됨
     setResult(savedResult)
@@ -315,7 +325,7 @@ export default function App() {
           } />
           <Route path="*" element={
             <>
-              <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} />
+              <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
 
               {error && <div className="error-box">{error}</div>}
               {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}

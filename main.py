@@ -58,12 +58,11 @@ def get_gemini_client() -> genai.Client:
         _gemini_client = genai.Client(api_key=api_key)
     return _gemini_client
 
-# Gemini에게 전달할 번역 프롬프트
-# — 순수 JSON만 반환하도록 명시 (마크다운 코드블록 금지)
+# 1단계 번역 프롬프트 — 번역 + 발음 + 악센트만 생성 (문장 분해 제외).
+# breakdown(가장 무거운 출력)을 분리해 임계 경로 출력 토큰을 대폭 줄임 → 응답 속도 향상.
 TRANSLATION_PROMPT = """You are a Korean-to-Japanese translation expert with deep knowledge of Tokyo Japanese pitch accent.
 
-When given a Korean sentence, respond with ONLY a valid JSON object.
-Do NOT wrap it in markdown code blocks (no ```json). No explanation. No extra text. Pure JSON only.
+When given a Korean sentence, respond with ONLY a valid JSON object. No explanation. No extra text.
 
 Use this exact structure:
 {
@@ -75,7 +74,34 @@ Use this exact structure:
     {"phrase_id": "0", "mora_count": 4, "accent": [0, 1, 1, 1]},
     {"phrase_id": "1", "mora_count": 5, "accent": [0, 1, 1, 1, 1]},
     {"phrase_id": "2", "mora_count": 9, "accent": [1, 0, 0, 0, 0, 1, 1, 1, 1]}
-  ],
+  ]
+}
+
+Rules:
+- "japanese": natural Japanese translation using kanji where appropriate
+- "furigana": FULL reading in hiragana only (no kanji, no spaces) — concatenation of ALL morae in order
+- "korean_pronunciation": full sentence pronunciation in Korean characters
+- "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
+- "accent_data": Tokyo Japanese pitch accent per phrase/word group.
+  Split the sentence into natural accent phrases (usually 2–5 morae each).
+  Each phrase: {"phrase_id": "<index as string>", "mora_count": <int>, "accent": [0 or 1, ...]}.
+  accent array length MUST equal mora_count. 0 = Low pitch, 1 = High pitch.
+  The sum of all mora_count values MUST equal the total mora count of "furigana".
+  Use accurate Tokyo-dialect pitch accent patterns:
+    - 平板型 (type 0): [0,1,1,1,...] — rises after 1st mora, stays high
+    - 頭高型 (type 1): [1,0,0,0,...] — high on 1st mora, drops immediately
+    - 中高型 / 尾高型: place downstep at the correct position
+"""
+
+# 2단계 문장 분해 프롬프트 — 이미 번역된 일본어 문장을 단어별로 분해.
+# 입력은 1단계가 생성한 일본어 문장이므로 재번역 없이 일관성 유지.
+BREAKDOWN_PROMPT = """You are a Japanese grammar expert who explains Japanese to Korean learners.
+
+You are given a Japanese sentence (already translated). Break it down into grammatical units.
+Respond with ONLY a valid JSON object. No explanation. No extra text.
+
+Use this exact structure:
+{
   "breakdown": [
     {
       "unit": "毎日",
@@ -83,22 +109,6 @@ Use this exact structure:
       "korean_pronunciation": "마이니치",
       "korean_meaning": "매일",
       "part_of_speech": "부사",
-      "conjugation_steps": null
-    },
-    {
-      "unit": "を",
-      "hiragana": "を",
-      "korean_pronunciation": "오",
-      "korean_meaning": "~을/를",
-      "part_of_speech": "조사",
-      "conjugation_steps": null
-    },
-    {
-      "unit": "勉強",
-      "hiragana": "べんきょう",
-      "korean_pronunciation": "벤쿄-",
-      "korean_meaning": "공부",
-      "part_of_speech": "명사",
       "conjugation_steps": null
     },
     {
@@ -117,24 +127,14 @@ Use this exact structure:
 }
 
 Rules:
-- "japanese": natural Japanese translation using kanji where appropriate
-- "furigana": FULL reading in hiragana only (no kanji, no spaces) — concatenation of ALL morae in order
-- "korean_pronunciation": full sentence pronunciation in Korean characters
-- "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
-- "accent_data": Tokyo Japanese pitch accent per phrase/word group.
-  Split the sentence into natural accent phrases (usually 2–5 morae each).
-  Each phrase: {"phrase_id": "<index as string>", "mora_count": <int>, "accent": [0 or 1, ...]}.
-  accent array length MUST equal mora_count. 0 = Low pitch, 1 = High pitch.
-  The sum of all mora_count values MUST equal the total mora count of "furigana".
-  Use accurate Tokyo-dialect pitch accent patterns:
-    - 平板型 (type 0): [0,1,1,1,...] — rises after 1st mora, stays high
-    - 頭高型 (type 1): [1,0,0,0,...] — high on 1st mora, drops immediately
-    - 中高型 / 尾高型: place downstep at the correct position
-- "breakdown": every token split into grammatical units, no gaps or overlaps.
-  - "korean_meaning": Korean meaning of this unit
-  - "part_of_speech": one of 명사/동사/형용사/부사/조사/조동사/접속사/감탄사/기타
-  - "conjugation_steps": null for uninflected words; array for conjugated forms
-    Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
+- Split the given sentence into grammatical units with no gaps or overlaps.
+- "unit": the surface form as it appears in the sentence (kanji where used)
+- "hiragana": reading of this unit in hiragana
+- "korean_pronunciation": Korean-character pronunciation of this unit
+- "korean_meaning": Korean meaning of this unit
+- "part_of_speech": one of 명사/동사/형용사/부사/조사/조동사/접속사/감탄사/기타
+- "conjugation_steps": null for uninflected words; array for conjugated forms
+  Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
 """
 
 OJAD_URL = "https://www.gavo.t.u-tokyo.ac.jp/ojad/phrasing/index"
@@ -168,6 +168,9 @@ _analyze_cache: dict[str, dict] = {}
 
 # 억양 전용 캐시 — 키: 일본어 원문, 값: accent_data list
 _accent_cache: dict[str, list] = {}
+
+# 문장 분해 캐시 — 키: 일본어 원문, 값: breakdown list
+_breakdown_cache: dict[str, list] = {}
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)
@@ -265,35 +268,30 @@ class AnalyzeResponse(BaseModel):
 # 번역 로직 — Gemini API
 # ──────────────────────────────────────────────
 
-def translate_korean_to_japanese(korean_text: str) -> dict:
-    """한국어 문장을 Gemini API로 번역하여 구조화된 데이터를 반환한다."""
+# 응답 속도 최적화 설정 (번역/분해 공통):
+# - thinking_budget=0 : 추론 단계 생략
+# - response_mime_type="application/json" : JSON 출력 강제 → 마크다운 래핑·파싱 실패 경로 제거
+_GEN_CONFIG = genai.types.GenerateContentConfig(
+    thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
+    response_mime_type="application/json",
+)
+
+
+def _call_gemini_json(prompt: str) -> dict:
+    """Gemini에 프롬프트를 보내고 JSON 응답을 파싱해 dict로 반환한다 (공통 호출 로직)."""
     import time
 
     client = get_gemini_client()
 
-    # 시스템 프롬프트 + 사용자 입력을 하나의 메시지로 조합
-    full_prompt = f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}"
-
-    # 응답 속도 최적화 설정:
-    # - thinking_budget=0 : 추론 단계 생략
-    # - response_mime_type="application/json" : JSON 출력 강제
-    #   → 마크다운 코드블록(```json) 래핑이 사라져 파싱 실패·재시도 경로가 제거됨
-    gen_config = genai.types.GenerateContentConfig(
-        thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
-        response_mime_type="application/json",
-    )
-
-    last_error = None
     for attempt in range(2):  # 최대 1회 재시도 (서버 부하 방지)
         try:
             response = client.models.generate_content(
                 model=GEMINI_MODEL,
-                contents=full_prompt,
-                config=gen_config,
+                contents=prompt,
+                config=_GEN_CONFIG,
             )
             break
         except Exception as e:
-            last_error = e
             err_str = str(e)
             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
                 # 쿼터 초과 — 재시도 없이 즉시 안내
@@ -306,33 +304,45 @@ def translate_korean_to_japanese(korean_text: str) -> dict:
     else:
         raise HTTPException(status_code=503, detail="Gemini 서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
 
-    # 응답 텍스트 추출
     raw = response.text.strip() if response.text else ""
     if not raw:
         raise HTTPException(status_code=502, detail="Gemini 응답이 비어 있습니다.")
 
-    # 혹시 마크다운 코드블록으로 감싸진 경우 제거
+    # 혹시 마크다운 코드블록으로 감싸진 경우 제거 (방어적 처리)
     if raw.startswith("```"):
-        # ```json ... ``` 또는 ``` ... ``` 형태 제거
         raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
         raw = re.sub(r"\n?```$", "", raw.strip())
 
-    # JSON 파싱
     try:
-        result = json.loads(raw)
+        return json.loads(raw)
     except json.JSONDecodeError:
         raise HTTPException(
             status_code=502,
             detail=f"Gemini 응답을 JSON으로 파싱할 수 없습니다: {raw[:300]}"
         )
 
-    # 필수 키 검증
-    required_keys = {"japanese", "furigana", "korean_pronunciation", "furigana_html", "accent_data", "breakdown"}
+
+def translate_korean_to_japanese(korean_text: str) -> dict:
+    """한국어 문장을 Gemini API로 번역해 번역문·발음·악센트를 반환한다 (문장 분해 제외)."""
+    result = _call_gemini_json(f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}")
+
+    required_keys = {"japanese", "furigana", "korean_pronunciation", "furigana_html", "accent_data"}
     missing = required_keys - result.keys()
     if missing:
         raise HTTPException(status_code=502, detail=f"Gemini 응답에 누락된 키: {missing}")
 
     return result
+
+
+def generate_breakdown(japanese_text: str) -> list[dict]:
+    """이미 번역된 일본어 문장을 단어별로 분해해 breakdown 리스트를 반환한다."""
+    result = _call_gemini_json(f"{BREAKDOWN_PROMPT}\n\nJapanese sentence: {japanese_text}")
+
+    breakdown = result.get("breakdown")
+    if not isinstance(breakdown, list):
+        raise HTTPException(status_code=502, detail="Gemini 분해 응답에 breakdown 배열이 없습니다.")
+
+    return breakdown
 
 # ──────────────────────────────────────────────
 # OJAD 악센트 파싱 로직
@@ -403,11 +413,13 @@ def health_check():
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze(req: AnalyzeRequest):
     """
-    한국어 문장을 받아 일본어 번역 + OJAD 악센트 배열을 반환한다.
+    한국어 문장을 받아 일본어 번역 + 악센트 배열을 빠르게 반환한다 (문장 분해 제외).
+
+    문장 분해(breakdown)는 가장 무거운 출력이라 별도 /breakdown 엔드포인트로 분리.
+    프론트는 이 응답으로 번역+그래프를 먼저 그리고, 분해는 뒤이어 비동기로 채운다.
 
     1. 캐시 조회 — 동일 문장은 즉시 반환
-    2. Gemini API로 한국어 → 일본어 번역 + breakdown 생성 (thinking 비활성화)
-    3. 번역 결과를 OJAD에 보내 악센트 배열 파싱
+    2. Gemini API로 한국어 → 일본어 번역 + 억양 데이터 생성 (thinking 비활성화)
     """
     text = req.text.strip()
     if not text:
@@ -420,10 +432,10 @@ def analyze(req: AnalyzeRequest):
         return AnalyzeResponse(**cached)
     # ───────────────────────────────────────────
 
-    # 1단계: 한국어 → 일본어 번역 + 억양 데이터 (Gemini 단일 호출)
+    # 한국어 → 일본어 번역 + 억양 데이터
     translation = translate_korean_to_japanese(text)
 
-    # Gemini가 직접 제공한 억양 데이터 사용 (OJAD 불필요)
+    # Gemini가 직접 제공한 억양 데이터 사용
     raw_accent = translation.get("accent_data", [])
     try:
         accent_data = [AccentEntry(**e) for e in raw_accent]
@@ -436,7 +448,7 @@ def analyze(req: AnalyzeRequest):
         korean_pronunciation=translation["korean_pronunciation"],
         furigana_html=translation["furigana_html"],
         accent_data=accent_data,
-        breakdown=[BreakdownEntry(**entry) for entry in translation["breakdown"]],
+        breakdown=[],  # 분해는 /breakdown에서 별도 생성
     )
 
     # 결과를 캐시에 저장 (최대 500개, 초과 시 오래된 항목 제거)
@@ -445,6 +457,47 @@ def analyze(req: AnalyzeRequest):
         del _analyze_cache[oldest_key]
     _analyze_cache[text] = result.model_dump()
     print(f"[Analyze 캐시 저장] {text[:40]!r}")
+
+    return result
+
+
+class BreakdownRequest(BaseModel):
+    japanese: str
+
+class BreakdownResponse(BaseModel):
+    breakdown: list[BreakdownEntry]
+
+@app.post("/breakdown", response_model=BreakdownResponse)
+def breakdown(req: BreakdownRequest):
+    """
+    이미 번역된 일본어 문장을 받아 단어별 문장 분해를 반환한다.
+
+    /analyze가 반환한 일본어 문장을 그대로 받으므로 재번역 없이 일관성 유지.
+    무거운 분해 생성을 임계 경로에서 분리해 번역 응답 속도를 높이기 위한 엔드포인트.
+    """
+    text = req.japanese.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
+
+    # ── 캐시 조회 ──────────────────────────────
+    if text in _breakdown_cache:
+        print(f"[Breakdown 캐시 HIT] {text[:40]!r}")
+        return BreakdownResponse(breakdown=_breakdown_cache[text])
+    # ───────────────────────────────────────────
+
+    raw_breakdown = generate_breakdown(text)
+    try:
+        entries = [BreakdownEntry(**e) for e in raw_breakdown]
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"분해 데이터 형식 오류: {e}")
+
+    result = BreakdownResponse(breakdown=entries)
+
+    # 캐시에 저장 (최대 500개)
+    if len(_breakdown_cache) >= 500:
+        del _breakdown_cache[next(iter(_breakdown_cache))]
+    _breakdown_cache[text] = [e.model_dump() for e in entries]
+    print(f"[Breakdown 캐시 저장] {text[:40]!r}")
 
     return result
 

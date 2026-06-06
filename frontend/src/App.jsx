@@ -89,6 +89,7 @@ export default function App() {
 
   const [loading, setLoading]         = useState(false)
   const [result, setResult]           = useState(null)
+  const [breakdownLoading, setBreakdownLoading] = useState(false)
   const [inputText, setInputText]     = useState('')
   const [error, setError]             = useState(null)
   const [saved, setSaved]             = useState(false)
@@ -130,8 +131,9 @@ export default function App() {
           throw new Error('요청을 처리할 수 없습니다. 다시 시도해 주세요.')
       }
       const data = await res.json()
+      // 1단계: 번역 + 그래프를 먼저 표시 (분해는 비어 있음)
       setResult(data)
-      doSave(user, text, data)
+      setLoading(false)
       // GA4 커스텀 이벤트 전송
       if (typeof window.gtag === 'function') {
         window.gtag('event', 'analyze', {
@@ -140,11 +142,33 @@ export default function App() {
           is_logged_in: !!user,
         })
       }
+      // 2단계: 무거운 문장 분해는 백그라운드로 채움 → 저장은 분해 병합 후 수행
+      fetchBreakdown(data, text)
     } catch (err) {
       const isFetchError = err.name === 'TypeError' || err.message.includes('fetch') || err.message.includes('network')
       setError(isFetchError ? '서버가 시작되는 중입니다. 잠시 후 다시 시도해 주세요.' : err.message)
-    } finally {
       setLoading(false)
+    }
+  }
+
+  // 문장 분해를 별도 호출로 가져와 결과에 병합한다. 실패해도 번역 결과는 유지.
+  async function fetchBreakdown(translationData, text) {
+    setBreakdownLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/breakdown`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ japanese: translationData.japanese }),
+      })
+      if (!res.ok) throw new Error()
+      const { breakdown } = await res.json()
+      const merged = { ...translationData, breakdown }
+      setResult(merged)
+      doSave(user, text, merged)        // 분해 포함해 저장
+    } catch {
+      doSave(user, text, translationData) // 분해 실패 시 번역만 저장
+    } finally {
+      setBreakdownLoading(false)
     }
   }
 
@@ -175,6 +199,7 @@ export default function App() {
   }
 
   function handleSelectSaved(savedResult, savedInput) {
+    setBreakdownLoading(false)   // 저장된 결과는 분해가 이미 포함됨
     setResult(savedResult)
     setInputText(savedInput)
     setSaved(true)
@@ -321,7 +346,7 @@ export default function App() {
                 </div>
               )}
               {result && (
-                <ResultCard data={result} onSave={handleSave} saved={saved} inputText={inputText} />
+                <ResultCard data={result} onSave={handleSave} saved={saved} inputText={inputText} breakdownLoading={breakdownLoading} />
               )}
             </>
           } />

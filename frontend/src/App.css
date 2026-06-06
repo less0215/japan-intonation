@@ -106,26 +106,28 @@ body {
   margin-left: 6px;
 }
 
-/* ── 검색바 */
+/* ── 검색바 (넓은 textarea + 전체 너비 번역 버튼) */
 .search-form {
   display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
 .search-input {
-  flex: 1;
-  min-width: 0;          /* flex 자식이 줄어들 수 있도록 */
-  height: 52px;
-  padding: 0 16px;
-  font-size: 16px;       /* iOS 자동 확대 방지 (16px 이상) */
+  width: 100%;
+  min-height: 96px;
+  padding: 16px 18px;
+  font-size: 17px;       /* iOS 자동 확대 방지 (16px 이상) */
+  line-height: 1.55;
   border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 14px;
   outline: none;
   font-family: inherit;
   color: #111111;
   background: #ffffff;
   transition: border-color 0.15s;
   -webkit-appearance: none;
+  resize: vertical;      /* 세로로만 크기 조절 */
 }
 
 .search-input:focus {
@@ -133,23 +135,114 @@ body {
 }
 
 .search-btn {
+  width: 100%;
   height: 52px;
-  min-width: 72px;
   padding: 0 20px;
   background-color: #5CA9CE;
   color: #ffffff;
   border: none;
   border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  flex-shrink: 0;
   transition: opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ── 번역 준비 중 점 표시 (디바운스 대기) */
+.translating-dots {
+  display: flex;
+  gap: 7px;
+  padding: 10px 4px;
+}
+.translating-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c4c4c4;
+  animation: dot-bounce 1.2s infinite ease-in-out both;
+}
+.translating-dots span:nth-child(1) { animation-delay: -0.32s; }
+.translating-dots span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1);   opacity: 1; }
+}
+
+/* ── 번역기로 돌아가기 (단어 목록 화면 상단) */
+.back-to-translate {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #888888;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.back-to-translate:hover { color: #5CA9CE; }
+
+/* ── 품사 카테고리 바 (Papago의 음성/대화/이미지 스타일) */
+.cat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cat-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  background: #5CA9CE10;
+  border: 1.5px solid #5CA9CE33;
+  border-radius: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.05s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-bar:hover { background: #5CA9CE1f; border-color: #5CA9CE66; }
+.cat-bar:active { transform: scale(0.99); }
+.cat-bar[data-active="true"] {
+  background: #5CA9CE;
+  border-color: #5CA9CE;
+}
+.cat-bar[data-active="true"] .cat-bar-label,
+.cat-bar[data-active="true"] .cat-bar-sub,
+.cat-bar[data-active="true"] .cat-bar-chevron { color: #ffffff; }
+
+.cat-bar-emoji {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.cat-bar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.cat-bar-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2b7aa0;
+}
+.cat-bar-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5CA9CE;
+  letter-spacing: 0.5px;
+}
+.cat-bar-chevron {
+  color: #5CA9CE;
+  flex-shrink: 0;
 }
 
 /* ── 카드 */

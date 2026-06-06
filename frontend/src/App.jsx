@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
 import SkeletonCard from './components/SkeletonCard'
+import CategoryBars from './components/CategoryBars'
 import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
 import VerbLibrary from './components/VerbLibrary'
@@ -91,6 +92,7 @@ export default function App() {
   const [loading, setLoading]         = useState(false)
   const [result, setResult]           = useState(null)
   const [breakdownLoading, setBreakdownLoading] = useState(false)
+  const [typing, setTyping]           = useState(false)
   const [inputText, setInputText]     = useState('')
   const [error, setError]             = useState(null)
   const [saved, setSaved]             = useState(false)
@@ -206,7 +208,7 @@ export default function App() {
     setSaved(true)
   }
 
-  const hasContent = loading || error || result
+  const hasContent = loading || error || result || typing
   const isWordTab = tab !== 'translate'
 
   return (
@@ -215,7 +217,7 @@ export default function App() {
 
         {/* 앱 헤더 */}
         <div className="app-header">
-          <h1 className="app-title">
+          <h1 className="app-title" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
             틱재팬{' '}
             <span style={{ fontWeight: 400, color: '#888888', fontSize: '14px' }}>
               일본어 번역기
@@ -270,34 +272,15 @@ export default function App() {
           </div>
         </div>
 
-        {/* 탭 네비게이션 */}
-        <div className="tab-nav">
-          {/* 번역기 탭 */}
-          <button
-            onClick={() => navigate('/')}
-            className="tab-btn tab-btn--dark"
-            data-active={tab === 'translate'}
-          >
-            번역기
-          </button>
-
-          {/* 품사 탭 */}
-          {[
-            { key: 'verbs',  path: '/verbs',  label: '동사 TOP100' },
-            { key: 'adj-i',  path: '/adj-i',  label: 'い형용사 TOP100' },
-            { key: 'adj-na', path: '/adj-na', label: 'な형용사 TOP100' },
-            { key: 'noun',   path: '/noun',   label: '명사 TOP100' },
-          ].map(({ key, path, label }) => (
-            <button
-              key={key}
-              onClick={() => navigate(path)}
-              className="tab-btn tab-btn--primary"
-              data-active={tab === key}
-            >
-              {label}
+        {/* 품사 단어 목록 화면일 때 — 상단에 번역기로 돌아가기 + 카테고리 전환 바 */}
+        {isWordTab && (
+          <>
+            <button onClick={() => navigate('/')} className="back-to-translate">
+              ← 번역기
             </button>
-          ))}
-        </div>
+            <CategoryBars current={tab} onNavigate={navigate} />
+          </>
+        )}
 
         {/* 라우트 */}
         <Routes>
@@ -332,17 +315,26 @@ export default function App() {
           } />
           <Route path="*" element={
             <>
-              {/* 오늘의 단어 — 결과 없을 때만 표시 */}
-              {!hasContent && dailyVerb && (
-                <DailyVerbCard verb={dailyVerb} onNavigate={navigate} />
-              )}
-
-              <SearchBar onAnalyze={handleAnalyze} loading={loading} />
+              <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} />
 
               {error && <div className="error-box">{error}</div>}
+              {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
+              {typing && !loading && !result && (
+                <div className="translating-dots" aria-label="번역 준비 중">
+                  <span /><span /><span />
+                </div>
+              )}
               {loading && <SkeletonCard inputText={inputText} />}
               {result && (
                 <ResultCard data={result} onSave={handleSave} saved={saved} inputText={inputText} breakdownLoading={breakdownLoading} />
+              )}
+
+              {/* 결과/입력 전 홈 화면 — 품사 단어 목록 바 + 오늘의 단어 */}
+              {!hasContent && (
+                <>
+                  <CategoryBars current={tab} onNavigate={navigate} />
+                  {dailyVerb && <DailyVerbCard verb={dailyVerb} onNavigate={navigate} />}
+                </>
               )}
             </>
           } />

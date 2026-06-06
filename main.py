@@ -80,7 +80,10 @@ Use this exact structure:
 Rules:
 - "japanese": natural Japanese translation using kanji where appropriate
 - "furigana": FULL reading in hiragana only (no kanji, no spaces) — concatenation of ALL morae in order
-- "korean_pronunciation": full sentence pronunciation in Korean characters
+- "korean_pronunciation": how the JAPANESE translation (the "japanese" field) SOUNDS,
+  transcribed phonetically using KOREAN Hangul characters (한글).
+  This is NOT katakana and NOT the original Korean input — it is the Japanese reading written in Hangul.
+  Example: japanese "退勤後に何をしますか" → korean_pronunciation "타이킨고니 나니오 시마스카?"
 - "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
 - "accent_data": Tokyo Japanese pitch accent per phrase/word group.
   Split the sentence into natural accent phrases (usually 2–5 morae each).

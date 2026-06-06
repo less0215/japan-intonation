@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
+import SkeletonCard from './components/SkeletonCard'
 import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
 import VerbLibrary from './components/VerbLibrary'
@@ -339,12 +340,7 @@ export default function App() {
               <SearchBar onAnalyze={handleAnalyze} loading={loading} />
 
               {error && <div className="error-box">{error}</div>}
-              {loading && (
-                <div className="loading-box">
-                  <span className="spinner" style={{ borderColor: 'rgba(92,169,206,0.3)', borderTopColor: PRIMARY }} />
-                  <span className="loading-text">번역 및 악센트 분석 중...</span>
-                </div>
-              )}
+              {loading && <SkeletonCard inputText={inputText} />}
               {result && (
                 <ResultCard data={result} onSave={handleSave} saved={saved} inputText={inputText} breakdownLoading={breakdownLoading} />
               )}

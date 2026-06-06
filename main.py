@@ -42,7 +42,9 @@ app.add_middleware(
 # 상수
 # ──────────────────────────────────────────────
 
-GEMINI_MODEL = "gemini-2.5-flash"
+# 번역 모델 — flash-lite는 2.5 계열 중 최저 지연(latency) 모델로 번역 응답 속도가 빠름.
+# 악센트 품질이 떨어진다고 판단되면 "gemini-2.5-flash"로 되돌리면 됨.
+GEMINI_MODEL = "gemini-2.5-flash-lite"
 
 # Gemini 클라이언트 — 요청마다 재생성하지 않고 앱 시작 시 1회 초기화
 _gemini_client: genai.Client | None = None
@@ -272,9 +274,13 @@ def translate_korean_to_japanese(korean_text: str) -> dict:
     # 시스템 프롬프트 + 사용자 입력을 하나의 메시지로 조합
     full_prompt = f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}"
 
-    # thinking_budget=0 으로 추론 단계를 생략 → 응답 속도 대폭 향상
+    # 응답 속도 최적화 설정:
+    # - thinking_budget=0 : 추론 단계 생략
+    # - response_mime_type="application/json" : JSON 출력 강제
+    #   → 마크다운 코드블록(```json) 래핑이 사라져 파싱 실패·재시도 경로가 제거됨
     gen_config = genai.types.GenerateContentConfig(
-        thinking_config=genai.types.ThinkingConfig(thinking_budget=0)
+        thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
+        response_mime_type="application/json",
     )
 
     last_error = None

@@ -211,6 +211,12 @@ export default function App() {
     setSaved(false)
   }
 
+  // 홈으로 — 번역기 화면으로 이동 + 결과 초기화
+  function handleHome() {
+    navigate('/')
+    handleClear()
+  }
+
   function handleSelectSaved(savedResult, savedInput) {
     setBreakdownLoading(false)   // 저장된 결과는 분해가 이미 포함됨
     setResult(savedResult)
@@ -227,7 +233,7 @@ export default function App() {
 
         {/* 앱 헤더 */}
         <div className="app-header">
-          <h1 className="app-title" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+          <h1 className="app-title" onClick={handleHome} style={{ cursor: 'pointer' }}>
             틱재팬{' '}
             <span style={{ fontWeight: 400, color: '#888888', fontSize: '14px' }}>
               일본어 번역기
@@ -327,6 +333,11 @@ export default function App() {
             <>
               <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
 
+              {/* 결과 화면에서 홈으로 돌아가기 */}
+              {result && (
+                <button onClick={handleHome} className="back-to-translate">← 처음으로</button>
+              )}
+
               {error && <div className="error-box">{error}</div>}
               {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
               {typing && !loading && !result && (
@@ -339,9 +350,23 @@ export default function App() {
                 <ResultCard data={result} onSave={handleSave} saved={saved} inputText={inputText} breakdownLoading={breakdownLoading} />
               )}
 
-              {/* 결과/입력 전 홈 화면 — 품사 단어 목록 바 + 오늘의 단어 */}
+              {/* 결과/입력 전 홈 화면 — 앱 사용 안내 + 품사 단어 목록 바 + 오늘의 단어 */}
               {!hasContent && (
                 <>
+                  <a
+                    className="app-guide-btn"
+                    href="https://www.donga.com/news/It/article/all/20250725/132074003/1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    앱처럼 이용하려면 이렇게!
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  </a>
                   <CategoryBars current={tab} onNavigate={navigate} />
                   {dailyVerb && <DailyVerbCard verb={dailyVerb} onNavigate={navigate} />}
                 </>

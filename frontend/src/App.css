@@ -187,6 +187,27 @@ body {
 }
 .back-to-translate:hover { color: #5CA9CE; }
 
+/* ── 앱 사용 안내 버튼 (프라이머리 강조, 외부 링크) */
+.app-guide-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px 18px;
+  background: #5CA9CE;
+  color: #ffffff;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 14px #5CA9CE4d;
+  transition: background-color 0.15s, transform 0.05s;
+  -webkit-tap-highlight-color: transparent;
+}
+.app-guide-btn:hover { background: #4f9abd; }
+.app-guide-btn:active { transform: scale(0.99); }
+
 /* ── 품사 카테고리 바 (Papago의 음성/대화/이미지 스타일) */
 .cat-bars {
   display: flex;

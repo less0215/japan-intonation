@@ -99,6 +99,7 @@ export default function App() {
   const [showSignup, setShowSignup]   = useState(false)
   const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login'
   const [showHistory, setShowHistory] = useState(false)
+  const [menuOpen, setMenuOpen]       = useState(false)
 
   // 앱 실행 시 1회 랜덤 선택 (useMemo로 리렌더 시 고정)
   const dailyVerb = useMemo(() => pickDailyVerb(VERBS), [])
@@ -240,52 +241,41 @@ export default function App() {
             </span>
           </h1>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {user ? (
-              <>
-                {/* 저장 목록 버튼 */}
-                {tab === 'translate' && (
-                  <button className="history-btn" onClick={() => setShowHistory(true)}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                    </svg>
-                    저장 목록
-                  </button>
-                )}
-                {/* 사용자 정보 + 로그아웃 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 12, color: '#888' }}>{user.name}</span>
-                  <button
-                    onClick={handleLogout}
-                    style={{
-                      fontSize: 11, color: '#aaa', background: 'none',
-                      border: '1px solid #e8e8e8', borderRadius: 6,
-                      padding: '3px 8px', cursor: 'pointer', fontFamily: 'inherit',
-                    }}
-                  >
-                    로그아웃
-                  </button>
-                </div>
-              </>
-            ) : (
-              /* 비로그인: 로그인 버튼 */
+          {user ? (
+            /* 로그인 상태: 계정 아이콘 + 드롭다운 메뉴 (저장 목록 / 로그아웃) */
+            <div className="header-menu">
               <button
-                onClick={handleLoginClick}
-                style={{
-                  height: 32, padding: '0 14px', borderRadius: 8,
-                  fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
-                  cursor: 'pointer',
-                  border: `1.5px solid ${PRIMARY}55`,
-                  backgroundColor: `${PRIMARY}10`,
-                  color: PRIMARY,
-                  transition: 'all 0.15s',
-                }}
+                className="account-btn"
+                onClick={() => setMenuOpen(o => !o)}
+                aria-label="계정 메뉴"
               >
-                로그인
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
               </button>
-            )}
-          </div>
+              {menuOpen && (
+                <>
+                  <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+                  <div className="menu-dropdown">
+                    <div className="menu-user">{user.name}님</div>
+                    <button className="menu-item" onClick={() => { setShowHistory(true); setMenuOpen(false) }}>
+                      저장 목록
+                    </button>
+                    <button className="menu-item menu-item--muted" onClick={() => { handleLogout(); setMenuOpen(false) }}>
+                      로그아웃
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            /* 비로그인: 로그인 버튼 */
+            <button onClick={handleLoginClick} className="login-btn">
+              로그인
+            </button>
+          )}
         </div>
 
         {/* 품사 단어 목록 화면일 때 — 상단에 번역기로 돌아가기 + 카테고리 전환 바 */}

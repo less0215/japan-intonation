@@ -91,6 +91,88 @@ body {
   color: #5CA9CE;
 }
 
+/* ── 계정 메뉴 (우상단) */
+.header-menu {
+  position: relative;
+}
+
+.account-btn,
+.login-btn {
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+
+.account-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #666666;
+}
+.account-btn:hover { border-color: #5CA9CE; color: #5CA9CE; }
+
+.login-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1.5px solid #5CA9CE55;
+  background-color: #5CA9CE10;
+  color: #5CA9CE;
+}
+.login-btn:hover { background-color: #5CA9CE1f; }
+
+/* 드롭다운 */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+.menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  min-width: 150px;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.menu-user {
+  padding: 8px 12px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111111;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 4px;
+}
+.menu-item {
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+.menu-item:hover { background: #f5f7f9; }
+.menu-item--muted { color: #999999; }
+
 /* ── 타이틀 */
 .app-title {
   font-size: 22px;

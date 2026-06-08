@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
-import FeedbackBar from './components/FeedbackBar'
 import ResultCard from './components/ResultCard'
 import SkeletonCard from './components/SkeletonCard'
 import CategoryBars from './components/CategoryBars'
@@ -365,16 +364,6 @@ export default function App() {
           <Route path="*" element={
             <>
               <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
-
-              {/* 번역 품질 피드백 — 번역 버튼 바로 아래 */}
-              {result && (
-                <FeedbackBar
-                  inputText={inputText}
-                  japanese={result.japanese}
-                  userId={user?.id || null}
-                  anonymousId={!user ? localStorage.getItem('tickjapan_anon_id') : null}
-                />
-              )}
 
               {/* 결과 화면에서 홈으로 돌아가기 */}
               {result && (

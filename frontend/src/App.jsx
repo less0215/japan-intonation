@@ -19,6 +19,13 @@ import { NOUNS, getRankTabs as getNounTabs } from './data/nouns'
 const API_URL   = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY   = '#5CA9CE'
 
+/* GA4 이벤트 전송 헬퍼 */
+export function track(eventName, params = {}) {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', eventName, params)
+  }
+}
+
 /* ── 오늘의 단어: 앱 실행 시 VERBS에서 랜덤 1개 선택 */
 function pickDailyVerb(verbs) {
   const pool = verbs.filter(v => v.conjugations) // 데이터 있는 동사만
@@ -139,13 +146,11 @@ export default function App() {
       setResult(data)
       setLoading(false)
       // GA4 커스텀 이벤트 전송
-      if (typeof window.gtag === 'function') {
-        window.gtag('event', 'analyze', {
-          input_text: text,
-          japanese: data.japanese,
-          is_logged_in: !!user,
-        })
-      }
+      track('analyze', {
+        input_length: text.length,
+        japanese: data.japanese,
+        is_logged_in: !!user,
+      })
       // 2단계: 무거운 문장 분해는 백그라운드로 채움 → 저장은 분해 병합 후 수행
       fetchBreakdown(data, text)
     } catch (err) {
@@ -177,11 +182,16 @@ export default function App() {
   }
 
   function handleSave() {
-    if (!user) { setSignupMode('save'); setShowSignup(true) }
-    else       doSave(user, inputText, result)
+    if (!user) {
+      track('signup_start', { trigger: 'save_button' })
+      setSignupMode('save'); setShowSignup(true)
+    } else {
+      doSave(user, inputText, result)
+    }
   }
 
   function handleLoginClick() {
+    track('signup_start', { trigger: 'header_login' })
     setSignupMode('login')
     setShowSignup(true)
   }
@@ -191,8 +201,11 @@ export default function App() {
   }
 
   async function doSave(currentUser, text, data) {
-    try { await saveResult(currentUser ?? null, text ?? inputText, data ?? result); setSaved(true) }
-    catch { /* 실패 시 무시 */ }
+    try {
+      await saveResult(currentUser ?? null, text ?? inputText, data ?? result)
+      setSaved(true)
+      track('result_save', { is_logged_in: !!(currentUser ?? user) })
+    } catch { /* 실패 시 무시 */ }
   }
 
   function handleSignupSuccess(newUser) {
@@ -276,6 +289,35 @@ export default function App() {
               로그인
             </button>
           )}
+        </div>
+
+        {/* 탭 네비게이션 */}
+        <div className="tab-nav">
+          {/* 번역기 탭 */}
+          <button
+            onClick={() => navigate('/')}
+            className="tab-btn tab-btn--dark"
+            data-active={tab === 'translate'}
+          >
+            번역기
+          </button>
+
+          {/* 품사 탭 */}
+          {[
+            { key: 'verbs',  path: '/verbs',  label: '동사 TOP100' },
+            { key: 'adj-i',  path: '/adj-i',  label: 'い형용사 TOP100' },
+            { key: 'adj-na', path: '/adj-na', label: 'な형용사 TOP100' },
+            { key: 'noun',   path: '/noun',   label: '명사 TOP100' },
+          ].map(({ key, path, label }) => (
+            <button
+              key={key}
+              onClick={() => { track('tab_view', { tab: key }); navigate(path) }}
+              className="tab-btn tab-btn--primary"
+              data-active={tab === key}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* 품사 단어 목록 화면일 때 — 상단에 번역기로 돌아가기 + 카테고리 전환 바 */}

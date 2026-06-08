@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
 import CopyButton from './CopyButton'
 import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
+import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
@@ -108,6 +109,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
       audio.onerror = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
       await audio.play()
       setAudioState('playing')
+      track('tts_play', { gender, text_length: japanese.length })
     } catch { setAudioState('idle') }
   }
 
@@ -153,7 +155,10 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
         <div className="section-header">
           <span className="section-label">문장 분해</span>
           {hasBreakdown && (
-            <DetailToggleButton showDetail={showDetail} onToggle={() => setShowDetail(v => !v)} />
+            <DetailToggleButton showDetail={showDetail} onToggle={() => {
+              if (!showDetail) track('breakdown_expand', { text_length: japanese.length })
+              setShowDetail(v => !v)
+            }} />
           )}
         </div>
         {hasBreakdown ? (

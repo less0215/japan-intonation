@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { track } from '../App'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 
@@ -33,6 +34,7 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save' }) {
         throw new Error(body.detail || '요청에 실패했습니다.')
       }
       const data = await res.json()
+      track('signup_complete', { trigger: mode })
       onSuccess({ user_id: data.user_id, name: data.name })
     } catch (err) {
       setError(err.message)

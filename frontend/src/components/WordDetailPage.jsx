@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { track } from '../App'
 import { ADJ_I, CONJ_LABELS as ADJ_I_LABELS } from '../data/adjI'
 import { ADJ_NA, CONJ_LABELS as ADJ_NA_LABELS } from '../data/adjNa'
 import { NOUNS } from '../data/nouns'
@@ -26,6 +28,10 @@ export default function WordDetailPage({ wordType }) {
 
   // WordDetail.jsx는 item.word 필드를 사용하지만 데이터는 item.verb 사용 → 정규화
   const item = { ...word, word: word.verb }
+
+  useEffect(() => {
+    track('word_detail_view', { category: wordType, word_id: word.id, word: word.verb, rank: word.rank })
+  }, [word, wordType])
 
   return (
     <WordDetail

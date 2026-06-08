@@ -194,6 +194,17 @@ class SavedResult(Base):
     result_json  = Column(Text, nullable=False)
     created_at   = Column(DateTime, default=datetime.datetime.utcnow)
 
+class Feedback(Base):
+    __tablename__ = "feedbacks"
+    id           = Column(Integer, primary_key=True, index=True)
+    user_id      = Column(Integer, nullable=True, index=True)
+    anonymous_id = Column(String(36), nullable=True, index=True)
+    input_text   = Column(String(500), nullable=False)   # 원문 한국어
+    japanese     = Column(String(500), nullable=False)   # 번역 결과
+    rating       = Column(String(10), nullable=False)    # "good" | "bad"
+    comment      = Column(Text, nullable=True)           # 선택 입력 텍스트
+    created_at   = Column(DateTime, default=datetime.datetime.utcnow)
+
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
@@ -244,6 +255,14 @@ class SaveRequest(BaseModel):
     anonymous_id: str | None = None
     input_text: str
     result: dict
+
+class FeedbackRequest(BaseModel):
+    user_id: int | None = None
+    anonymous_id: str | None = None
+    input_text: str
+    japanese: str
+    rating: str   # "good" | "bad"
+    comment: str | None = None
 
 class AnalyzeResponse(BaseModel):
     japanese: str
@@ -679,5 +698,34 @@ def delete_save(save_id: int, user_id: int):
         db.delete(row)
         db.commit()
         return {"message": "삭제되었습니다."}
+    finally:
+        db.close()
+
+
+# ──────────────────────────────────────────────
+# 번역 품질 피드백
+# ──────────────────────────────────────────────
+
+@app.post("/feedback")
+def submit_feedback(req: FeedbackRequest):
+    """번역 결과에 대한 👍/👎 피드백과 선택적 텍스트 코멘트를 저장한다."""
+    if req.rating not in ("good", "bad"):
+        raise HTTPException(status_code=400, detail="rating은 'good' 또는 'bad'여야 합니다.")
+    if not req.input_text.strip() or not req.japanese.strip():
+        raise HTTPException(status_code=400, detail="input_text와 japanese는 필수입니다.")
+
+    db = SessionLocal()
+    try:
+        row = Feedback(
+            user_id=req.user_id,
+            anonymous_id=req.anonymous_id if not req.user_id else None,
+            input_text=req.input_text,
+            japanese=req.japanese,
+            rating=req.rating,
+            comment=req.comment.strip() if req.comment else None,
+        )
+        db.add(row)
+        db.commit()
+        return {"message": "피드백이 저장되었습니다."}
     finally:
         db.close()

@@ -71,7 +71,94 @@ function SaveButton({ onSave, saved }) {
   )
 }
 
-export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading }) {
+function FeedbackSection({ inputText, japanese, userId, anonymousId }) {
+  const [rating, setRating]       = useState(null)   // null | 'good' | 'bad'
+  const [showComment, setShowComment] = useState(false)
+  const [comment, setComment]     = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [sending, setSending]     = useState(false)
+
+  async function sendFeedback(selectedRating, commentText) {
+    setSending(true)
+    try {
+      await fetch(`${API_URL}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId || null,
+          anonymous_id: anonymousId || null,
+          input_text: inputText,
+          japanese,
+          rating: selectedRating,
+          comment: commentText || null,
+        }),
+      })
+    } catch {}
+    setSending(false)
+    setSubmitted(true)
+  }
+
+  function handleRating(value) {
+    setRating(value)
+    setShowComment(true)
+  }
+
+  function handleSubmit() {
+    sendFeedback(rating, comment)
+  }
+
+  function handleSkip() {
+    sendFeedback(rating, null)
+  }
+
+  if (submitted) {
+    return (
+      <div className="feedback-done">
+        피드백 감사합니다 🙏
+      </div>
+    )
+  }
+
+  return (
+    <div className="feedback-section">
+      <span className="feedback-label">번역 품질이 어떤가요?</span>
+      <div className="feedback-btns">
+        <button
+          className={`feedback-btn ${rating === 'good' ? 'feedback-btn--good' : ''}`}
+          onClick={() => handleRating('good')}
+          disabled={sending}
+          title="좋아요"
+        >👍</button>
+        <button
+          className={`feedback-btn ${rating === 'bad' ? 'feedback-btn--bad' : ''}`}
+          onClick={() => handleRating('bad')}
+          disabled={sending}
+          title="별로예요"
+        >👎</button>
+      </div>
+      {showComment && (
+        <div className="feedback-comment">
+          <textarea
+            className="feedback-textarea"
+            placeholder="어떤 점이 아쉬웠나요? (선택)"
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            rows={2}
+            maxLength={300}
+          />
+          <div className="feedback-comment-actions">
+            <button className="feedback-skip" onClick={handleSkip} disabled={sending}>건너뛰기</button>
+            <button className="feedback-submit" onClick={handleSubmit} disabled={sending}>
+              {sending ? <span className="spinner" style={{ width: 12, height: 12, borderColor: 'rgba(255,255,255,0.4)', borderTopColor: '#fff' }} /> : '제출'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading, userId, anonymousId }) {
   const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = data
   const hasBreakdown = breakdown && breakdown.length > 0
 
@@ -175,9 +262,19 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
       </div>
 
       {/* 저장 버튼 */}
-      <div style={{ padding: '0 16px 18px' }}>
+      <div style={{ padding: '0 16px 12px' }}>
         <SaveButton onSave={onSave} saved={saved} />
       </div>
+
+      <hr className="divider" />
+
+      {/* 피드백 */}
+      <FeedbackSection
+        inputText={inputText}
+        japanese={japanese}
+        userId={userId}
+        anonymousId={anonymousId}
+      />
 
     </div>
   )

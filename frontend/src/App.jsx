@@ -379,7 +379,15 @@ export default function App() {
               )}
               {loading && <SkeletonCard inputText={inputText} />}
               {result && (
-                <ResultCard data={result} onSave={handleSave} saved={saved} inputText={inputText} breakdownLoading={breakdownLoading} />
+                <ResultCard
+                  data={result}
+                  onSave={handleSave}
+                  saved={saved}
+                  inputText={inputText}
+                  breakdownLoading={breakdownLoading}
+                  userId={user?.id || null}
+                  anonymousId={!user ? localStorage.getItem('tickjapan_anon_id') : null}
+                />
               )}
 
               {/* 결과/입력 전 홈 화면 — 앱 사용 안내 + 품사 단어 목록 바 + 오늘의 단어 */}

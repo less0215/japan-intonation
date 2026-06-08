@@ -784,6 +784,119 @@ body {
 }
 
 /* ══════════════════════════════════════
+   번역 품질 피드백
+══════════════════════════════════════ */
+.feedback-section {
+  padding: 14px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feedback-label {
+  font-size: 13px;
+  color: #888;
+}
+
+.feedback-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.feedback-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.feedback-btn--good {
+  background: #e8f7ef;
+  border-color: #2d9e6b;
+}
+
+.feedback-btn--bad {
+  background: #fdecea;
+  border-color: #e05252;
+}
+
+.feedback-comment {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-textarea {
+  width: 100%;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111;
+  resize: none;
+  outline: none;
+  background: #fafafa;
+}
+
+.feedback-textarea:focus {
+  border-color: #5CA9CE;
+  background: #fff;
+}
+
+.feedback-comment-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.feedback-skip {
+  height: 36px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #888;
+  cursor: pointer;
+}
+
+.feedback-submit {
+  height: 36px;
+  padding: 0 18px;
+  background: #5CA9CE;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+}
+
+.feedback-submit:disabled,
+.feedback-skip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.feedback-done {
+  padding: 14px 16px 18px;
+  font-size: 13px;
+  color: #2d9e6b;
+}
+
+/* ══════════════════════════════════════
    회원가입 모달
 ══════════════════════════════════════ */
 .modal-backdrop {

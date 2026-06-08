@@ -365,11 +365,6 @@ export default function App() {
             <>
               <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
 
-              {/* 결과 화면에서 홈으로 돌아가기 */}
-              {result && (
-                <button onClick={handleHome} className="back-to-translate">← 처음으로</button>
-              )}
-
               {error && <div className="error-box">{error}</div>}
               {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
               {typing && !loading && !result && (

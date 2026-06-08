@@ -174,9 +174,9 @@ export default function App() {
       const { breakdown } = await res.json()
       const merged = { ...translationData, breakdown }
       setResult(merged)
-      doSave(user, text, merged)        // 분해 포함해 저장
+      if (user) doSave(user, text, merged)        // 로그인 상태일 때만 자동 저장
     } catch {
-      doSave(user, text, translationData) // 분해 실패 시 번역만 저장
+      if (user) doSave(user, text, translationData) // 로그인 상태일 때만 자동 저장
     } finally {
       setBreakdownLoading(false)
     }

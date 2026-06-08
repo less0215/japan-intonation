@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react'
  * - 디바운스 자동 번역: 입력을 멈추면 자동으로 번역 시작 (Papago 방식)
  * - Enter = 즉시 번역 / Shift+Enter = 줄바꿈
  */
-const DEBOUNCE_MS = 800
+const DEBOUNCE_MS = 1200
 
 export default function SearchBar({ onAnalyze, loading, onTyping, onClear }) {
   const [text, setText] = useState('')

@@ -163,7 +163,8 @@ export default function App() {
       // 비로그인 번역 횟수 카운트 → 5회 초과 시 로그인 유도 모달
       if (!user) {
         const count = incrementGuestCount()
-        if (count > TRANSLATE_LIMIT) {
+        // 6회째 최초 노출, 이후 3회 간격마다 재노출 (6, 9, 12, ...)
+        if (count > TRANSLATE_LIMIT && (count - TRANSLATE_LIMIT) % 3 === 1) {
           setSignupMode('login')
           setShowSignup(true)
         }

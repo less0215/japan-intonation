@@ -1,8 +1,13 @@
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PARTICLES } from '../data/particles'
+import PitchGraph from './PitchGraph'
 
-/* 후리가나 파싱 — 漢字(かんじ) 형식 → ruby 렌더링 */
-function RubyText({ text }) {
+const PRIMARY  = '#5CA9CE'
+const API_URL  = 'https://japan-intonation-production.up.railway.app'
+
+/* ── 후리가나 파싱 helpers ── */
+function RubyText({ text, fontSize = 15 }) {
   const regex = /([^\s()（）]+?)\(([^)（）]+)\)/g
   const parts = []; let last = 0, match
   while ((match = regex.exec(text)) !== null) {
@@ -12,7 +17,7 @@ function RubyText({ text }) {
   }
   if (last < text.length) parts.push({ type: 'plain', text: text.slice(last) })
   return (
-    <span>
+    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight: 500, lineHeight: 1.8 }}>
       {parts.map((p, i) =>
         p.type === 'ruby'
           ? <ruby key={i}>{p.kanji}<rt style={{ fontSize: 10, color: '#888' }}>{p.reading}</rt></ruby>
@@ -22,6 +27,84 @@ function RubyText({ text }) {
   )
 }
 
+function stripFurigana(text) {
+  return text.replace(/[（(][^）)]+[）)]/g, '').replace(/[（(）)]/g, '')
+}
+
+/* ── 예문 박스 (TTS + 그래프 + 한국어 발음 포함) ── */
+function ExampleBox({ example }) {
+  const [audioState, setAudioState] = useState('idle')
+  const audioRef = useRef(null)
+
+  const plainText = stripFurigana(example.jp)
+
+  async function handlePlay() {
+    if (audioState === 'playing') {
+      audioRef.current?.pause(); audioRef.current = null; setAudioState('idle'); return
+    }
+    if (audioState === 'loading') return
+    setAudioState('loading')
+    try {
+      const res = await fetch(`${API_URL}/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: plainText, gender: 'female' }),
+      })
+      if (!res.ok) throw new Error()
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      audio.onerror = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
+      await audio.play(); setAudioState('playing')
+    } catch { setAudioState('idle') }
+  }
+
+  return (
+    <div className="particle-example">
+      {/* 한국어 번역 */}
+      <p className="particle-example-kr">{example.kr}</p>
+
+      {/* 일본어 + 재생 버튼 */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+        <RubyText text={example.jp} fontSize={15} />
+        <button
+          onClick={handlePlay}
+          title={audioState === 'playing' ? '정지' : '발음 듣기'}
+          style={{
+            flexShrink: 0,
+            width: 28, height: 28, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+            backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
+            cursor: 'pointer',
+          }}
+        >
+          {audioState === 'loading' ? (
+            <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+          ) : audioState === 'playing' ? (
+            <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          ) : (
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          )}
+        </button>
+      </div>
+
+      {/* 한국어 발음 */}
+      {example.pronunciation && (
+        <p style={{ margin: '4px 0 0', fontSize: 12, color: '#aaa', fontStyle: 'italic', lineHeight: 1.4 }}>
+          {example.pronunciation}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/* ── 메인 컴포넌트 ── */
 export default function ParticleDetail({ particle }) {
   const navigate = useNavigate()
   const currentIndex = PARTICLES.findIndex(p => p.id === particle.id)
@@ -49,7 +132,6 @@ export default function ParticleDetail({ particle }) {
           <span style={{ fontSize: 16, color: '#aaa' }}>({particle.reading})</span>
           <span style={{ fontSize: 13, color: '#888', marginLeft: 4 }}>제{particle.rank}위</span>
         </div>
-        {/* 의미 태그 모음 */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {particle.meanings.map((m, i) => (
             <span key={i} className="particle-meaning-tag">{m}</span>
@@ -71,16 +153,13 @@ export default function ParticleDetail({ particle }) {
               </span>
             </div>
 
-            {/* 예문 박스 */}
-            <div className="particle-example">
-              <p className="particle-example-kr">{usage.example.kr}</p>
-              <p className="particle-example-jp">
-                <RubyText text={usage.example.jp} />
-              </p>
-            </div>
+            {/* 예문 박스 (TTS + 발음 포함) */}
+            <ExampleBox example={usage.example} />
 
-            {/* 해설 */}
-            <p className="particle-note">{usage.note}</p>
+            {/* 해설 (후리가나 적용) */}
+            <p className="particle-note">
+              <RubyText text={usage.note} fontSize={13} />
+            </p>
           </div>
         </div>
       ))}

@@ -10,11 +10,13 @@ import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
 import WordDetailPage from './components/WordDetailPage'
+import ParticleLibrary from './components/ParticleLibrary'
 import { useUser } from './context/UserContext'
 import { VERBS } from './data/verbs'
 import { ADJ_I, getRankTabs as getAdjITabs } from './data/adjI'
 import { ADJ_NA, getRankTabs as getAdjNaTabs } from './data/adjNa'
 import { NOUNS, getRankTabs as getNounTabs } from './data/nouns'
+import { PARTICLES } from './data/particles'
 
 const API_URL   = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY   = '#5CA9CE'
@@ -90,10 +92,11 @@ export default function App() {
   const navigate  = useNavigate()
   const { user, setUser, saveResult } = useUser()
 
-  const tab = location.pathname.startsWith('/verbs')   ? 'verbs'
-            : location.pathname.startsWith('/adj-i')   ? 'adj-i'
-            : location.pathname.startsWith('/adj-na')  ? 'adj-na'
-            : location.pathname.startsWith('/noun')    ? 'noun'
+  const tab = location.pathname.startsWith('/verbs')     ? 'verbs'
+            : location.pathname.startsWith('/adj-i')     ? 'adj-i'
+            : location.pathname.startsWith('/adj-na')    ? 'adj-na'
+            : location.pathname.startsWith('/noun')      ? 'noun'
+            : location.pathname.startsWith('/particles') ? 'particles'
             : 'translate'
 
   const [loading, setLoading]         = useState(false)
@@ -381,6 +384,7 @@ export default function App() {
               description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 명사입니다."
             />
           } />
+          <Route path="/particles" element={<ParticleLibrary items={PARTICLES} />} />
           <Route path="*" element={
             <>
               <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />

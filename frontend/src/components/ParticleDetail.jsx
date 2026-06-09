@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PARTICLES } from '../data/particles'
 import PitchGraph from './PitchGraph'
@@ -6,7 +6,38 @@ import PitchGraph from './PitchGraph'
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
 
-/* ── 후리가나 파싱 — 한자만 매칭해서 오표기 방지 ── */
+/* ── 피치 계산 헬퍼 (WordDetail과 동일) ── */
+const smallKana = new Set(['ぁ','ぃ','ぅ','ぇ','ぉ','ゃ','ゅ','ょ','っ','ァ','ィ','ゥ','ェ','ォ','ャ','ュ','ョ','ッ'])
+function splitMora(h) {
+  const chars = [...h]; const mora = []
+  for (let i = 0; i < chars.length; i++) {
+    if (i + 1 < chars.length && smallKana.has(chars[i + 1])) { mora.push(chars[i] + chars[i + 1]); i++ }
+    else mora.push(chars[i])
+  }
+  return mora
+}
+function computeAccent(hiragana, n = 0) {
+  const mora = splitMora(hiragana)
+  if (!mora.length) return null
+  const accent = mora.map((_, i) => {
+    if (n === 0) return i === 0 ? 0 : 1
+    if (i === 0) return n === 1 ? 1 : 0
+    return i < n ? 1 : 0
+  })
+  return [{ phrase_id: '0', mora_count: mora.length, accent }]
+}
+/* 후리가나 표기 → 히라가나 추출: 漢字(かんじ) → かんじ, 나머지 가나 유지 */
+function extractFurigana(text) {
+  return text
+    .replace(/[^\s()（）]+\(([^)（）]+)\)/g, (_, r) => r)
+    .replace(/[（(）)]/g, '')
+    .replace(/[^぀-ゟ゠-ヿ]/g, '')
+}
+function stripFurigana(text) {
+  return text.replace(/[（(][^）)]+[）)]/g, '').replace(/[（(）)]/g, '')
+}
+
+/* ── 후리가나 렌더링 — 한자만 매칭 ── */
 function RubyText({ text, fontSize = 15 }) {
   const regex = /([一-鿿㐀-䶿々〆〇〻]+)\(([^)（）]+)\)/g
   const parts = []; let last = 0, match
@@ -27,41 +58,16 @@ function RubyText({ text, fontSize = 15 }) {
   )
 }
 
-function stripFurigana(text) {
-  return text.replace(/[（(][^）)]+[）)]/g, '').replace(/[（(）)]/g, '')
-}
-
-/* ── 예문 박스 (TTS + 인토네이션 그래프 + 한국어 발음) ── */
+/* ── 예문 박스 (즉시 그래프 + TTS) ── */
 function ExampleBox({ example }) {
-  const [audioState, setAudioState] = useState('idle')
   const [showGraph,  setShowGraph]  = useState(false)
-  const [accentData, setAccentData] = useState(null)
-  const [accentLoading, setAccentLoading] = useState(false)
+  const [audioState, setAudioState] = useState('idle')
   const audioRef = useRef(null)
 
-  const plainText = stripFurigana(example.jp)
-
-  /* 인토네이션 그래프 토글 — 처음 열 때 API 호출 */
-  async function handleGraph() {
-    if (showGraph) { setShowGraph(false); return }
-    setShowGraph(true)
-    if (accentData) return
-    setAccentLoading(true)
-    try {
-      const res = await fetch(`${API_URL}/accent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ japanese: plainText }),
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
-      setAccentData(data.accent_data ?? [])
-    } catch {
-      setAccentData([])
-    } finally {
-      setAccentLoading(false)
-    }
-  }
+  const plainText  = stripFurigana(example.jp)
+  const furigana   = extractFurigana(example.jp)
+  const accentData = furigana ? computeAccent(furigana, 0) : null
+  const graphActive = showGraph && accentData
 
   async function handlePlay() {
     if (audioState === 'playing') {
@@ -86,8 +92,6 @@ function ExampleBox({ example }) {
     } catch { setAudioState('idle') }
   }
 
-  const graphActive = showGraph && accentData?.length > 0
-
   return (
     <div className="particle-example">
       {/* 한국어 번역 */}
@@ -98,27 +102,24 @@ function ExampleBox({ example }) {
         <RubyText text={example.jp} fontSize={15} />
         <div style={{ display: 'flex', gap: 5, flexShrink: 0, alignItems: 'center' }}>
           {/* 억양 그래프 버튼 */}
-          <button
-            onClick={handleGraph}
-            title="억양 그래프"
-            style={{
-              width: 28, height: 28, borderRadius: 6,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
-              backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent',
-              cursor: 'pointer',
-            }}
-          >
-            {accentLoading ? (
-              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
-            ) : (
+          {accentData && (
+            <button
+              onClick={() => setShowGraph(v => !v)}
+              title="억양 그래프"
+              style={{
+                width: 28, height: 28, borderRadius: 6,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+                backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent',
+                cursor: 'pointer',
+              }}
+            >
               <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
                 <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
                   stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
               </svg>
-            )}
-          </button>
-
+            </button>
+          )}
           {/* TTS 재생 버튼 */}
           <button
             onClick={handlePlay}
@@ -152,15 +153,11 @@ function ExampleBox({ example }) {
         </p>
       )}
 
-      {/* 인토네이션 그래프 */}
-      {showGraph && !accentLoading && (
-        accentData?.length > 0 ? (
-          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: 8 }}>
-            <PitchGraph accentData={accentData} hideHeader />
-          </div>
-        ) : (
-          <p style={{ fontSize: 12, color: '#bbb', margin: '6px 0 0' }}>억양 데이터를 불러올 수 없어요.</p>
-        )
+      {/* 인토네이션 그래프 — 즉시 표시 */}
+      {graphActive && (
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: 8 }}>
+          <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
+        </div>
       )}
     </div>
   )
@@ -176,12 +173,7 @@ export default function ParticleDetail({ particle }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* 뒤로 가기 */}
-      <button
-        onClick={() => navigate('/particles')}
-        className="back-to-translate"
-        style={{ alignSelf: 'flex-start' }}
-      >
+      <button onClick={() => navigate('/particles')} className="back-to-translate" style={{ alignSelf: 'flex-start' }}>
         ← 목록으로
       </button>
 
@@ -205,7 +197,6 @@ export default function ParticleDetail({ particle }) {
       {particle.usages.map((usage, i) => (
         <div key={i} className="card">
           <div className="section">
-            {/* 배지 + 의미 */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
               <span className={`particle-section-badge particle-section-badge--${usage.type}`}>
                 {usage.type === 'basic' ? '기본' : '응용'}
@@ -214,11 +205,7 @@ export default function ParticleDetail({ particle }) {
                 {usage.meaning}
               </span>
             </div>
-
-            {/* 예문 박스 */}
             <ExampleBox example={usage.example} />
-
-            {/* 해설 (후리가나 적용) */}
             <p className="particle-note">
               <RubyText text={usage.note} fontSize={13} />
             </p>
@@ -226,20 +213,12 @@ export default function ParticleDetail({ particle }) {
         </div>
       ))}
 
-      {/* 이전 / 다음 내비게이션 */}
+      {/* 이전 / 다음 */}
       <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-        <button
-          className="particle-nav-btn"
-          disabled={!prev}
-          onClick={() => prev && navigate(`/particles/${prev.id}`)}
-        >
+        <button className="particle-nav-btn" disabled={!prev} onClick={() => prev && navigate(`/particles/${prev.id}`)}>
           ← {prev ? `${prev.particle}（${prev.reading}）` : '처음'}
         </button>
-        <button
-          className="particle-nav-btn"
-          disabled={!next}
-          onClick={() => next && navigate(`/particles/${next.id}`)}
-        >
+        <button className="particle-nav-btn" disabled={!next} onClick={() => next && navigate(`/particles/${next.id}`)}>
           {next ? `${next.particle}（${next.reading}）` : '마지막'} →
         </button>
       </div>

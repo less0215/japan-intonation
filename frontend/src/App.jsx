@@ -328,10 +328,11 @@ export default function App() {
 
           {/* 품사 탭 */}
           {[
-            { key: 'verbs',  path: '/verbs',  label: '동사 TOP100' },
-            { key: 'adj-i',  path: '/adj-i',  label: 'い형용사 TOP100' },
-            { key: 'adj-na', path: '/adj-na', label: 'な형용사 TOP100' },
-            { key: 'noun',   path: '/noun',   label: '명사 TOP100' },
+            { key: 'verbs',     path: '/verbs',     label: '동사 TOP100' },
+            { key: 'adj-i',     path: '/adj-i',     label: 'い형용사 TOP100' },
+            { key: 'adj-na',    path: '/adj-na',    label: 'な형용사 TOP100' },
+            { key: 'noun',      path: '/noun',      label: '명사 TOP100' },
+            { key: 'particles', path: '/particles', label: '조사 TOP10' },
           ].map(({ key, path, label }) => (
             <button
               key={key}

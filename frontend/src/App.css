@@ -1022,15 +1022,16 @@ body {
   align-items: baseline;
   gap: 6px;
   flex-shrink: 0;
-  width: 64px;
+  width: 72px;
 }
 
 .particle-list-char {
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
   color: #5CA9CE;
   font-family: 'Noto Sans JP', sans-serif;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .particle-list-reading {

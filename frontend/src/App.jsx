@@ -108,6 +108,15 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [menuOpen, setMenuOpen]       = useState(false)
 
+  // 비로그인 번역 횟수 — localStorage 기반, 5회 초과 시 로그인 유도
+  const TRANSLATE_LIMIT = 5
+  function getGuestCount() { return parseInt(localStorage.getItem('tickjapan_translate_count') || '0', 10) }
+  function incrementGuestCount() {
+    const next = getGuestCount() + 1
+    localStorage.setItem('tickjapan_translate_count', String(next))
+    return next
+  }
+
   // 앱 실행 시 1회 랜덤 선택 (useMemo로 리렌더 시 고정)
   const dailyVerb = useMemo(() => pickDailyVerb(VERBS), [])
 
@@ -151,6 +160,14 @@ export default function App() {
         japanese: data.japanese,
         is_logged_in: !!user,
       })
+      // 비로그인 번역 횟수 카운트 → 5회 초과 시 로그인 유도 모달
+      if (!user) {
+        const count = incrementGuestCount()
+        if (count > TRANSLATE_LIMIT) {
+          setSignupMode('login')
+          setShowSignup(true)
+        }
+      }
       // 2단계: 무거운 문장 분해는 백그라운드로 채움 → 저장은 분해 병합 후 수행
       fetchBreakdown(data, text)
     } catch (err) {
@@ -211,6 +228,7 @@ export default function App() {
   function handleSignupSuccess(newUser) {
     setUser(newUser)
     setShowSignup(false)
+    localStorage.removeItem('tickjapan_translate_count')
     // 저장 모드일 때만 자동 저장
     if (signupMode === 'save' && result) doSave(newUser, inputText, result)
   }

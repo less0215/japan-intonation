@@ -104,7 +104,7 @@ export default function App() {
   const [error, setError]             = useState(null)
   const [saved, setSaved]             = useState(false)
   const [showSignup, setShowSignup]   = useState(false)
-  const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login'
+  const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login' | 'translate_limit'
   const [showHistory, setShowHistory] = useState(false)
   const [menuOpen, setMenuOpen]       = useState(false)
 
@@ -165,7 +165,8 @@ export default function App() {
         const count = incrementGuestCount()
         // 6회째 최초 노출, 이후 3회 간격마다 재노출 (6, 9, 12, ...)
         if (count > TRANSLATE_LIMIT && (count - TRANSLATE_LIMIT) % 3 === 1) {
-          setSignupMode('login')
+          track('signup_start', { trigger: 'translate_limit', translate_count: count })
+          setSignupMode('translate_limit')
           setShowSignup(true)
         }
       }

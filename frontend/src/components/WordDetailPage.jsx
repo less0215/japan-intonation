@@ -5,6 +5,7 @@ import { ADJ_I, CONJ_LABELS as ADJ_I_LABELS } from '../data/adjI'
 import { ADJ_NA, CONJ_LABELS as ADJ_NA_LABELS } from '../data/adjNa'
 import { NOUNS } from '../data/nouns'
 import WordDetail from './WordDetail'
+import PageSEO from './PageSEO'
 
 const DATA_MAP = {
   'adj-i':  { items: ADJ_I,  labels: ADJ_I_LABELS,  partOfSpeech: 'い형용사' },
@@ -33,12 +34,22 @@ export default function WordDetailPage({ wordType }) {
     track('word_detail_view', { category: wordType, word_id: word.id, word: word.verb, rank: word.rank })
   }, [word, wordType])
 
+  const posLabel = config.partOfSpeech
+  const pathPrefix = wordType === 'noun' ? '/noun' : `/${wordType}`
+
   return (
-    <WordDetail
-      item={item}
-      wordType={wordType}
-      conjLabels={config.labels}
-      onBack={() => navigate(`/${wordType}`)}
-    />
+    <>
+      <PageSEO
+        title={`${word.verb} (${word.reading}·${word.meaning}) - ${posLabel} ${word.rank}위`}
+        description={`${word.verb}(${word.meaning})의 활용표와 예문을 무료로 확인하세요. 일본인이 많이 쓰는 ${posLabel} ${word.rank}위.`}
+        path={`${pathPrefix}/${word.id}`}
+      />
+      <WordDetail
+        item={item}
+        wordType={wordType}
+        conjLabels={config.labels}
+        onBack={() => navigate(`/${wordType}`)}
+      />
+    </>
   )
 }

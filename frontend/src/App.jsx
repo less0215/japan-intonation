@@ -13,6 +13,7 @@ import WordDetailPage from './components/WordDetailPage'
 import ParticleLibrary from './components/ParticleLibrary'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import { useUser } from './context/UserContext'
+import PageSEO from './components/PageSEO'
 import { VERBS } from './data/verbs'
 import { ADJ_I, getRankTabs as getAdjITabs } from './data/adjI'
 import { ADJ_NA, getRankTabs as getAdjNaTabs } from './data/adjNa'
@@ -358,38 +359,72 @@ export default function App() {
         {/* 라우트 */}
         <Routes>
           <Route path="/verbs/:id" element={<VerbDetailPage />} />
-          <Route path="/verbs"     element={<VerbLibrary />} />
+          <Route path="/verbs"     element={<>
+            <PageSEO
+              title="일본인이 많이 쓰는 동사 TOP100 - 활용표 포함"
+              description="일본어 동사 빈도수 TOP100과 전체 활용표를 무료로 확인하세요. する·いる·ある 등 필수 동사 100개 수록."
+              path="/verbs"
+            />
+            <VerbLibrary />
+          </>} />
           <Route path="/adj-i/:id" element={<WordDetailPage wordType="adj-i" />} />
-          <Route path="/adj-i"     element={
+          <Route path="/adj-i"     element={<>
+            <PageSEO
+              title="일본인이 많이 쓰는 い형용사 TOP100 - 활용표 포함"
+              description="일본어 い형용사 빈도수 TOP100과 활용표를 무료로 확인하세요. 多い·高い·大きい 등 필수 い형용사 100개 수록."
+              path="/adj-i"
+            />
             <WordLibrary
               items={ADJ_I}
               wordType="adj-i"
               getRankTabs={getAdjITabs}
               description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 い형용사입니다."
             />
-          } />
+          </>} />
           <Route path="/adj-na/:id" element={<WordDetailPage wordType="adj-na" />} />
-          <Route path="/adj-na"     element={
+          <Route path="/adj-na"     element={<>
+            <PageSEO
+              title="일본인이 많이 쓰는 な형용사 TOP100 - 활용표 포함"
+              description="일본어 な형용사 빈도수 TOP100과 활용표를 무료로 확인하세요. 可能·好き·重要 등 필수 な형용사 100개 수록."
+              path="/adj-na"
+            />
             <WordLibrary
               items={ADJ_NA}
               wordType="adj-na"
               getRankTabs={getAdjNaTabs}
               description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 な형용사입니다."
             />
-          } />
+          </>} />
           <Route path="/noun/:id" element={<WordDetailPage wordType="noun" />} />
-          <Route path="/noun"     element={
+          <Route path="/noun"     element={<>
+            <PageSEO
+              title="일본인이 많이 쓰는 명사 TOP100"
+              description="일본어 명사 빈도수 TOP100을 무료로 확인하세요. こと·人·自分 등 일본인이 가장 많이 쓰는 명사 100개 수록."
+              path="/noun"
+            />
             <WordLibrary
               items={NOUNS}
               wordType="noun"
               getRankTabs={getNounTabs}
               description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 명사입니다."
             />
-          } />
+          </>} />
           <Route path="/particles/:id" element={<ParticleDetailPage />} />
-          <Route path="/particles"    element={<ParticleLibrary items={PARTICLES} />} />
+          <Route path="/particles"    element={<>
+            <PageSEO
+              title="일본인이 많이 쓰는 조사 TOP10 - 기본·응용 용법"
+              description="한국어와 다르게 쓰이는 일본어 조사 핵심 10개를 기본·응용 용법으로 정리했습니다. が·は·を·に·へ·で·から·まで·も·の 수록."
+              path="/particles"
+            />
+            <ParticleLibrary items={PARTICLES} />
+          </>} />
           <Route path="*" element={
             <>
+              <PageSEO
+                title="일본어 번역기 - 파파고 대신 쓰는 무료 번역기"
+                description="파파고 대신 써보세요. 틱재팬은 무료 한국어-일본어 번역기로 히라가나 독음과 피치악센트를 한 번에 확인할 수 있습니다."
+                path="/"
+              />
               <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
 
               {error && <div className="error-box">{error}</div>}

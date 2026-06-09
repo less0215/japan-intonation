@@ -7,7 +7,7 @@ const CATEGORIES = [
   { key: 'adj-i',     path: '/adj-i',     label: '일본인이 많이 쓰는 い형용사 TOP100' },
   { key: 'adj-na',    path: '/adj-na',    label: '일본인이 많이 쓰는 な형용사 TOP100' },
   { key: 'noun',      path: '/noun',      label: '일본인이 많이 쓰는 명사 TOP100' },
-  { key: 'particles', path: '/particles', label: '헷갈리는 일본어 조사 핵심 10개' },
+  { key: 'particles', path: '/particles', label: '일본인이 많이 쓰는 조사 TOP10' },
 ]
 
 export default function CategoryBars({ current, onNavigate }) {

@@ -11,6 +11,7 @@ import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
 import WordDetailPage from './components/WordDetailPage'
 import ParticleLibrary from './components/ParticleLibrary'
+import ParticleDetailPage from './components/ParticleDetailPage'
 import { useUser } from './context/UserContext'
 import { VERBS } from './data/verbs'
 import { ADJ_I, getRankTabs as getAdjITabs } from './data/adjI'
@@ -384,7 +385,8 @@ export default function App() {
               description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 명사입니다."
             />
           } />
-          <Route path="/particles" element={<ParticleLibrary items={PARTICLES} />} />
+          <Route path="/particles/:id" element={<ParticleDetailPage />} />
+          <Route path="/particles"    element={<ParticleLibrary items={PARTICLES} />} />
           <Route path="*" element={
             <>
               <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />

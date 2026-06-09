@@ -996,8 +996,86 @@ body {
 }
 
 /* ══════════════════════════════════════
-   조사 학습 카드
+   조사 학습
 ══════════════════════════════════════ */
+
+/* 목록 카드 */
+.particle-list-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.particle-list-card:hover { border-color: #5CA9CE66; background: #f8fdff; }
+
+.particle-list-left {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 64px;
+}
+
+.particle-list-char {
+  font-size: 26px;
+  font-weight: 700;
+  color: #5CA9CE;
+  font-family: 'Noto Sans JP', sans-serif;
+  line-height: 1;
+}
+
+.particle-list-reading {
+  font-size: 12px;
+  color: #bbb;
+}
+
+.particle-list-meanings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.particle-meaning-tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #f0f8fc;
+  color: #5CA9CE;
+  border: 1px solid #d0eaf5;
+  white-space: nowrap;
+}
+
+/* 이전/다음 내비게이션 버튼 */
+.particle-nav-btn {
+  flex: 1;
+  height: 44px;
+  background: #ffffff;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.particle-nav-btn:hover:not(:disabled) { border-color: #5CA9CE; color: #5CA9CE; }
+.particle-nav-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* 상세 페이지 재사용 스타일 */
 .particle-card {
   background: #ffffff;
   border: 1.5px solid #e8e8e8;

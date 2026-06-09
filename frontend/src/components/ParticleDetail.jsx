@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PARTICLES } from '../data/particles'
 import PitchGraph from './PitchGraph'
@@ -6,9 +6,9 @@ import PitchGraph from './PitchGraph'
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
 
-/* ── 후리가나 파싱 helpers ── */
+/* ── 후리가나 파싱 — 한자만 매칭해서 오표기 방지 ── */
 function RubyText({ text, fontSize = 15 }) {
-  const regex = /([^\s()（）]+?)\(([^)（）]+)\)/g
+  const regex = /([一-鿿㐀-䶿々〆〇〻]+)\(([^)（）]+)\)/g
   const parts = []; let last = 0, match
   while ((match = regex.exec(text)) !== null) {
     if (match.index > last) parts.push({ type: 'plain', text: text.slice(last, match.index) })
@@ -31,12 +31,37 @@ function stripFurigana(text) {
   return text.replace(/[（(][^）)]+[）)]/g, '').replace(/[（(）)]/g, '')
 }
 
-/* ── 예문 박스 (TTS + 그래프 + 한국어 발음 포함) ── */
+/* ── 예문 박스 (TTS + 인토네이션 그래프 + 한국어 발음) ── */
 function ExampleBox({ example }) {
   const [audioState, setAudioState] = useState('idle')
+  const [showGraph,  setShowGraph]  = useState(false)
+  const [accentData, setAccentData] = useState(null)
+  const [accentLoading, setAccentLoading] = useState(false)
   const audioRef = useRef(null)
 
   const plainText = stripFurigana(example.jp)
+
+  /* 인토네이션 그래프 토글 — 처음 열 때 API 호출 */
+  async function handleGraph() {
+    if (showGraph) { setShowGraph(false); return }
+    setShowGraph(true)
+    if (accentData) return
+    setAccentLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/accent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ japanese: plainText }),
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setAccentData(data.accent_data ?? [])
+    } catch {
+      setAccentData([])
+    } finally {
+      setAccentLoading(false)
+    }
+  }
 
   async function handlePlay() {
     if (audioState === 'playing') {
@@ -61,37 +86,63 @@ function ExampleBox({ example }) {
     } catch { setAudioState('idle') }
   }
 
+  const graphActive = showGraph && accentData?.length > 0
+
   return (
     <div className="particle-example">
       {/* 한국어 번역 */}
       <p className="particle-example-kr">{example.kr}</p>
 
-      {/* 일본어 + 재생 버튼 */}
+      {/* 일본어 + 버튼들 */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <RubyText text={example.jp} fontSize={15} />
-        <button
-          onClick={handlePlay}
-          title={audioState === 'playing' ? '정지' : '발음 듣기'}
-          style={{
-            flexShrink: 0,
-            width: 28, height: 28, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
-            backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
-            cursor: 'pointer',
-          }}
-        >
-          {audioState === 'loading' ? (
-            <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
-          ) : audioState === 'playing' ? (
-            <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-          ) : (
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          )}
-        </button>
+        <div style={{ display: 'flex', gap: 5, flexShrink: 0, alignItems: 'center' }}>
+          {/* 억양 그래프 버튼 */}
+          <button
+            onClick={handleGraph}
+            title="억양 그래프"
+            style={{
+              width: 28, height: 28, borderRadius: 6,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+              backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent',
+              cursor: 'pointer',
+            }}
+          >
+            {accentLoading ? (
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+            ) : (
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+                <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
+                  stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+              </svg>
+            )}
+          </button>
+
+          {/* TTS 재생 버튼 */}
+          <button
+            onClick={handlePlay}
+            title={audioState === 'playing' ? '정지' : '발음 듣기'}
+            style={{
+              width: 28, height: 28, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+              backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
+              cursor: 'pointer',
+            }}
+          >
+            {audioState === 'loading' ? (
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+            ) : audioState === 'playing' ? (
+              <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            ) : (
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* 한국어 발음 */}
@@ -99,6 +150,17 @@ function ExampleBox({ example }) {
         <p style={{ margin: '4px 0 0', fontSize: 12, color: '#aaa', fontStyle: 'italic', lineHeight: 1.4 }}>
           {example.pronunciation}
         </p>
+      )}
+
+      {/* 인토네이션 그래프 */}
+      {showGraph && !accentLoading && (
+        accentData?.length > 0 ? (
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: 8 }}>
+            <PitchGraph accentData={accentData} hideHeader />
+          </div>
+        ) : (
+          <p style={{ fontSize: 12, color: '#bbb', margin: '6px 0 0' }}>억양 데이터를 불러올 수 없어요.</p>
+        )
       )}
     </div>
   )
@@ -153,7 +215,7 @@ export default function ParticleDetail({ particle }) {
               </span>
             </div>
 
-            {/* 예문 박스 (TTS + 발음 포함) */}
+            {/* 예문 박스 */}
             <ExampleBox example={usage.example} />
 
             {/* 해설 (후리가나 적용) */}

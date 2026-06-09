@@ -1022,7 +1022,7 @@ body {
   align-items: baseline;
   gap: 6px;
   flex-shrink: 0;
-  width: 72px;
+  width: 90px;
 }
 
 .particle-list-char {
@@ -1037,6 +1037,7 @@ body {
 .particle-list-reading {
   font-size: 12px;
   color: #bbb;
+  white-space: nowrap;
 }
 
 .particle-list-meanings {

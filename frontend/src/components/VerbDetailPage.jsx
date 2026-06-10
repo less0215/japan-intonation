@@ -1,11 +1,18 @@
+import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { VERBS } from '../data/verbs'
 import VerbDetail from './VerbDetail'
+import PageSEO from './PageSEO'
+import { track } from '../App'
 
 export default function VerbDetailPage() {
   const { id }   = useParams()
   const navigate = useNavigate()
   const verb     = VERBS.find(v => v.id === id)
+
+  useEffect(() => {
+    if (verb) track('word_detail_view', { category: 'verbs', word_id: verb.id, word: verb.verb, rank: verb.rank })
+  }, [verb])
 
   if (!verb) {
     return (
@@ -15,5 +22,14 @@ export default function VerbDetailPage() {
     )
   }
 
-  return <VerbDetail verb={verb} onBack={() => navigate('/verbs')} />
+  return (
+    <>
+      <PageSEO
+        title={`${verb.verb} (${verb.reading}·${verb.meaning}) 활용표 - 동사 ${verb.rank}위`}
+        description={`${verb.verb}(${verb.meaning})의 정중체·보통체 전체 활용표와 예문을 확인하세요. 일본인이 많이 쓰는 동사 ${verb.rank}위.`}
+        path={`/verbs/${verb.id}`}
+      />
+      <VerbDetail verb={verb} onBack={() => navigate('/verbs')} />
+    </>
+  )
 }

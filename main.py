@@ -1,10 +1,7 @@
 import datetime
-import hashlib
-import hmac
 import io
 import json
 import os
-import random
 import re
 import uuid
 
@@ -42,7 +39,9 @@ app.add_middleware(
 # 상수
 # ──────────────────────────────────────────────
 
-GEMINI_MODEL = "gemini-2.5-flash"
+# 번역 모델 — flash-lite는 2.5 계열 중 최저 지연(latency) 모델로 번역 응답 속도가 빠름.
+# 악센트 품질이 떨어진다고 판단되면 "gemini-2.5-flash"로 되돌리면 됨.
+GEMINI_MODEL = "gemini-2.5-flash-lite"
 
 # Gemini 클라이언트 — 요청마다 재생성하지 않고 앱 시작 시 1회 초기화
 _gemini_client: genai.Client | None = None
@@ -56,12 +55,11 @@ def get_gemini_client() -> genai.Client:
         _gemini_client = genai.Client(api_key=api_key)
     return _gemini_client
 
-# Gemini에게 전달할 번역 프롬프트
-# — 순수 JSON만 반환하도록 명시 (마크다운 코드블록 금지)
+# 1단계 번역 프롬프트 — 번역 + 발음 + 악센트만 생성 (문장 분해 제외).
+# breakdown(가장 무거운 출력)을 분리해 임계 경로 출력 토큰을 대폭 줄임 → 응답 속도 향상.
 TRANSLATION_PROMPT = """You are a Korean-to-Japanese translation expert with deep knowledge of Tokyo Japanese pitch accent.
 
-When given a Korean sentence, respond with ONLY a valid JSON object.
-Do NOT wrap it in markdown code blocks (no ```json). No explanation. No extra text. Pure JSON only.
+When given a Korean sentence, respond with ONLY a valid JSON object. No explanation. No extra text.
 
 Use this exact structure:
 {
@@ -73,7 +71,37 @@ Use this exact structure:
     {"phrase_id": "0", "mora_count": 4, "accent": [0, 1, 1, 1]},
     {"phrase_id": "1", "mora_count": 5, "accent": [0, 1, 1, 1, 1]},
     {"phrase_id": "2", "mora_count": 9, "accent": [1, 0, 0, 0, 0, 1, 1, 1, 1]}
-  ],
+  ]
+}
+
+Rules:
+- "japanese": natural Japanese translation using kanji where appropriate
+- "furigana": FULL reading in hiragana only (no kanji, no spaces) — concatenation of ALL morae in order
+- "korean_pronunciation": how the JAPANESE translation (the "japanese" field) SOUNDS,
+  transcribed phonetically using KOREAN Hangul characters (한글).
+  This is NOT katakana and NOT the original Korean input — it is the Japanese reading written in Hangul.
+  Example: japanese "退勤後に何をしますか" → korean_pronunciation "타이킨고니 나니오 시마스카?"
+- "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
+- "accent_data": Tokyo Japanese pitch accent per phrase/word group.
+  Split the sentence into natural accent phrases (usually 2–5 morae each).
+  Each phrase: {"phrase_id": "<index as string>", "mora_count": <int>, "accent": [0 or 1, ...]}.
+  accent array length MUST equal mora_count. 0 = Low pitch, 1 = High pitch.
+  The sum of all mora_count values MUST equal the total mora count of "furigana".
+  Use accurate Tokyo-dialect pitch accent patterns:
+    - 平板型 (type 0): [0,1,1,1,...] — rises after 1st mora, stays high
+    - 頭高型 (type 1): [1,0,0,0,...] — high on 1st mora, drops immediately
+    - 中高型 / 尾高型: place downstep at the correct position
+"""
+
+# 2단계 문장 분해 프롬프트 — 이미 번역된 일본어 문장을 단어별로 분해.
+# 입력은 1단계가 생성한 일본어 문장이므로 재번역 없이 일관성 유지.
+BREAKDOWN_PROMPT = """You are a Japanese grammar expert who explains Japanese to Korean learners.
+
+You are given a Japanese sentence (already translated). Break it down into grammatical units.
+Respond with ONLY a valid JSON object. No explanation. No extra text.
+
+Use this exact structure:
+{
   "breakdown": [
     {
       "unit": "毎日",
@@ -81,22 +109,6 @@ Use this exact structure:
       "korean_pronunciation": "마이니치",
       "korean_meaning": "매일",
       "part_of_speech": "부사",
-      "conjugation_steps": null
-    },
-    {
-      "unit": "を",
-      "hiragana": "を",
-      "korean_pronunciation": "오",
-      "korean_meaning": "~을/를",
-      "part_of_speech": "조사",
-      "conjugation_steps": null
-    },
-    {
-      "unit": "勉強",
-      "hiragana": "べんきょう",
-      "korean_pronunciation": "벤쿄-",
-      "korean_meaning": "공부",
-      "part_of_speech": "명사",
       "conjugation_steps": null
     },
     {
@@ -115,24 +127,14 @@ Use this exact structure:
 }
 
 Rules:
-- "japanese": natural Japanese translation using kanji where appropriate
-- "furigana": FULL reading in hiragana only (no kanji, no spaces) — concatenation of ALL morae in order
-- "korean_pronunciation": full sentence pronunciation in Korean characters
-- "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
-- "accent_data": Tokyo Japanese pitch accent per phrase/word group.
-  Split the sentence into natural accent phrases (usually 2–5 morae each).
-  Each phrase: {"phrase_id": "<index as string>", "mora_count": <int>, "accent": [0 or 1, ...]}.
-  accent array length MUST equal mora_count. 0 = Low pitch, 1 = High pitch.
-  The sum of all mora_count values MUST equal the total mora count of "furigana".
-  Use accurate Tokyo-dialect pitch accent patterns:
-    - 平板型 (type 0): [0,1,1,1,...] — rises after 1st mora, stays high
-    - 頭高型 (type 1): [1,0,0,0,...] — high on 1st mora, drops immediately
-    - 中高型 / 尾高型: place downstep at the correct position
-- "breakdown": every token split into grammatical units, no gaps or overlaps.
-  - "korean_meaning": Korean meaning of this unit
-  - "part_of_speech": one of 명사/동사/형용사/부사/조사/조동사/접속사/감탄사/기타
-  - "conjugation_steps": null for uninflected words; array for conjugated forms
-    Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
+- Split the given sentence into grammatical units with no gaps or overlaps.
+- "unit": the surface form as it appears in the sentence (kanji where used)
+- "hiragana": reading of this unit in hiragana
+- "korean_pronunciation": Korean-character pronunciation of this unit
+- "korean_meaning": Korean meaning of this unit
+- "part_of_speech": one of 명사/동사/형용사/부사/조사/조동사/접속사/감탄사/기타
+- "conjugation_steps": null for uninflected words; array for conjugated forms
+  Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
 """
 
 OJAD_URL = "https://www.gavo.t.u-tokyo.ac.jp/ojad/phrasing/index"
@@ -153,9 +155,6 @@ TTS_VOICE_MAP = {
     "male":   "ja-JP-Wavenet-D",
 }
 
-# ── SMS 인증번호 임시 저장 (메모리 캐시, 5분 유효)
-# 키: 전화번호, 값: {code, expires_at}
-_sms_codes: dict[str, dict] = {}
 
 # TTS 메모리 캐시 — 키: "{text}_{gender}", 값: mp3 바이너리
 # 서버 재시작 시 초기화됨
@@ -166,6 +165,9 @@ _analyze_cache: dict[str, dict] = {}
 
 # 억양 전용 캐시 — 키: 일본어 원문, 값: accent_data list
 _accent_cache: dict[str, list] = {}
+
+# 문장 분해 캐시 — 키: 일본어 원문, 값: breakdown list
+_breakdown_cache: dict[str, list] = {}
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)
@@ -185,11 +187,13 @@ class User(Base):
 
 class SavedResult(Base):
     __tablename__ = "saved_results"
-    id          = Column(Integer, primary_key=True, index=True)
-    user_id     = Column(Integer, nullable=False, index=True)
-    input_text  = Column(String(500), nullable=False)
-    result_json = Column(Text, nullable=False)
-    created_at  = Column(DateTime, default=datetime.datetime.utcnow)
+    id           = Column(Integer, primary_key=True, index=True)
+    user_id      = Column(Integer, nullable=True, index=True)
+    anonymous_id = Column(String(36), nullable=True, index=True)
+    input_text   = Column(String(500), nullable=False)
+    result_json  = Column(Text, nullable=False)
+    created_at   = Column(DateTime, default=datetime.datetime.utcnow)
+
 
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
@@ -227,14 +231,6 @@ class TTSRequest(BaseModel):
     text: str
     gender: str  # "female" | "male"
 
-class SendCodeRequest(BaseModel):
-    phone: str
-
-class VerifyCodeRequest(BaseModel):
-    name: str
-    phone: str
-    code: str
-
 class SignupRequest(BaseModel):
     name: str
     phone: str
@@ -245,9 +241,11 @@ class SignupResponse(BaseModel):
     is_new: bool   # True=신규, False=기존 사용자 로그인
 
 class SaveRequest(BaseModel):
-    user_id: int
+    user_id: int | None = None
+    anonymous_id: str | None = None
     input_text: str
     result: dict
+
 
 class AnalyzeResponse(BaseModel):
     japanese: str
@@ -261,31 +259,30 @@ class AnalyzeResponse(BaseModel):
 # 번역 로직 — Gemini API
 # ──────────────────────────────────────────────
 
-def translate_korean_to_japanese(korean_text: str) -> dict:
-    """한국어 문장을 Gemini API로 번역하여 구조화된 데이터를 반환한다."""
+# 응답 속도 최적화 설정 (번역/분해 공통):
+# - thinking_budget=0 : 추론 단계 생략
+# - response_mime_type="application/json" : JSON 출력 강제 → 마크다운 래핑·파싱 실패 경로 제거
+_GEN_CONFIG = genai.types.GenerateContentConfig(
+    thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
+    response_mime_type="application/json",
+)
+
+
+def _call_gemini_json(prompt: str) -> dict:
+    """Gemini에 프롬프트를 보내고 JSON 응답을 파싱해 dict로 반환한다 (공통 호출 로직)."""
     import time
 
     client = get_gemini_client()
 
-    # 시스템 프롬프트 + 사용자 입력을 하나의 메시지로 조합
-    full_prompt = f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}"
-
-    # thinking_budget=0 으로 추론 단계를 생략 → 응답 속도 대폭 향상
-    gen_config = genai.types.GenerateContentConfig(
-        thinking_config=genai.types.ThinkingConfig(thinking_budget=0)
-    )
-
-    last_error = None
     for attempt in range(2):  # 최대 1회 재시도 (서버 부하 방지)
         try:
             response = client.models.generate_content(
                 model=GEMINI_MODEL,
-                contents=full_prompt,
-                config=gen_config,
+                contents=prompt,
+                config=_GEN_CONFIG,
             )
             break
         except Exception as e:
-            last_error = e
             err_str = str(e)
             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
                 # 쿼터 초과 — 재시도 없이 즉시 안내
@@ -298,33 +295,45 @@ def translate_korean_to_japanese(korean_text: str) -> dict:
     else:
         raise HTTPException(status_code=503, detail="Gemini 서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
 
-    # 응답 텍스트 추출
     raw = response.text.strip() if response.text else ""
     if not raw:
         raise HTTPException(status_code=502, detail="Gemini 응답이 비어 있습니다.")
 
-    # 혹시 마크다운 코드블록으로 감싸진 경우 제거
+    # 혹시 마크다운 코드블록으로 감싸진 경우 제거 (방어적 처리)
     if raw.startswith("```"):
-        # ```json ... ``` 또는 ``` ... ``` 형태 제거
         raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
         raw = re.sub(r"\n?```$", "", raw.strip())
 
-    # JSON 파싱
     try:
-        result = json.loads(raw)
+        return json.loads(raw)
     except json.JSONDecodeError:
         raise HTTPException(
             status_code=502,
             detail=f"Gemini 응답을 JSON으로 파싱할 수 없습니다: {raw[:300]}"
         )
 
-    # 필수 키 검증
-    required_keys = {"japanese", "furigana", "korean_pronunciation", "furigana_html", "accent_data", "breakdown"}
+
+def translate_korean_to_japanese(korean_text: str) -> dict:
+    """한국어 문장을 Gemini API로 번역해 번역문·발음·악센트를 반환한다 (문장 분해 제외)."""
+    result = _call_gemini_json(f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}")
+
+    required_keys = {"japanese", "furigana", "korean_pronunciation", "furigana_html", "accent_data"}
     missing = required_keys - result.keys()
     if missing:
         raise HTTPException(status_code=502, detail=f"Gemini 응답에 누락된 키: {missing}")
 
     return result
+
+
+def generate_breakdown(japanese_text: str) -> list[dict]:
+    """이미 번역된 일본어 문장을 단어별로 분해해 breakdown 리스트를 반환한다."""
+    result = _call_gemini_json(f"{BREAKDOWN_PROMPT}\n\nJapanese sentence: {japanese_text}")
+
+    breakdown = result.get("breakdown")
+    if not isinstance(breakdown, list):
+        raise HTTPException(status_code=502, detail="Gemini 분해 응답에 breakdown 배열이 없습니다.")
+
+    return breakdown
 
 # ──────────────────────────────────────────────
 # OJAD 악센트 파싱 로직
@@ -395,11 +404,13 @@ def health_check():
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze(req: AnalyzeRequest):
     """
-    한국어 문장을 받아 일본어 번역 + OJAD 악센트 배열을 반환한다.
+    한국어 문장을 받아 일본어 번역 + 악센트 배열을 빠르게 반환한다 (문장 분해 제외).
+
+    문장 분해(breakdown)는 가장 무거운 출력이라 별도 /breakdown 엔드포인트로 분리.
+    프론트는 이 응답으로 번역+그래프를 먼저 그리고, 분해는 뒤이어 비동기로 채운다.
 
     1. 캐시 조회 — 동일 문장은 즉시 반환
-    2. Gemini API로 한국어 → 일본어 번역 + breakdown 생성 (thinking 비활성화)
-    3. 번역 결과를 OJAD에 보내 악센트 배열 파싱
+    2. Gemini API로 한국어 → 일본어 번역 + 억양 데이터 생성 (thinking 비활성화)
     """
     text = req.text.strip()
     if not text:
@@ -412,10 +423,10 @@ def analyze(req: AnalyzeRequest):
         return AnalyzeResponse(**cached)
     # ───────────────────────────────────────────
 
-    # 1단계: 한국어 → 일본어 번역 + 억양 데이터 (Gemini 단일 호출)
+    # 한국어 → 일본어 번역 + 억양 데이터
     translation = translate_korean_to_japanese(text)
 
-    # Gemini가 직접 제공한 억양 데이터 사용 (OJAD 불필요)
+    # Gemini가 직접 제공한 억양 데이터 사용
     raw_accent = translation.get("accent_data", [])
     try:
         accent_data = [AccentEntry(**e) for e in raw_accent]
@@ -428,7 +439,7 @@ def analyze(req: AnalyzeRequest):
         korean_pronunciation=translation["korean_pronunciation"],
         furigana_html=translation["furigana_html"],
         accent_data=accent_data,
-        breakdown=[BreakdownEntry(**entry) for entry in translation["breakdown"]],
+        breakdown=[],  # 분해는 /breakdown에서 별도 생성
     )
 
     # 결과를 캐시에 저장 (최대 500개, 초과 시 오래된 항목 제거)
@@ -437,6 +448,47 @@ def analyze(req: AnalyzeRequest):
         del _analyze_cache[oldest_key]
     _analyze_cache[text] = result.model_dump()
     print(f"[Analyze 캐시 저장] {text[:40]!r}")
+
+    return result
+
+
+class BreakdownRequest(BaseModel):
+    japanese: str
+
+class BreakdownResponse(BaseModel):
+    breakdown: list[BreakdownEntry]
+
+@app.post("/breakdown", response_model=BreakdownResponse)
+def breakdown(req: BreakdownRequest):
+    """
+    이미 번역된 일본어 문장을 받아 단어별 문장 분해를 반환한다.
+
+    /analyze가 반환한 일본어 문장을 그대로 받으므로 재번역 없이 일관성 유지.
+    무거운 분해 생성을 임계 경로에서 분리해 번역 응답 속도를 높이기 위한 엔드포인트.
+    """
+    text = req.japanese.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
+
+    # ── 캐시 조회 ──────────────────────────────
+    if text in _breakdown_cache:
+        print(f"[Breakdown 캐시 HIT] {text[:40]!r}")
+        return BreakdownResponse(breakdown=_breakdown_cache[text])
+    # ───────────────────────────────────────────
+
+    raw_breakdown = generate_breakdown(text)
+    try:
+        entries = [BreakdownEntry(**e) for e in raw_breakdown]
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"분해 데이터 형식 오류: {e}")
+
+    result = BreakdownResponse(breakdown=entries)
+
+    # 캐시에 저장 (최대 500개)
+    if len(_breakdown_cache) >= 500:
+        del _breakdown_cache[next(iter(_breakdown_cache))]
+    _breakdown_cache[text] = [e.model_dump() for e in entries]
+    print(f"[Breakdown 캐시 저장] {text[:40]!r}")
 
     return result
 
@@ -563,14 +615,19 @@ def signup(req: SignupRequest):
 
 @app.post("/saves")
 def save_result(req: SaveRequest):
-    """변환 결과를 저장한다."""
+    """변환 결과를 저장한다. 로그인 사용자는 user_id, 비로그인은 anonymous_id로 저장."""
+    if not req.user_id and not req.anonymous_id:
+        raise HTTPException(status_code=400, detail="user_id 또는 anonymous_id가 필요합니다.")
+
     db = SessionLocal()
     try:
-        user = db.query(User).filter(User.id == req.user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        if req.user_id:
+            user = db.query(User).filter(User.id == req.user_id).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
         saved = SavedResult(
             user_id=req.user_id,
+            anonymous_id=req.anonymous_id if not req.user_id else None,
             input_text=req.input_text,
             result_json=json.dumps(req.result, ensure_ascii=False),
         )
@@ -628,97 +685,3 @@ def delete_save(save_id: int, user_id: int):
         db.close()
 
 
-# ──────────────────────────────────────────────
-# 솔라API(CoolSMS) SMS 인증
-# ──────────────────────────────────────────────
-
-def _coolsms_auth_header() -> str:
-    """솔라API HMAC-SHA256 인증 헤더 생성."""
-    api_key    = os.environ.get("COOLSMS_API_KEY", "")
-    api_secret = os.environ.get("COOLSMS_API_SECRET", "")
-    date  = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-    salt  = uuid.uuid4().hex
-    sig   = hmac.new(
-        api_secret.encode("utf-8"),
-        (date + salt).encode("utf-8"),
-        hashlib.sha256,
-    ).hexdigest()
-    return f"HMAC-SHA256 ApiKey={api_key}, Date={date}, Salt={salt}, Signature={sig}"
-
-
-@app.post("/auth/send-code")
-def send_code(req: SendCodeRequest):
-    """6자리 인증번호를 생성해 SMS로 발송한다."""
-    phone = req.phone.strip().replace("-", "")
-    if len(phone) < 10:
-        raise HTTPException(status_code=400, detail="올바른 휴대폰 번호를 입력해 주세요.")
-
-    api_key    = os.environ.get("COOLSMS_API_KEY")
-    sender     = os.environ.get("COOLSMS_SENDER")
-    if not api_key or not sender:
-        raise HTTPException(status_code=500, detail="SMS 설정이 되어 있지 않습니다.")
-
-    # 6자리 인증번호 생성
-    code = str(random.randint(100000, 999999))
-
-    # 메모리에 저장 (5분 유효)
-    _sms_codes[phone] = {
-        "code": code,
-        "expires_at": datetime.datetime.utcnow() + datetime.timedelta(minutes=5),
-    }
-
-    # 솔라API 문자 발송
-    try:
-        res = requests.post(
-            "https://api.coolsms.co.kr/messages/v4/send",
-            headers={
-                "Authorization": _coolsms_auth_header(),
-                "Content-Type": "application/json",
-            },
-            json={
-                "message": {
-                    "to": phone,
-                    "from": sender,
-                    "text": f"[틱재팬] 인증번호: {code}",
-                }
-            },
-            timeout=10,
-        )
-        if not res.ok:
-            raise HTTPException(status_code=502, detail=f"SMS 발송 실패: {res.text}")
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=502, detail=f"SMS 서버 연결 오류: {str(e)}")
-
-    return {"message": "인증번호가 발송되었습니다."}
-
-
-@app.post("/auth/verify-code", response_model=SignupResponse)
-def verify_code(req: VerifyCodeRequest):
-    """인증번호 확인 후 가입/로그인 처리."""
-    phone = req.phone.strip().replace("-", "")
-
-    entry = _sms_codes.get(phone)
-    if not entry:
-        raise HTTPException(status_code=400, detail="인증번호를 먼저 발송해 주세요.")
-    if datetime.datetime.utcnow() > entry["expires_at"]:
-        del _sms_codes[phone]
-        raise HTTPException(status_code=400, detail="인증번호가 만료되었습니다. 다시 발송해 주세요.")
-    if entry["code"] != req.code.strip():
-        raise HTTPException(status_code=400, detail="인증번호가 올바르지 않습니다.")
-
-    # 인증 성공 → 코드 삭제
-    del _sms_codes[phone]
-
-    # 기존 사용자면 로그인, 없으면 가입
-    db = SessionLocal()
-    try:
-        existing = db.query(User).filter(User.phone == phone).first()
-        if existing:
-            return SignupResponse(user_id=existing.id, name=existing.name, is_new=False)
-        new_user = User(name=req.name.strip(), phone=phone)
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True)
-    finally:
-        db.close()

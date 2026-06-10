@@ -30,7 +30,8 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
     })
   }, [currentTab, sortBy, items])
 
-  const isComingSoon = currentTab && currentTab.start > 10
+  // 해당 구간의 단어가 모두 데이터(conjugations) 없는 스텁일 때만 "준비 중" 표시
+  const isComingSoon = filteredItems.length > 0 && filteredItems.every(v => !v.conjugations)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

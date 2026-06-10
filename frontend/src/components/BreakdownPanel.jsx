@@ -49,9 +49,8 @@ export function ConjugationPanel({ steps }) {
   )
 }
 
-/* ── 행 단위 뜻 + 원리 패널 */
+/* ── 행 단위 활용 원리 패널 (뜻은 항상 표시되므로 여기선 원리만) */
 export function DetailPanel({ row }) {
-  const hasSteps = row.conjugation_steps && row.conjugation_steps.length > 0
   return (
     <div style={{
       margin: '0 14px 10px',
@@ -60,13 +59,7 @@ export function DetailPanel({ row }) {
       border: `1px solid ${PRIMARY}22`,
       borderRadius: 10,
     }}>
-      {row.korean_meaning && (
-        <p style={{ fontSize: 13, color: '#444', marginBottom: hasSteps ? 10 : 0 }}>
-          <span style={{ fontSize: 11, color: '#aaa', marginRight: 6 }}>뜻</span>
-          {row.korean_meaning}
-        </p>
-      )}
-      {hasSteps && <ConjugationPanel steps={row.conjugation_steps} />}
+      <ConjugationPanel steps={row.conjugation_steps} />
     </div>
   )
 }
@@ -81,17 +74,18 @@ export function BreakdownTable({ breakdown, showDetail }) {
         ))}
       </div>
       {breakdown.map((row, i) => (
-        <div key={i}>
-          <div
-            className="breakdown-row"
-            style={{ backgroundColor: i % 2 === 1 ? '#f9f9f9' : 'transparent', borderTop: '0.5px solid #eeeeee' }}
-          >
+        <div key={i} style={{ backgroundColor: i % 2 === 1 ? '#f9f9f9' : 'transparent', borderTop: '0.5px solid #eeeeee' }}>
+          <div className="breakdown-row">
             <span className="breakdown-unit">{row.unit}</span>
             <span className="breakdown-cell">{row.hiragana}</span>
             <span className="breakdown-cell">{row.korean_pronunciation}</span>
             <span className="breakdown-cell"><span className="pos-badge">{row.part_of_speech}</span></span>
           </div>
-          {showDetail && (row.korean_meaning || (row.conjugation_steps && row.conjugation_steps.length > 0)) && (
+          {/* 단어 뜻 — 발음 아래 항상 표시 */}
+          {row.korean_meaning && (
+            <div className="breakdown-meaning-cell">{row.korean_meaning}</div>
+          )}
+          {showDetail && row.conjugation_steps && row.conjugation_steps.length > 0 && (
             <DetailPanel row={row} />
           )}
         </div>
@@ -115,7 +109,11 @@ export function BreakdownCards({ breakdown, showDetail }) {
             <span className="breakdown-card-dot">·</span>
             <span className="breakdown-card-sub">{row.korean_pronunciation}</span>
           </div>
-          {showDetail && (row.korean_meaning || (row.conjugation_steps && row.conjugation_steps.length > 0)) && (
+          {/* 단어 뜻 — 발음 아래 항상 표시 */}
+          {row.korean_meaning && (
+            <div className="breakdown-card-meaning">{row.korean_meaning}</div>
+          )}
+          {showDetail && row.conjugation_steps && row.conjugation_steps.length > 0 && (
             <DetailPanel row={row} />
           )}
         </div>
@@ -144,7 +142,7 @@ export function DetailToggleButton({ showDetail, onToggle }) {
         whiteSpace: 'nowrap',
       }}
     >
-      {showDetail ? '원리 닫기' : '뜻 · 원리 보기'}
+      {showDetail ? '원리 닫기' : '활용 원리 보기'}
     </button>
   )
 }

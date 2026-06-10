@@ -91,6 +91,88 @@ body {
   color: #5CA9CE;
 }
 
+/* ── 계정 메뉴 (우상단) */
+.header-menu {
+  position: relative;
+}
+
+.account-btn,
+.login-btn {
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+
+.account-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #666666;
+}
+.account-btn:hover { border-color: #5CA9CE; color: #5CA9CE; }
+
+.login-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1.5px solid #5CA9CE55;
+  background-color: #5CA9CE10;
+  color: #5CA9CE;
+}
+.login-btn:hover { background-color: #5CA9CE1f; }
+
+/* 드롭다운 */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+.menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  min-width: 150px;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.menu-user {
+  padding: 8px 12px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111111;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 4px;
+}
+.menu-item {
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+.menu-item:hover { background: #f5f7f9; }
+.menu-item--muted { color: #999999; }
+
 /* ── 타이틀 */
 .app-title {
   font-size: 22px;
@@ -106,26 +188,28 @@ body {
   margin-left: 6px;
 }
 
-/* ── 검색바 */
+/* ── 검색바 (넓은 textarea + 전체 너비 번역 버튼) */
 .search-form {
   display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
 .search-input {
-  flex: 1;
-  min-width: 0;          /* flex 자식이 줄어들 수 있도록 */
-  height: 52px;
-  padding: 0 16px;
-  font-size: 16px;       /* iOS 자동 확대 방지 (16px 이상) */
+  width: 100%;
+  min-height: 96px;
+  padding: 16px 18px;
+  font-size: 17px;       /* iOS 자동 확대 방지 (16px 이상) */
+  line-height: 1.55;
   border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 14px;
   outline: none;
   font-family: inherit;
   color: #111111;
   background: #ffffff;
   transition: border-color 0.15s;
   -webkit-appearance: none;
+  resize: vertical;      /* 세로로만 크기 조절 */
 }
 
 .search-input:focus {
@@ -133,23 +217,119 @@ body {
 }
 
 .search-btn {
+  width: 100%;
   height: 52px;
-  min-width: 72px;
   padding: 0 20px;
   background-color: #5CA9CE;
   color: #ffffff;
   border: none;
   border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  flex-shrink: 0;
   transition: opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ── 번역 준비 중 점 표시 (디바운스 대기) */
+.translating-dots {
+  display: flex;
+  gap: 7px;
+  padding: 10px 4px;
+}
+.translating-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c4c4c4;
+  animation: dot-bounce 1.2s infinite ease-in-out both;
+}
+.translating-dots span:nth-child(1) { animation-delay: -0.32s; }
+.translating-dots span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1);   opacity: 1; }
+}
+
+/* ── 번역기로 돌아가기 (단어 목록 화면 상단) */
+.back-to-translate {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #888888;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.back-to-translate:hover { color: #5CA9CE; }
+
+/* ── 앱 사용 안내 버튼 (프라이머리 강조, 외부 링크) */
+.app-guide-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px 18px;
+  background: #5CA9CE;
+  color: #ffffff;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 14px #5CA9CE4d;
+  transition: background-color 0.15s, transform 0.05s;
+  -webkit-tap-highlight-color: transparent;
+}
+.app-guide-btn:hover { background: #4f9abd; }
+.app-guide-btn:active { transform: scale(0.99); }
+
+/* ── 품사 카테고리 바 (Papago의 음성/대화/이미지 스타일) */
+.cat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cat-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  background: #5CA9CE10;
+  border: 1.5px solid #5CA9CE33;
+  border-radius: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.05s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-bar:hover { background: #5CA9CE1f; border-color: #5CA9CE66; }
+.cat-bar:active { transform: scale(0.99); }
+.cat-bar[data-active="true"] {
+  background: #5CA9CE;
+  border-color: #5CA9CE;
+}
+.cat-bar[data-active="true"] .cat-bar-label,
+.cat-bar[data-active="true"] .cat-bar-chevron { color: #ffffff; }
+
+.cat-bar-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2b7aa0;
+}
+.cat-bar-chevron {
+  color: #5CA9CE;
+  flex-shrink: 0;
 }
 
 /* ── 카드 */
@@ -322,6 +502,14 @@ body {
   color: #555555;
 }
 
+/* 단어 뜻 — 테이블(데스크탑) 행 아래 전체 너비로 항상 표시 */
+.breakdown-meaning-cell {
+  padding: 0 14px 10px;
+  font-size: 13px;
+  color: #5CA9CE;
+  font-weight: 600;
+}
+
 .pos-badge {
   display: inline-block;
   font-size: 11px;
@@ -373,6 +561,14 @@ body {
   color: #888888;
 }
 
+/* 단어 뜻 — 모바일 카드에서 발음 아래 항상 표시 */
+.breakdown-card-meaning {
+  font-size: 14px;
+  color: #5CA9CE;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
 .breakdown-card-dot {
   font-size: 12px;
   color: #cccccc;
@@ -395,6 +591,21 @@ body {
   font-weight: 500;
 }
 
+/* ── 스켈레톤 로딩 (버튼 누름과 동시에 카드 뼈대 표시) */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skel {
+  border-radius: 6px;
+  background: #eeeeee;
+  background-image: linear-gradient(90deg, #eeeeee 0px, #f5f5f5 80px, #eeeeee 160px);
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
 .error-box {
   padding: 14px 16px;
   background: #fff5f5;
@@ -406,23 +617,108 @@ body {
 }
 
 /* ══════════════════════════════════════
+   탭 네비게이션 (가로 스크롤)
+══════════════════════════════════════ */
+.tab-nav {
+  display: flex;
+  flex-wrap: nowrap;          /* 절대 줄바꿈 금지 */
+  gap: 6px;
+  align-items: center;
+  overflow-x: scroll;         /* 항상 스크롤 가능 */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+  /* 스크롤 스냅 — 탭이 절반씩 잘리지 않도록 */
+  scroll-snap-type: x proximity;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+
+/* 탭 버튼 공통 */
+.tab-btn {
+  flex-shrink: 0;             /* 절대 축소 금지 */
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;        /* 텍스트 줄바꿈 절대 금지 */
+  line-height: 36px;          /* 세로 중앙 정렬 보장 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  scroll-snap-align: start;
+}
+
+/* 번역기 탭 (검정) */
+.tab-btn--dark {
+  border: none;
+  background-color: #f0f0f0;
+  color: #666666;
+}
+.tab-btn--dark[data-active="true"] {
+  background-color: #111111;
+  color: #ffffff;
+}
+
+/* 품사 탭 (파랑) */
+.tab-btn--primary {
+  border: 1.5px solid #5CA9CE55;
+  background-color: #5CA9CE12;
+  color: #5CA9CE;
+}
+.tab-btn--primary[data-active="true"] {
+  border: none;
+  background-color: #5CA9CE;
+  color: #ffffff;
+}
+
+/* ══════════════════════════════════════
+   예문 카드 본문 (텍스트 + 버튼)
+══════════════════════════════════════ */
+.example-card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 16px 0;
+}
+
+.example-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
    모바일 반응형 (480px 이하)
 ══════════════════════════════════════ */
 @media (max-width: 480px) {
   .page {
-    padding: 24px 14px 60px;
+    padding: 20px 14px 60px;
   }
 
   .container {
-    gap: 16px;
+    gap: 14px;
   }
 
   .app-title {
-    font-size: 20px;
+    font-size: 18px;
+  }
+
+  /* 헤더: 이름 + 버튼이 많을 때 줄바꿈 허용 */
+  .app-header {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .section {
-    padding: 16px 14px;
+    padding: 14px 12px;
     gap: 12px;
   }
 
@@ -437,6 +733,21 @@ body {
 
   .breakdown-cards {
     display: flex;
+  }
+
+  /* 예문 카드 버튼 열: 모바일에서 텍스트 아래로 이동 */
+  .example-card-body {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .example-card-actions {
+    flex-direction: row;
+    align-self: stretch;
+  }
+
+  .example-card-actions > * {
+    flex: 1;
   }
 }
 
@@ -471,6 +782,7 @@ body {
   background: #e8f7ef;
   color: #2d9e6b;
 }
+
 
 /* ══════════════════════════════════════
    회원가입 모달
@@ -681,4 +993,227 @@ body {
 
 .drawer-item-delete:hover {
   color: #e53e3e;
+}
+
+/* ══════════════════════════════════════
+   조사 학습
+══════════════════════════════════════ */
+
+/* 목록 카드 */
+.particle-list-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.particle-list-card:hover { border-color: #5CA9CE66; background: #f8fdff; }
+
+.particle-list-left {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 90px;
+}
+
+.particle-list-char {
+  font-size: 20px;
+  font-weight: 700;
+  color: #5CA9CE;
+  font-family: 'Noto Sans JP', sans-serif;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.particle-list-reading {
+  font-size: 12px;
+  color: #bbb;
+  white-space: nowrap;
+}
+
+.particle-list-meanings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.particle-meaning-tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #f0f8fc;
+  color: #5CA9CE;
+  border: 1px solid #d0eaf5;
+  white-space: nowrap;
+}
+
+/* 이전/다음 내비게이션 버튼 */
+.particle-nav-btn {
+  flex: 1;
+  height: 44px;
+  background: #ffffff;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.particle-nav-btn:hover:not(:disabled) { border-color: #5CA9CE; color: #5CA9CE; }
+.particle-nav-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* 상세 페이지 재사용 스타일 */
+.particle-card {
+  background: #ffffff;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.particle-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  gap: 12px;
+}
+
+.particle-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.particle-char {
+  font-size: 22px;
+  font-weight: 700;
+  color: #5CA9CE;
+  font-family: 'Noto Sans JP', sans-serif;
+  flex-shrink: 0;
+}
+
+.particle-reading {
+  font-size: 13px;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.particle-basic-meaning {
+  font-size: 14px;
+  color: #444;
+  font-weight: 500;
+}
+
+.particle-chevron {
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.particle-card-body {
+  border-top: 1px solid #f0f0f0;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.particle-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.particle-section-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.particle-section-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.particle-section-badge--basic {
+  background: #eef7fb;
+  color: #5CA9CE;
+}
+
+.particle-section-badge--applied {
+  background: #fff4e6;
+  color: #e07c00;
+}
+
+.particle-applied-meaning {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.particle-example {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.particle-example-kr {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.particle-example-jp {
+  font-size: 16px;
+  font-weight: 500;
+  color: #111;
+  margin: 0;
+  font-family: 'Noto Sans JP', sans-serif;
+  line-height: 1.8;
+}
+
+.particle-note {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.7;
+  margin: 0;
+  padding-left: 2px;
+}
+
+.particle-divider {
+  border: none;
+  border-top: 1px dashed #e8e8e8;
+  margin: 0;
 }

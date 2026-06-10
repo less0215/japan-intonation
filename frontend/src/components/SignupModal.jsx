@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { track } from '../App'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 
@@ -33,6 +34,7 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save' }) {
         throw new Error(body.detail || '요청에 실패했습니다.')
       }
       const data = await res.json()
+      track('signup_complete', { trigger: mode })
       onSuccess({ user_id: data.user_id, name: data.name })
     } catch (err) {
       setError(err.message)
@@ -52,8 +54,8 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save' }) {
           </p>
           <p className="modal-subtitle">
             {mode === 'login'
-              ? '가입 시 사용한 이름과 휴대폰 번호로 로그인하세요'
-              : '처음 저장 시 간단한 정보가 필요해요'}
+              ? '가입 시 입력한 이름과 휴대폰 번호를 그대로 입력하시면 로그인됩니다'
+              : '이름과 휴대폰 번호를 입력하면 저장이 시작됩니다. 다음에 같은 정보로 다시 불러올 수 있어요'}
           </p>
         </div>
 

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
 import CopyButton from './CopyButton'
 import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
+import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
@@ -70,8 +71,9 @@ function SaveButton({ onSave, saved }) {
   )
 }
 
-export default function ResultCard({ data, onSave, saved, inputText }) {
+export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading }) {
   const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = data
+  const hasBreakdown = breakdown && breakdown.length > 0
 
   const [gender, setGender]         = useState('female')
   const [audioState, setAudioState] = useState('idle')
@@ -107,6 +109,7 @@ export default function ResultCard({ data, onSave, saved, inputText }) {
       audio.onerror = () => { setAudioState('idle'); URL.revokeObjectURL(url); audioRef.current = null }
       await audio.play()
       setAudioState('playing')
+      track('tts_play', { gender, text_length: japanese.length })
     } catch { setAudioState('idle') }
   }
 
@@ -147,14 +150,28 @@ export default function ResultCard({ data, onSave, saved, inputText }) {
 
       <hr className="divider" />
 
-      {/* 섹션 2: 문장 분해 */}
+      {/* 섹션 2: 문장 분해 — 별도 호출로 뒤이어 채워짐 */}
       <div className="section">
         <div className="section-header">
           <span className="section-label">문장 분해</span>
-          <DetailToggleButton showDetail={showDetail} onToggle={() => setShowDetail(v => !v)} />
+          {hasBreakdown && (
+            <DetailToggleButton showDetail={showDetail} onToggle={() => {
+              if (!showDetail) track('breakdown_expand', { text_length: japanese.length })
+              setShowDetail(v => !v)
+            }} />
+          )}
         </div>
-        <BreakdownTable breakdown={breakdown} showDetail={showDetail} />
-        <BreakdownCards breakdown={breakdown} showDetail={showDetail} />
+        {hasBreakdown ? (
+          <>
+            <BreakdownTable breakdown={breakdown} showDetail={showDetail} />
+            <BreakdownCards breakdown={breakdown} showDetail={showDetail} />
+          </>
+        ) : breakdownLoading ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 4px', color: '#aaa' }}>
+            <span className="spinner" style={{ width: 14, height: 14 }} />
+            <span style={{ fontSize: 13 }}>문장 분해 분석 중...</span>
+          </div>
+        ) : null}
       </div>
 
       {/* 저장 버튼 */}

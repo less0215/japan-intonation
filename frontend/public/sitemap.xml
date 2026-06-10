@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- 메인 -->
+  <url>
+    <loc>https://www.tickjapan.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 동사 -->
+  <url><loc>https://www.tickjapan.com/verbs</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/suru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/iru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/aru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/iu</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/naru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/kuru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/omou</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/miru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/iku</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/dekiru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/yoru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/tsuku_iru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/kangaeru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/shimau</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/motsu</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/yaru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/wakaru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/oru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/oku_aux</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/deru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/toru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/tsukau</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/kiku</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/hairu</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/verbs/tsukuru</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- い형용사 -->
+  <url><loc>https://www.tickjapan.com/adj-i</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/ooi</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/takai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/ookii</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/tsuyoi</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/warui</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/sukunai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/nagai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/hayai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/atarashii</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/fukai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/wakai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/umai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/sugoi</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/chiisai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/tanoshii</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/muzukashii</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/oishii</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/omoshiroi</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/chikai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-i/hikui</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- な형용사 -->
+  <url><loc>https://www.tickjapan.com/adj-na</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/kanou</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/suki</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/juuyou</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/hijou</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/samazama</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/tokubetsu</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/tashika</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/kantan</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/taisetsu</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/juubun</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/akiraka</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/iya</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/onaji</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/douyou</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/kirei</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/kanzen</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/arata</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/iroiro</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/taihen</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/adj-na/daijoubu</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- 명사 -->
+  <url><loc>https://www.tickjapan.com/noun</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/koto</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/hito</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/jibun</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/hou</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/wake</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/mondai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/kai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/kodomo</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/ki</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/me</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/shi</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/shakai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/jigyou</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/sekai</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/ningen</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/tsugi</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/hou_law</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/kaisha</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/otoko</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/noun/chiiki</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- 조사 -->
+  <url><loc>https://www.tickjapan.com/particles</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/ga</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/wa</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/wo</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/ni</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/he</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/de</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/kara</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/made</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/mo</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.tickjapan.com/particles/no</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+</urlset>

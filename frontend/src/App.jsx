@@ -274,11 +274,11 @@ export default function App() {
         <div className="app-header">
           <h1 className="app-title" onClick={handleHome} style={{ cursor: 'pointer' }}>
             <img
-              src="/favicon.svg"
+              src="/logo.svg"
               alt=""
-              width="22"
-              height="22"
-              style={{ verticalAlign: '-4px', marginRight: '7px' }}
+              width="30"
+              height="30"
+              style={{ verticalAlign: '-8px', marginRight: '6px' }}
             />
             틱재팬{' '}
             <span style={{ fontWeight: 400, color: '#888888', fontSize: '14px' }}>

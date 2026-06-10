@@ -1340,26 +1340,1250 @@ export const ADJ_I = [
   },
 
   /* ── 21~100위: 스텁 ─────────────────────────────── */
-  { id: 'ureshii',     rank: 21,  verb: '嬉しい',      reading: '우레시이',  meaning: '기쁘다',                 conjugations: null, examples: [] },
-  { id: 'hiroi',       rank: 22,  verb: '広い',        reading: '히로이',    meaning: '넓다',                   conjugations: null, examples: [] },
-  { id: 'utsukushii',  rank: 23,  verb: '美しい',      reading: '우츠쿠시이',meaning: '아름답다',               conjugations: null, examples: [] },
-  { id: 'kuwashii',    rank: 24,  verb: '詳しい',      reading: '쿠와시이',  meaning: '자세하다; 정통하다',     conjugations: null, examples: [] },
-  { id: 'shiroi',      rank: 25,  verb: '白い',        reading: '시로이',    meaning: '하얗다',                 conjugations: null, examples: [] },
-  { id: 'kibishii',    rank: 26,  verb: '厳しい',      reading: '키비시이',  meaning: '엄격하다; 혹독하다',     conjugations: null, examples: [] },
-  { id: 'kawaii',      rank: 27,  verb: '可愛い',      reading: '카와이이',  meaning: '귀엽다',                 conjugations: null, examples: [] },
-  { id: 'yasashii',    rank: 28,  verb: '優しい',      reading: '야사시이',  meaning: '친절하다; 상냥하다',     conjugations: null, examples: [] },
-  { id: 'tadashii',    rank: 29,  verb: '正しい',      reading: '타다시이',  meaning: '올바르다',               conjugations: null, examples: [] },
-  { id: 'hidoi',       rank: 30,  verb: '酷い',        reading: '히도이',    meaning: '심하다; 너무하다',       conjugations: null, examples: [] },
-  { id: 'yasui',       rank: 31,  verb: '安い',        reading: '야스이',    meaning: '싸다; 저렴하다',         conjugations: null, examples: [] },
-  { id: 'karui',       rank: 32,  verb: '軽い',        reading: '카루이',    meaning: '가볍다',                 conjugations: null, examples: [] },
-  { id: 'furui',       rank: 33,  verb: '古い',        reading: '후루이',    meaning: '낡다; 오래되다',         conjugations: null, examples: [] },
-  { id: 'kowai',       rank: 34,  verb: '怖い',        reading: '코와이',    meaning: '무섭다',                 conjugations: null, examples: [] },
-  { id: 'hageshii',    rank: 35,  verb: '激しい',      reading: '하게시이',  meaning: '격렬하다; 심하다',       conjugations: null, examples: [] },
-  { id: 'omoi',        rank: 36,  verb: '重い',        reading: '오모이',    meaning: '무겁다',                 conjugations: null, examples: [] },
-  { id: 'akarui',      rank: 37,  verb: '明るい',      reading: '아카루이',  meaning: '밝다',                   conjugations: null, examples: [] },
-  { id: 'tsurai',      rank: 38,  verb: '辛い',        reading: '츠라이',    meaning: '괴롭다; 힘들다',         conjugations: null, examples: [] },
-  { id: 'subarashii',  rank: 39,  verb: '素晴らしい',  reading: '스바라시이',meaning: '훌륭하다; 멋지다',       conjugations: null, examples: [] },
-  { id: 'okashii',     rank: 40,  verb: '可笑しい',    reading: '오카시이',  meaning: '이상하다; 웃기다',       conjugations: null, examples: [] },
+
+  /* ══════════════════════════════════════════════════
+   * 21위  嬉しい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'ureshii', rank: 21, verb: '嬉しい', reading: '우레시이', meaning: '기쁘다',
+    accentType: 3,
+    conjugations: {
+      formal: [
+        { text: '嬉(うれ)しいです',               ruby: '우레시이데스',           meaning: '기쁩니다' },
+        { text: '嬉(うれ)しくないです',           ruby: '우레시쿠나이데스',       meaning: '기쁘지 않습니다' },
+        { text: '嬉(うれ)しいですか？',           ruby: '우레시이데스까?',        meaning: '기쁩니까?' },
+        { text: '嬉(うれ)しくないですか？',       ruby: '우레시쿠나이데스까?',    meaning: '기쁘지 않습니까?' },
+        { text: '嬉(うれ)しかったです',           ruby: '우레시캇타데스',         meaning: '기뻤습니다' },
+        { text: '嬉(うれ)しくなかったです',       ruby: '우레시쿠나캇타데스',     meaning: '기쁘지 않았습니다' },
+        { text: '嬉(うれ)しかったですか？',       ruby: '우레시캇타데스까?',      meaning: '기뻤습니까?' },
+        { text: '嬉(うれ)しくなかったですか？',   ruby: '우레시쿠나캇타데스까?',  meaning: '기쁘지 않았습니까?' },
+      ],
+      plain: [
+        { text: '嬉(うれ)しい',           ruby: '우레시이',        meaning: '기뻐' },
+        { text: '嬉(うれ)しくない',       ruby: '우레시쿠나이',    meaning: '기쁘지 않아' },
+        { text: '嬉(うれ)しい？',         ruby: '우레시이?',       meaning: '기뻐?' },
+        { text: '嬉(うれ)しくない？',     ruby: '우레시쿠나이?',   meaning: '기쁘지 않아?' },
+        { text: '嬉(うれ)しかった',       ruby: '우레시캇타',      meaning: '기뻤어' },
+        { text: '嬉(うれ)しくなかった',   ruby: '우레시쿠나캇타',  meaning: '기쁘지 않았어' },
+        { text: '嬉(うれ)しかった？',     ruby: '우레시캇타?',     meaning: '기뻤어?' },
+        { text: '嬉(うれ)しくなかった？', ruby: '우레시쿠나캇타?', meaning: '기쁘지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '합격 통지를 받아서 기뻤어.',
+        japanese: '合格(ごうかく)通知(つうち)をもらって嬉(うれ)しかった。',
+        plain:    '合格通知をもらって嬉しかった。',
+        reading:  '고ー카쿠 츠ー치오 모랏테 우레시캇타.',
+        pattern:  { name: '〜をもらって嬉しかった', meaning: '~을 받아서 기뻤다', note: 'もらって는 계기를 나타냄. 嬉しかった는 嬉しい의 과거형' },
+        furigana: 'ごうかくつうちをもらってうれしかった',
+        accentData: [
+          { phrase_id: 0, mora_count: 18, accent: [0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '기쁜 소식이 도착했습니다.',
+        japanese: '嬉(うれ)しいニュースが届(とど)きました。',
+        plain:    '嬉しいニュースが届いた。',
+        reading:  '우레시이 뉴ー스가 토도키마시타.',
+        pattern:  { name: '嬉しいニュースが届く', meaning: '기쁜 소식이 도착하다', note: '嬉しい+名詞로 명사를 수식. 届く는 도착하다는 뜻' },
+        furigana: 'うれしいにゅーすがとどきました',
+        accentData: [
+          { phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0] },
+        ],
+      },
+      {
+        korean:   '만날 수 있어서 기뻐요.',
+        japanese: '会(あ)えて嬉(うれ)しいです。',
+        plain:    '会えて嬉しい。',
+        reading:  '아에테 우레시이데스.',
+        pattern:  { name: '会えて嬉しいです', meaning: '만날 수 있어서 기쁩니다', note: '会えて는 会える(만날 수 있다)의 て형. 계기를 나타냄' },
+        furigana: 'あえてうれしいです',
+        accentData: [
+          { phrase_id: 0, mora_count: 9, accent: [1, 0, 0, 0, 1, 1, 0, 0, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 22위  広い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'hiroi', rank: 22, verb: '広い', reading: '히로이', meaning: '넓다',
+    accentType: 2,
+    conjugations: {
+      formal: [
+        { text: '広(ひろ)いです',               ruby: '히로이데스',           meaning: '넓습니다' },
+        { text: '広(ひろ)くないです',           ruby: '히로쿠나이데스',       meaning: '넓지 않습니다' },
+        { text: '広(ひろ)いですか？',           ruby: '히로이데스까?',        meaning: '넓습니까?' },
+        { text: '広(ひろ)くないですか？',       ruby: '히로쿠나이데스까?',    meaning: '넓지 않습니까?' },
+        { text: '広(ひろ)かったです',           ruby: '히로캇타데스',         meaning: '넓었습니다' },
+        { text: '広(ひろ)くなかったです',       ruby: '히로쿠나캇타데스',     meaning: '넓지 않았습니다' },
+        { text: '広(ひろ)かったですか？',       ruby: '히로캇타데스까?',      meaning: '넓었습니까?' },
+        { text: '広(ひろ)くなかったですか？',   ruby: '히로쿠나캇타데스까?',  meaning: '넓지 않았습니까?' },
+      ],
+      plain: [
+        { text: '広(ひろ)い',           ruby: '히로이',        meaning: '넓어' },
+        { text: '広(ひろ)くない',       ruby: '히로쿠나이',    meaning: '넓지 않아' },
+        { text: '広(ひろ)い？',         ruby: '히로이?',       meaning: '넓어?' },
+        { text: '広(ひろ)くない？',     ruby: '히로쿠나이?',   meaning: '넓지 않아?' },
+        { text: '広(ひろ)かった',       ruby: '히로캇타',      meaning: '넓었어' },
+        { text: '広(ひろ)くなかった',   ruby: '히로쿠나캇타',  meaning: '넓지 않았어' },
+        { text: '広(ひろ)かった？',     ruby: '히로캇타?',     meaning: '넓었어?' },
+        { text: '広(ひろ)くなかった？', ruby: '히로쿠나캇타?', meaning: '넓지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이 공원은 정말 넓네요.',
+        japanese: 'この公園(こうえん)はとても広(ひろ)いですね。',
+        plain:    'この公園はとても広い。',
+        reading:  '코노 코ー엔와 토테모 히로이데스네.',
+        pattern:  { name: 'とても広いですね', meaning: '정말 넓네요', note: 'ですね는 공감·감탄을 나타냄. 공간의 넓이를 감탄할 때 사용' },
+        furigana: 'このこうえんはとてもひろいですね',
+        accentData: [
+          { phrase_id: 0, mora_count: 16, accent: [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '넓은 방으로 이사하고 싶어.',
+        japanese: '広(ひろ)い部屋(へや)に引(ひ)っ越(こ)したい。',
+        plain:    '広い部屋に引っ越したい。',
+        reading:  '히로이 헤야니 힛코시타이.',
+        pattern:  { name: '広い部屋に引っ越したい', meaning: '넓은 방으로 이사하고 싶다', note: 'に引っ越す는 ~로 이사하다. たい는 희망 표현' },
+        furigana: 'ひろいへやにひっこしたい',
+        accentData: [
+          { phrase_id: 0, mora_count: 12, accent: [0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '시야가 넓은 사람은 유연하게 생각할 수 있어.',
+        japanese: '視野(しや)が広(ひろ)い人(ひと)は柔軟(じゅうなん)に考(かんが)えられる。',
+        plain:    '視野が広い人は柔軟に考えられる。',
+        reading:  '시야가 히로이 히토와 쥬ー난니 칸가에라레루.',
+        pattern:  { name: '視野が広い人は〜に考えられる', meaning: '시야가 넓은 사람은 ~하게 생각할 수 있다', note: '視野(しや)는 시야·관점. 가능 표현 〜られる로 능력을 나타냄' },
+        furigana: 'しやがひろいひとはじゅうなんにかんがえられる',
+        accentData: [
+          { phrase_id: 0, mora_count: 22, accent: [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 23위  美しい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'utsukushii', rank: 23, verb: '美しい', reading: '우츠쿠시이', meaning: '아름답다',
+    accentType: 4,
+    conjugations: {
+      formal: [
+        { text: '美(うつく)しいです',               ruby: '우츠쿠시이데스',           meaning: '아름답습니다' },
+        { text: '美(うつく)しくないです',           ruby: '우츠쿠시쿠나이데스',       meaning: '아름답지 않습니다' },
+        { text: '美(うつく)しいですか？',           ruby: '우츠쿠시이데스까?',        meaning: '아름답습니까?' },
+        { text: '美(うつく)しくないですか？',       ruby: '우츠쿠시쿠나이데스까?',    meaning: '아름답지 않습니까?' },
+        { text: '美(うつく)しかったです',           ruby: '우츠쿠시캇타데스',         meaning: '아름다웠습니다' },
+        { text: '美(うつく)しくなかったです',       ruby: '우츠쿠시쿠나캇타데스',     meaning: '아름답지 않았습니다' },
+        { text: '美(うつく)しかったですか？',       ruby: '우츠쿠시캇타데스까?',      meaning: '아름다웠습니까?' },
+        { text: '美(うつく)しくなかったですか？',   ruby: '우츠쿠시쿠나캇타데스까?',  meaning: '아름답지 않았습니까?' },
+      ],
+      plain: [
+        { text: '美(うつく)しい',           ruby: '우츠쿠시이',        meaning: '아름다워' },
+        { text: '美(うつく)しくない',       ruby: '우츠쿠시쿠나이',    meaning: '아름답지 않아' },
+        { text: '美(うつく)しい？',         ruby: '우츠쿠시이?',       meaning: '아름다워?' },
+        { text: '美(うつく)しくない？',     ruby: '우츠쿠시쿠나이?',   meaning: '아름답지 않아?' },
+        { text: '美(うつく)しかった',       ruby: '우츠쿠시캇타',      meaning: '아름다웠어' },
+        { text: '美(うつく)しくなかった',   ruby: '우츠쿠시쿠나캇타',  meaning: '아름답지 않았어' },
+        { text: '美(うつく)しかった？',     ruby: '우츠쿠시캇타?',     meaning: '아름다웠어?' },
+        { text: '美(うつく)しくなかった？', ruby: '우츠쿠시쿠나캇타?', meaning: '아름답지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '노을이 정말 아름다웠어.',
+        japanese: '夕焼(ゆうや)けがとても美(うつく)しかった。',
+        plain:    '夕焼けがとても美しかった。',
+        reading:  '유ー야케가 토테모 우츠쿠시캇타.',
+        pattern:  { name: 'とても美しかった', meaning: '정말 아름다웠다', note: '美しかった는 美しい의 과거형. 夕焼け(夕焼け)는 노을' },
+        furigana: 'ゆうやけがとてもうつくしかった',
+        accentData: [
+          { phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '아름다운 음악을 듣고 감동했어.',
+        japanese: '美(うつく)しい音楽(おんがく)を聴(き)いて感動(かんどう)した。',
+        plain:    '美しい音楽を聴いて感動した。',
+        reading:  '우츠쿠시이 온가쿠오 키이테 칸도ー시타.',
+        pattern:  { name: '美しい音楽を聴いて感動する', meaning: '아름다운 음악을 듣고 감동하다', note: 'て형으로 계기를 나타냄. 感動する는 깊이 감동받다는 뜻' },
+        furigana: 'うつくしいおんがくをきいてかんどうした',
+        accentData: [
+          { phrase_id: 0, mora_count: 19, accent: [0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1] },
+        ],
+      },
+      {
+        korean:   '저 산은 눈을 뒤집어쓰면 아름다워.',
+        japanese: 'あの山(やま)は雪(ゆき)をかぶると美(うつく)しい。',
+        plain:    'あの山は雪をかぶると美しい。',
+        reading:  '아노 야마와 유키오 카부루토 우츠쿠시이.',
+        pattern:  { name: '〜をかぶると美しい', meaning: '~을 뒤집어쓰면 아름답다', note: '雪をかぶる는 눈이 쌓이다. と는 자연스러운 결과를 이끄는 조건 표현' },
+        furigana: 'あのやまはゆきをかぶるとうつくしい',
+        accentData: [
+          { phrase_id: 0, mora_count: 17, accent: [0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 24위  詳しい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'kuwashii', rank: 24, verb: '詳しい', reading: '쿠와시이', meaning: '자세하다; 정통하다',
+    accentType: 3,
+    conjugations: {
+      formal: [
+        { text: '詳(くわ)しいです',               ruby: '쿠와시이데스',           meaning: '자세합니다' },
+        { text: '詳(くわ)しくないです',           ruby: '쿠와시쿠나이데스',       meaning: '자세하지 않습니다' },
+        { text: '詳(くわ)しいですか？',           ruby: '쿠와시이데스까?',        meaning: '자세합니까?' },
+        { text: '詳(くわ)しくないですか？',       ruby: '쿠와시쿠나이데스까?',    meaning: '자세하지 않습니까?' },
+        { text: '詳(くわ)しかったです',           ruby: '쿠와시캇타데스',         meaning: '자세했습니다' },
+        { text: '詳(くわ)しくなかったです',       ruby: '쿠와시쿠나캇타데스',     meaning: '자세하지 않았습니다' },
+        { text: '詳(くわ)しかったですか？',       ruby: '쿠와시캇타데스까?',      meaning: '자세했습니까?' },
+        { text: '詳(くわ)しくなかったですか？',   ruby: '쿠와시쿠나캇타데스까?',  meaning: '자세하지 않았습니까?' },
+      ],
+      plain: [
+        { text: '詳(くわ)しい',           ruby: '쿠와시이',        meaning: '자세해' },
+        { text: '詳(くわ)しくない',       ruby: '쿠와시쿠나이',    meaning: '자세하지 않아' },
+        { text: '詳(くわ)しい？',         ruby: '쿠와시이?',       meaning: '자세해?' },
+        { text: '詳(くわ)しくない？',     ruby: '쿠와시쿠나이?',   meaning: '자세하지 않아?' },
+        { text: '詳(くわ)しかった',       ruby: '쿠와시캇타',      meaning: '자세했어' },
+        { text: '詳(くわ)しくなかった',   ruby: '쿠와시쿠나캇타',  meaning: '자세하지 않았어' },
+        { text: '詳(くわ)しかった？',     ruby: '쿠와시캇타?',     meaning: '자세했어?' },
+        { text: '詳(くわ)しくなかった？', ruby: '쿠와시쿠나캇타?', meaning: '자세하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이 건에 대해 자세히 알려주세요.',
+        japanese: 'この件(けん)について詳(くわ)しく教(おし)えてください。',
+        plain:    'この件について詳しく教えてください。',
+        reading:  '코노 켄니츠이테 쿠와시쿠 오시에테쿠다사이.',
+        pattern:  { name: '〜について詳しく教えてください', meaning: '~에 대해 자세히 알려주세요', note: 'について는 ~에 대해서. 詳しく는 詳しい의 부사형' },
+        furigana: 'このけんについてくわしくおしえてください',
+        accentData: [
+          { phrase_id: 0, mora_count: 20, accent: [0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '그는 일본사에 정통해.',
+        japanese: '彼(かれ)は日本史(にほんし)に詳(くわ)しい。',
+        plain:    '彼は日本史に詳しい。',
+        reading:  '카레와 니혼시니 쿠와시이.',
+        pattern:  { name: '〜に詳しい', meaning: '~에 정통하다', note: 'に詳しい는 특정 분야의 지식이 풍부하다는 표현. に는 대상을 나타냄' },
+        furigana: 'かれはにほんしにくわしい',
+        accentData: [
+          { phrase_id: 0, mora_count: 12, accent: [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '자세한 설명이 써 있는 자료를 찾았어.',
+        japanese: '詳(くわ)しい説明(せつめい)が書(か)いてある資料(しりょう)を見(み)つけた。',
+        plain:    '詳しい説明が書いてある資料を見つけた。',
+        reading:  '쿠와시이 세츠메이가 카이테아루 시료ー오 미츠케타.',
+        pattern:  { name: '詳しい説明が書いてある資料', meaning: '자세한 설명이 적힌 자료', note: 'てある는 누군가가 해둔 상태를 나타냄. 문서·자료에 대한 표현' },
+        furigana: 'くわしいせつめいがかいてあるしりょうをみつけた',
+        accentData: [
+          { phrase_id: 0, mora_count: 23, accent: [0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 25위  白い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'shiroi', rank: 25, verb: '白い', reading: '시로이', meaning: '하얗다',
+    accentType: 2,
+    conjugations: {
+      formal: [
+        { text: '白(しろ)いです',               ruby: '시로이데스',           meaning: '하얗습니다' },
+        { text: '白(しろ)くないです',           ruby: '시로쿠나이데스',       meaning: '하얗지 않습니다' },
+        { text: '白(しろ)いですか？',           ruby: '시로이데스까?',        meaning: '하얗습니까?' },
+        { text: '白(しろ)くないですか？',       ruby: '시로쿠나이데스까?',    meaning: '하얗지 않습니까?' },
+        { text: '白(しろ)かったです',           ruby: '시로캇타데스',         meaning: '하얬습니다' },
+        { text: '白(しろ)くなかったです',       ruby: '시로쿠나캇타데스',     meaning: '하얗지 않았습니다' },
+        { text: '白(しろ)かったですか？',       ruby: '시로캇타데스까?',      meaning: '하얬습니까?' },
+        { text: '白(しろ)くなかったですか？',   ruby: '시로쿠나캇타데스까?',  meaning: '하얗지 않았습니까?' },
+      ],
+      plain: [
+        { text: '白(しろ)い',           ruby: '시로이',        meaning: '하얘' },
+        { text: '白(しろ)くない',       ruby: '시로쿠나이',    meaning: '하얗지 않아' },
+        { text: '白(しろ)い？',         ruby: '시로이?',       meaning: '하얘?' },
+        { text: '白(しろ)くない？',     ruby: '시로쿠나이?',   meaning: '하얗지 않아?' },
+        { text: '白(しろ)かった',       ruby: '시로캇타',      meaning: '하얬어' },
+        { text: '白(しろ)くなかった',   ruby: '시로쿠나캇타',  meaning: '하얗지 않았어' },
+        { text: '白(しろ)かった？',     ruby: '시로캇타?',     meaning: '하얬어?' },
+        { text: '白(しろ)くなかった？', ruby: '시로쿠나캇타?', meaning: '하얗지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '하얀 눈이 쌓여서 예쁘네.',
+        japanese: '白(しろ)い雪(ゆき)が積(つ)もって綺麗(きれい)だ。',
+        plain:    '白い雪が積もって綺麗だ。',
+        reading:  '시로이 유키가 츠못테 키레이다.',
+        pattern:  { name: '白い雪が積もって綺麗だ', meaning: '하얀 눈이 쌓여서 예쁘네', note: 'て형으로 계기를 나타냄. 積もる는 쌓이다는 뜻' },
+        furigana: 'しろいゆきがつもってきれいだ',
+        accentData: [
+          { phrase_id: 0, mora_count: 14, accent: [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '흰 셔츠를 자주 입고 있어.',
+        japanese: '白(しろ)いシャツをよく着(き)ています。',
+        plain:    '白いシャツをよく着ている。',
+        reading:  '시로이 샤츠오 요쿠 키테이마스.',
+        pattern:  { name: '白いシャツをよく着ている', meaning: '흰 셔츠를 자주 입고 있다', note: 'ている는 반복적 습관을 나타냄. よく는 자주·잘이라는 빈도 부사' },
+        furigana: 'しろいしゃつをよくきています',
+        accentData: [
+          { phrase_id: 0, mora_count: 14, accent: [0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '흰 밥이 제일 좋아.',
+        japanese: '白(しろ)いご飯(はん)が一番(いちばん)好(す)きです。',
+        plain:    '白いご飯が一番好きだ。',
+        reading:  '시로이 고한가 이치반 스키데스.',
+        pattern:  { name: '〜が一番好きです', meaning: '~이/가 제일 좋아요', note: '一番+好き는 가장 좋아함을 나타내는 자연스러운 표현' },
+        furigana: 'しろいごはんがいちばんすきです',
+        accentData: [
+          { phrase_id: 0, mora_count: 15, accent: [0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 26위  厳しい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'kibishii', rank: 26, verb: '厳しい', reading: '키비시이', meaning: '엄격하다; 혹독하다',
+    accentType: 3,
+    conjugations: {
+      formal: [
+        { text: '厳(きび)しいです',               ruby: '키비시이데스',           meaning: '엄격합니다' },
+        { text: '厳(きび)しくないです',           ruby: '키비시쿠나이데스',       meaning: '엄격하지 않습니다' },
+        { text: '厳(きび)しいですか？',           ruby: '키비시이데스까?',        meaning: '엄격합니까?' },
+        { text: '厳(きび)しくないですか？',       ruby: '키비시쿠나이데스까?',    meaning: '엄격하지 않습니까?' },
+        { text: '厳(きび)しかったです',           ruby: '키비시캇타데스',         meaning: '엄격했습니다' },
+        { text: '厳(きび)しくなかったです',       ruby: '키비시쿠나캇타데스',     meaning: '엄격하지 않았습니다' },
+        { text: '厳(きび)しかったですか？',       ruby: '키비시캇타데스까?',      meaning: '엄격했습니까?' },
+        { text: '厳(きび)しくなかったですか？',   ruby: '키비시쿠나캇타데스까?',  meaning: '엄격하지 않았습니까?' },
+      ],
+      plain: [
+        { text: '厳(きび)しい',           ruby: '키비시이',        meaning: '엄격해' },
+        { text: '厳(きび)しくない',       ruby: '키비시쿠나이',    meaning: '엄격하지 않아' },
+        { text: '厳(きび)しい？',         ruby: '키비시이?',       meaning: '엄격해?' },
+        { text: '厳(きび)しくない？',     ruby: '키비시쿠나이?',   meaning: '엄격하지 않아?' },
+        { text: '厳(きび)しかった',       ruby: '키비시캇타',      meaning: '엄격했어' },
+        { text: '厳(きび)しくなかった',   ruby: '키비시쿠나캇타',  meaning: '엄격하지 않았어' },
+        { text: '厳(きび)しかった？',     ruby: '키비시캇타?',     meaning: '엄격했어?' },
+        { text: '厳(きび)しくなかった？', ruby: '키비시쿠나캇타?', meaning: '엄격하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '선생님은 정말 엄격하지만 존경해.',
+        japanese: '先生(せんせい)はとても厳(きび)しいけど尊敬(そんけい)している。',
+        plain:    '先生はとても厳しいけど尊敬している。',
+        reading:  '센세이와 토테모 키비시이케도 손케이시테이루.',
+        pattern:  { name: '〜けど尊敬している', meaning: '~하지만 존경하다', note: 'けど는 역접 접속사(구어체). 엄격함 뒤에 존경심을 나타내는 표현' },
+        furigana: 'せんせいはとてもきびしいけどそんけいしている',
+        accentData: [
+          { phrase_id: 0, mora_count: 22, accent: [0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1] },
+        ],
+      },
+      {
+        korean:   '혹독한 훈련을 이겨냈어.',
+        japanese: '厳(きび)しい訓練(くんれん)を乗(の)り越(こ)えた。',
+        plain:    '厳しい訓練を乗り越えた。',
+        reading:  '키비시이 쿤렌오 노리코에타.',
+        pattern:  { name: '厳しい訓練を乗り越える', meaning: '혹독한 훈련을 이겨내다', note: '乗り越える는 극복하다는 관용 표현. 어려움을 극복하는 상황에 사용' },
+        furigana: 'きびしいくんれんをのりこえた',
+        accentData: [
+          { phrase_id: 0, mora_count: 14, accent: [0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0] },
+        ],
+      },
+      {
+        korean:   '올해 겨울은 특히 혹독했어.',
+        japanese: '今年(ことし)の冬(ふゆ)は特(とく)に厳(きび)しかった。',
+        plain:    '今年の冬は特に厳しかった。',
+        reading:  '코토시노 후유와 토쿠니 키비시캇타.',
+        pattern:  { name: '特に厳しかった', meaning: '특히 혹독했다', note: '特に는 특히·특별히라는 강조 부사. 날씨·상황이 평소보다 더 심했을 때 사용' },
+        furigana: 'ことしのふゆはとくにきびしかった',
+        accentData: [
+          { phrase_id: 0, mora_count: 16, accent: [0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 27위  可愛い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'kawaii', rank: 27, verb: '可愛い', reading: '카와이이', meaning: '귀엽다',
+    accentType: 3,
+    conjugations: {
+      formal: [
+        { text: '可愛(かわい)いです',               ruby: '카와이이데스',           meaning: '귀엽습니다' },
+        { text: '可愛(かわい)くないです',           ruby: '카와이쿠나이데스',       meaning: '귀엽지 않습니다' },
+        { text: '可愛(かわい)いですか？',           ruby: '카와이이데스까?',        meaning: '귀엽습니까?' },
+        { text: '可愛(かわい)くないですか？',       ruby: '카와이쿠나이데스까?',    meaning: '귀엽지 않습니까?' },
+        { text: '可愛(かわい)かったです',           ruby: '카와이캇타데스',         meaning: '귀여웠습니다' },
+        { text: '可愛(かわい)くなかったです',       ruby: '카와이쿠나캇타데스',     meaning: '귀엽지 않았습니다' },
+        { text: '可愛(かわい)かったですか？',       ruby: '카와이캇타데스까?',      meaning: '귀여웠습니까?' },
+        { text: '可愛(かわい)くなかったですか？',   ruby: '카와이쿠나캇타데스까?',  meaning: '귀엽지 않았습니까?' },
+      ],
+      plain: [
+        { text: '可愛(かわい)い',           ruby: '카와이이',        meaning: '귀여워' },
+        { text: '可愛(かわい)くない',       ruby: '카와이쿠나이',    meaning: '귀엽지 않아' },
+        { text: '可愛(かわい)い？',         ruby: '카와이이?',       meaning: '귀여워?' },
+        { text: '可愛(かわい)くない？',     ruby: '카와이쿠나이?',   meaning: '귀엽지 않아?' },
+        { text: '可愛(かわい)かった',       ruby: '카와이캇타',      meaning: '귀여웠어' },
+        { text: '可愛(かわい)くなかった',   ruby: '카와이쿠나캇타',  meaning: '귀엽지 않았어' },
+        { text: '可愛(かわい)かった？',     ruby: '카와이캇타?',     meaning: '귀여웠어?' },
+        { text: '可愛(かわい)くなかった？', ruby: '카와이쿠나캇타?', meaning: '귀엽지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이 아기 고양이는 정말 귀여워.',
+        japanese: 'この子猫(こねこ)はとても可愛(かわい)い。',
+        plain:    'この子猫はとても可愛い。',
+        reading:  '코노 코네코와 토테모 카와이이.',
+        pattern:  { name: 'とても可愛い', meaning: '정말 귀여워', note: 'とても는 강조 부사. 동물이나 아이에 대한 귀여움을 표현할 때 자주 사용' },
+        furigana: 'このこねこはとてもかわいい',
+        accentData: [
+          { phrase_id: 0, mora_count: 13, accent: [0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '귀여운 옷을 발견해서 사버렸어.',
+        japanese: '可愛(かわい)い服(ふく)を見(み)つけて買(か)ってしまった。',
+        plain:    '可愛い服を見つけて買ってしまった。',
+        reading:  '카와이이 후쿠오 미츠케테 캇테 시맛타.',
+        pattern:  { name: '〜てしまった', meaning: '~해버렸다', note: 'てしまう는 의도치 않은 결과를 나타냄. 충동 구매 상황을 표현' },
+        furigana: 'かわいいふくをみつけてかってしまった',
+        accentData: [
+          { phrase_id: 0, mora_count: 18, accent: [0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1] },
+        ],
+      },
+      {
+        korean:   '그녀의 웃는 얼굴이 정말 귀여워.',
+        japanese: '彼女(かのじょ)の笑顔(えがお)がとても可愛(かわい)い。',
+        plain:    '彼女の笑顔がとても可愛い。',
+        reading:  '카노죠노 에가오가 토테모 카와이이.',
+        pattern:  { name: '〜の笑顔がとても可愛い', meaning: '~의 웃는 얼굴이 정말 귀여워', note: '笑顔(えがお)는 웃는 얼굴. の는 소유·속성을 나타내는 조사' },
+        furigana: 'かのじょのえがおがとてもかわいい',
+        accentData: [
+          { phrase_id: 0, mora_count: 16, accent: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 28위  優しい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'yasashii', rank: 28, verb: '優しい', reading: '야사시이', meaning: '친절하다; 상냥하다',
+    accentType: 3,
+    conjugations: {
+      formal: [
+        { text: '優(やさ)しいです',               ruby: '야사시이데스',           meaning: '상냥합니다' },
+        { text: '優(やさ)しくないです',           ruby: '야사시쿠나이데스',       meaning: '상냥하지 않습니다' },
+        { text: '優(やさ)しいですか？',           ruby: '야사시이데스까?',        meaning: '상냥합니까?' },
+        { text: '優(やさ)しくないですか？',       ruby: '야사시쿠나이데스까?',    meaning: '상냥하지 않습니까?' },
+        { text: '優(やさ)しかったです',           ruby: '야사시캇타데스',         meaning: '상냥했습니다' },
+        { text: '優(やさ)しくなかったです',       ruby: '야사시쿠나캇타데스',     meaning: '상냥하지 않았습니다' },
+        { text: '優(やさ)しかったですか？',       ruby: '야사시캇타데스까?',      meaning: '상냥했습니까?' },
+        { text: '優(やさ)しくなかったですか？',   ruby: '야사시쿠나캇타데스까?',  meaning: '상냥하지 않았습니까?' },
+      ],
+      plain: [
+        { text: '優(やさ)しい',           ruby: '야사시이',        meaning: '친절해' },
+        { text: '優(やさ)しくない',       ruby: '야사시쿠나이',    meaning: '친절하지 않아' },
+        { text: '優(やさ)しい？',         ruby: '야사시이?',       meaning: '친절해?' },
+        { text: '優(やさ)しくない？',     ruby: '야사시쿠나이?',   meaning: '친절하지 않아?' },
+        { text: '優(やさ)しかった',       ruby: '야사시캇타',      meaning: '친절했어' },
+        { text: '優(やさ)しくなかった',   ruby: '야사시쿠나캇타',  meaning: '친절하지 않았어' },
+        { text: '優(やさ)しかった？',     ruby: '야사시캇타?',     meaning: '친절했어?' },
+        { text: '優(やさ)しくなかった？', ruby: '야사시쿠나캇타?', meaning: '친절하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '그는 항상 친절하고 믿음직해.',
+        japanese: '彼(かれ)はいつも優(やさ)しくて頼(たよ)りになる。',
+        plain:    '彼はいつも優しくて頼りになる。',
+        reading:  '카레와 이츠모 야사시쿠테 타요리니 나루.',
+        pattern:  { name: '優しくて頼りになる', meaning: '친절하고 믿음직하다', note: 'くて는 형용사의 병렬 접속형. 頼りになる는 의지할 수 있다는 관용 표현' },
+        furigana: 'かれはいつもやさしくてたよりになる',
+        accentData: [
+          { phrase_id: 0, mora_count: 17, accent: [1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0] },
+        ],
+      },
+      {
+        korean:   '친절한 한마디로 마음이 편해져.',
+        japanese: '優(やさ)しい言葉(ことば)一(ひと)つで気持(きも)ちが楽(らく)になる。',
+        plain:    '優しい言葉一つで気持ちが楽になる。',
+        reading:  '야사시이 코토바 히토츠데 키모치가 라쿠니 나루.',
+        pattern:  { name: '言葉一つで気持ちが楽になる', meaning: '말 한마디로 마음이 편해지다', note: '一つで는 단 하나로. になる는 상태 변화를 나타냄' },
+        furigana: 'やさしいことばひとつできもちがらくになる',
+        accentData: [
+          { phrase_id: 0, mora_count: 20, accent: [0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '그녀는 누구에게나 친절합니다.',
+        japanese: '彼女(かのじょ)は誰(だれ)にでも優(やさ)しいです。',
+        plain:    '彼女は誰にでも優しい。',
+        reading:  '카노죠와 다레니데모 야사시이데스.',
+        pattern:  { name: '誰にでも優しい', meaning: '누구에게나 친절하다', note: '誰にでも는 누구에게나. 보편적 친절함을 강조하는 표현' },
+        furigana: 'かのじょはだれにでもやさしいです',
+        accentData: [
+          { phrase_id: 0, mora_count: 16, accent: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 29위  正しい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'tadashii', rank: 29, verb: '正しい', reading: '타다시이', meaning: '올바르다',
+    accentType: 3,
+    conjugations: {
+      formal: [
+        { text: '正(ただ)しいです',               ruby: '타다시이데스',           meaning: '올바릅니다' },
+        { text: '正(ただ)しくないです',           ruby: '타다시쿠나이데스',       meaning: '올바르지 않습니다' },
+        { text: '正(ただ)しいですか？',           ruby: '타다시이데스까?',        meaning: '올바릅니까?' },
+        { text: '正(ただ)しくないですか？',       ruby: '타다시쿠나이데스까?',    meaning: '올바르지 않습니까?' },
+        { text: '正(ただ)しかったです',           ruby: '타다시캇타데스',         meaning: '올바랐습니다' },
+        { text: '正(ただ)しくなかったです',       ruby: '타다시쿠나캇타데스',     meaning: '올바르지 않았습니다' },
+        { text: '正(ただ)しかったですか？',       ruby: '타다시캇타데스까?',      meaning: '올바랐습니까?' },
+        { text: '正(ただ)しくなかったですか？',   ruby: '타다시쿠나캇타데스까?',  meaning: '올바르지 않았습니까?' },
+      ],
+      plain: [
+        { text: '正(ただ)しい',           ruby: '타다시이',        meaning: '올바르잖아' },
+        { text: '正(ただ)しくない',       ruby: '타다시쿠나이',    meaning: '올바르지 않아' },
+        { text: '正(ただ)しい？',         ruby: '타다시이?',       meaning: '올바르잖아?' },
+        { text: '正(ただ)しくない？',     ruby: '타다시쿠나이?',   meaning: '올바르지 않아?' },
+        { text: '正(ただ)しかった',       ruby: '타다시캇타',      meaning: '올바랐어' },
+        { text: '正(ただ)しくなかった',   ruby: '타다시쿠나캇타',  meaning: '올바르지 않았어' },
+        { text: '正(ただ)しかった？',     ruby: '타다시캇타?',     meaning: '올바랐어?' },
+        { text: '正(ただ)しくなかった？', ruby: '타다시쿠나캇타?', meaning: '올바르지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '올바른 답을 고르세요.',
+        japanese: '正(ただ)しい答(こた)えを選(えら)んでください。',
+        plain:    '正しい答えを選んでください。',
+        reading:  '타다시이 코타에오 에란데쿠다사이.',
+        pattern:  { name: '正しい答えを選ぶ', meaning: '올바른 답을 고르다', note: '正しい+名詞로 명사를 수식. 시험·퀴즈 상황에서 자주 사용' },
+        furigana: 'ただしいこたえをえらんでください',
+        accentData: [
+          { phrase_id: 0, mora_count: 16, accent: [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '무엇이 올바른지 판단하는 건 어려워.',
+        japanese: '何(なに)が正(ただ)しいか判断(はんだん)するのは難(むずか)しい。',
+        plain:    '何が正しいか判断するのは難しい。',
+        reading:  '나니가 타다시이카 한단스루노와 무즈카시이.',
+        pattern:  { name: '何が正しいか判断するのは難しい', meaning: '무엇이 올바른지 판단하는 건 어렵다', note: '〜か는 간접 의문문. のは는 주제화 표현' },
+        furigana: 'なにがただしいかはんだんするのはむずかしい',
+        accentData: [
+          { phrase_id: 0, mora_count: 21, accent: [1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '올바른 방법으로 문제를 풀었어.',
+        japanese: '正(ただ)しい方法(ほうほう)で問題(もんだい)を解(と)いた。',
+        plain:    '正しい方法で問題を解いた。',
+        reading:  '타다시이 호ー호ー데 몬다이오 토이타.',
+        pattern:  { name: '正しい方法で〜を解く', meaning: '올바른 방법으로 ~을 풀다', note: 'で는 수단·방법을 나타내는 조사. 解く는 문제를 풀다는 뜻' },
+        furigana: 'ただしいほうほうでもんだいをといた',
+        accentData: [
+          { phrase_id: 0, mora_count: 17, accent: [0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 30위  酷い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'hidoi', rank: 30, verb: '酷い', reading: '히도이', meaning: '심하다; 너무하다',
+    accentType: 2,
+    conjugations: {
+      formal: [
+        { text: '酷(ひど)いです',               ruby: '히도이데스',           meaning: '심합니다' },
+        { text: '酷(ひど)くないです',           ruby: '히도쿠나이데스',       meaning: '심하지 않습니다' },
+        { text: '酷(ひど)いですか？',           ruby: '히도이데스까?',        meaning: '심합니까?' },
+        { text: '酷(ひど)くないですか？',       ruby: '히도쿠나이데스까?',    meaning: '심하지 않습니까?' },
+        { text: '酷(ひど)かったです',           ruby: '히도캇타데스',         meaning: '심했습니다' },
+        { text: '酷(ひど)くなかったです',       ruby: '히도쿠나캇타데스',     meaning: '심하지 않았습니다' },
+        { text: '酷(ひど)かったですか？',       ruby: '히도캇타데스까?',      meaning: '심했습니까?' },
+        { text: '酷(ひど)くなかったですか？',   ruby: '히도쿠나캇타데스까?',  meaning: '심하지 않았습니까?' },
+      ],
+      plain: [
+        { text: '酷(ひど)い',           ruby: '히도이',        meaning: '너무해' },
+        { text: '酷(ひど)くない',       ruby: '히도쿠나이',    meaning: '심하지 않아' },
+        { text: '酷(ひど)い？',         ruby: '히도이?',       meaning: '너무해?' },
+        { text: '酷(ひど)くない？',     ruby: '히도쿠나이?',   meaning: '심하지 않아?' },
+        { text: '酷(ひど)かった',       ruby: '히도캇타',      meaning: '심했어' },
+        { text: '酷(ひど)くなかった',   ruby: '히도쿠나캇타',  meaning: '심하지 않았어' },
+        { text: '酷(ひど)かった？',     ruby: '히도캇타?',     meaning: '심했어?' },
+        { text: '酷(ひど)くなかった？', ruby: '히도쿠나캇타?', meaning: '심하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '그의 말은 너무 심해.',
+        japanese: '彼(かれ)の言葉(ことば)は酷(ひど)すぎる。',
+        plain:    '彼の言葉は酷すぎる。',
+        reading:  '카레노 코토바와 히도스기루.',
+        pattern:  { name: '〜すぎる', meaning: '너무 ~하다', note: '形容詞語幹+すぎる는 정도가 지나침을 나타냄. 비판이나 불만을 표현할 때 사용' },
+        furigana: 'かれのことばはひどすぎる',
+        accentData: [
+          { phrase_id: 0, mora_count: 12, accent: [1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '어제 폭풍은 심했어.',
+        japanese: '昨日(きのう)の嵐(あらし)は酷(ひど)かった。',
+        plain:    '昨日の嵐は酷かった。',
+        reading:  '키노ー노 아라시와 히도캇타.',
+        pattern:  { name: '〜は酷かった', meaning: '~은/는 심했다', note: '酷かった는 과거형. 날씨·상황이 심했음을 나타냄' },
+        furigana: 'きのうのあらしはひどかった',
+        accentData: [
+          { phrase_id: 0, mora_count: 13, accent: [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '그런 대우는 심하다고 생각합니다.',
+        japanese: 'そんな扱(あつか)いは酷(ひど)いと思(おも)います。',
+        plain:    'そんな扱いは酷いと思う。',
+        reading:  '손나 아츠카이와 히도이토 오모이마스.',
+        pattern:  { name: '〜は酷いと思います', meaning: '~은/는 심하다고 생각합니다', note: 'と思います는 자신의 의견을 부드럽게 전달하는 표현' },
+        furigana: 'そんなあつかいはひどいとおもいます',
+        accentData: [
+          { phrase_id: 0, mora_count: 17, accent: [0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0] },
+        ],
+      },
+    ],
+  },
+
+  /* ── 31~100위: 스텁 ─────────────────────────────── */
+
+  /* ══════════════════════════════════════════════════
+   * 31위  安い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'yasui', rank: 31, verb: '安い', reading: '야스이', meaning: '싸다; 저렴하다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: '安(やす)いです',            ruby: '야스이데스',          meaning: '쌉니다' },
+        { text: '安(やす)くないです',         ruby: '야스쿠나이데스',      meaning: '싸지 않습니다' },
+        { text: '安(やす)いですか？',         ruby: '야스이데스까?',       meaning: '쌉니까?' },
+        { text: '安(やす)くないですか？',     ruby: '야스쿠나이데스까?',   meaning: '싸지 않습니까?' },
+        { text: '安(やす)かったです',         ruby: '야스캇타데스',        meaning: '쌌습니다' },
+        { text: '安(やす)くなかったです',     ruby: '야스쿠나캇타데스',    meaning: '싸지 않았습니다' },
+        { text: '安(やす)かったですか？',     ruby: '야스캇타데스까?',     meaning: '쌌습니까?' },
+        { text: '安(やす)くなかったですか？', ruby: '야스쿠나캇타데스까?', meaning: '싸지 않았습니까?' },
+      ],
+      plain: [
+        { text: '安(やす)い',           ruby: '야스이',        meaning: '싸' },
+        { text: '安(やす)くない',       ruby: '야스쿠나이',    meaning: '싸지 않아' },
+        { text: '安(やす)い？',         ruby: '야스이?',       meaning: '싸?' },
+        { text: '安(やす)くない？',     ruby: '야스쿠나이?',   meaning: '싸지 않아?' },
+        { text: '安(やす)かった',       ruby: '야스캇타',      meaning: '쌌어' },
+        { text: '安(やす)くなかった',   ruby: '야스쿠나캇타',  meaning: '싸지 않았어' },
+        { text: '安(やす)かった？',     ruby: '야스캇타?',     meaning: '쌌어?' },
+        { text: '安(やす)くなかった？', ruby: '야스쿠나캇타?', meaning: '싸지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이 슈퍼는 채소가 싸.',
+        japanese: 'このスーパーは野菜(やさい)が安(やす)い。',
+        plain:    'このスーパーは野菜が安い。',
+        reading:  '코노 스ー파ー와 야사이가 야스이.',
+        pattern:  { name: '〜は〜が安い', meaning: '~은 ~이 싸다', note: '가격이 저렴함을 나타내는 표현. 슈퍼·시장 등 쇼핑 상황에서 자주 사용' },
+        furigana: 'このすーぱーはやさいがやすい',
+        accentData: [{ phrase_id: 0, mora_count: 14, accent: [0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0] }],
+      },
+      {
+        korean:   '싸고 맛있는 가게를 알려주세요.',
+        japanese: '安(やす)くておいしいお店(みせ)を教(おし)えてください。',
+        plain:    '安くておいしいお店を教えてください。',
+        reading:  '야스쿠테 오이시이 오미세오 오시에테쿠다사이.',
+        pattern:  { name: '安くておいしい〜', meaning: '싸고 맛있는 ~', note: 'くて는 い형용사의 연결형. 두 가지 좋은 조건을 동시에 나타냄' },
+        furigana: 'やすくておいしいおみせをおしえてください',
+        accentData: [{ phrase_id: 0, mora_count: 20, accent: [1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0] }],
+      },
+      {
+        korean:   '좀 더 싸지지 않을까요?',
+        japanese: 'もう少(すこ)し安(やす)くなりませんか？',
+        plain:    'もう少し安くなりませんか？',
+        reading:  '모ー 스코시 야스쿠 나리마셍까?',
+        pattern:  { name: 'もう少し安くなりませんか', meaning: '좀 더 싸지지 않을까요?', note: 'くなる는 상태 변화. ませんか는 부드러운 요청·제안. 가격 흥정 표현' },
+        furigana: 'もうすこしやすくなりませんか',
+        accentData: [{ phrase_id: 0, mora_count: 14, accent: [1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 32위  軽い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'karui', rank: 32, verb: '軽い', reading: '카루이', meaning: '가볍다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: '軽(かる)いです',            ruby: '카루이데스',          meaning: '가볍습니다' },
+        { text: '軽(かる)くないです',         ruby: '카루쿠나이데스',      meaning: '가볍지 않습니다' },
+        { text: '軽(かる)いですか？',         ruby: '카루이데스까?',       meaning: '가볍습니까?' },
+        { text: '軽(かる)くないですか？',     ruby: '카루쿠나이데스까?',   meaning: '가볍지 않습니까?' },
+        { text: '軽(かる)かったです',         ruby: '카루캇타데스',        meaning: '가벼웠습니다' },
+        { text: '軽(かる)くなかったです',     ruby: '카루쿠나캇타데스',    meaning: '가볍지 않았습니다' },
+        { text: '軽(かる)かったですか？',     ruby: '카루캇타데스까?',     meaning: '가벼웠습니까?' },
+        { text: '軽(かる)くなかったですか？', ruby: '카루쿠나캇타데스까?', meaning: '가볍지 않았습니까?' },
+      ],
+      plain: [
+        { text: '軽(かる)い',           ruby: '카루이',        meaning: '가벼워' },
+        { text: '軽(かる)くない',       ruby: '카루쿠나이',    meaning: '가볍지 않아' },
+        { text: '軽(かる)い？',         ruby: '카루이?',       meaning: '가벼워?' },
+        { text: '軽(かる)くない？',     ruby: '카루쿠나이?',   meaning: '가볍지 않아?' },
+        { text: '軽(かる)かった',       ruby: '카루캇타',      meaning: '가벼웠어' },
+        { text: '軽(かる)くなかった',   ruby: '카루쿠나캇타',  meaning: '가볍지 않았어' },
+        { text: '軽(かる)かった？',     ruby: '카루캇타?',     meaning: '가벼웠어?' },
+        { text: '軽(かる)くなかった？', ruby: '카루쿠나캇타?', meaning: '가볍지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이 가방은 매우 가벼워.',
+        japanese: 'このカバンはとても軽(かる)い。',
+        plain:    'このカバンはとても軽い。',
+        reading:  '코노 카반와 토테모 카루이.',
+        pattern:  { name: '〜はとても軽い', meaning: '~은 매우 가볍다', note: '가방·짐의 무게를 나타낼 때 자주 사용. 반대어는 重い(오모이)' },
+        furigana: 'このかばんはとてもかるい',
+        accentData: [{ phrase_id: 0, mora_count: 12, accent: [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1] }],
+      },
+      {
+        korean:   '가벼운 운동을 매일 계속하고 있어요.',
+        japanese: '軽(かる)い運動(うんどう)を毎日(まいにち)続(つづ)けています。',
+        plain:    '軽い運動を毎日続けている。',
+        reading:  '카루이 운도ー오 마이니치 츠즈케테이마스.',
+        pattern:  { name: '軽い運動を毎日続けています', meaning: '가벼운 운동을 매일 계속하고 있습니다', note: '軽い運動는 가벼운 운동. ています는 현재 진행·지속 상태' },
+        furigana: 'かるいうんどうをまいにちつづけています',
+        accentData: [{ phrase_id: 0, mora_count: 19, accent: [0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0] }],
+      },
+      {
+        korean:   '마음이 가벼워졌어.',
+        japanese: '気持(きも)ちが軽(かる)くなりました。',
+        plain:    '気持ちが軽くなった。',
+        reading:  '키모치가 카루쿠 나리마시타.',
+        pattern:  { name: '気持ちが軽くなりました', meaning: '마음이 가벼워졌습니다', note: 'くなる는 상태 변화 표현. 걱정·부담이 줄었을 때의 감정 표현' },
+        furigana: 'きもちがかるくなりました',
+        accentData: [{ phrase_id: 0, mora_count: 12, accent: [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 33위  古い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'furui', rank: 33, verb: '古い', reading: '후루이', meaning: '낡다; 오래되다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: '古(ふる)いです',            ruby: '후루이데스',          meaning: '오래됐습니다' },
+        { text: '古(ふる)くないです',         ruby: '후루쿠나이데스',      meaning: '오래되지 않았습니다' },
+        { text: '古(ふる)いですか？',         ruby: '후루이데스까?',       meaning: '오래됐습니까?' },
+        { text: '古(ふる)くないですか？',     ruby: '후루쿠나이데스까?',   meaning: '오래되지 않았습니까?' },
+        { text: '古(ふる)かったです',         ruby: '후루캇타데스',        meaning: '오래됐었습니다' },
+        { text: '古(ふる)くなかったです',     ruby: '후루쿠나캇타데스',    meaning: '오래되지 않았습니다' },
+        { text: '古(ふる)かったですか？',     ruby: '후루캇타데스까?',     meaning: '오래됐었습니까?' },
+        { text: '古(ふる)くなかったですか？', ruby: '후루쿠나캇타데스까?', meaning: '오래되지 않았습니까?' },
+      ],
+      plain: [
+        { text: '古(ふる)い',           ruby: '후루이',        meaning: '오래됐어' },
+        { text: '古(ふる)くない',       ruby: '후루쿠나이',    meaning: '오래되지 않았어' },
+        { text: '古(ふる)い？',         ruby: '후루이?',       meaning: '오래됐어?' },
+        { text: '古(ふる)くない？',     ruby: '후루쿠나이?',   meaning: '오래되지 않았어?' },
+        { text: '古(ふる)かった',       ruby: '후루캇타',      meaning: '오래됐었어' },
+        { text: '古(ふる)くなかった',   ruby: '후루쿠나캇타',  meaning: '오래되지 않았었어' },
+        { text: '古(ふる)かった？',     ruby: '후루캇타?',     meaning: '오래됐었어?' },
+        { text: '古(ふる)くなかった？', ruby: '후루쿠나캇타?', meaning: '오래되지 않았었어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이 건물은 매우 오래됐어.',
+        japanese: 'この建物(たてもの)はとても古(ふる)い。',
+        plain:    'この建物はとても古い。',
+        reading:  '코노 타테모노와 토테모 후루이.',
+        pattern:  { name: '〜はとても古い', meaning: '~은 매우 오래됐다', note: '건물·물건의 연식을 표현할 때 사용. 반대어는 新しい(아타라시이)' },
+        furigana: 'このたてものはとてもふるい',
+        accentData: [{ phrase_id: 0, mora_count: 13, accent: [0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0] }],
+      },
+      {
+        korean:   '오랜 친구를 만났어.',
+        japanese: '古(ふる)い友達(ともだち)に会(あ)いました。',
+        plain:    '古い友達に会った。',
+        reading:  '후루이 토모다치니 아이마시타.',
+        pattern:  { name: '古い友達に会いました', meaning: '오랜 친구를 만났습니다', note: '古い友達는 오래된 친구·옛 친구. 오랜 인연을 이야기할 때 사용' },
+        furigana: 'ふるいともだちにあいました',
+        accentData: [{ phrase_id: 0, mora_count: 13, accent: [0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0] }],
+      },
+      {
+        korean:   '오래된 스마트폰을 새것으로 바꿨어.',
+        japanese: '古(ふる)いスマホを新(あたら)しいものに変(か)えました。',
+        plain:    '古いスマホを新しいものに変えた。',
+        reading:  '후루이 스마호오 아타라시이 모노니 카에마시타.',
+        pattern:  { name: '古い〜を新しいものに変えました', meaning: '오래된 ~을 새것으로 바꿨습니다', note: '変える는 바꾸다. 물건 교체 상황에서 사용하는 표현' },
+        furigana: 'ふるいすまほをあたらしいものにかえました',
+        accentData: [{ phrase_id: 0, mora_count: 20, accent: [0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 34위  怖い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'kowai', rank: 34, verb: '怖い', reading: '코와이', meaning: '무섭다',
+    accentType: 2,
+    conjugations: {
+      formal: [
+        { text: '怖(こわ)いです',            ruby: '코와이데스',          meaning: '무섭습니다' },
+        { text: '怖(こわ)くないです',         ruby: '코와쿠나이데스',      meaning: '무섭지 않습니다' },
+        { text: '怖(こわ)いですか？',         ruby: '코와이데스까?',       meaning: '무섭습니까?' },
+        { text: '怖(こわ)くないですか？',     ruby: '코와쿠나이데스까?',   meaning: '무섭지 않습니까?' },
+        { text: '怖(こわ)かったです',         ruby: '코와캇타데스',        meaning: '무서웠습니다' },
+        { text: '怖(こわ)くなかったです',     ruby: '코와쿠나캇타데스',    meaning: '무섭지 않았습니다' },
+        { text: '怖(こわ)かったですか？',     ruby: '코와캇타데스까?',     meaning: '무서웠습니까?' },
+        { text: '怖(こわ)くなかったですか？', ruby: '코와쿠나캇타데스까?', meaning: '무섭지 않았습니까?' },
+      ],
+      plain: [
+        { text: '怖(こわ)い',           ruby: '코와이',        meaning: '무서워' },
+        { text: '怖(こわ)くない',       ruby: '코와쿠나이',    meaning: '무섭지 않아' },
+        { text: '怖(こわ)い？',         ruby: '코와이?',       meaning: '무서워?' },
+        { text: '怖(こわ)くない？',     ruby: '코와쿠나이?',   meaning: '무섭지 않아?' },
+        { text: '怖(こわ)かった',       ruby: '코와캇타',      meaning: '무서웠어' },
+        { text: '怖(こわ)くなかった',   ruby: '코와쿠나캇타',  meaning: '무섭지 않았어' },
+        { text: '怖(こわ)かった？',     ruby: '코와캇타?',     meaning: '무서웠어?' },
+        { text: '怖(こわ)くなかった？', ruby: '코와쿠나캇타?', meaning: '무섭지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '어두운 곳은 무서워.',
+        japanese: '暗(くら)い場所(ばしょ)は怖(こわ)い。',
+        plain:    '暗い場所は怖い。',
+        reading:  '쿠라이 바쇼와 코와이.',
+        pattern:  { name: '〜は怖い', meaning: '~은 무섭다', note: '怖い는 공포·두려움. 장소·상황에 대한 무서움을 나타냄' },
+        furigana: 'くらいばしょはこわい',
+        accentData: [{ phrase_id: 0, mora_count: 10, accent: [0, 1, 1, 1, 1, 1, 1, 0, 1, 0] }],
+      },
+      {
+        korean:   '무서운 꿈을 꿔버렸어.',
+        japanese: '怖(こわ)い夢(ゆめ)を見(み)てしまいました。',
+        plain:    '怖い夢を見てしまった。',
+        reading:  '코와이 유메오 미테 시마이마시타.',
+        pattern:  { name: '怖い夢を見てしまいました', meaning: '무서운 꿈을 꿔버렸습니다', note: 'てしまいました는 의도치 않은 결과에 대한 유감·당혹감 표현' },
+        furigana: 'こわいゆめをみてしまいました',
+        accentData: [{ phrase_id: 0, mora_count: 14, accent: [0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0] }],
+      },
+      {
+        korean:   '선생님은 무서워 보였지만 친절했어.',
+        japanese: '先生(せんせい)は怖(こわ)そうに見(み)えたが優(やさ)しかった。',
+        plain:    '先生は怖そうに見えたが優しかった。',
+        reading:  '센세이와 코와소ー니 미에타가 야사시캇타.',
+        pattern:  { name: '〜そうに見えたが〜だった', meaning: '~처럼 보였지만 ~였다', note: 'そうに見える는 ~처럼 보이다. が는 역접. 외모와 실제가 다를 때 사용' },
+        furigana: 'せんせいはこわそうにみえたがやさしかった',
+        accentData: [{ phrase_id: 0, mora_count: 20, accent: [0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 35위  激しい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'hageshii', rank: 35, verb: '激しい', reading: '하게시이', meaning: '격렬하다; 심하다',
+    accentType: 3,
+    conjugations: {
+      formal: [
+        { text: '激(はげ)しいです',            ruby: '하게시이데스',          meaning: '격렬합니다' },
+        { text: '激(はげ)しくないです',         ruby: '하게시쿠나이데스',      meaning: '격렬하지 않습니다' },
+        { text: '激(はげ)しいですか？',         ruby: '하게시이데스까?',       meaning: '격렬합니까?' },
+        { text: '激(はげ)しくないですか？',     ruby: '하게시쿠나이데스까?',   meaning: '격렬하지 않습니까?' },
+        { text: '激(はげ)しかったです',         ruby: '하게시캇타데스',        meaning: '격렬했습니다' },
+        { text: '激(はげ)しくなかったです',     ruby: '하게시쿠나캇타데스',    meaning: '격렬하지 않았습니다' },
+        { text: '激(はげ)しかったですか？',     ruby: '하게시캇타데스까?',     meaning: '격렬했습니까?' },
+        { text: '激(はげ)しくなかったですか？', ruby: '하게시쿠나캇타데스까?', meaning: '격렬하지 않았습니까?' },
+      ],
+      plain: [
+        { text: '激(はげ)しい',           ruby: '하게시이',        meaning: '격렬해' },
+        { text: '激(はげ)しくない',       ruby: '하게시쿠나이',    meaning: '격렬하지 않아' },
+        { text: '激(はげ)しい？',         ruby: '하게시이?',       meaning: '격렬해?' },
+        { text: '激(はげ)しくない？',     ruby: '하게시쿠나이?',   meaning: '격렬하지 않아?' },
+        { text: '激(はげ)しかった',       ruby: '하게시캇타',      meaning: '격렬했어' },
+        { text: '激(はげ)しくなかった',   ruby: '하게시쿠나캇타',  meaning: '격렬하지 않았어' },
+        { text: '激(はげ)しかった？',     ruby: '하게시캇타?',     meaning: '격렬했어?' },
+        { text: '激(はげ)しくなかった？', ruby: '하게시쿠나캇타?', meaning: '격렬하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '비가 세차게 내리고 있어요.',
+        japanese: '雨(あめ)が激(はげ)しく降(ふ)っています。',
+        plain:    '雨が激しく降っている。',
+        reading:  '아메가 하게시쿠 훗테이마스.',
+        pattern:  { name: '雨が激しく降っています', meaning: '비가 세차게 내리고 있습니다', note: 'しく는 い형용사의 부사형. 날씨를 묘사할 때 자주 사용' },
+        furigana: 'あめがはげしくふっています',
+        accentData: [{ phrase_id: 0, mora_count: 13, accent: [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0] }],
+      },
+      {
+        korean:   '격렬한 연습을 견뎌냈어.',
+        japanese: '激(はげ)しい練習(れんしゅう)に耐(た)えました。',
+        plain:    '激しい練習に耐えた。',
+        reading:  '하게시이 렌슈ー니 타에마시타.',
+        pattern:  { name: '激しい〜に耐える', meaning: '격렬한 ~을 견디다', note: '耐える는 견디다·참다. 혹독한 훈련을 이겨낸 상황을 표현' },
+        furigana: 'はげしいれんしゅうにたえました',
+        accentData: [{ phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0] }],
+      },
+      {
+        korean:   '두 사람의 논쟁이 격렬해졌어.',
+        japanese: '二人(ふたり)の議論(ぎろん)は激(はげ)しくなった。',
+        plain:    '二人の議論は激しくなった。',
+        reading:  '후타리노 기론와 하게시쿠 낫타.',
+        pattern:  { name: '〜は激しくなった', meaning: '~이 격렬해졌다', note: 'しくなる는 상태 변화. 논쟁·갈등이 격화되는 상황을 표현' },
+        furigana: 'ふたりのぎろんははげしくなった',
+        accentData: [{ phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 36위  重い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'omoi', rank: 36, verb: '重い', reading: '오모이', meaning: '무겁다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: '重(おも)いです',            ruby: '오모이데스',          meaning: '무겁습니다' },
+        { text: '重(おも)くないです',         ruby: '오모쿠나이데스',      meaning: '무겁지 않습니다' },
+        { text: '重(おも)いですか？',         ruby: '오모이데스까?',       meaning: '무겁습니까?' },
+        { text: '重(おも)くないですか？',     ruby: '오모쿠나이데스까?',   meaning: '무겁지 않습니까?' },
+        { text: '重(おも)かったです',         ruby: '오모캇타데스',        meaning: '무거웠습니다' },
+        { text: '重(おも)くなかったです',     ruby: '오모쿠나캇타데스',    meaning: '무겁지 않았습니다' },
+        { text: '重(おも)かったですか？',     ruby: '오모캇타데스까?',     meaning: '무거웠습니까?' },
+        { text: '重(おも)くなかったですか？', ruby: '오모쿠나캇타데스까?', meaning: '무겁지 않았습니까?' },
+      ],
+      plain: [
+        { text: '重(おも)い',           ruby: '오모이',        meaning: '무거워' },
+        { text: '重(おも)くない',       ruby: '오모쿠나이',    meaning: '무겁지 않아' },
+        { text: '重(おも)い？',         ruby: '오모이?',       meaning: '무거워?' },
+        { text: '重(おも)くない？',     ruby: '오모쿠나이?',   meaning: '무겁지 않아?' },
+        { text: '重(おも)かった',       ruby: '오모캇타',      meaning: '무거웠어' },
+        { text: '重(おも)くなかった',   ruby: '오모쿠나캇타',  meaning: '무겁지 않았어' },
+        { text: '重(おも)かった？',     ruby: '오모캇타?',     meaning: '무거웠어?' },
+        { text: '重(おも)くなかった？', ruby: '오모쿠나캇타?', meaning: '무겁지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이 여행가방은 매우 무거워.',
+        japanese: 'このスーツケースはとても重(おも)い。',
+        plain:    'このスーツケースはとても重い。',
+        reading:  '코노 스ー츠케ー스와 토테모 오모이.',
+        pattern:  { name: '〜はとても重い', meaning: '~은 매우 무겁다', note: '짐·가방의 무게를 표현할 때 사용. 반대어는 軽い(카루이)' },
+        furigana: 'このすーつけーすはとてもおもい',
+        accentData: [{ phrase_id: 0, mora_count: 15, accent: [0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0] }],
+      },
+      {
+        korean:   '무거운 짐을 혼자 날랐어.',
+        japanese: '重(おも)い荷物(にもつ)を一人(ひとり)で運(はこ)んだ。',
+        plain:    '重い荷物を一人で運んだ。',
+        reading:  '오모이 니모츠오 히토리데 하콘다.',
+        pattern:  { name: '重い荷物を一人で運んだ', meaning: '무거운 짐을 혼자 날랐다', note: '一人で는 혼자서. 힘든 일을 혼자 해낸 상황 표현' },
+        furigana: 'おもいにもつをひとりではこんだ',
+        accentData: [{ phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1] }],
+      },
+      {
+        korean:   '무거운 책임을 느끼고 있어요.',
+        japanese: '重(おも)い責任(せきにん)を感(かん)じています。',
+        plain:    '重い責任を感じている。',
+        reading:  '오모이 세키닌오 칸지테이마스.',
+        pattern:  { name: '重い責任を感じています', meaning: '무거운 책임을 느끼고 있습니다', note: '責任(せきにん)는 책임. 重い는 물리적 무게뿐 아니라 심리적 부담에도 사용' },
+        furigana: 'おもいせきにんをかんじています',
+        accentData: [{ phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 37위  明るい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'akarui', rank: 37, verb: '明るい', reading: '아카루이', meaning: '밝다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: '明(あか)るいです',            ruby: '아카루이데스',          meaning: '밝습니다' },
+        { text: '明(あか)るくないです',         ruby: '아카루쿠나이데스',      meaning: '밝지 않습니다' },
+        { text: '明(あか)るいですか？',         ruby: '아카루이데스까?',       meaning: '밝습니까?' },
+        { text: '明(あか)るくないですか？',     ruby: '아카루쿠나이데스까?',   meaning: '밝지 않습니까?' },
+        { text: '明(あか)るかったです',         ruby: '아카루캇타데스',        meaning: '밝았습니다' },
+        { text: '明(あか)るくなかったです',     ruby: '아카루쿠나캇타데스',    meaning: '밝지 않았습니다' },
+        { text: '明(あか)るかったですか？',     ruby: '아카루캇타데스까?',     meaning: '밝았습니까?' },
+        { text: '明(あか)るくなかったですか？', ruby: '아카루쿠나캇타데스까?', meaning: '밝지 않았습니까?' },
+      ],
+      plain: [
+        { text: '明(あか)るい',           ruby: '아카루이',        meaning: '밝아' },
+        { text: '明(あか)るくない',       ruby: '아카루쿠나이',    meaning: '밝지 않아' },
+        { text: '明(あか)るい？',         ruby: '아카루이?',       meaning: '밝아?' },
+        { text: '明(あか)るくない？',     ruby: '아카루쿠나이?',   meaning: '밝지 않아?' },
+        { text: '明(あか)るかった',       ruby: '아카루캇타',      meaning: '밝았어' },
+        { text: '明(あか)るくなかった',   ruby: '아카루쿠나캇타',  meaning: '밝지 않았어' },
+        { text: '明(あか)るかった？',     ruby: '아카루캇타?',     meaning: '밝았어?' },
+        { text: '明(あか)るくなかった？', ruby: '아카루쿠나캇타?', meaning: '밝지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '그녀는 항상 밝아.',
+        japanese: '彼女(かのじょ)はいつも明(あか)るい。',
+        plain:    '彼女はいつも明るい。',
+        reading:  '카노죠와 이츠모 아카루이.',
+        pattern:  { name: '〜はいつも明るい', meaning: '~은 항상 밝다', note: '明るい는 성격이 밝음을 표현할 때도 사용. いつも는 항상' },
+        furigana: 'かのじょはいつもあかるい',
+        accentData: [{ phrase_id: 0, mora_count: 12, accent: [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0] }],
+      },
+      {
+        korean:   '밝은 방에서 공부하면 눈에 좋아.',
+        japanese: '明(あか)るい部屋(へや)で勉強(べんきょう)すると目(め)に良(よ)い。',
+        plain:    '明るい部屋で勉強すると目に良い。',
+        reading:  '아카루이 헤야데 벵쿄ー스루토 메니 요이.',
+        pattern:  { name: '明るい部屋で勉強すると目に良い', meaning: '밝은 방에서 공부하면 눈에 좋다', note: 'すると는 ~하면. 조건과 결과를 나타내는 표현' },
+        furigana: 'あかるいへやでべんきょうするとめによい',
+        accentData: [{ phrase_id: 0, mora_count: 19, accent: [0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0] }],
+      },
+      {
+        korean:   '밝은 미래를 믿고 있어.',
+        japanese: '明(あか)るい未来(みらい)を信(しん)じています。',
+        plain:    '明るい未来を信じている。',
+        reading:  '아카루이 미라이오 신지테이마스.',
+        pattern:  { name: '明るい未来を信じています', meaning: '밝은 미래를 믿고 있습니다', note: '未来(みらい)는 미래. 信じる는 믿다. 희망적 표현' },
+        furigana: 'あかるいみらいをしんじています',
+        accentData: [{ phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 38위  辛い
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'tsurai', rank: 38, verb: '辛い', reading: '츠라이', meaning: '괴롭다; 힘들다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: '辛(つら)いです',            ruby: '츠라이데스',          meaning: '힘듭니다' },
+        { text: '辛(つら)くないです',         ruby: '츠라쿠나이데스',      meaning: '힘들지 않습니다' },
+        { text: '辛(つら)いですか？',         ruby: '츠라이데스까?',       meaning: '힘듭니까?' },
+        { text: '辛(つら)くないですか？',     ruby: '츠라쿠나이데스까?',   meaning: '힘들지 않습니까?' },
+        { text: '辛(つら)かったです',         ruby: '츠라캇타데스',        meaning: '힘들었습니다' },
+        { text: '辛(つら)くなかったです',     ruby: '츠라쿠나캇타데스',    meaning: '힘들지 않았습니다' },
+        { text: '辛(つら)かったですか？',     ruby: '츠라캇타데스까?',     meaning: '힘들었습니까?' },
+        { text: '辛(つら)くなかったですか？', ruby: '츠라쿠나캇타데스까?', meaning: '힘들지 않았습니까?' },
+      ],
+      plain: [
+        { text: '辛(つら)い',           ruby: '츠라이',        meaning: '힘들어' },
+        { text: '辛(つら)くない',       ruby: '츠라쿠나이',    meaning: '힘들지 않아' },
+        { text: '辛(つら)い？',         ruby: '츠라이?',       meaning: '힘들어?' },
+        { text: '辛(つら)くない？',     ruby: '츠라쿠나이?',   meaning: '힘들지 않아?' },
+        { text: '辛(つら)かった',       ruby: '츠라캇타',      meaning: '힘들었어' },
+        { text: '辛(つら)くなかった',   ruby: '츠라쿠나캇타',  meaning: '힘들지 않았어' },
+        { text: '辛(つら)かった？',     ruby: '츠라캇타?',     meaning: '힘들었어?' },
+        { text: '辛(つら)くなかった？', ruby: '츠라쿠나캇타?', meaning: '힘들지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이별은 매우 힘들어.',
+        japanese: '別(わか)れはとても辛(つら)い。',
+        plain:    '別れはとても辛い。',
+        reading:  '와카레와 토테모 츠라이.',
+        pattern:  { name: '〜はとても辛い', meaning: '~은 매우 힘들다', note: '辛い는 정서적 고통·괴로움. 別れ는 이별. 슬픔의 감정을 표현' },
+        furigana: 'わかれはとてもつらい',
+        accentData: [{ phrase_id: 0, mora_count: 10, accent: [0, 1, 1, 0, 0, 1, 1, 0, 1, 0] }],
+      },
+      {
+        korean:   '힘든 시기를 극복했어.',
+        japanese: '辛(つら)い時期(じき)を乗(の)り越(こ)えました。',
+        plain:    '辛い時期を乗り越えた。',
+        reading:  '츠라이 지키오 노리코에마시타.',
+        pattern:  { name: '辛い時期を乗り越えました', meaning: '힘든 시기를 극복했습니다', note: '乗り越える는 극복하다. 어려움을 이겨낸 상황을 표현' },
+        furigana: 'つらいじきをのりこえました',
+        accentData: [{ phrase_id: 0, mora_count: 13, accent: [0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0] }],
+      },
+      {
+        korean:   '힘들어도 앞으로 나아갈 수밖에 없어.',
+        japanese: '辛(つら)くても前(まえ)に進(すす)むしかない。',
+        plain:    '辛くても前に進むしかない。',
+        reading:  '츠라쿠테모 마에니 스스무 시카나이.',
+        pattern:  { name: '辛くても前に進むしかない', meaning: '힘들어도 앞으로 나아갈 수밖에 없다', note: 'くても는 ~해도의 역접. しかない는 ~할 수밖에 없다는 강한 의지' },
+        furigana: 'つらくてもまえにすすむしかない',
+        accentData: [{ phrase_id: 0, mora_count: 15, accent: [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 39위  素晴らしい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'subarashii', rank: 39, verb: '素晴らしい', reading: '스바라시이', meaning: '훌륭하다; 멋지다',
+    accentType: 4,
+    conjugations: {
+      formal: [
+        { text: '素晴(すば)らしいです',            ruby: '스바라시이데스',          meaning: '훌륭합니다' },
+        { text: '素晴(すば)らしくないです',         ruby: '스바라시쿠나이데스',      meaning: '훌륭하지 않습니다' },
+        { text: '素晴(すば)らしいですか？',         ruby: '스바라시이데스까?',       meaning: '훌륭합니까?' },
+        { text: '素晴(すば)らしくないですか？',     ruby: '스바라시쿠나이데스까?',   meaning: '훌륭하지 않습니까?' },
+        { text: '素晴(すば)らしかったです',         ruby: '스바라시캇타데스',        meaning: '훌륭했습니다' },
+        { text: '素晴(すば)らしくなかったです',     ruby: '스바라시쿠나캇타데스',    meaning: '훌륭하지 않았습니다' },
+        { text: '素晴(すば)らしかったですか？',     ruby: '스바라시캇타데스까?',     meaning: '훌륭했습니까?' },
+        { text: '素晴(すば)らしくなかったですか？', ruby: '스바라시쿠나캇타데스까?', meaning: '훌륭하지 않았습니까?' },
+      ],
+      plain: [
+        { text: '素晴(すば)らしい',           ruby: '스바라시이',        meaning: '훌륭해' },
+        { text: '素晴(すば)らしくない',       ruby: '스바라시쿠나이',    meaning: '훌륭하지 않아' },
+        { text: '素晴(すば)らしい？',         ruby: '스바라시이?',       meaning: '훌륭해?' },
+        { text: '素晴(すば)らしくない？',     ruby: '스바라시쿠나이?',   meaning: '훌륭하지 않아?' },
+        { text: '素晴(すば)らしかった',       ruby: '스바라시캇타',      meaning: '훌륭했어' },
+        { text: '素晴(すば)らしくなかった',   ruby: '스바라시쿠나캇타',  meaning: '훌륭하지 않았어' },
+        { text: '素晴(すば)らしかった？',     ruby: '스바라시캇타?',     meaning: '훌륭했어?' },
+        { text: '素晴(すば)らしくなかった？', ruby: '스바라시쿠나캇타?', meaning: '훌륭하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '그의 연주는 훌륭해.',
+        japanese: '彼(かれ)の演奏(えんそう)は素晴(すば)らしい。',
+        plain:    '彼の演奏は素晴らしい。',
+        reading:  '카레노 엔소ー와 스바라시이.',
+        pattern:  { name: '〜は素晴らしい', meaning: '~은 훌륭하다', note: '素晴らしい는 매우 감탄할 만한 상황에서 사용. 연주·작품 등을 칭찬' },
+        furigana: 'かれのえんそうはすばらしい',
+        accentData: [{ phrase_id: 0, mora_count: 13, accent: [1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0] }],
+      },
+      {
+        korean:   '훌륭한 경치에 감동했어.',
+        japanese: '素晴(すば)らしい景色(けしき)に感動(かんどう)しました。',
+        plain:    '素晴らしい景色に感動した。',
+        reading:  '스바라시이 케시키니 칸도ー시마시타.',
+        pattern:  { name: '素晴らしい〜に感動しました', meaning: '훌륭한 ~에 감동했습니다', note: '感動する는 감동하다. 경치·공연 등에 크게 감명받을 때 사용' },
+        furigana: 'すばらしいけしきにかんどうしました',
+        accentData: [{ phrase_id: 0, mora_count: 17, accent: [0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0] }],
+      },
+      {
+        korean:   '훌륭한 기회를 줘서 고마워.',
+        japanese: '素晴(すば)らしい機会(きかい)を与(あた)えてくれてありがとう。',
+        plain:    '素晴らしい機会を与えてくれてありがとう。',
+        reading:  '스바라시이 키카이오 아타에테 쿠레테 아리가토ー.',
+        pattern:  { name: '素晴らしい機会を与えてくれてありがとう', meaning: '훌륭한 기회를 줘서 고마워', note: 'てくれる는 나를 위해 해주다. 감사를 표현하는 상황' },
+        furigana: 'すばらしいきかいをあたえてくれてありがとう',
+        accentData: [{ phrase_id: 0, mora_count: 21, accent: [0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0] }],
+      },
+    ],
+  },
+
+  /* ══════════════════════════════════════════════════
+   * 40위  可笑しい
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'okashii', rank: 40, verb: '可笑しい', reading: '오카시이', meaning: '이상하다; 웃기다',
+    accentType: 3,
+    conjugations: {
+      formal: [
+        { text: '可笑(おか)しいです',            ruby: '오카시이데스',          meaning: '이상합니다' },
+        { text: '可笑(おか)しくないです',         ruby: '오카시쿠나이데스',      meaning: '이상하지 않습니다' },
+        { text: '可笑(おか)しいですか？',         ruby: '오카시이데스까?',       meaning: '이상합니까?' },
+        { text: '可笑(おか)しくないですか？',     ruby: '오카시쿠나이데스까?',   meaning: '이상하지 않습니까?' },
+        { text: '可笑(おか)しかったです',         ruby: '오카시캇타데스',        meaning: '이상했습니다' },
+        { text: '可笑(おか)しくなかったです',     ruby: '오카시쿠나캇타데스',    meaning: '이상하지 않았습니다' },
+        { text: '可笑(おか)しかったですか？',     ruby: '오카시캇타데스까?',     meaning: '이상했습니까?' },
+        { text: '可笑(おか)しくなかったですか？', ruby: '오카시쿠나캇타데스까?', meaning: '이상하지 않았습니까?' },
+      ],
+      plain: [
+        { text: '可笑(おか)しい',           ruby: '오카시이',        meaning: '이상해' },
+        { text: '可笑(おか)しくない',       ruby: '오카시쿠나이',    meaning: '이상하지 않아' },
+        { text: '可笑(おか)しい？',         ruby: '오카시이?',       meaning: '이상해?' },
+        { text: '可笑(おか)しくない？',     ruby: '오카시쿠나이?',   meaning: '이상하지 않아?' },
+        { text: '可笑(おか)しかった',       ruby: '오카시캇타',      meaning: '이상했어' },
+        { text: '可笑(おか)しくなかった',   ruby: '오카시쿠나캇타',  meaning: '이상하지 않았어' },
+        { text: '可笑(おか)しかった？',     ruby: '오카시캇타?',     meaning: '이상했어?' },
+        { text: '可笑(おか)しくなかった？', ruby: '오카시쿠나캇타?', meaning: '이상하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '이 기계의 움직임이 이상해.',
+        japanese: 'この機械(きかい)の動(うご)きが可笑(おか)しい。',
+        plain:    'この機械の動きが可笑しい。',
+        reading:  '코노 키카이노 우고키가 오카시이.',
+        pattern:  { name: '〜の動きが可笑しい', meaning: '~의 움직임이 이상하다', note: '可笑しい는 이상한·비정상적인 상태. 기계·사람의 이상을 알아챌 때 사용' },
+        furigana: 'このきかいのうごきがおかしい',
+        accentData: [{ phrase_id: 0, mora_count: 14, accent: [0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0] }],
+      },
+      {
+        korean:   '그의 얘기는 항상 우스워서 웃어버려.',
+        japanese: '彼(かれ)の話(はなし)はいつも可笑(おか)しくて笑(わら)ってしまう。',
+        plain:    '彼の話はいつも可笑しくて笑ってしまう。',
+        reading:  '카레노 하나시와 이츠모 오카시쿠테 와랏테 시마우.',
+        pattern:  { name: '〜はいつも可笑しくて笑ってしまう', meaning: '~은 항상 우스워서 웃어버린다', note: 'くて는 원인·이유 표현. てしまう는 자기도 모르게 ~해버리다' },
+        furigana: 'かれのはなしはいつもおかしくてわらってしまう',
+        accentData: [{ phrase_id: 0, mora_count: 22, accent: [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1] }],
+      },
+      {
+        korean:   '어딘가 이상하다고 느끼면 바로 말해주세요.',
+        japanese: 'どこか可笑(おか)しいと感(かん)じたらすぐ言(い)ってください。',
+        plain:    'どこか可笑しいと感じたらすぐ言ってください。',
+        reading:  '도코카 오카시이토 칸지타라 스구 잇테쿠다사이.',
+        pattern:  { name: 'どこか可笑しいと感じたらすぐ言ってください', meaning: '어딘가 이상하다고 느끼면 바로 말해주세요', note: 'たら는 조건 표현. すぐ는 즉시·바로. 이상 감지 시 즉각 신고 요청 표현' },
+        furigana: 'どこかおかしいとかんじたらすぐいってください',
+        accentData: [{ phrase_id: 0, mora_count: 22, accent: [1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0] }],
+      },
+    ],
+  },
+
+  /* ── 41~100위: 스텁 ─────────────────────────────── */
   { id: 'samui',       rank: 41,  verb: '寒い',        reading: '사무이',    meaning: '춥다',                   conjugations: null, examples: [] },
   { id: 'itai',        rank: 42,  verb: '痛い',        reading: '이타이',    meaning: '아프다',                 conjugations: null, examples: [] },
   { id: 'akai',        rank: 43,  verb: '赤い',        reading: '아카이',    meaning: '빨갛다',                 conjugations: null, examples: [] },

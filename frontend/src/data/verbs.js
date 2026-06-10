@@ -696,8 +696,134 @@ export const VERBS = [
       },
     ],
   },
-  { id: 'yoru', rank: 11, verb: '因る', reading: '요루', meaning: '~에 의하다; 기인하다', conjugations: null, examples: [] },
-  { id: 'tsuku_iru', rank: 12, verb: 'つく', reading: '츠쿠', meaning: '붙다; 켜지다; 도착하다', conjugations: null, examples: [] },
+  /* ══════════════════════════════════════════════════
+   * 11위  因る
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'yoru', rank: 11, verb: '因る', reading: '요루', meaning: '~에 의하다; ~에 달려 있다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'よります',             ruby: '요리마스',          meaning: '~에 달려 있습니다' },
+        { text: 'よりません',           ruby: '요리마셍',          meaning: '~에 달려 있지 않습니다' },
+        { text: 'よりますか？',         ruby: '요리마스까?',       meaning: '~에 달려 있습니까?' },
+        { text: 'よりませんか？',       ruby: '요리마셍까?',       meaning: '~에 달려 있지 않습니까?' },
+        { text: 'よりました',           ruby: '요리마시타',        meaning: '~에 달려 있었습니다' },
+        { text: 'よりませんでした',     ruby: '요리마셍데시타',    meaning: '~에 달려 있지 않았습니다' },
+        { text: 'よりましたか？',       ruby: '요리마시타까?',     meaning: '~에 달려 있었습니까?' },
+        { text: 'よりませんでしたか？', ruby: '요리마셍데시타까?', meaning: '~에 달려 있지 않았습니까?' },
+      ],
+      casual: [
+        { text: 'よる',           ruby: '요루',        meaning: '~에 달려 있어' },
+        { text: 'よらない',       ruby: '요라나이',    meaning: '~에 달려 있지 않아' },
+        { text: 'よる？',         ruby: '요루?',       meaning: '~에 달려 있어?' },
+        { text: 'よらない？',     ruby: '요라나이?',   meaning: '~에 달려 있지 않아?' },
+        { text: 'よった',         ruby: '욧타',        meaning: '~에 달려 있었어' },
+        { text: 'よらなかった',   ruby: '요라나캇타',  meaning: '~에 달려 있지 않았어' },
+        { text: 'よった？',       ruby: '욧타?',       meaning: '~에 달려 있었어?' },
+        { text: 'よらなかった？', ruby: '요라나캇타?', meaning: '~에 달려 있지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '노력에 따라 결과가 달라져.',
+        japanese: '努力(どりょく)によって結果(けっか)が変(か)わる。',
+        plain:    '努力によって結果が変わる。',
+        reading:  '도료쿠니 욧테 켓카가 카와루.',
+        pattern:  { name: '〜によって', meaning: '~에 의해서; ~에 따라서', note: '원인·수단·근거를 나타내는 격식 표현. 수동문의 동작주에도 사용' },
+        furigana: 'どりょくによってけっかがかわる',
+        accentData: [
+          { phrase_id: 0, mora_count: 15, accent: [1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1] },
+        ],
+      },
+      {
+        korean:   '그건 경우에 따라 다릅니다.',
+        japanese: 'それは場合(ばあい)によります。',
+        plain:    'それは場合による。',
+        reading:  '소레와 바아이니 요리마스.',
+        pattern:  { name: '場合による', meaning: '경우에 따라 다르다', note: '상황에 따라 결과가 달라짐을 나타내는 관용 표현' },
+        furigana: 'それはばあいによります',
+        accentData: [
+          { phrase_id: 0, mora_count: 11, accent: [0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '실패의 원인은 준비 부족에 의한 것이야.',
+        japanese: '失敗(しっぱい)の原因(げんいん)は準備(じゅんび)不足(ぶそく)によるものだ。',
+        plain:    '失敗の原因は準備不足によるものだ。',
+        reading:  '싯파이노 겐인와 준비 부소쿠니 요루 모노다.',
+        pattern:  { name: '〜による', meaning: '~에 의한; ~에 기인한', note: '명사를 수식하는 용법. に + よる + 명사 형태로 사용' },
+        furigana: 'しっぱいのげんいんはじゅんびぶそくによるものだ',
+        accentData: [
+          { phrase_id: 0, mora_count: 23, accent: [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0] },
+        ],
+      },
+    ],
+  },
+  /* ══════════════════════════════════════════════════
+   * 12위  つく
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'tsuku_iru', rank: 12, verb: 'つく', reading: '츠쿠', meaning: '붙다; 켜지다; 도착하다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'つきます',             ruby: '츠키마스',          meaning: '붙습니다 / 도착합니다' },
+        { text: 'つきません',           ruby: '츠키마셍',          meaning: '붙지 않습니다' },
+        { text: 'つきますか？',         ruby: '츠키마스까?',       meaning: '붙습니까?' },
+        { text: 'つきませんか？',       ruby: '츠키마셍까?',       meaning: '붙지 않습니까?' },
+        { text: 'つきました',           ruby: '츠키마시타',        meaning: '붙었습니다' },
+        { text: 'つきませんでした',     ruby: '츠키마셍데시타',    meaning: '붙지 않았습니다' },
+        { text: 'つきましたか？',       ruby: '츠키마시타까?',     meaning: '붙었습니까?' },
+        { text: 'つきませんでしたか？', ruby: '츠키마셍데시타까?', meaning: '붙지 않았습니까?' },
+      ],
+      casual: [
+        { text: 'つく',           ruby: '츠쿠',        meaning: '붙어' },
+        { text: 'つかない',       ruby: '츠카나이',    meaning: '붙지 않아' },
+        { text: 'つく？',         ruby: '츠쿠?',       meaning: '붙어?' },
+        { text: 'つかない？',     ruby: '츠카나이?',   meaning: '붙지 않아?' },
+        { text: 'ついた',         ruby: '츠이타',      meaning: '붙었어' },
+        { text: 'つかなかった',   ruby: '츠카나캇타',  meaning: '붙지 않았어' },
+        { text: 'ついた？',       ruby: '츠이타?',     meaning: '붙었어?' },
+        { text: 'つかなかった？', ruby: '츠카나캇타?', meaning: '붙지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '불이 켜졌어.',
+        japanese: '電気(でんき)がついた。',
+        plain:    '電気がついた。',
+        reading:  '덴키가 츠이타.',
+        pattern:  { name: '〜がつく', meaning: '~이/가 켜지다; 붙다', note: '주어가 저절로 변화하는 상태 변화를 나타냄. 付く·点く 등 한자 구별' },
+        furigana: 'でんきがついた',
+        accentData: [
+          { phrase_id: 0, mora_count: 7, accent: [1, 0, 0, 0, 1, 0, 0] },
+        ],
+      },
+      {
+        korean:   '역에 도착했습니까?',
+        japanese: '駅(えき)に着(つ)きましたか？',
+        plain:    '駅に着いた？',
+        reading:  '에키니 츠키마시타카?',
+        pattern:  { name: '〜に着く', meaning: '~에 도착하다', note: '목적지 도착. 着く(도착)·付く(부착)·就く(취임) 등 동음이의어 주의' },
+        furigana: 'えきについましたか',
+        accentData: [
+          { phrase_id: 0, mora_count: 9, accent: [1, 0, 0, 0, 1, 1, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '스티커가 잘 안 붙어.',
+        japanese: 'シールがなかなかつかない。',
+        plain:    'シールがなかなかつかない。',
+        reading:  '시ー루가 나카나카 츠카나이.',
+        pattern:  { name: 'なかなか〜ない', meaning: '좀처럼 ~하지 않다', note: 'なかなか는 부정형과 함께 써서 "좀처럼 ~하지 않다"는 뜻을 나타냄' },
+        furigana: 'しーるがなかなかつかない',
+        accentData: [
+          { phrase_id: 0, mora_count: 12, accent: [1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0] },
+        ],
+      },
+    ],
+  },
   /* ══════════════════════════════════════════════════
    * 13위  考える
    * ══════════════════════════════════════════════════ */
@@ -762,7 +888,70 @@ export const VERBS = [
       },
     ],
   },
-  { id: 'shimau', rank: 14, verb: '仕舞う', reading: '시마우', meaning: '끝내다; ~해버리다 (보조동사)', conjugations: null, examples: [] },
+  /* ══════════════════════════════════════════════════
+   * 14위  仕舞う
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'shimau', rank: 14, verb: '仕舞う', reading: '시마우', meaning: '끝내다; ~해버리다 (보조동사)',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'しまいます',             ruby: '시마이마스',          meaning: '끝냅니다 / ~해버립니다' },
+        { text: 'しまいません',           ruby: '시마이마셍',          meaning: '끝내지 않습니다' },
+        { text: 'しまいますか？',         ruby: '시마이마스까?',       meaning: '끝냅니까?' },
+        { text: 'しまいませんか？',       ruby: '시마이마셍까?',       meaning: '끝내지 않습니까?' },
+        { text: 'しまいました',           ruby: '시마이마시타',        meaning: '끝냈습니다' },
+        { text: 'しまいませんでした',     ruby: '시마이마셍데시타',    meaning: '끝내지 않았습니다' },
+        { text: 'しまいましたか？',       ruby: '시마이마시타까?',     meaning: '끝냈습니까?' },
+        { text: 'しまいませんでしたか？', ruby: '시마이마셍데시타까?', meaning: '끝내지 않았습니까?' },
+      ],
+      casual: [
+        { text: 'しまう',           ruby: '시마우',        meaning: '끝내 / 해버려' },
+        { text: 'しまわない',       ruby: '시마와나이',    meaning: '끝내지 않아' },
+        { text: 'しまう？',         ruby: '시마우?',       meaning: '끝내?' },
+        { text: 'しまわない？',     ruby: '시마와나이?',   meaning: '끝내지 않아?' },
+        { text: 'しまった',         ruby: '시맛타',        meaning: '끝냈어 / 해버렸어' },
+        { text: 'しまわなかった',   ruby: '시마와나캇타',  meaning: '끝내지 않았어' },
+        { text: 'しまった？',       ruby: '시맛타?',       meaning: '끝냈어?' },
+        { text: 'しまわなかった？', ruby: '시마와나캇타?', meaning: '끝내지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '숙제를 전부 다 해버렸어.',
+        japanese: '宿題(しゅくだい)を全部(ぜんぶ)やってしまった。',
+        plain:    '宿題を全部やってしまった。',
+        reading:  '슈쿠다이오 젠부 얏테 시맛타.',
+        pattern:  { name: '〜てしまう', meaning: '~해버리다; 완전히 끝내다', note: '동작의 완료 또는 후회·유감을 나타내는 보조동사 용법. 구어에서는 〜ちゃう로 줄어듦' },
+        furigana: 'しゅくだいをぜんぶやってしまった',
+        accentData: [
+          { phrase_id: 0, mora_count: 16, accent: [0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '그만 우산을 두고 와 버렸습니다.',
+        japanese: 'うっかり傘(かさ)を忘(わす)れてしまいました。',
+        plain:    'うっかり傘を忘れてしまった。',
+        reading:  '웃카리 카사오 와스레테 시마이마시타.',
+        pattern:  { name: 'うっかり〜てしまう', meaning: '그만; 실수로 ~해버리다', note: 'うっかり는 부주의한 실수를 나타내는 부사. 후회 뉘앙스가 강함' },
+        furigana: 'うっかりかさをわすれてしまいました',
+        accentData: [
+          { phrase_id: 0, mora_count: 17, accent: [0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0] },
+        ],
+      },
+      {
+        korean:   '빨리 치워 버리자.',
+        japanese: '早(はや)く片付(かたづ)けてしまおう。',
+        plain:    '早く片付けてしまおう。',
+        reading:  '하야쿠 카타즈케테 시마오ー.',
+        pattern:  { name: '〜てしまおう', meaning: '~해버리자 (완료 의지·권유)', note: 'しまう의 의지형. 빨리 끝내자는 의미의 권유 표현' },
+        furigana: 'はやくかたづけてしまおう',
+        accentData: [
+          { phrase_id: 0, mora_count: 12, accent: [1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0] },
+        ],
+      },
+    ],
+  },
   /* ══════════════════════════════════════════════════
    * 15위  持つ
    * ══════════════════════════════════════════════════ */
@@ -958,8 +1147,134 @@ export const VERBS = [
       },
     ],
   },
-  { id: 'oru', rank: 18, verb: '居る(おる)', reading: '오루', meaning: '있다 (겸양·방언)', conjugations: null, examples: [] },
-  { id: 'oku_aux', rank: 19, verb: '於く', reading: '오쿠', meaning: '~해 두다 (보조동사)', conjugations: null, examples: [] },
+  /* ══════════════════════════════════════════════════
+   * 18위  居る(おる)
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'oru', rank: 18, verb: '居る(おる)', reading: '오루', meaning: '있다 (겸양·방언)',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'おります',             ruby: '오리마스',          meaning: '있습니다 (겸양)' },
+        { text: 'おりません',           ruby: '오리마셍',          meaning: '없습니다 (겸양)' },
+        { text: 'おりますか？',         ruby: '오리마스까?',       meaning: '계십니까?' },
+        { text: 'おりませんか？',       ruby: '오리마셍까?',       meaning: '안 계십니까?' },
+        { text: 'おりました',           ruby: '오리마시타',        meaning: '있었습니다 (겸양)' },
+        { text: 'おりませんでした',     ruby: '오리마셍데시타',    meaning: '없었습니다 (겸양)' },
+        { text: 'おりましたか？',       ruby: '오리마시타까?',     meaning: '계셨습니까?' },
+        { text: 'おりませんでしたか？', ruby: '오리마셍데시타까?', meaning: '안 계셨습니까?' },
+      ],
+      casual: [
+        { text: 'おる',           ruby: '오루',        meaning: '있어 (방언·겸양)' },
+        { text: 'おらない',       ruby: '오라나이',    meaning: '없어' },
+        { text: 'おる？',         ruby: '오루?',       meaning: '있어?' },
+        { text: 'おらない？',     ruby: '오라나이?',   meaning: '없어?' },
+        { text: 'おった',         ruby: '옷타',        meaning: '있었어' },
+        { text: 'おらなかった',   ruby: '오라나캇타',  meaning: '없었어' },
+        { text: 'おった？',       ruby: '옷타?',       meaning: '있었어?' },
+        { text: 'おらなかった？', ruby: '오라나캇타?', meaning: '없었어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '담당자는 지금 자리에 없습니다.',
+        japanese: '担当(たんとう)の者(もの)は今(いま)おりません。',
+        plain:    '担当の者は今いない。',
+        reading:  '탄토ー노 모노와 이마 오리마셍.',
+        pattern:  { name: '〜ておりません', meaning: '없습니다 (겸양)', note: 'いる의 겸양어. 전화 응대·비즈니스 장면에서 자신이나 내부인을 낮출 때 사용' },
+        furigana: 'たんとうのものはいまおりません',
+        accentData: [
+          { phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '저는 이쪽에 있습니다.',
+        japanese: '私(わたし)はこちらにおります。',
+        plain:    '私はここにいる。',
+        reading:  '와타시와 코치라니 오리마스.',
+        pattern:  { name: '〜におります', meaning: '~에 있습니다 (겸양)', note: '자신의 위치를 상대에게 공손하게 전달하는 표현' },
+        furigana: 'わたしはこちらにおります',
+        accentData: [
+          { phrase_id: 0, mora_count: 12, accent: [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '조금 전까지 여기 있었는데요.',
+        japanese: '先(さき)ほどまでここにおりましたが。',
+        plain:    'さっきまでここにいたけど。',
+        reading:  '사키호도 마데 코코니 오리마시타가.',
+        pattern:  { name: '〜ておりましたが', meaning: '있었습니다만 (겸양·과거)', note: 'おる의 과거형. が는 전환 또는 여운의 뉘앙스. 정중한 상황 설명에 사용' },
+        furigana: 'さきほどまでここにおりましたが',
+        accentData: [
+          { phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0] },
+        ],
+      },
+    ],
+  },
+  /* ══════════════════════════════════════════════════
+   * 19위  於く (〜ておく)
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'oku_aux', rank: 19, verb: '於く', reading: '오쿠', meaning: '~해 두다 (보조동사)',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'ておきます',             ruby: '테오키마스',          meaning: '~해 놓겠습니다' },
+        { text: 'ておきません',           ruby: '테오키마셍',          meaning: '~해 놓지 않겠습니다' },
+        { text: 'ておきますか？',         ruby: '테오키마스까?',       meaning: '~해 놓겠습니까?' },
+        { text: 'ておきませんか？',       ruby: '테오키마셍까?',       meaning: '~해 놓지 않겠습니까?' },
+        { text: 'ておきました',           ruby: '테오키마시타',        meaning: '~해 놓았습니다' },
+        { text: 'ておきませんでした',     ruby: '테오키마셍데시타',    meaning: '~해 놓지 않았습니다' },
+        { text: 'ておきましたか？',       ruby: '테오키마시타까?',     meaning: '~해 놓았습니까?' },
+        { text: 'ておきませんでしたか？', ruby: '테오키마셍데시타까?', meaning: '~해 놓지 않았습니까?' },
+      ],
+      casual: [
+        { text: 'ておく',           ruby: '테오쿠',        meaning: '~해 놓아' },
+        { text: 'ておかない',       ruby: '테오카나이',    meaning: '~해 놓지 않아' },
+        { text: 'ておく？',         ruby: '테오쿠?',       meaning: '~해 놓을래?' },
+        { text: 'ておかない？',     ruby: '테오카나이?',   meaning: '~해 놓지 않을래?' },
+        { text: 'ておいた',         ruby: '테오이타',      meaning: '~해 놓았어' },
+        { text: 'ておかなかった',   ruby: '테오카나캇타',  meaning: '~해 놓지 않았어' },
+        { text: 'ておいた？',       ruby: '테오이타?',     meaning: '~해 놓았어?' },
+        { text: 'ておかなかった？', ruby: '테오카나캇타?', meaning: '~해 놓지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '여행 전에 호텔을 예약해 놓았어.',
+        japanese: '旅行(りょこう)の前(まえ)にホテルを予約(よやく)しておいた。',
+        plain:    '旅行の前にホテルを予約しておいた。',
+        reading:  '료코ー노 마에니 호테루오 요야쿠 시테오이타.',
+        pattern:  { name: '〜ておく', meaning: '~해 놓다; 미리 해 두다', note: '사전 준비나 향후를 위해 어떤 행동을 해 두는 것을 나타냄' },
+        furigana: 'りょこうのまえにほてるをよやくしておいた',
+        accentData: [
+          { phrase_id: 0, mora_count: 20, accent: [0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1] },
+        ],
+      },
+      {
+        korean:   '자료를 프린트해 놓겠습니다.',
+        japanese: '資料(しりょう)をプリントしておきます。',
+        plain:    '資料をプリントしておく。',
+        reading:  '시료ー오 푸린토 시테오키마스.',
+        pattern:  { name: '〜ておきます', meaning: '~해 놓겠습니다', note: '준비나 배려 차원의 사전 행동. 정중 표현' },
+        furigana: 'しりょうをぷりんとしておきます',
+        accentData: [
+          { phrase_id: 0, mora_count: 15, accent: [1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '내일을 위해 준비해 놓아.',
+        japanese: '明日(あした)のために準備(じゅんび)しておいてね。',
+        plain:    '明日のために準備しておいてね。',
+        reading:  '아시타노 타메니 준비 시테오이테네.',
+        pattern:  { name: '〜ておいてね', meaning: '~해 놓아 (당부·부탁)', note: 'ておく의 て형 + ね로 가볍게 당부하는 뉘앙스' },
+        furigana: 'あしたのためにじゅんびしておいてね',
+        accentData: [
+          { phrase_id: 0, mora_count: 16, accent: [0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0] },
+        ],
+      },
+    ],
+  },
   /* ══════════════════════════════════════════════════
    * 20위  出る
    * ══════════════════════════════════════════════════ */
@@ -1025,7 +1340,70 @@ export const VERBS = [
       },
     ],
   },
-  { id: 'okonau', rank: 21, verb: '行う', reading: '오코나우', meaning: '실시하다; 행하다', conjugations: null, examples: [] },
+  /* ══════════════════════════════════════════════════
+   * 21위  行う
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'okonau', rank: 21, verb: '行う', reading: '오코나우', meaning: '실시하다; 행하다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'おこないます',             ruby: '오코나이마스',          meaning: '실시합니다' },
+        { text: 'おこないません',           ruby: '오코나이마셍',          meaning: '실시하지 않습니다' },
+        { text: 'おこないますか？',         ruby: '오코나이마스까?',       meaning: '실시합니까?' },
+        { text: 'おこないませんか？',       ruby: '오코나이마셍까?',       meaning: '실시하지 않습니까?' },
+        { text: 'おこないました',           ruby: '오코나이마시타',        meaning: '실시했습니다' },
+        { text: 'おこないませんでした',     ruby: '오코나이마셍데시타',    meaning: '실시하지 않았습니다' },
+        { text: 'おこないましたか？',       ruby: '오코나이마시타까?',     meaning: '실시했습니까?' },
+        { text: 'おこないませんでしたか？', ruby: '오코나이마셍데시타까?', meaning: '실시하지 않았습니까?' },
+      ],
+      casual: [
+        { text: 'おこなう',           ruby: '오코나우',        meaning: '실시해' },
+        { text: 'おこなわない',       ruby: '오코나와나이',    meaning: '실시하지 않아' },
+        { text: 'おこなう？',         ruby: '오코나우?',       meaning: '실시해?' },
+        { text: 'おこなわない？',     ruby: '오코나와나이?',   meaning: '실시하지 않아?' },
+        { text: 'おこなった',         ruby: '오코낫타',        meaning: '실시했어' },
+        { text: 'おこなわなかった',   ruby: '오코나와나캇타',  meaning: '실시하지 않았어' },
+        { text: 'おこなった？',       ruby: '오코낫타?',       meaning: '실시했어?' },
+        { text: 'おこなわなかった？', ruby: '오코나와나캇타?', meaning: '실시하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '매년 이 시기에 이벤트를 실시합니다.',
+        japanese: '毎年(まいとし)この時期(じき)にイベントを行(おこな)います。',
+        plain:    '毎年この時期にイベントを行う。',
+        reading:  '마이토시 코노 지키니 이벤토오 오코나이마스.',
+        pattern:  { name: '〜を行います', meaning: '~을/를 실시합니다', note: 'する보다 격식 있는 공식 표현. 행사·업무·실험 등에 자주 사용' },
+        furigana: 'まいとしこのじきにいべんとをおこないます',
+        accentData: [
+          { phrase_id: 0, mora_count: 20, accent: [0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '설문조사를 실시했습니다.',
+        japanese: 'アンケート調査(ちょうさ)を行(おこな)いました。',
+        plain:    'アンケート調査を行った。',
+        reading:  '안케ー토 쵸ー사오 오코나이마시타.',
+        pattern:  { name: '〜を行いました', meaning: '~을/를 실시했습니다', note: '조사·실험·행사 등을 완료했을 때 쓰는 격식 표현' },
+        furigana: 'あんけーとちょうさをおこないました',
+        accentData: [
+          { phrase_id: 0, mora_count: 17, accent: [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0] },
+        ],
+      },
+      {
+        korean:   '정기적으로 점검을 실시해 주세요.',
+        japanese: '定期的(ていきてき)に点検(てんけん)を行(おこな)ってください。',
+        plain:    '定期的に点検を行ってください。',
+        reading:  '테이키테키니 텐켄오 오코낫테 쿠다사이.',
+        pattern:  { name: '〜を行ってください', meaning: '~을/를 실시해 주세요', note: '업무 지시나 안내문에서 자주 사용하는 정중한 요청 표현' },
+        furigana: 'ていきてきにてんけんをおこなってください',
+        accentData: [
+          { phrase_id: 0, mora_count: 20, accent: [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0] },
+        ],
+      },
+    ],
+  },
   /* ══════════════════════════════════════════════════
    * 22위  取る
    * ══════════════════════════════════════════════════ */
@@ -1090,8 +1468,134 @@ export const VERBS = [
       },
     ],
   },
-  { id: 'kudasaru', rank: 23, verb: '下さる', reading: '쿠다사루', meaning: '주시다 (존경어)', conjugations: null, examples: [] },
-  { id: 'taisuru', rank: 24, verb: '対する', reading: '타이스루', meaning: '~에 대하다', conjugations: null, examples: [] },
+  /* ══════════════════════════════════════════════════
+   * 23위  下さる
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'kudasaru', rank: 23, verb: '下さる', reading: '쿠다사루', meaning: '주시다 (존경어)',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'くださいます',             ruby: '쿠다사이마스',          meaning: '주십니다 (존경)' },
+        { text: 'くださいません',           ruby: '쿠다사이마셍',          meaning: '주시지 않습니다' },
+        { text: 'くださいますか？',         ruby: '쿠다사이마스까?',       meaning: '주시겠습니까?' },
+        { text: 'くださいませんか？',       ruby: '쿠다사이마셍까?',       meaning: '주시지 않겠습니까?' },
+        { text: 'くださいました',           ruby: '쿠다사이마시타',        meaning: '주셨습니다' },
+        { text: 'くださいませんでした',     ruby: '쿠다사이마셍데시타',    meaning: '주시지 않았습니다' },
+        { text: 'くださいましたか？',       ruby: '쿠다사이마시타까?',     meaning: '주셨습니까?' },
+        { text: 'くださいませんでしたか？', ruby: '쿠다사이마셍데시타까?', meaning: '주시지 않았습니까?' },
+      ],
+      casual: [
+        { text: 'くださる',           ruby: '쿠다사루',        meaning: '주셔 / 주신다 (존경)' },
+        { text: 'くださらない',       ruby: '쿠다사라나이',    meaning: '주시지 않아' },
+        { text: 'くださる？',         ruby: '쿠다사루?',       meaning: '주실래요?' },
+        { text: 'くださらない？',     ruby: '쿠다사라나이?',   meaning: '주시지 않을래요?' },
+        { text: 'くださった',         ruby: '쿠다삿타',        meaning: '주셨어' },
+        { text: 'くださらなかった',   ruby: '쿠다사라나캇타',  meaning: '주시지 않았어' },
+        { text: 'くださった？',       ruby: '쿠다삿타?',       meaning: '주셨어?' },
+        { text: 'くださらなかった？', ruby: '쿠다사라나캇타?', meaning: '주시지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '선생님이 책을 주셨습니다.',
+        japanese: '先生(せんせい)が本(ほん)をくださいました。',
+        plain:    '先生が本をくれた。',
+        reading:  '센세이가 혼오 쿠다사이마시타.',
+        pattern:  { name: '〜をくださる', meaning: '~을/를 주시다 (존경)', note: 'くれる의 존경어. 윗사람이 나에게 무언가를 줄 때 사용' },
+        furigana: 'せんせいがほんをくださいました',
+        accentData: [
+          { phrase_id: 0, mora_count: 15, accent: [0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0] },
+        ],
+      },
+      {
+        korean:   '천천히 말씀해 주세요.',
+        japanese: 'ゆっくり話(はな)してください。',
+        plain:    'ゆっくり話してください。',
+        reading:  '유쿠리 하나시테 쿠다사이.',
+        pattern:  { name: '〜てください', meaning: '~해 주세요 (정중 요청)', note: 'ください는 くださる의 명령형. て형 + ください로 정중한 요청 표현' },
+        furigana: 'ゆっくりはなしてください',
+        accentData: [
+          { phrase_id: 0, mora_count: 12, accent: [0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '의견을 들려 주세요.',
+        japanese: 'ご意見(いけん)をお聞(き)かせください。',
+        plain:    'ご意見をお聞かせください。',
+        reading:  '고이켄오 오키카세 쿠다사이.',
+        pattern:  { name: 'お〜ください', meaning: '~해 주세요 (격식 높임)', note: 'お + 동사 연용형 + ください. 비즈니스·공식 장면의 정중한 요청' },
+        furigana: 'ごいけんをおきかせください',
+        accentData: [
+          { phrase_id: 0, mora_count: 13, accent: [0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0] },
+        ],
+      },
+    ],
+  },
+  /* ══════════════════════════════════════════════════
+   * 24위  対する
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'taisuru', rank: 24, verb: '対する', reading: '타이스루', meaning: '~에 대하다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'たいします',             ruby: '타이시마스',          meaning: '~에 대합니다' },
+        { text: 'たいしません',           ruby: '타이시마셍',          meaning: '~에 대하지 않습니다' },
+        { text: 'たいしますか？',         ruby: '타이시마스까?',       meaning: '~에 대합니까?' },
+        { text: 'たいしませんか？',       ruby: '타이시마셍까?',       meaning: '~에 대하지 않습니까?' },
+        { text: 'たいしました',           ruby: '타이시마시타',        meaning: '~에 대했습니다' },
+        { text: 'たいしませんでした',     ruby: '타이시마셍데시타',    meaning: '~에 대하지 않았습니다' },
+        { text: 'たいしましたか？',       ruby: '타이시마시타까?',     meaning: '~에 대했습니까?' },
+        { text: 'たいしませんでしたか？', ruby: '타이시마셍데시타까?', meaning: '~에 대하지 않았습니까?' },
+      ],
+      casual: [
+        { text: 'たいする',           ruby: '타이스루',        meaning: '~에 대해' },
+        { text: 'たいしない',         ruby: '타이시나이',      meaning: '~에 대하지 않아' },
+        { text: 'たいする？',         ruby: '타이스루?',       meaning: '~에 대해?' },
+        { text: 'たいしない？',       ruby: '타이시나이?',     meaning: '~에 대하지 않아?' },
+        { text: 'たいした',           ruby: '타이시타',        meaning: '~에 대했어' },
+        { text: 'たいしなかった',     ruby: '타이시나캇타',    meaning: '~에 대하지 않았어' },
+        { text: 'たいした？',         ruby: '타이시타?',       meaning: '~에 대했어?' },
+        { text: 'たいしなかった？',   ruby: '타이시나캇타?',   meaning: '~에 대하지 않았어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '선생님의 질문에 대해 대답했어.',
+        japanese: '先生(せんせい)の質問(しつもん)に対(たい)して答(こた)えた。',
+        plain:    '先生の質問に対して答えた。',
+        reading:  '센세이노 시츠몽니 타이시테 코타에타.',
+        pattern:  { name: '〜に対して', meaning: '~에 대해서; ~을/를 향해', note: '동작이나 감정의 대상을 나타내는 격식 표현' },
+        furigana: 'せんせいのしつもんにたいしてこたえた',
+        accentData: [
+          { phrase_id: 0, mora_count: 18, accent: [0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0] },
+        ],
+      },
+      {
+        korean:   '이 문제에 대한 해결책을 생각해 봅시다.',
+        japanese: 'この問題(もんだい)に対(たい)する解決策(かいけつさく)を考(かんが)えましょう。',
+        plain:    'この問題に対する解決策を考えよう。',
+        reading:  '코노 몬다이니 타이스루 카이케츠사쿠오 칸가에마쇼ー.',
+        pattern:  { name: '〜に対する〜', meaning: '~에 대한 (명사 수식)', note: 'に対する는 連体形. 뒤에 명사를 수식할 때 사용' },
+        furigana: 'このもんだいにたいするかいけつさくをかんがえましょう',
+        accentData: [
+          { phrase_id: 0, mora_count: 26, accent: [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0] },
+        ],
+      },
+      {
+        korean:   '그에게 아무 말도 할 수 없었어.',
+        japanese: '彼(かれ)に対(たい)して何(なに)も言(い)えなかった。',
+        plain:    '彼に対して何も言えなかった。',
+        reading:  '카레니 타이시테 나니모 이에나캇타.',
+        pattern:  { name: '〜に対して〜ない', meaning: '~에 대해 ~할 수 없다', note: '감정·태도의 대상을 나타내는 に対して와 부정 표현의 결합' },
+        furigana: 'かれにたいしてなにもいえなかった',
+        accentData: [
+          { phrase_id: 0, mora_count: 16, accent: [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0] },
+        ],
+      },
+    ],
+  },
   /* ══════════════════════════════════════════════════
    * 25위  使う
    * ══════════════════════════════════════════════════ */
@@ -1221,8 +1725,134 @@ export const VERBS = [
       },
     ],
   },
-  { id: 'kureru', rank: 27, verb: '呉れる', reading: '쿠레루', meaning: '(나에게) 주다', conjugations: null, examples: [] },
-  { id: 'shiru', rank: 28, verb: '知る', reading: '시루', meaning: '알다', conjugations: null, examples: [] },
+  /* ══════════════════════════════════════════════════
+   * 27위  呉れる
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'kureru', rank: 27, verb: '呉れる', reading: '쿠레루', meaning: '(나에게) 주다',
+    accentType: 2,
+    conjugations: {
+      formal: [
+        { text: 'くれます',             ruby: '쿠레마스',          meaning: '줍니다 (나에게)' },
+        { text: 'くれません',           ruby: '쿠레마셍',          meaning: '주지 않습니다' },
+        { text: 'くれますか？',         ruby: '쿠레마스까?',       meaning: '주겠습니까?' },
+        { text: 'くれませんか？',       ruby: '쿠레마셍까?',       meaning: '주지 않겠습니까?' },
+        { text: 'くれました',           ruby: '쿠레마시타',        meaning: '주었습니다' },
+        { text: 'くれませんでした',     ruby: '쿠레마셍데시타',    meaning: '주지 않았습니다' },
+        { text: 'くれましたか？',       ruby: '쿠레마시타까?',     meaning: '주었습니까?' },
+        { text: 'くれませんでしたか？', ruby: '쿠레마셍데시타까?', meaning: '주지 않았습니까?' },
+      ],
+      casual: [
+        { text: 'くれる',           ruby: '쿠레루',        meaning: '줘' },
+        { text: 'くれない',         ruby: '쿠레나이',      meaning: '안 줘' },
+        { text: 'くれる？',         ruby: '쿠레루?',       meaning: '줄래?' },
+        { text: 'くれない？',       ruby: '쿠레나이?',     meaning: '안 줄래?' },
+        { text: 'くれた',           ruby: '쿠레타',        meaning: '줬어' },
+        { text: 'くれなかった',     ruby: '쿠레나캇타',    meaning: '안 줬어' },
+        { text: 'くれた？',         ruby: '쿠레타?',       meaning: '줬어?' },
+        { text: 'くれなかった？',   ruby: '쿠레나캇타?',   meaning: '안 줬어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '친구가 선물을 줬어.',
+        japanese: '友達(ともだち)がプレゼントをくれた。',
+        plain:    '友達がプレゼントをくれた。',
+        reading:  '토모다치가 푸레젠토오 쿠레타.',
+        pattern:  { name: '〜をくれる', meaning: '~을/를 주다 (나에게)', note: 'くれる는 화자 쪽으로의 수수를 나타냄. あげる(줌)·もらう(받음)와 구별' },
+        furigana: 'ともだちがぷれぜんとをくれた',
+        accentData: [
+          { phrase_id: 0, mora_count: 14, accent: [0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1] },
+        ],
+      },
+      {
+        korean:   '그는 아무것도 가르쳐 주지 않았습니다.',
+        japanese: '彼(かれ)は何(なに)も教(おし)えてくれませんでした。',
+        plain:    '彼は何も教えてくれなかった。',
+        reading:  '카레와 나니모 오시에테 쿠레마셍데시타.',
+        pattern:  { name: '〜てくれる', meaning: '~해 주다 (나를 위해)', note: 'て형 + くれる. 타인이 나를 위해 행동해 줄 때 사용. ~てあげる와 시점 반대' },
+        furigana: 'かれはなにもおしえてくれませんでした',
+        accentData: [
+          { phrase_id: 0, mora_count: 18, accent: [1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '도와줘서 고마워.',
+        japanese: '助(たす)けてくれてありがとう。',
+        plain:    '助けてくれてありがとう。',
+        reading:  '타스케테 쿠레테 아리가토ー.',
+        pattern:  { name: '〜てくれてありがとう', meaning: '~해 줘서 고마워', note: 'くれる의 て형으로 감사의 이유를 나타냄. 구어에서 자주 쓰이는 표현' },
+        furigana: 'たすけてくれてありがとう',
+        accentData: [
+          { phrase_id: 0, mora_count: 12, accent: [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0] },
+        ],
+      },
+    ],
+  },
+  /* ══════════════════════════════════════════════════
+   * 28위  知る
+   * ══════════════════════════════════════════════════ */
+  {
+    id: 'shiru', rank: 28, verb: '知る', reading: '시루', meaning: '알다',
+    accentType: 0,
+    conjugations: {
+      formal: [
+        { text: 'しります',             ruby: '시리마스',          meaning: '압니다' },
+        { text: 'しりません',           ruby: '시리마셍',          meaning: '모릅니다' },
+        { text: 'しりますか？',         ruby: '시리마스까?',       meaning: '아십니까?' },
+        { text: 'しりませんか？',       ruby: '시리마셍까?',       meaning: '모르십니까?' },
+        { text: 'しりました',           ruby: '시리마시타',        meaning: '알게 되었습니다' },
+        { text: 'しりませんでした',     ruby: '시리마셍데시타',    meaning: '몰랐습니다' },
+        { text: 'しりましたか？',       ruby: '시리마시타까?',     meaning: '아셨습니까?' },
+        { text: 'しりませんでしたか？', ruby: '시리마셍데시타까?', meaning: '모르셨습니까?' },
+      ],
+      casual: [
+        { text: 'しる',           ruby: '시루',        meaning: '알아' },
+        { text: 'しらない',       ruby: '시라나이',    meaning: '몰라' },
+        { text: 'しる？',         ruby: '시루?',       meaning: '알아?' },
+        { text: 'しらない？',     ruby: '시라나이?',   meaning: '몰라?' },
+        { text: 'しった',         ruby: '싯타',        meaning: '알게 됐어' },
+        { text: 'しらなかった',   ruby: '시라나캇타',  meaning: '몰랐어' },
+        { text: 'しった？',       ruby: '싯타?',       meaning: '알게 됐어?' },
+        { text: 'しらなかった？', ruby: '시라나캇타?', meaning: '몰랐어?' },
+      ],
+    },
+    examples: [
+      {
+        korean:   '그 사람에 대해 알고 있어?',
+        japanese: '彼(かれ)のことを知(し)っている？',
+        plain:    '彼のことを知っている？',
+        reading:  '카레노 코토오 싯테이루?',
+        pattern:  { name: '〜を知っている', meaning: '~을/를 알고 있다', note: '知る는 순간동사. 현재 "알다" 상태는 知っている(알고 있다)로 표현' },
+        furigana: 'かれのことをしっている',
+        accentData: [
+          { phrase_id: 0, mora_count: 11, accent: [1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1] },
+        ],
+      },
+      {
+        korean:   '그 이야기는 몰랐습니다.',
+        japanese: 'その話(はなし)は知(し)りませんでした。',
+        plain:    'その話は知らなかった。',
+        reading:  '소노 하나시와 시리마셍데시타.',
+        pattern:  { name: '〜を知りませんでした', meaning: '~을/를 몰랐습니다', note: '知る의 과거 부정 정중 표현. 知らなかった의 격식체' },
+        furigana: 'そのはなしはしりませんでした',
+        accentData: [
+          { phrase_id: 0, mora_count: 14, accent: [0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0] },
+        ],
+      },
+      {
+        korean:   '일본 문화를 더 잘 알고 싶어.',
+        japanese: '日本(にほん)の文化(ぶんか)をもっとよく知(し)りたい。',
+        plain:    '日本の文化をもっとよく知りたい。',
+        reading:  '니혼노 분카오 못토 요쿠 시리타이.',
+        pattern:  { name: '〜たい', meaning: '~하고 싶다', note: '동사 연용형 + たい. 화자의 희망이나 바람을 나타냄' },
+        furigana: 'にほんのぶんかをもっとよくしりたい',
+        accentData: [
+          { phrase_id: 0, mora_count: 17, accent: [0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0] },
+        ],
+      },
+    ],
+  },
   { id: 'oku2', rank: 29, verb: '置く', reading: '오쿠', meaning: '두다; 놓다', conjugations: null, examples: [] },
   /* ══════════════════════════════════════════════════
    * 30위  入る

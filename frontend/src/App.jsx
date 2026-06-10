@@ -273,6 +273,13 @@ export default function App() {
         {/* 앱 헤더 */}
         <div className="app-header">
           <h1 className="app-title" onClick={handleHome} style={{ cursor: 'pointer' }}>
+            <img
+              src="/favicon.svg"
+              alt=""
+              width="22"
+              height="22"
+              style={{ verticalAlign: '-4px', marginRight: '7px' }}
+            />
             틱재팬{' '}
             <span style={{ fontWeight: 400, color: '#888888', fontSize: '14px' }}>
               일본어 번역기

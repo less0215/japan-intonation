@@ -66,7 +66,7 @@ function ExampleBox({ example }) {
 
   const plainText  = stripFurigana(example.jp)
   const furigana   = extractFurigana(example.jp)
-  const accentData = furigana ? computeAccent(furigana, 0) : null
+  const accentData = example.accentData ?? (furigana ? computeAccent(furigana, 0) : null)
   const graphActive = showGraph && accentData
 
   async function handlePlay() {
@@ -184,7 +184,6 @@ export default function ParticleDetail({ particle }) {
             {particle.particle}
           </span>
           <span style={{ fontSize: 16, color: '#aaa' }}>({particle.reading})</span>
-          <span style={{ fontSize: 13, color: '#888', marginLeft: 4 }}>제{particle.rank}위</span>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {particle.meanings.map((m, i) => (

@@ -65,7 +65,7 @@ function ExampleBox({ example }) {
   const audioRef = useRef(null)
 
   const plainText  = stripFurigana(example.jp)
-  const furigana   = extractFurigana(example.jp)
+  const furigana   = example.furigana ?? extractFurigana(example.jp)
   const accentData = example.accentData ?? (furigana ? computeAccent(furigana, 0) : null)
   const graphActive = showGraph && accentData
 

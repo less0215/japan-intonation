@@ -33,15 +33,22 @@ export default function PitchGraph({ accentData, furigana, hideHeader = false })
   const allMora = splitMora(furigana)
 
   // phrase 순서대로 mora + accent 통합
+  // 마지막 phrase가 나머지 mora를 모두 흡수해 잘림 없이 전체 문장을 표시
   const moraList   = []
   const accentList = []
 
   accentData.forEach((phrase, pi) => {
-    const offset = accentData.slice(0, pi).reduce((s, p) => s + p.mora_count, 0)
-    const mora   = allMora.slice(offset, offset + phrase.mora_count)
+    const isLast = pi === accentData.length - 1
+    const offset = moraList.length
+    const count  = isLast
+      ? allMora.length - offset          // 마지막은 남은 mora 전부
+      : Math.min(phrase.mora_count, allMora.length - offset)
+    const mora = allMora.slice(offset, offset + count)
     mora.forEach((m, j) => {
       moraList.push(m)
-      accentList.push(phrase.accent[j] ?? 0)
+      // accent 배열 밖이면 마지막 값 반복
+      const lastAcc = phrase.accent[phrase.accent.length - 1] ?? 0
+      accentList.push(phrase.accent[j] ?? lastAcc)
     })
   })
 

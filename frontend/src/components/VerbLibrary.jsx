@@ -96,8 +96,15 @@ export default function VerbLibrary() {
   const navigate  = useNavigate()
   const rankTabs  = useMemo(() => getRankTabs(VERBS, 10), [])
 
-  const [selectedTab, setSelectedTab] = useState(rankTabs[0]?.id ?? '')
-  const [sortBy,      setSortBy]      = useState('rank')
+  const [selectedTab, setSelectedTab] = useState(
+    () => sessionStorage.getItem('verbLibTab') ?? rankTabs[0]?.id ?? ''
+  )
+  const [sortBy, setSortBy] = useState('rank')
+
+  function handleTabChange(id) {
+    sessionStorage.setItem('verbLibTab', id)
+    setSelectedTab(id)
+  }
 
   const currentTab = rankTabs.find(t => t.id === selectedTab) ?? rankTabs[0]
 
@@ -136,7 +143,7 @@ export default function VerbLibrary() {
           return (
             <button
               key={tab.id}
-              onClick={() => setSelectedTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               style={{
                 ...styles.tabBtn,
                 backgroundColor: active ? PRIMARY : '#ffffff',

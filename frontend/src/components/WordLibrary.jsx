@@ -14,8 +14,16 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
   const navigate  = useNavigate()
   const rankTabs  = useMemo(() => getRankTabs(items, 10), [items])
 
-  const [selectedTab, setSelectedTab] = useState(rankTabs[0]?.id ?? '')
-  const [sortBy,      setSortBy]      = useState('rank')
+  const storageKey = `wordLibTab_${wordType}`
+  const [selectedTab, setSelectedTab] = useState(
+    () => sessionStorage.getItem(storageKey) ?? rankTabs[0]?.id ?? ''
+  )
+  const [sortBy, setSortBy] = useState('rank')
+
+  function handleTabChange(id) {
+    sessionStorage.setItem(storageKey, id)
+    setSelectedTab(id)
+  }
 
   const currentTab = rankTabs.find(t => t.id === selectedTab) ?? rankTabs[0]
 
@@ -57,7 +65,7 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
           return (
             <button
               key={tab.id}
-              onClick={() => setSelectedTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               style={{
                 ...styles.tabBtn,
                 backgroundColor: active ? PRIMARY : '#ffffff',

@@ -113,8 +113,8 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [menuOpen, setMenuOpen]       = useState(false)
 
-  // 비로그인 번역 횟수 — localStorage 기반, 5회 초과 시 로그인 유도
-  const TRANSLATE_LIMIT = 5
+  // 비로그인 번역 횟수 — localStorage 기반, 3회 초과 시 로그인 유도
+  const TRANSLATE_LIMIT = 2
   function getGuestCount() { return parseInt(localStorage.getItem('tickjapan_translate_count') || '0', 10) }
   function incrementGuestCount() {
     const next = getGuestCount() + 1

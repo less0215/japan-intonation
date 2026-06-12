@@ -192,6 +192,50 @@ export default function ParticleDetail({ particle }) {
         </div>
       </div>
 
+      {/* 인스타 강의 배너 */}
+      <a
+        href="https://www.instagram.com/p/DZe9rFoNUJI/"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '13px 16px',
+          background: 'linear-gradient(135deg, #fdf0f8 0%, #fff5fb 100%)',
+          border: '1.5px solid #f0c0de',
+          borderRadius: 12,
+          textDecoration: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+          <defs>
+            <linearGradient id="ig3" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#f09433"/>
+              <stop offset="25%" stopColor="#e6683c"/>
+              <stop offset="50%" stopColor="#dc2743"/>
+              <stop offset="75%" stopColor="#cc2366"/>
+              <stop offset="100%" stopColor="#bc1888"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#ig3)"/>
+          <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.8" fill="none"/>
+          <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
+        </svg>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#c0306a' }}>
+            {particle.particle} 표현 확장 무료 강의
+          </p>
+          <p style={{ margin: '2px 0 0', fontSize: 12, color: '#b06090' }}>
+            조사 활용 완벽 정복 · 인스타그램에서 보기
+          </p>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <path d="M9 18l6-6-6-6" stroke="#c0306a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </a>
+
       {/* 용법 카드들 */}
       {particle.usages.map((usage, i) => (
         <div key={i} className="card">

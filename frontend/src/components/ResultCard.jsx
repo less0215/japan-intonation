@@ -165,52 +165,6 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
           <>
             <BreakdownTable breakdown={breakdown} showDetail={showDetail} />
             <BreakdownCards breakdown={breakdown} showDetail={showDetail} />
-            {/* 동사 감지 시 인스타 강의 CTA */}
-            {(() => {
-              const verbRow = breakdown.find(r => r.part_of_speech?.includes('동사'))
-              if (!verbRow) return null
-              return (
-                <a
-                  href="https://www.instagram.com/p/DZVF2naN7QW/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    margin: '10px 0 2px',
-                    padding: '11px 14px',
-                    background: 'linear-gradient(135deg, #fdf0f8 0%, #fff5fb 100%)',
-                    border: '1.5px solid #f0c0de',
-                    borderRadius: 10,
-                    textDecoration: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                    <defs>
-                      <linearGradient id="igr" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#f09433"/>
-                        <stop offset="50%" stopColor="#dc2743"/>
-                        <stop offset="100%" stopColor="#bc1888"/>
-                      </linearGradient>
-                    </defs>
-                    <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#igr)"/>
-                    <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.8" fill="none"/>
-                    <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
-                  </svg>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#c0306a' }}>
-                      {verbRow.unit} 표현 확장 무료 강의
-                    </p>
-                    <p style={{ margin: '1px 0 0', fontSize: 11, color: '#b06090' }}>
-                      동사 활용 완벽 정복 · 인스타그램에서 보기
-                    </p>
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                    <path d="M9 18l6-6-6-6" stroke="#c0306a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </a>
-              )
-            })()}
           </>
         ) : breakdownLoading ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 4px', color: '#aaa' }}>
@@ -219,6 +173,57 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
           </div>
         ) : null}
       </div>
+
+      {/* 동사 감지 시 인스타 강의 CTA — 저장 버튼 위 */}
+      {hasBreakdown && (() => {
+        const verbRow = breakdown.find(r => r.part_of_speech?.includes('동사'))
+        if (!verbRow) return null
+        // korean_meaning에서 첫 번째 기본형만 추출 (쉼표·슬래시·괄호 앞까지)
+        const baseForm = (verbRow.korean_meaning || '').split(/[,\/（(]/)[0].trim()
+        if (!baseForm) return null
+        return (
+          <div style={{ padding: '0 16px 12px' }}>
+            <a
+              href="https://www.instagram.com/p/DZVF2naN7QW/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '12px 14px',
+                background: 'linear-gradient(135deg, #fdf0f8 0%, #fff5fb 100%)',
+                border: '1.5px solid #f0c0de',
+                borderRadius: 10,
+                textDecoration: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                <defs>
+                  <linearGradient id="igr" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#f09433"/>
+                    <stop offset="50%" stopColor="#dc2743"/>
+                    <stop offset="100%" stopColor="#bc1888"/>
+                  </linearGradient>
+                </defs>
+                <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#igr)"/>
+                <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.8" fill="none"/>
+                <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
+              </svg>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#c0306a' }}>
+                  '{baseForm}' 표현 확장 무료 강의 보러가기
+                </p>
+                <p style={{ margin: '2px 0 0', fontSize: 11, color: '#b06090' }}>
+                  동사 활용 완벽 정복 · 인스타그램에서 보기
+                </p>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M9 18l6-6-6-6" stroke="#c0306a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
+        )
+      })()}
 
       {/* 저장 버튼 */}
       <div style={{ padding: '0 16px 18px' }}>

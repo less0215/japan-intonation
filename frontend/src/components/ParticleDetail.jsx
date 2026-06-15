@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PARTICLES } from '../data/particles'
 import PitchGraph from './PitchGraph'
+import WordBookmarkButton from './WordBookmarkButton'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -179,11 +180,14 @@ export default function ParticleDetail({ particle }) {
 
       {/* 헤더 카드 */}
       <div className="card" style={{ padding: '24px 20px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
-          <span style={{ fontSize: 48, fontWeight: 800, color: '#5CA9CE', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1 }}>
-            {particle.particle}
-          </span>
-          <span style={{ fontSize: 16, color: '#aaa' }}>({particle.reading})</span>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <span style={{ fontSize: 48, fontWeight: 800, color: '#5CA9CE', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1 }}>
+              {particle.particle}
+            </span>
+            <span style={{ fontSize: 16, color: '#aaa' }}>({particle.reading})</span>
+          </div>
+          <WordBookmarkButton wordInfo={{ id: particle.id, category: 'particle', word: particle.particle, reading: particle.reading, meaning: particle.meanings[0] ?? '' }} />
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {particle.meanings.map((m, i) => (

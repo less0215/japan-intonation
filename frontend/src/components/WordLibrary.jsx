@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import WordBookmarkButton from './WordBookmarkButton'
 
 const PRIMARY = '#5CA9CE'
 
@@ -120,7 +121,10 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
                 onClick={() => navigate(`/${wordType}/${item.id}`)}
                 style={styles.verbCard}
               >
-                <span style={styles.rankBadge}>#{item.rank}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: 2 }}>
+                  <span style={styles.rankBadge}>#{item.rank}</span>
+                  <WordBookmarkButton wordInfo={{ id: item.id, category: wordType, word: item.verb, reading: item.reading, meaning: item.meaning }} size="small" />
+                </div>
                 <span style={styles.verbJapanese}>{item.verb}</span>
                 <span style={styles.verbReading}>{item.reading}</span>
                 <span style={styles.verbMeaning}>{item.meaning}</span>

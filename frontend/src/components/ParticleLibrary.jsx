@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import WordBookmarkButton from './WordBookmarkButton'
 
 const PRIMARY = '#5CA9CE'
 
@@ -42,12 +43,15 @@ export default function ParticleLibrary({ items }) {
             ))}
           </div>
 
-          {/* 오른쪽: 화살표 */}
-          <svg width="16" height="16" viewBox="0 0 24 24"
-            fill="none" stroke="#ccc" strokeWidth="2.2"
-            strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          {/* 오른쪽: 북마크 + 화살표 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <WordBookmarkButton wordInfo={{ id: item.id, category: 'particle', word: item.particle, reading: item.reading, meaning: item.meanings[0] ?? '' }} size="small" />
+            <svg width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="#ccc" strokeWidth="2.2"
+              strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
         </button>
       ))}
     </div>

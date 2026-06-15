@@ -25,7 +25,7 @@ function ExampleAnalysis({ japaneseText }) {
         const res = await fetch(`${API_URL}/breakdown`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: japaneseText }),
+          body: JSON.stringify({ japanese: japaneseText }),
         })
         if (!res.ok) throw new Error()
         const data = await res.json()

@@ -185,7 +185,8 @@ export default function App() {
   }
 
   // 문장 분해를 별도 호출로 가져와 결과에 병합한다. 실패해도 번역 결과는 유지.
-  async function fetchBreakdown(translationData, text) {
+  // skipSave: 저장된 항목 불러오기 시 재저장 방지
+  async function fetchBreakdown(translationData, text, skipSave = false) {
     setBreakdownLoading(true)
     try {
       const res = await fetch(`${API_URL}/breakdown`, {
@@ -197,9 +198,9 @@ export default function App() {
       const { breakdown } = await res.json()
       const merged = { ...translationData, breakdown }
       setResult(merged)
-      if (user) doSave(user, text, merged)        // 로그인 상태일 때만 자동 저장
+      if (!skipSave && user) doSave(user, text, merged)
     } catch {
-      if (user) doSave(user, text, translationData) // 로그인 상태일 때만 자동 저장
+      if (!skipSave && user) doSave(user, text, translationData)
     } finally {
       setBreakdownLoading(false)
     }
@@ -263,7 +264,7 @@ export default function App() {
     navigate('/')
     /* 저장 당시 breakdown 누락 시 재요청 */
     if (!savedResult.breakdown?.length) {
-      fetchBreakdown(savedResult, savedInput)
+      fetchBreakdown(savedResult, savedInput, true)
     } else {
       setBreakdownLoading(false)
     }

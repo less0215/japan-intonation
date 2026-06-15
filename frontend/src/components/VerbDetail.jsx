@@ -11,8 +11,8 @@ import { CONJ_LABELS } from '../data/verbs'
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
 
-/* 예문 뜻·원리 보기 — 첫 클릭 시 /analyze 호출, 이후 토글만 */
-function ExampleAnalysis({ koreanText }) {
+/* 예문 활용 원리 보기 — 첫 클릭 시 /breakdown 호출, 이후 토글만 */
+function ExampleAnalysis({ japaneseText }) {
   const [state,      setState]      = useState('idle')   // idle | loading | done | error
   const [showDetail, setShowDetail] = useState(false)
   const [breakdown,  setBreakdown]  = useState(null)
@@ -22,10 +22,10 @@ function ExampleAnalysis({ koreanText }) {
     if (!breakdown) {
       setState('loading')
       try {
-        const res = await fetch(`${API_URL}/analyze`, {
+        const res = await fetch(`${API_URL}/breakdown`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: koreanText }),
+          body: JSON.stringify({ text: japaneseText }),
         })
         if (!res.ok) throw new Error()
         const data = await res.json()
@@ -640,7 +640,7 @@ export default function VerbDetail({ verb, onBack }) {
 
             {/* ③ 뜻·원리 보기 — 좌우 padding */}
             <div style={{ padding: '0 16px 14px' }}>
-              <ExampleAnalysis koreanText={ex.korean} />
+              <ExampleAnalysis japaneseText={ex.plain} />
             </div>
 
           </div>

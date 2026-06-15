@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
+import WordBookmarkButton from './WordBookmarkButton'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -337,6 +338,7 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
           }}>
             {posLabel} #{item.rank}위
           </span>
+          <WordBookmarkButton wordInfo={{ id: item.id, category: wordType, word: item.verb ?? item.word, reading: item.reading, meaning: item.meaning }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 36, fontWeight: 500, fontFamily: "'Noto Sans JP', sans-serif" }}>

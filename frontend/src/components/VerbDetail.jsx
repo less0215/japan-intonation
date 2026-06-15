@@ -3,6 +3,7 @@ import PitchGraph from './PitchGraph'
 import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
 import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
+import WordBookmarkButton from './WordBookmarkButton'
 import { CONJ_LABELS } from '../data/verbs'
 
 const PRIMARY  = '#5CA9CE'
@@ -532,6 +533,7 @@ export default function VerbDetail({ verb, onBack }) {
           }}>
             동사 #{verb.rank}위
           </span>
+          <WordBookmarkButton wordInfo={{ id: verb.id, category: 'verb', word: verb.verb, reading: verb.reading, meaning: verb.meaning }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 36, fontWeight: 500, fontFamily: "'Noto Sans JP', sans-serif" }}>

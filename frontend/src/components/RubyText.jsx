@@ -33,29 +33,19 @@ export default function RubyText({ text, fontSize = 15, fontWeight = 500 }) {
   }
   if (last < text.length) parts.push({ type: 'plain', text: text.slice(last) })
 
-  const rtSize = Math.max(9, Math.round(fontSize * 0.62))
+  const rtSize = Math.max(9, Math.round(fontSize * 0.72))
 
   return (
-    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight, lineHeight: 2, display: 'inline' }}>
+    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight, lineHeight: 1.8 }}>
       {parts.map((p, i) =>
         p.type === 'ruby' ? (
-          /* flex 컬럼으로 후리가나를 한자 바로 위에 고정 — 브라우저 ruby 간격 늘림 없음 */
-          <span key={i} style={{
-            display: 'inline-flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            verticalAlign: 'bottom',
-            lineHeight: 1,
-          }}>
-            <span style={{ fontSize: rtSize, color: '#888', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
-              {p.reading}
-            </span>
-            <span style={{ lineHeight: 1.4 }}>{p.kanji}</span>
+          /* 괄호 표기: 話(はな)す — 밀림 없는 교재 스타일 */
+          <span key={i}>
+            {p.kanji}
+            <span style={{ fontSize: rtSize, color: '#888' }}>({p.reading})</span>
           </span>
         ) : (
-          <span key={i} style={{ verticalAlign: 'bottom', lineHeight: 1.4, display: 'inline-block' }}>
-            {p.text}
-          </span>
+          <span key={i}>{p.text}</span>
         )
       )}
     </span>

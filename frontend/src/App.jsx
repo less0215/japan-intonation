@@ -316,10 +316,25 @@ export default function App() {
               )}
             </div>
           ) : (
-            /* 비로그인: 로그인 버튼 */
-            <button onClick={handleLoginClick} className="login-btn">
-              로그인
-            </button>
+            /* 비로그인: 저장 단어 버튼 + 로그인 버튼 */
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={() => setShowHistory(true)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#5CA9CE',
+                }}
+                title="저장 단어"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+              </button>
+              <button onClick={handleLoginClick} className="login-btn">
+                로그인
+              </button>
+            </div>
           )}
         </div>
 
@@ -535,7 +550,7 @@ export default function App() {
           onClose={() => setShowSignup(false)}
         />
       )}
-      {showHistory && user && (
+      {showHistory && (
         <HistoryDrawer user={user} onClose={() => setShowHistory(false)} onSelect={handleSelectSaved} />
       )}
     </div>

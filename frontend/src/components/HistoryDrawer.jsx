@@ -20,8 +20,8 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
   const { savedWords, toggleSaveWord } = useUser()
   const navigate = useNavigate()
 
-  /* 탭: 'saves' | 'words' */
-  const [mainTab, setMainTab] = useState('saves')
+  /* 탭: 'saves' | 'words' — 비로그인이면 단어 탭이 기본 */
+  const [mainTab, setMainTab] = useState(user ? 'saves' : 'words')
 
   /* 번역 저장 목록 */
   const [items, setItems]     = useState([])
@@ -30,8 +30,9 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
   /* 단어 카테고리 필터 */
   const [wordCat, setWordCat] = useState('all')
 
-  /* 번역 저장 목록 불러오기 */
+  /* 번역 저장 목록 불러오기 (로그인 시에만) */
   useEffect(() => {
+    if (!user) { setLoading(false); return }
     async function fetchSaves() {
       try {
         const res = await fetch(`${API_URL}/saves/${user.user_id}`)
@@ -45,7 +46,7 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
       }
     }
     fetchSaves()
-  }, [user.user_id])
+  }, [user?.user_id])
 
   /* 번역 항목 삭제 */
   async function handleDelete(e, saveId) {
@@ -80,7 +81,7 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
         {/* 헤더 */}
         <div className="drawer-header">
           <span className="drawer-title">
-            저장 목록 <span style={{ color: PRIMARY }}>{user.name}</span>
+            저장 목록 {user && <span style={{ color: PRIMARY }}>{user.name}</span>}
           </span>
           <button className="drawer-close" onClick={onClose}>✕</button>
         </div>
@@ -126,7 +127,9 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
         {/* 번역 저장 탭 */}
         {mainTab === 'saves' && (
           <div className="drawer-list">
-            {loading ? (
+            {!user ? (
+              <p className="drawer-empty">로그인하면 번역 저장 기록을 볼 수 있어요.</p>
+            ) : loading ? (
               <p className="drawer-empty">불러오는 중...</p>
             ) : items.length === 0 ? (
               <p className="drawer-empty">

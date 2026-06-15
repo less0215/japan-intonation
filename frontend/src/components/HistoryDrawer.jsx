@@ -88,11 +88,13 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
   const filteredWords    = wordCat    === 'all' ? savedWords    : savedWords.filter(w => w.category === wordCat)
   const filteredExamples = exampleCat === 'all' ? savedExamples : savedExamples.filter(e => e.wordCategory === exampleCat)
 
+  function fmtCount(n) { return n >= 100 ? '99+' : n }
+
   /* 메인 탭 정의 */
   const MAIN_TABS = [
-    { id: 'saves',    label: '번역 저장' },
-    { id: 'words',    label: '저장 단어',   count: savedWords.length },
-    { id: 'examples', label: '저장 예문',   count: savedExamples.length },
+    { id: 'saves',    label: '번역 저장', count: loading ? 0 : items.length },
+    { id: 'words',    label: '저장 단어', count: savedWords.length },
+    { id: 'examples', label: '저장 예문', count: savedExamples.length },
   ]
 
   return (
@@ -139,7 +141,7 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
                   fontWeight: 700,
                   padding: '1px 5px',
                 }}>
-                  {t.count}
+                  {fmtCount(t.count)}
                 </span>
               )}
             </button>

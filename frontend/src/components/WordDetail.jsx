@@ -226,8 +226,7 @@ function ExampleCard({ example, wordInfo, index }) {
       <span style={{ fontSize: 13, color: '#888' }}>{example.korean}</span>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 500, color: '#111', lineHeight: 1.6 }}
-            dangerouslySetInnerHTML={{ __html: example.japanese }} />
+          <RubyText text={example.japanese} fontSize={15} fontWeight={500} />
           <span style={{ fontSize: 12, color: '#aaa' }}>{example.reading}</span>
         </div>
         <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>

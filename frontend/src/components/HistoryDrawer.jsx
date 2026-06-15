@@ -161,10 +161,10 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
 
         {/* 저장 단어 탭 */}
         {mainTab === 'words' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
 
             {/* 카테고리 필터 */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 2px' }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 16px', flexShrink: 0 }}>
               {CATEGORY_TABS.map(cat => (
                 <button
                   key={cat.id}

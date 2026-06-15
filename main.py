@@ -137,47 +137,62 @@ Rules:
     - 中高型 / 尾高型: place downstep at the correct position
 """
 
-# 2단계 문장 분해 프롬프트 — 이미 번역된 일본어 문장을 단어별로 분해.
-# 입력은 1단계가 생성한 일본어 문장이므로 재번역 없이 일관성 유지.
+# 2단계 문장 분해 프롬프트 — 의미 덩어리(청크) 단위로 분해해 학습 포인트 중심으로 설명.
 BREAKDOWN_PROMPT = """You are a Japanese grammar expert who explains Japanese to Korean learners.
 
-You are given a Japanese sentence (already translated). Break it down into grammatical units.
+You are given a Japanese sentence. Break it into MEANINGFUL CHUNKS (not individual morphemes).
 Respond with ONLY a valid JSON object. No explanation. No extra text.
 
-Use this exact structure:
+Chunking rules:
+- Group a noun/verb/adjective TOGETHER with its attached particles or auxiliary verbs into one chunk.
+  e.g. 日本語を → one chunk (noun + particle), ことができます → one chunk (grammar pattern)
+- Grammar patterns like 〜ことができる, 〜てみる, 〜てしまう, 〜ようにする must be one chunk.
+- Aim for 3–7 chunks per sentence. Never split a grammar pattern across chunks.
+- Conjugated verb/adjective chunks should have conjugation_steps.
+
+Example — 日本語を話すことができますか？:
 {
   "breakdown": [
     {
-      "unit": "毎日",
-      "hiragana": "まいにち",
-      "korean_pronunciation": "마이니치",
-      "korean_meaning": "매일",
-      "part_of_speech": "부사",
+      "unit": "日本語を",
+      "hiragana": "にほんごを",
+      "korean_pronunciation": "니혼고오",
+      "korean_meaning": "일본어를",
+      "part_of_speech": "명사+조사",
       "conjugation_steps": null
     },
     {
-      "unit": "しています",
-      "hiragana": "しています",
-      "korean_pronunciation": "시테이마스",
-      "korean_meaning": "하고 있습니다",
+      "unit": "話す",
+      "hiragana": "はなす",
+      "korean_pronunciation": "하나스",
+      "korean_meaning": "말하다",
       "part_of_speech": "동사",
       "conjugation_steps": [
-        {"step": 1, "form": "する", "label": "기본형 (사전형)", "note": "する (불규칙 동사)"},
-        {"step": 2, "form": "して", "label": "て형", "note": "する → して (불규칙 활용)"},
-        {"step": 3, "form": "しています", "label": "て형 + います", "note": "진행·상태를 나타냄 / 정중체"}
+        {"step": 1, "form": "話す", "label": "기본형 (사전형)", "note": "5단 활용 동사"}
+      ]
+    },
+    {
+      "unit": "ことができますか",
+      "hiragana": "ことができますか",
+      "korean_pronunciation": "코토가데키마스카",
+      "korean_meaning": "~할 수 있습니까?",
+      "part_of_speech": "문법 패턴",
+      "conjugation_steps": [
+        {"step": 1, "form": "できる", "label": "기본형", "note": "가능·잠재를 나타내는 이단 동사"},
+        {"step": 2, "form": "できます", "label": "ます형 (정중체)", "note": "できる → できます"},
+        {"step": 3, "form": "できますか", "label": "의문형", "note": "か를 붙여 정중한 의문문 형성"}
       ]
     }
   ]
 }
 
-Rules:
-- Split the given sentence into grammatical units with no gaps or overlaps.
-- "unit": the surface form as it appears in the sentence (kanji where used)
-- "hiragana": reading of this unit in hiragana
-- "korean_pronunciation": Korean-character pronunciation of this unit
-- "korean_meaning": Korean meaning of this unit
-- "part_of_speech": one of 명사/동사/형용사/부사/조사/조동사/접속사/감탄사/기타
-- "conjugation_steps": null for uninflected words; array for conjugated forms
+Fields:
+- "unit": surface form as it appears in the sentence (kanji where used)
+- "hiragana": reading in hiragana
+- "korean_pronunciation": Korean-character pronunciation
+- "korean_meaning": Korean meaning of this chunk
+- "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
+- "conjugation_steps": null for uninflected chunks; array for conjugated/pattern chunks
   Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
 """
 

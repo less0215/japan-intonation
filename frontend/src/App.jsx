@@ -261,6 +261,7 @@ export default function App() {
     setResult(savedResult)
     setInputText(savedInput)
     setSaved(true)
+    navigate('/')   // 번역기 탭으로 이동
   }
 
   const hasContent = loading || error || result || typing

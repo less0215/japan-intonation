@@ -287,33 +287,17 @@ export default function App() {
           </h1>
 
           {user ? (
-            /* 로그인 상태: 계정 아이콘 + 드롭다운 메뉴 (저장 목록 / 로그아웃) */
-            <div className="header-menu">
-              <button
-                className="account-btn"
-                onClick={() => setMenuOpen(o => !o)}
-                aria-label="계정 메뉴"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
+            /* 로그인 상태: 이름 + 저장 목록 + 로그아웃 버튼 */
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13, color: '#555', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                {user.name}님
+              </span>
+              <button onClick={() => setShowHistory(true)} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
+                저장 목록
               </button>
-              {menuOpen && (
-                <>
-                  <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
-                  <div className="menu-dropdown">
-                    <div className="menu-user">{user.name}님</div>
-                    <button className="menu-item" onClick={() => { setShowHistory(true); setMenuOpen(false) }}>
-                      저장 목록
-                    </button>
-                    <button className="menu-item menu-item--muted" onClick={() => { handleLogout(); setMenuOpen(false) }}>
-                      로그아웃
-                    </button>
-                  </div>
-                </>
-              )}
+              <button onClick={handleLogout} className="login-btn" style={{ background: 'transparent', color: '#aaa', borderColor: '#e0e0e0' }}>
+                로그아웃
+              </button>
             </div>
           ) : (
             /* 비로그인: 저장 목록 버튼 + 로그인 버튼 */

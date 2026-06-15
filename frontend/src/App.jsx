@@ -438,10 +438,9 @@ export default function App() {
               {result?.breakdown && (() => {
                 const verbRow = result.breakdown.find(r => r.part_of_speech?.includes('동사'))
                 if (!verbRow) return null
-                const raw = (verbRow.korean_meaning || '').split(/[,\/（(]/)[0].trim()
-                if (!raw) return null
-                // 동사 어간만 내려올 경우 '다' 추가
-                const baseForm = raw.endsWith('다') ? raw : raw + '다'
+                // 활용형 의미(가서, 먹어서 등)는 어색하므로 일본어 기본형(사전형) 우선 사용
+                const baseStep = verbRow.conjugation_steps?.find(s => s.label?.includes('기본형') || s.label?.includes('사전형'))
+                const baseForm = baseStep?.form || verbRow.unit
                 return (
                   <a
                     href="https://www.instagram.com/p/DZVF2naN7QW/"

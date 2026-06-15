@@ -298,7 +298,7 @@ function ExampleCard({ example }) {
             <div style={{ padding: '10px 12px', background: '#f8fbfe', border: `1px solid ${PRIMARY}22`, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#222' }}>{example.pattern.name}</span>
               <span style={{ fontSize: 13, color: PRIMARY, fontWeight: 600 }}>{example.pattern.meaning}</span>
-              <span style={{ fontSize: 12, color: '#777', lineHeight: 1.5 }}>{example.pattern.note}</span>
+              <span style={{ fontSize: 12, color: '#777', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{example.pattern.note}</span>
             </div>
           )}
         </>

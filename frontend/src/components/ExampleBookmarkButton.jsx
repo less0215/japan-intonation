@@ -35,16 +35,7 @@ export default function ExampleBookmarkButton({ exampleInfo }) {
 
   return (
     <button style={btnStyle} onClick={handleClick} title={saved ? '저장 취소' : '예문 저장'}>
-      {saved ? (
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="#1D9E75" stroke="none">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-        </svg>
-      ) : (
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-        </svg>
-      )}
-      {saved ? '저장됨' : '저장'}
+      {saved ? '저장됨' : '저장하기'}
     </button>
   )
 }

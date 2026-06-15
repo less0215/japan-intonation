@@ -648,10 +648,6 @@ export default function VerbDetail({ verb, onBack }) {
                   exampleKr: ex.korean,
                 }} />
                 <PracticeButton japanesePlain={ex.plain} />
-                <SaveExampleButton
-                  example={ex}
-                  onNeedSignup={(result) => handleNeedSignup(ex.korean, result)}
-                />
               </div>
             </div>
 

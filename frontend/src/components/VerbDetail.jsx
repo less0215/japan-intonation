@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
+import { BreakdownTable, BreakdownCards, DetailToggleButton, ExampleAnalysis } from './BreakdownPanel'
 import PitchGraph from './PitchGraph'
 import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
@@ -11,60 +11,7 @@ import { CONJ_LABELS } from '../data/verbs'
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
 
-/* 예문 활용 원리 보기 — 첫 클릭 시 /breakdown 호출해 문장 전체를 의미 덩어리로 해설, 이후 토글 */
-function ExampleAnalysis({ japaneseText }) {
-  const [state,      setState]      = useState('idle')
-  const [showDetail, setShowDetail] = useState(false)
-  const [breakdown,  setBreakdown]  = useState(null)
 
-  async function handleToggle() {
-    if (!breakdown) {
-      setState('loading')
-      try {
-        const res = await fetch(`${API_URL}/breakdown`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ japanese: japaneseText }),
-        })
-        if (!res.ok) throw new Error()
-        const data = await res.json()
-        setBreakdown(data.breakdown ?? [])
-        setState('done')
-        setShowDetail(true)
-      } catch {
-        setState('error')
-      }
-      return
-    }
-    setShowDetail(v => !v)
-  }
-
-  return (
-    <div>
-      <div style={{ borderTop: '1px solid #f0f0f0', margin: '12px 0 10px' }} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {state === 'loading' ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="spinner" style={{ width: 12, height: 12, borderTopColor: PRIMARY, borderColor: `${PRIMARY}33` }} />
-            <span style={{ fontSize: 11, color: '#aaa' }}>분석 중...</span>
-          </div>
-        ) : state === 'error' ? (
-          <button onClick={handleToggle} style={btnStyle('#e53e3e', '#fff5f5', '#fed7d7')}>
-            다시 시도
-          </button>
-        ) : (
-          <DetailToggleButton showDetail={showDetail} onToggle={handleToggle} />
-        )}
-      </div>
-      {breakdown && showDetail && breakdown.length > 0 && (
-        <div style={{ marginTop: 12 }}>
-          <BreakdownTable breakdown={breakdown} showDetail={showDetail} />
-          <BreakdownCards breakdown={breakdown} showDetail={showDetail} />
-        </div>
-      )}
-    </div>
-  )
-}
 
 function btnStyle(color, bg, border) {
   return {

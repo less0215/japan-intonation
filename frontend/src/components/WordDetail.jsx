@@ -3,6 +3,7 @@ import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
+import { ExampleAnalysis } from './BreakdownPanel'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -298,6 +299,7 @@ function ExampleCard({ example, wordInfo, index }) {
           )}
         </>
       )}
+      <ExampleAnalysis japaneseText={example.plain} />
     </div>
   )
 }

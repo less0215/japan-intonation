@@ -5,6 +5,7 @@ import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
+import { ExampleAnalysis } from './BreakdownPanel'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -145,6 +146,9 @@ function ExampleBox({ example, exampleInfo }) {
           <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
         </div>
       )}
+
+      {/* 활용 원리 보기 */}
+      <ExampleAnalysis japaneseText={plainText} />
     </div>
   )
 }

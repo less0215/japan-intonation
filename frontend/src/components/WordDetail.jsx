@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
+import ExampleBookmarkButton from './ExampleBookmarkButton'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -207,7 +208,7 @@ function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
 }
 
 /* 예문 카드 */
-function ExampleCard({ example }) {
+function ExampleCard({ example, wordInfo, index }) {
   const [showGraph, setShowGraph] = useState(false)
   const [audioState, setAudioState] = useState('idle')
   const [showPattern, setShowPattern] = useState(false)
@@ -246,7 +247,18 @@ function ExampleCard({ example }) {
             dangerouslySetInnerHTML={{ __html: example.japanese }} />
           <span style={{ fontSize: 12, color: '#aaa' }}>{example.reading}</span>
         </div>
-        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
+          {wordInfo && (
+            <ExampleBookmarkButton exampleInfo={{
+              id: `${wordInfo.category}_${wordInfo.id}_${index}`,
+              wordId: wordInfo.id,
+              wordText: wordInfo.word,
+              wordReading: wordInfo.reading,
+              wordCategory: wordInfo.category,
+              exampleJp: example.plain,
+              exampleKr: example.korean,
+            }} />
+          )}
           {example.accentData?.length > 0 && (
             <button onClick={() => setShowGraph(v => !v)} title="억양 그래프" style={{
               width: 26, height: 26, borderRadius: 6, border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
@@ -450,9 +462,16 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
 
       {/* 예문 */}
       {item.examples?.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div id="examples-section" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <p style={styles.sectionTitle}>예문</p>
-          {item.examples.map((ex, i) => <ExampleCard key={i} example={ex} />)}
+          {item.examples.map((ex, i) => (
+            <ExampleCard
+              key={i}
+              example={ex}
+              wordInfo={{ id: item.id, category: wordType, word: item.verb ?? item.word, reading: item.reading }}
+              index={i}
+            />
+          ))}
         </div>
       )}
     </div>

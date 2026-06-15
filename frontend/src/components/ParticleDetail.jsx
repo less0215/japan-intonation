@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { PARTICLES } from '../data/particles'
 import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
+import ExampleBookmarkButton from './ExampleBookmarkButton'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -60,7 +61,7 @@ function RubyText({ text, fontSize = 15 }) {
 }
 
 /* ── 예문 박스 (즉시 그래프 + TTS) ── */
-function ExampleBox({ example }) {
+function ExampleBox({ example, exampleInfo }) {
   const [showGraph,  setShowGraph]  = useState(false)
   const [audioState, setAudioState] = useState('idle')
   const audioRef = useRef(null)
@@ -102,6 +103,8 @@ function ExampleBox({ example }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <RubyText text={example.jp} fontSize={15} />
         <div style={{ display: 'flex', gap: 5, flexShrink: 0, alignItems: 'center' }}>
+          {/* 예문 저장 버튼 */}
+          {exampleInfo && <ExampleBookmarkButton exampleInfo={exampleInfo} />}
           {/* 억양 그래프 버튼 */}
           {accentData && (
             <button
@@ -242,7 +245,7 @@ export default function ParticleDetail({ particle }) {
 
       {/* 용법 카드들 */}
       {particle.usages.map((usage, i) => (
-        <div key={i} className="card">
+        <div key={i} className="card" id={i === 0 ? 'examples-section' : undefined}>
           <div className="section">
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
               <span className={`particle-section-badge particle-section-badge--${usage.type}`}>
@@ -252,7 +255,18 @@ export default function ParticleDetail({ particle }) {
                 {usage.meaning}
               </span>
             </div>
-            <ExampleBox example={usage.example} />
+            <ExampleBox
+              example={usage.example}
+              exampleInfo={{
+                id: `particle_${particle.id}_${i}`,
+                wordId: particle.id,
+                wordText: particle.particle,
+                wordReading: particle.reading,
+                wordCategory: 'particle',
+                exampleJp: usage.example.jp?.replace(/[（(][^）)]+[）)]/g, '') ?? '',
+                exampleKr: usage.example.kr ?? '',
+              }}
+            />
             <p className="particle-note">
               <RubyText text={usage.note} fontSize={13} />
             </p>

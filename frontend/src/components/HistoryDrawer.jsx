@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
 
-/* 카테고리 레이블 */
+/* 품사 카테고리 레이블 */
 const CATEGORY_TABS = [
   { id: 'all',      label: '전체' },
   { id: 'verb',     label: '동사' },
@@ -15,20 +15,30 @@ const CATEGORY_TABS = [
   { id: 'particle', label: '조사' },
 ]
 
-/* 저장된 결과 목록을 보여주는 하단 드로어 */
+/* 카테고리 → 한국어 레이블 */
+const CAT_LABEL = { verb: '동사', 'adj-na': 'な형용사', 'adj-i': 'い형용사', noun: '명사', particle: '조사' }
+
+/* 카테고리 → 상세 페이지 경로 */
+function getPath(category, id) {
+  const map = { verb: `/verbs/${id}`, 'adj-na': `/adj-na/${id}`, 'adj-i': `/adj-i/${id}`, noun: `/noun/${id}`, particle: `/particles/${id}` }
+  return map[category] ?? null
+}
+
+/* 저장된 결과 목록을 보여주는 드로어 */
 export default function HistoryDrawer({ user, onClose, onSelect }) {
-  const { savedWords, toggleSaveWord } = useUser()
+  const { savedWords, toggleSaveWord, savedExamples, toggleSaveExample } = useUser()
   const navigate = useNavigate()
 
-  /* 탭: 'saves' | 'words' — 비로그인이면 단어 탭이 기본 */
+  /* 메인 탭: 'saves' | 'words' | 'examples' — 비로그인이면 단어 탭 기본 */
   const [mainTab, setMainTab] = useState(user ? 'saves' : 'words')
 
   /* 번역 저장 목록 */
   const [items, setItems]     = useState([])
   const [loading, setLoading] = useState(true)
 
-  /* 단어 카테고리 필터 */
-  const [wordCat, setWordCat] = useState('all')
+  /* 단어 / 예문 카테고리 필터 */
+  const [wordCat,    setWordCat]    = useState('all')
+  const [exampleCat, setExampleCat] = useState('all')
 
   /* 번역 저장 목록 불러오기 (로그인 시에만) */
   useEffect(() => {
@@ -57,22 +67,33 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
     } catch { /* 실패 무시 */ }
   }
 
-  /* 단어 카드 클릭 시 해당 상세 페이지로 이동 */
+  /* 단어 카드 이동 */
   function handleWordClick(word) {
-    const pathMap = {
-      verb: `/verbs/${word.id}`,
-      'adj-na': `/adj-na/${word.id}`,
-      'adj-i':  `/adj-i/${word.id}`,
-      noun:     `/noun/${word.id}`,
-      particle: `/particles/${word.id}`,
-    }
-    const path = pathMap[word.category]
+    const path = getPath(word.category, word.id)
     if (path) { navigate(path); onClose() }
   }
 
-  const filteredWords = wordCat === 'all'
-    ? savedWords
-    : savedWords.filter(w => w.category === wordCat)
+  /* 예문 이동 — 예문 섹션으로 스크롤 */
+  function handleExampleClick(ex) {
+    const path = getPath(ex.wordCategory, ex.wordId)
+    if (!path) return
+    onClose()
+    navigate(path)
+    /* 페이지 이동 후 예문 섹션으로 스크롤 */
+    setTimeout(() => {
+      document.getElementById('examples-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 300)
+  }
+
+  const filteredWords    = wordCat    === 'all' ? savedWords    : savedWords.filter(w => w.category === wordCat)
+  const filteredExamples = exampleCat === 'all' ? savedExamples : savedExamples.filter(e => e.wordCategory === exampleCat)
+
+  /* 메인 탭 정의 */
+  const MAIN_TABS = [
+    { id: 'saves',    label: '번역 저장' },
+    { id: 'words',    label: '저장 단어',   count: savedWords.length },
+    { id: 'examples', label: '저장 예문',   count: savedExamples.length },
+  ]
 
   return (
     <div className="drawer-backdrop" onClick={onClose}>
@@ -87,44 +108,45 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
         </div>
 
         {/* 메인 탭 */}
-        <div style={{ display: 'flex', borderBottom: '1.5px solid #f0f0f0', marginBottom: 12 }}>
-          {[{ id: 'saves', label: '번역 저장' }, { id: 'words', label: '저장 단어' }].map(t => (
+        <div style={{ display: 'flex', borderBottom: '1.5px solid #f0f0f0', flexShrink: 0 }}>
+          {MAIN_TABS.map(t => (
             <button
               key={t.id}
               onClick={() => setMainTab(t.id)}
               style={{
                 flex: 1,
-                padding: '10px 0',
+                padding: '10px 4px',
                 background: 'none',
                 border: 'none',
                 borderBottom: mainTab === t.id ? `2.5px solid ${PRIMARY}` : '2.5px solid transparent',
                 color: mainTab === t.id ? PRIMARY : '#aaa',
                 fontWeight: mainTab === t.id ? 700 : 400,
-                fontSize: 14,
+                fontSize: 13,
                 fontFamily: 'inherit',
                 cursor: 'pointer',
                 transition: 'all .15s',
+                whiteSpace: 'nowrap',
               }}
             >
               {t.label}
-              {t.id === 'words' && savedWords.length > 0 && (
+              {t.count > 0 && (
                 <span style={{
-                  marginLeft: 5,
-                  background: PRIMARY,
-                  color: '#fff',
+                  marginLeft: 4,
+                  background: mainTab === t.id ? PRIMARY : '#ddd',
+                  color: mainTab === t.id ? '#fff' : '#888',
                   borderRadius: 10,
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: 700,
-                  padding: '1px 6px',
+                  padding: '1px 5px',
                 }}>
-                  {savedWords.length}
+                  {t.count}
                 </span>
               )}
             </button>
           ))}
         </div>
 
-        {/* 번역 저장 탭 */}
+        {/* ── 번역 저장 탭 ── */}
         {mainTab === 'saves' && (
           <div className="drawer-list">
             {!user ? (
@@ -132,9 +154,7 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
             ) : loading ? (
               <p className="drawer-empty">불러오는 중...</p>
             ) : items.length === 0 ? (
-              <p className="drawer-empty">
-                아직 저장된 항목이 없어요.<br />변환 후 저장해 보세요!
-              </p>
+              <p className="drawer-empty">아직 저장된 항목이 없어요.<br />변환 후 저장해 보세요!</p>
             ) : (
               items.map(item => (
                 <div
@@ -146,71 +166,73 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
                     <p className="drawer-item-input">{item.input_text}</p>
                     <p className="drawer-item-japanese">{item.japanese}</p>
                   </div>
-                  <button
-                    className="drawer-item-delete"
-                    onClick={e => handleDelete(e, item.id)}
-                    title="삭제"
-                  >
-                    ✕
-                  </button>
+                  <button className="drawer-item-delete" onClick={e => handleDelete(e, item.id)} title="삭제">✕</button>
                 </div>
               ))
             )}
           </div>
         )}
 
-        {/* 저장 단어 탭 */}
+        {/* ── 저장 단어 탭 ── */}
         {mainTab === 'words' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
-
-            {/* 카테고리 필터 */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 16px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '10px 16px 6px', flexShrink: 0 }}>
               {CATEGORY_TABS.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setWordCat(cat.id)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: 14,
-                    fontSize: 12,
-                    fontWeight: wordCat === cat.id ? 700 : 400,
-                    border: wordCat === cat.id ? `1.5px solid ${PRIMARY}` : '1.5px solid #e8e8e8',
-                    background: wordCat === cat.id ? '#f0f9ff' : 'transparent',
-                    color: wordCat === cat.id ? PRIMARY : '#888',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                  }}
-                >
+                <button key={cat.id} onClick={() => setWordCat(cat.id)} style={filterBtnStyle(wordCat === cat.id)}>
                   {cat.label}
                 </button>
               ))}
             </div>
-
-            {/* 단어 목록 */}
-            <div className="drawer-list" style={{ paddingTop: 0 }}>
+            <div className="drawer-list">
               {filteredWords.length === 0 ? (
                 <p className="drawer-empty">
                   {wordCat === 'all' ? '저장된 단어가 없어요.\n단어 카드에서 저장해 보세요!' : '이 카테고리에 저장된 단어가 없어요.'}
                 </p>
               ) : (
                 filteredWords.map(word => (
-                  <div
-                    key={word.id}
-                    className="drawer-item"
-                    onClick={() => handleWordClick(word)}
-                    style={{ alignItems: 'center' }}
-                  >
+                  <div key={word.id} className="drawer-item" onClick={() => handleWordClick(word)} style={{ alignItems: 'center' }}>
                     <div className="drawer-item-body">
                       <p className="drawer-item-japanese" style={{ marginBottom: 2 }}>{word.word}</p>
                       <p style={{ margin: 0, fontSize: 12, color: '#aaa' }}>{word.reading} · {word.meaning}</p>
                     </div>
-                    <button
-                      className="drawer-item-delete"
-                      onClick={e => { e.stopPropagation(); toggleSaveWord(word) }}
-                      title="저장 취소"
-                    >
-                      ✕
-                    </button>
+                    <button className="drawer-item-delete" onClick={e => { e.stopPropagation(); toggleSaveWord(word) }} title="저장 취소">✕</button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── 저장 예문 탭 ── */}
+        {mainTab === 'examples' && (
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '10px 16px 6px', flexShrink: 0 }}>
+              {CATEGORY_TABS.map(cat => (
+                <button key={cat.id} onClick={() => setExampleCat(cat.id)} style={filterBtnStyle(exampleCat === cat.id)}>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+            <div className="drawer-list">
+              {filteredExamples.length === 0 ? (
+                <p className="drawer-empty">
+                  {exampleCat === 'all' ? '저장된 예문이 없어요.\n예문 옆 저장 버튼을 눌러보세요!' : '이 카테고리에 저장된 예문이 없어요.'}
+                </p>
+              ) : (
+                filteredExamples.map(ex => (
+                  <div key={ex.id} className="drawer-item" onClick={() => handleExampleClick(ex)}>
+                    <div className="drawer-item-body">
+                      <p style={{ margin: '0 0 3px', fontSize: 15, fontWeight: 500, fontFamily: "'Noto Sans JP', sans-serif", color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {ex.exampleJp}
+                      </p>
+                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {ex.exampleKr}
+                      </p>
+                      <p style={{ margin: 0, fontSize: 11, color: PRIMARY, fontWeight: 600 }}>
+                        {ex.wordText} ({CAT_LABEL[ex.wordCategory] ?? ex.wordCategory}) 의 예문
+                      </p>
+                    </div>
+                    <button className="drawer-item-delete" onClick={e => { e.stopPropagation(); toggleSaveExample(ex) }} title="저장 취소">✕</button>
                   </div>
                 ))
               )}
@@ -221,4 +243,18 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
       </div>
     </div>
   )
+}
+
+function filterBtnStyle(active) {
+  return {
+    padding: '4px 10px',
+    borderRadius: 14,
+    fontSize: 12,
+    fontWeight: active ? 700 : 400,
+    border: active ? `1.5px solid ${PRIMARY}` : '1.5px solid #e8e8e8',
+    background: active ? '#f0f9ff' : 'transparent',
+    color: active ? PRIMARY : '#888',
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+  }
 }

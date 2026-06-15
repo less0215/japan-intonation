@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
-const SAVED_WORDS_KEY = 'tickjapan_saved_words'
+const SAVED_WORDS_KEY    = 'tickjapan_saved_words'
+const SAVED_EXAMPLES_KEY = 'tickjapan_saved_examples'
 
 const UserContext = createContext(null)
 
@@ -24,6 +25,11 @@ export function UserProvider({ children }) {
     try { return JSON.parse(localStorage.getItem(SAVED_WORDS_KEY)) ?? [] } catch { return [] }
   })
 
+  /* 예문 저장 상태 — localStorage 기반 */
+  const [savedExamples, setSavedExamples] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(SAVED_EXAMPLES_KEY)) ?? [] } catch { return [] }
+  })
+
   useEffect(() => {
     if (user) localStorage.setItem('tickjapan_user', JSON.stringify(user))
     else      localStorage.removeItem('tickjapan_user')
@@ -32,6 +38,10 @@ export function UserProvider({ children }) {
   useEffect(() => {
     localStorage.setItem(SAVED_WORDS_KEY, JSON.stringify(savedWords))
   }, [savedWords])
+
+  useEffect(() => {
+    localStorage.setItem(SAVED_EXAMPLES_KEY, JSON.stringify(savedExamples))
+  }, [savedExamples])
 
   const saveResult = useCallback(async (currentUser, inputText, result) => {
     const body = currentUser
@@ -59,8 +69,22 @@ export function UserProvider({ children }) {
     })
   }, [])
 
+  /* 예문 저장 여부 확인 */
+  const isExampleSaved = useCallback((exampleId) => {
+    return savedExamples.some(e => e.id === exampleId)
+  }, [savedExamples])
+
+  /* 예문 저장 토글 — { id, wordId, wordText, wordReading, wordCategory, exampleJp, exampleKr } */
+  const toggleSaveExample = useCallback((exampleInfo) => {
+    setSavedExamples(prev => {
+      const exists = prev.some(e => e.id === exampleInfo.id)
+      if (exists) return prev.filter(e => e.id !== exampleInfo.id)
+      return [{ ...exampleInfo, savedAt: new Date().toISOString() }, ...prev]
+    })
+  }, [])
+
   return (
-    <UserContext.Provider value={{ user, setUser, saveResult, savedWords, isWordSaved, toggleSaveWord }}>
+    <UserContext.Provider value={{ user, setUser, saveResult, savedWords, isWordSaved, toggleSaveWord, savedExamples, isExampleSaved, toggleSaveExample }}>
       {children}
     </UserContext.Provider>
   )

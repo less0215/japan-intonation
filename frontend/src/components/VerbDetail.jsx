@@ -4,6 +4,7 @@ import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
 import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
 import WordBookmarkButton from './WordBookmarkButton'
+import ExampleBookmarkButton from './ExampleBookmarkButton'
 import { CONJ_LABELS } from '../data/verbs'
 
 const PRIMARY  = '#5CA9CE'
@@ -623,7 +624,7 @@ export default function VerbDetail({ verb, onBack }) {
 
       {/* 예문 */}
       {verb.examples.length > 0 && (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div id="examples-section" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <p style={styles.sectionTitle}>예문</p>
         {verb.examples.map((ex, i) => (
           <div key={i} style={styles.exampleCard}>
@@ -637,6 +638,15 @@ export default function VerbDetail({ verb, onBack }) {
                 {ex.pattern && <PatternBadge pattern={ex.pattern} />}
               </div>
               <div className="example-card-actions">
+                <ExampleBookmarkButton exampleInfo={{
+                  id: `verb_${verb.id}_${i}`,
+                  wordId: verb.id,
+                  wordText: verb.verb,
+                  wordReading: verb.reading,
+                  wordCategory: 'verb',
+                  exampleJp: ex.plain,
+                  exampleKr: ex.korean,
+                }} />
                 <PracticeButton japanesePlain={ex.plain} />
                 <SaveExampleButton
                   example={ex}

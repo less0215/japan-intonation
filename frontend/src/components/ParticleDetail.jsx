@@ -4,6 +4,7 @@ import { PARTICLES } from '../data/particles'
 import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
+import RubyText from './RubyText'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -40,25 +41,6 @@ function stripFurigana(text) {
 }
 
 /* ── 후리가나 렌더링 — 한자만 매칭 ── */
-function RubyText({ text, fontSize = 15 }) {
-  const regex = /([一-鿿㐀-䶿々〆〇〻]+)\(([^)（）]+)\)/g
-  const parts = []; let last = 0, match
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push({ type: 'plain', text: text.slice(last, match.index) })
-    parts.push({ type: 'ruby', kanji: match[1], reading: match[2] })
-    last = match.index + match[0].length
-  }
-  if (last < text.length) parts.push({ type: 'plain', text: text.slice(last) })
-  return (
-    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight: 500, lineHeight: 1.8 }}>
-      {parts.map((p, i) =>
-        p.type === 'ruby'
-          ? <ruby key={i}>{p.kanji}<rt style={{ fontSize: 10, color: '#888' }}>{p.reading}</rt></ruby>
-          : <span key={i}>{p.text}</span>
-      )}
-    </span>
-  )
-}
 
 /* ── 예문 박스 (즉시 그래프 + TTS) ── */
 function ExampleBox({ example, exampleInfo }) {

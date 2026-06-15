@@ -5,6 +5,7 @@ import { useUser } from '../context/UserContext'
 import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
 import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
+import RubyText from './RubyText'
 import { CONJ_LABELS } from '../data/verbs'
 
 const PRIMARY  = '#5CA9CE'
@@ -212,34 +213,6 @@ function FormRow({ row, index, gender, accentType, borderStyle }) {
   )
 }
 
-/* 후리가나 형식 "漢字(よみ)" 파싱 → span 렌더링 */
-function RubyText({ text }) {
-  const regex = /([^\s()（）]+?)\(([^)）]+)\)/g
-  const parts = []
-  let last = 0, match
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push({ type: 'plain', text: text.slice(last, match.index) })
-    parts.push({ type: 'ruby', kanji: match[1], reading: match[2] })
-    last = match.index + match[0].length
-  }
-  if (last < text.length) parts.push({ type: 'plain', text: text.slice(last) })
-
-  return (
-    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 17, fontWeight: 500 }}>
-      {parts.map((p, i) =>
-        p.type === 'ruby' ? (
-          <ruby key={i}>
-            {p.kanji}
-            <rt style={{ fontSize: 10, color: '#888' }}>{p.reading}</rt>
-          </ruby>
-        ) : (
-          <span key={i}>{p.text}</span>
-        )
-      )}
-    </span>
-  )
-}
 
 /* 예문 저장 버튼 */
 function SaveExampleButton({ example, onNeedSignup }) {
@@ -633,7 +606,7 @@ export default function VerbDetail({ verb, onBack }) {
             <div className="example-card-body">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: PRIMARY }}>{ex.korean}</span>
-                <RubyText text={ex.japanese} />
+                <RubyText text={ex.japanese} fontSize={17} />
                 <span style={{ fontSize: 12, color: '#888' }}>{ex.reading}</span>
                 {ex.pattern && <PatternBadge pattern={ex.pattern} />}
               </div>

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
+import RubyText from './RubyText'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -37,25 +38,6 @@ function toHiragana(text) {
              .replace(/[^぀-ゟ゠-ヿ]/g, '')
 }
 
-function RubyText({ text }) {
-  const regex = /([^\s()（）]+?)\(([^)）]+)\)/g
-  const parts = []; let last = 0, match
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push({ type: 'plain', text: text.slice(last, match.index) })
-    parts.push({ type: 'ruby', kanji: match[1], reading: match[2] })
-    last = match.index + match[0].length
-  }
-  if (last < text.length) parts.push({ type: 'plain', text: text.slice(last) })
-  return (
-    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 17, fontWeight: 500 }}>
-      {parts.map((p, i) =>
-        p.type === 'ruby' ? (
-          <ruby key={i}>{p.kanji}<rt style={{ fontSize: 10, color: '#888' }}>{p.reading}</rt></ruby>
-        ) : <span key={i}>{p.text}</span>
-      )}
-    </span>
-  )
-}
 
 /* 활용형 행 — TTS + 억양 그래프 */
 function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {

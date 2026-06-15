@@ -257,11 +257,16 @@ export default function App() {
   }
 
   function handleSelectSaved(savedResult, savedInput) {
-    setBreakdownLoading(false)   // 저장된 결과는 분해가 이미 포함됨
     setResult(savedResult)
     setInputText(savedInput)
     setSaved(true)
-    navigate('/')   // 번역기 탭으로 이동
+    navigate('/')
+    /* 저장 당시 breakdown 누락 시 재요청 */
+    if (!savedResult.breakdown?.length) {
+      fetchBreakdown(savedResult, savedInput)
+    } else {
+      setBreakdownLoading(false)
+    }
   }
 
   const hasContent = loading || error || result || typing

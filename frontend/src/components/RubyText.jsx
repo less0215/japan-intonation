@@ -1,10 +1,13 @@
 /* 한자(よみ) 루비 텍스트 공통 컴포넌트
- * 어미(送り仮名) 자동 분리: 話す(はなす) → <ruby>話<rt>はな</rt></ruby>す
+ *
+ * HTML <ruby> 태그는 후리가나가 한자보다 넓으면 브라우저가 한자 간격을 강제로 늘려
+ * 위치가 어긋나 보이는 문제가 있음. flex 컬럼 방식으로 대체.
+ *
+ * 어미(送り仮名) 자동 분리: 話す(はなす) → 話(はな) + す
  */
 
 const HIRAGANA = /[ぁ-ゟ]/
 
-/* kanji 끝 히라가나와 reading 끝이 일치하면 순차적으로 분리 */
 function splitOkurigana(kanji, reading) {
   let k = kanji, r = reading
   while (k.length > 1 && r.length > 1 && HIRAGANA.test(k[k.length - 1]) && k[k.length - 1] === r[r.length - 1]) {
@@ -14,7 +17,6 @@ function splitOkurigana(kanji, reading) {
   return { base: k, baseReading: r, suffix: kanji.slice(k.length) }
 }
 
-/* 한자+히라가나 혼합 패턴: 話す(はなす), 日本語(にほんご) 등 */
 const RUBY_REGEX = /([^\s()（）]+?)\(([^)）]+)\)/g
 
 export default function RubyText({ text, fontSize = 15, fontWeight = 500 }) {
@@ -31,12 +33,30 @@ export default function RubyText({ text, fontSize = 15, fontWeight = 500 }) {
   }
   if (last < text.length) parts.push({ type: 'plain', text: text.slice(last) })
 
+  const rtSize = Math.max(9, Math.round(fontSize * 0.62))
+
   return (
-    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight, lineHeight: 1.8 }}>
+    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight, lineHeight: 2, display: 'inline' }}>
       {parts.map((p, i) =>
-        p.type === 'ruby'
-          ? <ruby key={i}>{p.kanji}<rt style={{ fontSize: Math.max(9, fontSize * 0.65), color: '#888' }}>{p.reading}</rt></ruby>
-          : <span key={i}>{p.text}</span>
+        p.type === 'ruby' ? (
+          /* flex 컬럼으로 후리가나를 한자 바로 위에 고정 — 브라우저 ruby 간격 늘림 없음 */
+          <span key={i} style={{
+            display: 'inline-flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            verticalAlign: 'bottom',
+            lineHeight: 1,
+          }}>
+            <span style={{ fontSize: rtSize, color: '#888', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+              {p.reading}
+            </span>
+            <span style={{ lineHeight: 1.4 }}>{p.kanji}</span>
+          </span>
+        ) : (
+          <span key={i} style={{ verticalAlign: 'bottom', lineHeight: 1.4, display: 'inline-block' }}>
+            {p.text}
+          </span>
+        )
       )}
     </span>
   )

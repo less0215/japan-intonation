@@ -430,12 +430,13 @@ export default function App() {
         </div>
 
         {/* 품사 단어 목록 화면일 때 — 상단에 번역기로 돌아가기 + 카테고리 전환 바 */}
+        {/* 문법 페이지는 자체 카테고리 탭이 있으므로 CategoryBars 숨김 */}
         {isWordTab && (
           <>
             <button onClick={() => navigate('/')} className="back-to-translate">
               ← 번역기
             </button>
-            <CategoryBars current={tab} onNavigate={navigate} />
+            {tab !== 'grammar' && <CategoryBars current={tab} onNavigate={navigate} />}
           </>
         )}
 

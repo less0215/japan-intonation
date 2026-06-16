@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TickJapan</string>
+    <string name="title_activity_main">TickJapan</string>
+    <string name="package_name">com.tickjapan.app</string>
+    <string name="custom_url_scheme">com.tickjapan.app</string>
+</resources>

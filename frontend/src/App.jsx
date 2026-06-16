@@ -304,44 +304,17 @@ export default function App() {
           </h1>
 
           {user ? (
-            /* 로그인 상태: 저장 목록 + 유저 메뉴 드롭다운 */
+            /* 로그인 상태: 이름 + 저장 목록 + 로그아웃 */
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13, color: '#555', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                {user.name}님
+              </span>
               <button onClick={() => { track('saved_list_open', { logged_in: true }); setShowHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
                 저장 목록
               </button>
-              {/* 유저 이름 드롭다운 */}
-              <div style={{ position: 'relative' }}>
-                <button
-                  onClick={() => setMenuOpen(v => !v)}
-                  className="login-btn"
-                  style={{ background: 'transparent', color: '#555', borderColor: '#e0e0e0', display: 'flex', alignItems: 'center', gap: 4 }}
-                >
-                  {user.name}님
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
-                </button>
-                {menuOpen && (
-                  <>
-                    {/* 외부 클릭 닫기 */}
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setMenuOpen(false)} />
-                    <div style={{
-                      position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                      background: '#fff', borderRadius: 10,
-                      border: '1px solid #e8e8e8',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-                      minWidth: 130, zIndex: 100,
-                      overflow: 'hidden',
-                    }}>
-                      <button onClick={() => { setMenuOpen(false); handleLogout() }} style={menuItemStyle}>
-                        로그아웃
-                      </button>
-                      <div style={{ height: 1, background: '#f0f0f0' }} />
-                      <button onClick={() => { setMenuOpen(false); setShowDeleteAccount(true) }} style={{ ...menuItemStyle, color: '#e05a5a' }}>
-                        회원탈퇴
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+              <button onClick={handleLogout} className="login-btn" style={{ background: 'transparent', color: '#aaa', borderColor: '#e0e0e0' }}>
+                로그아웃
+              </button>
             </div>
           ) : (
             /* 비로그인: 저장 목록 버튼 + 로그인 버튼 */
@@ -583,7 +556,12 @@ export default function App() {
         />
       )}
       {showHistory && (
-        <HistoryDrawer user={user} onClose={() => setShowHistory(false)} onSelect={handleSelectSaved} />
+        <HistoryDrawer
+          user={user}
+          onClose={() => setShowHistory(false)}
+          onSelect={handleSelectSaved}
+          onDeleteAccount={() => setShowDeleteAccount(true)}
+        />
       )}
       {showDeleteAccount && user && (
         <DeleteAccountModal

@@ -26,7 +26,7 @@ function getPath(category, id) {
 }
 
 /* 저장된 결과 목록을 보여주는 드로어 */
-export default function HistoryDrawer({ user, onClose, onSelect }) {
+export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount }) {
   const { savedWords, toggleSaveWord, savedExamples, toggleSaveExample } = useUser()
   const navigate = useNavigate()
 
@@ -241,6 +241,22 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
                 ))
               )}
             </div>
+          </div>
+        )}
+
+        {/* 회원탈퇴 — 로그인 유저에게만, 드로어 맨 하단 */}
+        {user && onDeleteAccount && (
+          <div style={{ padding: '16px 20px 4px', textAlign: 'center' }}>
+            <button
+              onClick={() => { onClose(); onDeleteAccount() }}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 11.5, color: '#ccc', fontFamily: 'inherit',
+                textDecoration: 'underline', padding: 4,
+              }}
+            >
+              회원탈퇴
+            </button>
           </div>
         )}
 

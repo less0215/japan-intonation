@@ -13,6 +13,7 @@ import WordDetailPage from './components/WordDetailPage'
 import ParticleLibrary from './components/ParticleLibrary'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import LegalPage from './components/LegalPage'
+import DeleteAccountModal from './components/DeleteAccountModal'
 import { useUser } from './context/UserContext'
 import PageSEO from './components/PageSEO'
 import { VERBS } from './data/verbs'
@@ -111,8 +112,9 @@ export default function App() {
   const [saved, setSaved]             = useState(false)
   const [showSignup, setShowSignup]   = useState(false)
   const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login' | 'translate_limit'
-  const [showHistory, setShowHistory] = useState(false)
-  const [menuOpen, setMenuOpen]       = useState(false)
+  const [showHistory, setShowHistory]         = useState(false)
+  const [menuOpen, setMenuOpen]               = useState(false)
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
   // 비로그인 번역 횟수 — localStorage 기반, 3회 초과 시 로그인 유도
   const TRANSLATE_LIMIT = 2
@@ -305,6 +307,9 @@ export default function App() {
               </button>
               <button onClick={handleLogout} className="login-btn" style={{ background: 'transparent', color: '#aaa', borderColor: '#e0e0e0' }}>
                 로그아웃
+              </button>
+              <button onClick={() => setShowDeleteAccount(true)} className="login-btn" style={{ background: 'transparent', color: '#e05a5a', borderColor: '#f5c0c0' }}>
+                회원탈퇴
               </button>
             </div>
           ) : (
@@ -548,6 +553,13 @@ export default function App() {
       )}
       {showHistory && (
         <HistoryDrawer user={user} onClose={() => setShowHistory(false)} onSelect={handleSelectSaved} />
+      )}
+      {showDeleteAccount && user && (
+        <DeleteAccountModal
+          user={user}
+          onClose={() => setShowDeleteAccount(false)}
+          onDeleted={() => { setShowDeleteAccount(false); handleLogout() }}
+        />
       )}
     </div>
   )

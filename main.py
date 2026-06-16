@@ -744,3 +744,20 @@ def delete_save(save_id: int, user_id: int):
         db.close()
 
 
+@app.delete("/auth/user/{user_id}")
+def delete_user(user_id: int):
+    """회원 탈퇴: 저장된 번역 결과 및 계정을 삭제한다."""
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        # 저장된 번역 결과 먼저 삭제
+        db.query(SavedResult).filter(SavedResult.user_id == user_id).delete()
+        db.delete(user)
+        db.commit()
+        return {"message": "계정이 삭제되었습니다."}
+    finally:
+        db.close()
+
+

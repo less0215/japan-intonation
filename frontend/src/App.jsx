@@ -98,6 +98,9 @@ function DailyVerbCard({ verb, onNavigate }) {
   )
 }
 
+/* 네이티브 앱 환경 여부 */
+const isApp = window.Capacitor?.isNativePlatform?.() ?? false
+
 export default function App() {
   const location  = useLocation()
   const navigate  = useNavigate()
@@ -284,7 +287,7 @@ export default function App() {
   const isWordTab = tab !== 'translate'
 
   return (
-    <div className={hasContent || isWordTab ? 'page' : 'page page--center'}>
+    <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
       <div className="container">
 
         {/* 앱 헤더 */}
@@ -517,6 +520,7 @@ export default function App() {
                     href="https://www.donga.com/news/It/article/all/20250725/132074003/1"
                     target="_blank"
                     rel="noopener noreferrer"
+                    style={isApp ? { display: 'none' } : undefined}
                   >
                     앱처럼 이용하려면 이렇게!
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -536,17 +540,20 @@ export default function App() {
 
       </div>
 
-      {/* 푸터 — 개인정보처리방침 / 이용약관 링크 */}
-      <footer style={{
-        marginTop: 40,
-        paddingBottom: 32,
-        display: 'flex',
-        justifyContent: 'center',
-        gap: 20,
-      }}>
-        <a href="/privacy" style={{ fontSize: 12, color: '#aaa', textDecoration: 'none' }}>개인정보처리방침</a>
-        <a href="/terms"   style={{ fontSize: 12, color: '#aaa', textDecoration: 'none' }}>이용약관</a>
-      </footer>
+      {/* 푸터 — 앱 환경에서는 숨김 (스토어 심사 규정상 앱 내 별도 처리) */}
+      {!isApp && (
+        <footer style={{
+          marginTop: 40,
+          paddingBottom: 32,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 20,
+          width: '100%',
+        }}>
+          <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>개인정보처리방침</button>
+          <button onClick={() => navigate('/terms')}   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
+        </footer>
+      )}
 
       {showSignup && (
         <SignupModal

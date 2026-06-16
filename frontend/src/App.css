@@ -632,25 +632,17 @@ body {
 ══════════════════════════════════════ */
 .tab-nav {
   display: flex;
-  flex-wrap: nowrap;          /* 절대 줄바꿈 금지 */
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  overflow-x: scroll;         /* 항상 스크롤 가능 */
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   padding-bottom: 4px;
-  /* 스크롤 스냅 — 탭이 절반씩 잘리지 않도록 */
-  scroll-snap-type: x proximity;
 }
-.tab-nav::-webkit-scrollbar { display: none; }
 
 /* 탭 버튼 공통 */
 .tab-btn {
-  flex-shrink: 0;             /* 절대 축소 금지 */
-  height: 36px;
-  padding: 0 16px;
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 13px;
   border-radius: 20px;
   font-size: 13px;
   font-weight: 700;
@@ -663,7 +655,6 @@ body {
   justify-content: center;
   transition: background-color 0.15s, color 0.15s, border-color 0.15s;
   -webkit-tap-highlight-color: transparent;
-  scroll-snap-align: start;
 }
 
 /* 번역기 탭 (검정) */

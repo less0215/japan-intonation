@@ -23,6 +23,7 @@ import { ADJ_I, getRankTabs as getAdjITabs } from './data/adjI'
 import { ADJ_NA, getRankTabs as getAdjNaTabs } from './data/adjNa'
 import { NOUNS, getRankTabs as getNounTabs } from './data/nouns'
 import { PARTICLES } from './data/particles'
+import { GRAMMAR } from './data/grammar'
 
 const API_URL   = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY   = '#5CA9CE'
@@ -41,10 +42,71 @@ export function track(eventName, params = {}) {
   }
 }
 
-/* ── 오늘의 단어: 앱 실행 시 VERBS에서 랜덤 1개 선택 */
+/* ── 날짜 기반 시드 — 하루 동안 같은 항목 유지 */
+function dateSeed() {
+  const d = new Date()
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
+}
+
+/* ── 오늘의 단어: 날짜 시드로 VERBS에서 1개 선택 */
 function pickDailyVerb(verbs) {
-  const pool = verbs.filter(v => v.conjugations) // 데이터 있는 동사만
-  return pool[Math.floor(Math.random() * pool.length)]
+  const pool = verbs.filter(v => v.conjugations)
+  return pool[dateSeed() % pool.length]
+}
+
+/* ── 오늘의 문법: 날짜 시드로 GRAMMAR에서 1개 선택 */
+function pickDailyGrammar(grammar) {
+  return grammar[(dateSeed() + 7) % grammar.length]
+}
+
+/* ── 오늘의 문법 카드 */
+function DailyGrammarCard({ grammar, onNavigate }) {
+  return (
+    <div
+      onClick={() => onNavigate(`/grammar/${grammar.id}`)}
+      style={{
+        background: 'linear-gradient(135deg, #f0faf500 0%, #e8f7f000 100%)',
+        background: `linear-gradient(135deg, ${'#5CA9CE'}10 0%, ${'#5CA9CE'}05 100%)`,
+        border: `1.5px solid ${'#5CA9CE'}33`,
+        borderRadius: 14,
+        padding: '16px 18px',
+        cursor: 'pointer',
+        userSelect: 'none',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: PRIMARY, letterSpacing: '0.5px' }}>
+          ✦ 오늘의 문법
+        </span>
+        <span style={{
+          fontSize: 10, color: PRIMARY, background: `${PRIMARY}18`,
+          borderRadius: 8, padding: '2px 8px', fontWeight: 600,
+        }}>
+          {grammar.meanings[0]}
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{
+          fontFamily: "'Noto Sans JP', sans-serif",
+          fontSize: 28, fontWeight: 700, color: '#111',
+        }}>
+          {grammar.pattern}
+        </span>
+        <span style={{ fontSize: 13, color: PRIMARY, fontWeight: 600 }}>
+          {grammar.reading}
+        </span>
+      </div>
+
+      <p style={{ margin: '6px 0 0', fontSize: 12, color: '#666', lineHeight: 1.5 }}>
+        {grammar.explanation.length > 60 ? grammar.explanation.slice(0, 60) + '…' : grammar.explanation}
+      </p>
+
+      <div style={{ marginTop: 10, fontSize: 12, color: PRIMARY, fontWeight: 600 }}>
+        예문 · 접속 규칙 보기 →
+      </div>
+    </div>
+  )
 }
 
 /* ── 오늘의 단어 카드 */
@@ -137,8 +199,9 @@ export default function App() {
     return next
   }
 
-  // 앱 실행 시 1회 랜덤 선택 (useMemo로 리렌더 시 고정)
-  const dailyVerb = useMemo(() => pickDailyVerb(VERBS), [])
+  // 날짜 기반 오늘의 단어·문법 (당일 고정)
+  const dailyVerb    = useMemo(() => pickDailyVerb(VERBS), [])
+  const dailyGrammar = useMemo(() => pickDailyGrammar(GRAMMAR), [])
 
   async function handleAnalyze(text) {
     setLoading(true)
@@ -542,7 +605,8 @@ export default function App() {
                     </svg>
                   </a>
                   <CategoryBars current={tab} onNavigate={navigate} />
-                  {dailyVerb && <DailyVerbCard verb={dailyVerb} onNavigate={navigate} />}
+                  {dailyVerb    && <DailyVerbCard    verb={dailyVerb}       onNavigate={navigate} />}
+                  {dailyGrammar && <DailyGrammarCard grammar={dailyGrammar} onNavigate={navigate} />}
                 </>
               )}
             </>

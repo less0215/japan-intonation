@@ -7,6 +7,7 @@ import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
 import { ExampleAnalysis } from './BreakdownPanel'
 import { track } from '../App'
+import HiraganaTable from './HiraganaTable'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -228,6 +229,9 @@ export default function GrammarDetail({ pattern }) {
           </div>
         </div>
       ))}
+
+      {/* 히라가나 오십음도 */}
+      <HiraganaTable defaultOpen={false} />
 
       {/* 이전 / 다음 */}
       <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>

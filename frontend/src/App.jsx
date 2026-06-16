@@ -545,8 +545,8 @@ export default function App() {
       {/* 푸터 — 앱 환경에서는 숨김 (스토어 심사 규정상 앱 내 별도 처리) */}
       {!isApp && (
         <footer style={{
-          marginTop: 40,
-          paddingBottom: 32,
+          marginTop: 16,
+          paddingBottom: 24,
           display: 'flex',
           justifyContent: 'center',
           gap: 20,

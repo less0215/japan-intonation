@@ -16,7 +16,6 @@ import GrammarDetailPage from './components/GrammarDetailPage'
 import GrammarLibrary from './components/GrammarLibrary'
 import LegalPage from './components/LegalPage'
 import DeleteAccountModal from './components/DeleteAccountModal'
-import ConsentBanner from './components/ConsentBanner'
 import { useUser } from './context/UserContext'
 import PageSEO from './components/PageSEO'
 import { VERBS } from './data/verbs'
@@ -36,13 +35,11 @@ const menuItemStyle = {
   cursor: 'pointer', fontFamily: 'inherit',
 }
 
-/* GA4 이벤트 전송 헬퍼 — 동의한 경우에만 전송 */
+/* GA4 이벤트 전송 헬퍼 */
 export function track(eventName, params = {}) {
-  try {
-    if (typeof window.gtag !== 'function') return
-    if (localStorage.getItem('tickjapan_analytics_consent') !== 'true') return
+  if (typeof window.gtag === 'function') {
     window.gtag('event', eventName, params)
-  } catch (e) {}
+  }
 }
 
 /* ── 날짜 기반 시드 — 하루 동안 같은 항목 유지 */
@@ -634,8 +631,6 @@ export default function App() {
         <button onClick={() => navigate('/terms')}   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
       </footer>
 
-      {/* 분석 동의 배너 (GDPR/PIPA/ATT 준수) */}
-      <ConsentBanner />
 
       {showSignup && (
         <SignupModal

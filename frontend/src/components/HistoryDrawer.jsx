@@ -270,23 +270,16 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
             </button>
           </div>
 
-          {/* 회원탈퇴 — Apple 5.1.1 요구: "easy to find" */}
           {user && onDeleteAccount && (
             <button
               onClick={() => { onClose(); onDeleteAccount() }}
               style={{
-                background: 'none',
-                border: '1px solid #f0bfbf',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: 13,
-                color: '#e06060',
-                fontFamily: 'inherit',
-                padding: '8px 20px',
-                width: '100%',
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 12, color: '#bbb', fontFamily: 'inherit',
+                textDecoration: 'underline', padding: 0,
               }}
             >
-              계정 삭제
+              회원탈퇴
             </button>
           )}
         </div>

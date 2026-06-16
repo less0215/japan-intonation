@@ -244,21 +244,52 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
           </div>
         )}
 
-        {/* 회원탈퇴 — 로그인 유저에게만, 드로어 맨 하단 */}
-        {user && onDeleteAccount && (
-          <div style={{ padding: '16px 20px 4px', textAlign: 'center' }}>
+        {/* 드로어 하단 — 개인정보·이용약관 + 회원탈퇴 (심사 필수 접근성) */}
+        <div style={{
+          padding: '16px 20px 20px',
+          borderTop: '1px solid #f0f0f0',
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 12,
+        }}>
+          {/* 개인정보처리방침·이용약관 — 앱 내 어디서든 접근 가능해야 함 */}
+          <div style={{ display: 'flex', gap: 16 }}>
+            <button
+              onClick={() => { onClose(); navigate('/privacy') }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0, textDecoration: 'underline' }}
+            >
+              개인정보처리방침
+            </button>
+            <button
+              onClick={() => { onClose(); navigate('/terms') }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0, textDecoration: 'underline' }}
+            >
+              이용약관
+            </button>
+          </div>
+
+          {/* 회원탈퇴 — Apple 5.1.1 요구: "easy to find" */}
+          {user && onDeleteAccount && (
             <button
               onClick={() => { onClose(); onDeleteAccount() }}
               style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 11.5, color: '#ccc', fontFamily: 'inherit',
-                textDecoration: 'underline', padding: 4,
+                background: 'none',
+                border: '1px solid #f0bfbf',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 13,
+                color: '#e06060',
+                fontFamily: 'inherit',
+                padding: '8px 20px',
+                width: '100%',
               }}
             >
-              회원탈퇴
+              계정 삭제
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
       </div>
     </div>

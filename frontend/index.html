@@ -78,11 +78,24 @@
       rel="stylesheet"
     />
 
-    <!-- Google Analytics 4 -->
+    <!-- Google Analytics 4 (Consent Mode v2 적용 — 동의 전 수집 차단) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZVXQTDQJQP"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      // Consent Mode v2: 기본값 거부 (GDPR/PIPA/ATT 준수)
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied',
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+      });
+      // 이전 동의 기록이 있으면 즉시 반영
+      try {
+        if (localStorage.getItem('tickjapan_analytics_consent') === 'true') {
+          gtag('consent', 'update', { 'analytics_storage': 'granted' });
+        }
+      } catch(e) {}
       gtag('js', new Date());
       gtag('config', 'G-ZVXQTDQJQP');
     </script>

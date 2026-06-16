@@ -16,6 +16,7 @@ import GrammarDetailPage from './components/GrammarDetailPage'
 import GrammarLibrary from './components/GrammarLibrary'
 import LegalPage from './components/LegalPage'
 import DeleteAccountModal from './components/DeleteAccountModal'
+import ConsentBanner from './components/ConsentBanner'
 import { useUser } from './context/UserContext'
 import PageSEO from './components/PageSEO'
 import { VERBS } from './data/verbs'
@@ -35,11 +36,13 @@ const menuItemStyle = {
   cursor: 'pointer', fontFamily: 'inherit',
 }
 
-/* GA4 이벤트 전송 헬퍼 */
+/* GA4 이벤트 전송 헬퍼 — 동의한 경우에만 전송 */
 export function track(eventName, params = {}) {
-  if (typeof window.gtag === 'function') {
+  try {
+    if (typeof window.gtag !== 'function') return
+    if (localStorage.getItem('tickjapan_analytics_consent') !== 'true') return
     window.gtag('event', eventName, params)
-  }
+  } catch (e) {}
 }
 
 /* ── 날짜 기반 시드 — 하루 동안 같은 항목 유지 */
@@ -618,20 +621,21 @@ export default function App() {
 
       </div>
 
-      {/* 푸터 — 앱 환경에서는 숨김 (스토어 심사 규정상 앱 내 별도 처리) */}
-      {!isApp && (
-        <footer style={{
-          marginTop: 40,
-          paddingBottom: 24,
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 20,
-          width: '100%',
-        }}>
-          <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>개인정보처리방침</button>
-          <button onClick={() => navigate('/terms')}   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
-        </footer>
-      )}
+      {/* 푸터 — 개인정보처리방침·이용약관 (앱·웹 공통 표시, 심사 필수) */}
+      <footer style={{
+        marginTop: 40,
+        paddingBottom: isApp ? 32 : 24,
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 20,
+        width: '100%',
+      }}>
+        <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>개인정보처리방침</button>
+        <button onClick={() => navigate('/terms')}   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
+      </footer>
+
+      {/* 분석 동의 배너 (GDPR/PIPA/ATT 준수) */}
+      <ConsentBanner />
 
       {showSignup && (
         <SignupModal

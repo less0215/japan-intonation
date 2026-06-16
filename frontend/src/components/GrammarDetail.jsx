@@ -174,11 +174,6 @@ export default function GrammarDetail({ pattern }) {
           </div>
           <WordBookmarkButton wordInfo={{ id: pattern.id, category: 'grammar', word: pattern.pattern, reading: pattern.reading, meaning: pattern.meanings[0] ?? '' }} />
         </div>
-        {pattern.level && (
-          <span className="particle-section-badge particle-section-badge--basic" style={{ marginBottom: 8, display: 'inline-block' }}>
-            {pattern.level}
-          </span>
-        )}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
           {pattern.meanings.map((m, i) => (
             <span key={i} className="particle-meaning-tag">{m}</span>

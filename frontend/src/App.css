@@ -60,7 +60,7 @@ body {
 }
 
 .page--center .container {
-  padding-bottom: 60px; /* 시각적으로 살짝 위 배치 */
+  padding-bottom: 8px;
 }
 
 .container {

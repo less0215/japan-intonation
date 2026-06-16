@@ -12,6 +12,7 @@ import WordLibrary from './components/WordLibrary'
 import WordDetailPage from './components/WordDetailPage'
 import ParticleLibrary from './components/ParticleLibrary'
 import ParticleDetailPage from './components/ParticleDetailPage'
+import LegalPage from './components/LegalPage'
 import { useUser } from './context/UserContext'
 import PageSEO from './components/PageSEO'
 import { VERBS } from './data/verbs'
@@ -412,6 +413,8 @@ export default function App() {
               description="일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 명사입니다."
             />
           </>} />
+          <Route path="/privacy" element={<LegalPage type="privacy" />} />
+          <Route path="/terms"   element={<LegalPage type="terms" />} />
           <Route path="/particles/:id" element={<ParticleDetailPage />} />
           <Route path="/particles"    element={<>
             <PageSEO
@@ -523,6 +526,18 @@ export default function App() {
         </Routes>
 
       </div>
+
+      {/* 푸터 — 개인정보처리방침 / 이용약관 링크 */}
+      <footer style={{
+        marginTop: 40,
+        paddingBottom: 32,
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 20,
+      }}>
+        <a href="/privacy" style={{ fontSize: 12, color: '#aaa', textDecoration: 'none' }}>개인정보처리방침</a>
+        <a href="/terms"   style={{ fontSize: 12, color: '#aaa', textDecoration: 'none' }}>이용약관</a>
+      </footer>
 
       {showSignup && (
         <SignupModal

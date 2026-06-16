@@ -170,7 +170,7 @@ export default function App() {
         const count = incrementGuestCount()
         // 6회째 최초 노출, 이후 3회 간격마다 재노출 (6, 9, 12, ...)
         if (count > TRANSLATE_LIMIT && (count - TRANSLATE_LIMIT) % 3 === 1) {
-          track('signup_start', { trigger: 'translate_limit', translate_count: count })
+          track('signup_start', { trigger: 'translate_limit', translate_count: count, modal_impression: Math.floor((count - TRANSLATE_LIMIT - 1) / 3) + 1 })
           setSignupMode('translate_limit')
           setShowSignup(true)
         }

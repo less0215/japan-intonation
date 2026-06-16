@@ -12,6 +12,7 @@ import WordLibrary from './components/WordLibrary'
 import WordDetailPage from './components/WordDetailPage'
 import ParticleLibrary from './components/ParticleLibrary'
 import ParticleDetailPage from './components/ParticleDetailPage'
+import GrammarDetailPage from './components/GrammarDetailPage'
 import LegalPage from './components/LegalPage'
 import DeleteAccountModal from './components/DeleteAccountModal'
 import { useUser } from './context/UserContext'
@@ -427,6 +428,7 @@ export default function App() {
           </>} />
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
           <Route path="/terms"   element={<LegalPage type="terms" />} />
+          <Route path="/grammar/:id" element={<GrammarDetailPage />} />
           <Route path="/particles/:id" element={<ParticleDetailPage />} />
           <Route path="/particles"    element={<>
             <PageSEO

@@ -6,6 +6,7 @@ import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
 import { ExampleAnalysis } from './BreakdownPanel'
+import { track } from '../App'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -60,6 +61,7 @@ function ExampleBox({ example, exampleInfo }) {
     }
     if (audioState === 'loading') return
     setAudioState('loading')
+    track('tts_play_example', { category: 'particle' })
     try {
       const res = await fetch(`${API_URL}/tts`, {
         method: 'POST',
@@ -91,7 +93,7 @@ function ExampleBox({ example, exampleInfo }) {
           {/* 억양 그래프 버튼 */}
           {accentData && (
             <button
-              onClick={() => setShowGraph(v => !v)}
+              onClick={() => { if (!showGraph) track('pitch_graph_expand', { category: 'particle' }); setShowGraph(v => !v) }}
               title="억양 그래프"
               style={{
                 width: 28, height: 28, borderRadius: 6,
@@ -190,6 +192,7 @@ export default function ParticleDetail({ particle }) {
         href="https://www.instagram.com/p/DZe9rFoNUJI/"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => track('instagram_banner_click', { category: 'particle', word_id: particle.id, word: particle.particle })}
         style={{
           display: 'flex',
           alignItems: 'center',

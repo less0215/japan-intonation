@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import WordBookmarkButton from './WordBookmarkButton'
+import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
 
@@ -24,6 +25,7 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
   function handleTabChange(id) {
     sessionStorage.setItem(storageKey, id)
     setSelectedTab(id)
+    track('library_tab_view', { category: wordType, tab: id })
   }
 
   const currentTab = rankTabs.find(t => t.id === selectedTab) ?? rankTabs[0]

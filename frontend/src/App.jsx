@@ -299,7 +299,7 @@ export default function App() {
               <span style={{ fontSize: 13, color: '#555', fontWeight: 500, whiteSpace: 'nowrap' }}>
                 {user.name}님
               </span>
-              <button onClick={() => setShowHistory(true)} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
+              <button onClick={() => { track('saved_list_open', { logged_in: true }); setShowHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
                 저장 목록
               </button>
               <button onClick={handleLogout} className="login-btn" style={{ background: 'transparent', color: '#aaa', borderColor: '#e0e0e0' }}>
@@ -309,7 +309,7 @@ export default function App() {
           ) : (
             /* 비로그인: 저장 목록 버튼 + 로그인 버튼 */
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button onClick={() => setShowHistory(true)} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
+              <button onClick={() => { track('saved_list_open', { logged_in: false }); setShowHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
                 저장 목록
               </button>
               <button onClick={handleLoginClick} className="login-btn">

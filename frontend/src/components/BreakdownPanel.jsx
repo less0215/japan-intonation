@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react'
+import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
@@ -145,6 +146,7 @@ export function ExampleAnalysis({ japaneseText }) {
         setBreakdown(data.breakdown ?? [])
         setState('done')
         setShowDetail(true)
+        track('example_analysis_expand', { japanese: japaneseText })
       } catch {
         setState('error')
       }

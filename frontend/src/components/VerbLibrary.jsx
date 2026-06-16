@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { VERBS, getRankTabs } from '../data/verbs'
 import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
+import { track } from '../App'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 
@@ -108,6 +109,7 @@ export default function VerbLibrary() {
   function handleTabChange(id) {
     sessionStorage.setItem('verbLibTab', id)
     setSelectedTab(id)
+    track('library_tab_view', { category: 'verb', tab: id })
   }
 
   const currentTab = rankTabs.find(t => t.id === selectedTab) ?? rankTabs[0]

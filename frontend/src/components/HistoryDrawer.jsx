@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
+import { track } from '../App'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
@@ -70,13 +71,14 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
   /* 단어 카드 이동 */
   function handleWordClick(word) {
     const path = getPath(word.category, word.id)
-    if (path) { navigate(path); onClose() }
+    if (path) { track('saved_item_click', { tab: 'words', category: word.category, word_id: word.id }); navigate(path); onClose() }
   }
 
   /* 예문 이동 — 예문 섹션으로 스크롤 */
   function handleExampleClick(ex) {
     const path = getPath(ex.wordCategory, ex.wordId)
     if (!path) return
+    track('saved_item_click', { tab: 'examples', category: ex.wordCategory, word_id: ex.wordId })
     onClose()
     navigate(path)
     /* 페이지 이동 후 예문 섹션으로 스크롤 */
@@ -162,7 +164,7 @@ export default function HistoryDrawer({ user, onClose, onSelect }) {
                 <div
                   key={item.id}
                   className="drawer-item"
-                  onClick={() => { onSelect(item.result, item.input_text); onClose() }}
+                  onClick={() => { track('saved_item_click', { tab: 'saves' }); onSelect(item.result, item.input_text); onClose() }}
                 >
                   <div className="drawer-item-body">
                     <p className="drawer-item-input">{item.input_text}</p>

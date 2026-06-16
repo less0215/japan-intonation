@@ -1,4 +1,5 @@
 import { useUser } from '../context/UserContext'
+import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
 
@@ -30,6 +31,7 @@ export default function ExampleBookmarkButton({ exampleInfo }) {
   function handleClick(e) {
     e.stopPropagation()
     e.preventDefault()
+    track('example_save', { action: saved ? 'unsave' : 'save', category: exampleInfo.wordCategory, word_id: exampleInfo.wordId })
     toggleSaveExample(exampleInfo)
   }
 

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { BreakdownTable, BreakdownCards, DetailToggleButton, ExampleAnalysis } from './BreakdownPanel'
+import { track } from '../App'
 import PitchGraph from './PitchGraph'
 import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
@@ -369,7 +370,7 @@ function PatternBadge({ pattern }) {
   return (
     <div style={{ marginTop: 6 }}>
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => { if (!open) track('pattern_expand', { pattern: pattern.name, category: 'verb' }); setOpen(v => !v) }}
         style={{
           display: 'inline-flex', alignItems: 'center', gap: 4,
           height: 22, padding: '0 8px',
@@ -465,6 +466,7 @@ export default function VerbDetail({ verb, onBack }) {
         href="https://www.instagram.com/p/DZVF2naN7QW/"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => track('instagram_banner_click', { category: 'verb', word_id: verb.id, word: verb.verb })}
         style={{
           display: 'flex',
           alignItems: 'center',

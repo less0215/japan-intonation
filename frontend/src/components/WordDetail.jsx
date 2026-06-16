@@ -4,6 +4,7 @@ import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
 import { ExampleAnalysis } from './BreakdownPanel'
+import { track } from '../App'
 
 const PRIMARY  = '#5CA9CE'
 const API_URL  = 'https://japan-intonation-production.up.railway.app'
@@ -203,6 +204,7 @@ function ExampleCard({ example, wordInfo, index }) {
     }
     if (audioState === 'loading') return
     setAudioState('loading')
+    track('tts_play_example', { category: wordInfo?.category, word_id: wordInfo?.id })
     try {
       const res = await fetch(`${API_URL}/tts`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -242,7 +244,7 @@ function ExampleCard({ example, wordInfo, index }) {
             }} />
           )}
           {example.accentData?.length > 0 && (
-            <button onClick={() => setShowGraph(v => !v)} title="억양 그래프" style={{
+            <button onClick={() => { if (!showGraph) track('pitch_graph_expand', { category: wordInfo?.category, word_id: wordInfo?.id }); setShowGraph(v => !v) }} title="억양 그래프" style={{
               width: 26, height: 26, borderRadius: 6, border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
               backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -276,7 +278,7 @@ function ExampleCard({ example, wordInfo, index }) {
       )}
       {example.pattern && (
         <>
-          <button onClick={() => setShowPattern(v => !v)} style={{
+          <button onClick={() => { if (!showPattern) track('pattern_expand', { pattern: example.pattern.name, category: wordInfo?.category }); setShowPattern(v => !v) }} style={{
             alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 4,
             height: 22, padding: '0 8px', borderRadius: 11, fontSize: 11, fontWeight: 700,
             fontFamily: 'inherit', cursor: 'pointer',
@@ -353,6 +355,7 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
         href="https://www.instagram.com/p/DZXBE3HttW_/"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => track('instagram_banner_click', { category: wordType, word_id: item.id, word: item.verb ?? item.word })}
         style={{
           display: 'flex',
           alignItems: 'center',

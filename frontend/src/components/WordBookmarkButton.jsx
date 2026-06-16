@@ -1,4 +1,5 @@
 import { useUser } from '../context/UserContext'
+import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
 
@@ -35,6 +36,7 @@ export default function WordBookmarkButton({ wordInfo, size = 'default' }) {
   function handleClick(e) {
     e.stopPropagation()
     e.preventDefault()
+    track('word_save', { action: saved ? 'unsave' : 'save', category: wordInfo.category, word_id: wordInfo.id, word: wordInfo.word })
     toggleSaveWord(wordInfo)
   }
 

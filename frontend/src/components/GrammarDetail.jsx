@@ -230,8 +230,8 @@ export default function GrammarDetail({ pattern }) {
         </div>
       ))}
 
-      {/* 히라가나 오십음도 */}
-      <HiraganaTable defaultOpen={false} />
+      {/* 히라가나 오십음도 — 상세 페이지에서는 펼친 상태 */}
+      <HiraganaTable defaultOpen={true} />
 
       {/* 이전 / 다음 */}
       <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>

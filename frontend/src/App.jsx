@@ -170,7 +170,8 @@ export default function App() {
   const navigate  = useNavigate()
   const { user, setUser, saveResult } = useUser()
 
-  const tab = location.pathname.startsWith('/verbs')     ? 'verbs'
+  const tab = location.pathname.startsWith('/grammar')   ? 'grammar'
+            : location.pathname.startsWith('/verbs')     ? 'verbs'
             : location.pathname.startsWith('/adj-i')     ? 'adj-i'
             : location.pathname.startsWith('/adj-na')    ? 'adj-na'
             : location.pathname.startsWith('/noun')      ? 'noun'
@@ -408,8 +409,9 @@ export default function App() {
             번역기
           </button>
 
-          {/* 품사 탭 */}
+          {/* 품사 탭 (핵심 문법 맨 앞) */}
           {[
+            { key: 'grammar',   path: '/grammar',   label: '핵심 문법' },
             { key: 'verbs',     path: '/verbs',     label: '동사 TOP100' },
             { key: 'adj-i',     path: '/adj-i',     label: 'い형용사 TOP100' },
             { key: 'adj-na',    path: '/adj-na',    label: 'な형용사 TOP100' },

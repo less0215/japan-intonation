@@ -38,6 +38,14 @@ function Bar({ item, current, onNavigate }) {
 export default function CategoryBars({ current, onNavigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* 문법 패턴 섹션 — 최상단 */}
+      <div>
+        <p style={sectionLabelStyle}>일본어 핵심 문법</p>
+        <div className="cat-bars">
+          <Bar item={GRAMMAR_CATEGORY} current={current} onNavigate={onNavigate} />
+        </div>
+      </div>
+
       {/* 단어 라이브러리 섹션 */}
       <div>
         <p style={sectionLabelStyle}>단어 라이브러리</p>
@@ -45,14 +53,6 @@ export default function CategoryBars({ current, onNavigate }) {
           {WORD_CATEGORIES.map(item => (
             <Bar key={item.key} item={item} current={current} onNavigate={onNavigate} />
           ))}
-        </div>
-      </div>
-
-      {/* 문법 패턴 섹션 */}
-      <div>
-        <p style={sectionLabelStyle}>일본어 핵심 문법</p>
-        <div className="cat-bars">
-          <Bar item={GRAMMAR_CATEGORY} current={current} onNavigate={onNavigate} />
         </div>
       </div>
     </div>

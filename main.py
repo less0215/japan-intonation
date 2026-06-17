@@ -15,6 +15,7 @@ from google.api_core.client_options import ClientOptions
 from google.cloud import texttospeech
 from pydantic import BaseModel
 from sqlalchemy import Column, DateTime, Integer, String, Text, create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 # ──────────────────────────────────────────────
@@ -656,12 +657,26 @@ def signup(req: SignupRequest):
     try:
         existing = db.query(User).filter(User.phone == req.phone).first()
         if existing:
-            # 기존 사용자 → 로그인
-            return SignupResponse(user_id=existing.id, name=existing.name, is_new=False)
+            # 번호는 고유 식별자. 이름이 일치하면 본인 → 로그인,
+            # 다르면 이미 다른 사람이 가입한 번호이므로 차단.
+            if existing.name == req.name.strip():
+                return SignupResponse(user_id=existing.id, name=existing.name, is_new=False)
+            raise HTTPException(
+                status_code=409,
+                detail="이미 가입된 휴대폰 번호입니다. 가입 시 사용한 이름을 입력해 주세요.",
+            )
         # 신규 사용자 생성
         new_user = User(name=req.name.strip(), phone=req.phone.strip())
         db.add(new_user)
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            # 동시 가입 등으로 같은 번호가 먼저 생성된 경우
+            db.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail="이미 가입된 휴대폰 번호입니다. 가입 시 사용한 이름을 입력해 주세요.",
+            )
         db.refresh(new_user)
         return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True)
     finally:

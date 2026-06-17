@@ -6,6 +6,7 @@ import SkeletonCard from './components/SkeletonCard'
 import CategoryBars from './components/CategoryBars'
 import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
+import TranslationHistoryDrawer from './components/TranslationHistoryDrawer'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
@@ -168,7 +169,7 @@ const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 export default function App() {
   const location  = useLocation()
   const navigate  = useNavigate()
-  const { user, setUser, saveResult } = useUser()
+  const { user, setUser, saveResult, addToHistory } = useUser()
 
   const tab = location.pathname.startsWith('/grammar')   ? 'grammar'
             : location.pathname.startsWith('/verbs')     ? 'verbs'
@@ -188,6 +189,7 @@ export default function App() {
   const [showSignup, setShowSignup]   = useState(false)
   const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login' | 'translate_limit'
   const [showHistory, setShowHistory]         = useState(false)
+  const [showTranslationHistory, setShowTranslationHistory] = useState(false)
   const [menuOpen, setMenuOpen]               = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
@@ -277,9 +279,10 @@ export default function App() {
       const { breakdown } = await res.json()
       const merged = { ...translationData, breakdown }
       setResult(merged)
-      if (!skipSave && user) doSave(user, text, merged)
+      // 번역 기록에 자동 누적 (능동 '저장'과는 별개, 로컬 보관)
+      if (!skipSave) addToHistory(text, merged)
     } catch {
-      if (!skipSave && user) doSave(user, text, translationData)
+      if (!skipSave) addToHistory(text, translationData)
     } finally {
       setBreakdownLoading(false)
     }
@@ -376,10 +379,13 @@ export default function App() {
 
           {user ? (
             /* 로그인 상태: 이름 + 저장 목록 + 로그아웃 */
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <span style={{ fontSize: 13, color: '#555', fontWeight: 500, whiteSpace: 'nowrap' }}>
                 {user.name}님
               </span>
+              <button onClick={() => { track('translation_history_open', { logged_in: true }); setShowTranslationHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#888', borderColor: '#e0e0e0' }}>
+                번역 기록
+              </button>
               <button onClick={() => { track('saved_list_open', { logged_in: true }); setShowHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
                 저장 목록
               </button>
@@ -389,7 +395,10 @@ export default function App() {
             </div>
           ) : (
             /* 비로그인: 저장 목록 버튼 + 로그인 버튼 */
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <button onClick={() => { track('translation_history_open', { logged_in: false }); setShowTranslationHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#888', borderColor: '#e0e0e0' }}>
+                번역 기록
+              </button>
               <button onClick={() => { track('saved_list_open', { logged_in: false }); setShowHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
                 저장 목록
               </button>
@@ -647,6 +656,12 @@ export default function App() {
           onClose={() => setShowHistory(false)}
           onSelect={handleSelectSaved}
           onDeleteAccount={() => setShowDeleteAccount(true)}
+        />
+      )}
+      {showTranslationHistory && (
+        <TranslationHistoryDrawer
+          onClose={() => setShowTranslationHistory(false)}
+          onSelect={handleSelectSaved}
         />
       )}
       {showDeleteAccount && user && (

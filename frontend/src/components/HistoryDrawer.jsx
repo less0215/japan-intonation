@@ -88,8 +88,20 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
     }, 300)
   }
 
-  const filteredWords    = wordCat    === 'all' ? savedWords    : savedWords.filter(w => w.category === wordCat)
-  const filteredExamples = exampleCat === 'all' ? savedExamples : savedExamples.filter(e => e.wordCategory === exampleCat)
+  const filteredWords = wordCat === 'all' ? savedWords : savedWords.filter(w => w.category === wordCat)
+
+  /* 예문 필터 탭: 실제 저장된 예문이 있는 카테고리만 동적 노출 (단어 탭과 차별화) */
+  const presentExampleCats = CATEGORY_TABS.filter(
+    cat => cat.id !== 'all' && savedExamples.some(e => e.wordCategory === cat.id)
+  )
+  const exampleTabs = [{ id: 'all', label: '전체' }, ...presentExampleCats]
+  /* 카테고리가 2종 이상일 때만 필터 줄 표시 */
+  const showExampleFilter = presentExampleCats.length >= 2
+  /* 필터를 숨길 땐 항상 전체 노출 (이전 선택이 남아 빈 화면 되는 것 방지) */
+  const effectiveExampleCat = showExampleFilter ? exampleCat : 'all'
+  const filteredExamples = effectiveExampleCat === 'all'
+    ? savedExamples
+    : savedExamples.filter(e => e.wordCategory === effectiveExampleCat)
 
   function fmtCount(n) { return n >= 100 ? '99+' : n }
 
@@ -211,17 +223,19 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
         {/* ── 저장 예문 탭 ── */}
         {mainTab === 'examples' && (
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '10px 16px 6px', flexShrink: 0 }}>
-              {CATEGORY_TABS.map(cat => (
-                <button key={cat.id} onClick={() => setExampleCat(cat.id)} style={filterBtnStyle(exampleCat === cat.id)}>
-                  {cat.label}
-                </button>
-              ))}
-            </div>
+            {showExampleFilter && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '10px 16px 6px', flexShrink: 0 }}>
+                {exampleTabs.map(cat => (
+                  <button key={cat.id} onClick={() => setExampleCat(cat.id)} style={filterBtnStyle(exampleCat === cat.id)}>
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="drawer-list">
               {filteredExamples.length === 0 ? (
                 <p className="drawer-empty">
-                  {exampleCat === 'all' ? '저장된 예문이 없어요.\n예문 옆 저장 버튼을 눌러보세요!' : '이 카테고리에 저장된 예문이 없어요.'}
+                  {effectiveExampleCat === 'all' ? '저장된 예문이 없어요.\n예문 옆 저장 버튼을 눌러보세요!' : '이 카테고리에 저장된 예문이 없어요.'}
                 </p>
               ) : (
                 filteredExamples.map(ex => (

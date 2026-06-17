@@ -6,7 +6,7 @@ const PRIMARY = '#5CA9CE'
 /* 예문 북마크 버튼
  * exampleInfo: { id, wordId, wordText, wordReading, wordCategory, exampleJp, exampleKr }
  */
-export default function ExampleBookmarkButton({ exampleInfo }) {
+export default function ExampleBookmarkButton({ exampleInfo, saveLabel = '저장하기', savedLabel = '저장됨' }) {
   const { isExampleSaved, toggleSaveExample } = useUser()
   const saved = isExampleSaved(exampleInfo.id)
 
@@ -37,7 +37,7 @@ export default function ExampleBookmarkButton({ exampleInfo }) {
 
   return (
     <button style={btnStyle} onClick={handleClick} title={saved ? '저장 취소' : '예문 저장'}>
-      {saved ? '저장됨' : '저장하기'}
+      {saved ? savedLabel : saveLabel}
     </button>
   )
 }

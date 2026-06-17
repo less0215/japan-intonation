@@ -7,7 +7,7 @@ const PRIMARY = '#5CA9CE'
  * wordInfo: { id, category, word, reading, meaning }
  * size: 'default' | 'small'
  */
-export default function WordBookmarkButton({ wordInfo, size = 'default' }) {
+export default function WordBookmarkButton({ wordInfo, size = 'default', saveLabel = '저장하기', savedLabel = '저장됨' }) {
   const { isWordSaved, toggleSaveWord } = useUser()
   const saved = isWordSaved(wordInfo.id)
 
@@ -53,7 +53,7 @@ export default function WordBookmarkButton({ wordInfo, size = 'default' }) {
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
         </svg>
       )}
-      {!isSmall && (saved ? '저장됨' : '저장하기')}
+      {!isSmall && (saved ? savedLabel : saveLabel)}
     </button>
   )
 }

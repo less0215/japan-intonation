@@ -86,7 +86,7 @@ function ExampleBox({ example, exampleInfo }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <RubyText text={example.jp} fontSize={15} />
         <div style={{ display: 'flex', gap: 5, flexShrink: 0, alignItems: 'center' }}>
-          {exampleInfo && <ExampleBookmarkButton exampleInfo={exampleInfo} />}
+          {exampleInfo && <ExampleBookmarkButton exampleInfo={exampleInfo} saveLabel="예문 저장" savedLabel="예문 저장됨" />}
           {accentData && (
             <button
               onClick={() => { if (!showGraph) track('pitch_graph_expand', { category: 'grammar' }); setShowGraph(v => !v) }}
@@ -166,7 +166,7 @@ export default function GrammarDetail({ pattern }) {
             </span>
             <span style={{ fontSize: 16, color: '#aaa' }}>({pattern.reading})</span>
           </div>
-          <WordBookmarkButton wordInfo={{ id: pattern.id, category: 'grammar', word: pattern.pattern, reading: pattern.reading, meaning: pattern.meanings[0] ?? '' }} />
+          <WordBookmarkButton wordInfo={{ id: pattern.id, category: 'grammar', word: pattern.pattern, reading: pattern.reading, meaning: pattern.meanings[0] ?? '' }} saveLabel="이 문법 저장" savedLabel="문법 저장됨" />
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
           {pattern.meanings.map((m, i) => (

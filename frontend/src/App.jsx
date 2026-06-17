@@ -378,20 +378,42 @@ export default function App() {
           </h1>
 
           {user ? (
-            /* 로그인 상태: 이름 + 저장 목록 + 로그아웃 */
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', marginLeft: 'auto' }}>
-              <span style={{ fontSize: 13, color: '#555', fontWeight: 500, whiteSpace: 'nowrap' }}>
+            /* 로그인 상태: 이름 버튼 + 드롭다운 메뉴 */
+            <div style={{ position: 'relative', marginLeft: 'auto' }}>
+              <button
+                onClick={() => setMenuOpen(v => !v)}
+                className="login-btn"
+                style={{ background: 'transparent', color: '#555', borderColor: '#e0e0e0', display: 'flex', alignItems: 'center', gap: 5 }}
+              >
                 {user.name}님
-              </span>
-              <button onClick={() => { track('translation_history_open', { logged_in: true }); setShowTranslationHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#888', borderColor: '#e0e0e0' }}>
-                번역 기록
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: menuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
               </button>
-              <button onClick={() => { track('saved_list_open', { logged_in: true }); setShowHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
-                저장 목록
-              </button>
-              <button onClick={handleLogout} className="login-btn" style={{ background: 'transparent', color: '#aaa', borderColor: '#e0e0e0' }}>
-                로그아웃
-              </button>
+              {menuOpen && (
+                <>
+                  {/* 바깥 클릭 시 닫힘 */}
+                  <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                  <div style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 50,
+                    minWidth: 150, background: '#fff', border: '1px solid #eee',
+                    borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    overflow: 'hidden', padding: '4px 0',
+                  }}>
+                    <button style={menuItemStyle} onClick={() => { setMenuOpen(false); track('translation_history_open', { logged_in: true }); setShowTranslationHistory(true) }}>
+                      번역 기록
+                    </button>
+                    <button style={menuItemStyle} onClick={() => { setMenuOpen(false); track('saved_list_open', { logged_in: true }); setShowHistory(true) }}>
+                      저장 목록
+                    </button>
+                    <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
+                    <button style={{ ...menuItemStyle, color: '#aaa' }} onClick={() => { setMenuOpen(false); handleLogout() }}>
+                      로그아웃
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             /* 비로그인: 저장 목록 버튼 + 로그인 버튼 */

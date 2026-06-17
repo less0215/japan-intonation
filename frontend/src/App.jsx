@@ -379,7 +379,7 @@ export default function App() {
 
           {user ? (
             /* 로그인 상태: 이름 + 저장 목록 + 로그아웃 */
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', marginLeft: 'auto' }}>
               <span style={{ fontSize: 13, color: '#555', fontWeight: 500, whiteSpace: 'nowrap' }}>
                 {user.name}님
               </span>
@@ -395,7 +395,7 @@ export default function App() {
             </div>
           ) : (
             /* 비로그인: 저장 목록 버튼 + 로그인 버튼 */
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', marginLeft: 'auto' }}>
               <button onClick={() => { track('translation_history_open', { logged_in: false }); setShowTranslationHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#888', borderColor: '#e0e0e0' }}>
                 번역 기록
               </button>

@@ -10,9 +10,23 @@ import './App.css'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 const Router = isApp ? HashRouter : BrowserRouter
 
-/* AppsFlyer SDK 초기화 — 앱 환경에서만 실행 */
+/* 앱 환경에서만: ATT(추적 동의) 팝업 → AppsFlyer SDK 초기화 */
 if (isApp) {
-  import('appsflyer-capacitor-plugin').then(({ AppsFlyer }) => {
+  /* 1) ATT 권한 요청 — iOS 추적 동의 팝업. 응답과 무관하게 AppsFlyer는 초기화 */
+  async function initTracking() {
+    try {
+      const { AppTrackingTransparency } = await import('@capgo/capacitor-app-tracking-transparency')
+      const { status } = await AppTrackingTransparency.getStatus()
+      // 아직 묻지 않은 상태면 권한 요청 팝업 표시
+      if (status === 'notDetermined') {
+        await AppTrackingTransparency.requestPermission()
+      }
+    } catch (e) {
+      /* ATT 미지원 환경(안드로이드 등)·오류 시 무시하고 진행 */
+    }
+
+    /* 2) AppsFlyer 초기화 — ATT 응답 이후 IDFA 포함 여부가 반영됨 */
+    const { AppsFlyer } = await import('appsflyer-capacitor-plugin')
     AppsFlyer.initSDK({
       appID: 'com.tickjapan.app',
       devKey: 'EX5AVwQz9vfi3LqsMnKER3',
@@ -21,7 +35,8 @@ if (isApp) {
       registerOnDeepLink: true,
       registerConversionListener: true,
     })
-  })
+  }
+  initTracking()
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

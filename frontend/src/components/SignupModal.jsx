@@ -57,6 +57,25 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save' }) {
               ? '가입 시 입력한 이름과 휴대폰 번호를 그대로 입력하시면 로그인됩니다'
               : '이름과 휴대폰 번호를 입력하면 저장이 시작됩니다. 다음에 같은 정보로 다시 불러올 수 있어요'}
           </p>
+
+          {/* 중복 가입 방지 안내 — 번호 고유 식별 */}
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 7,
+            padding: '9px 11px',
+            background: '#f0f9ff',
+            border: '1px solid #d6ecf7',
+            borderRadius: 9,
+            marginTop: 2,
+          }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5CA9CE" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span style={{ fontSize: 12, color: '#357694', lineHeight: 1.5 }}>
+              휴대폰 번호는 중복 가입이 불가능하니 정확한 정보를 입력해 주세요.
+            </span>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

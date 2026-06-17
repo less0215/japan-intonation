@@ -153,16 +153,9 @@ function ExampleBox({ example, exampleInfo }) {
 /* ── 메인 컴포넌트 ── */
 export default function GrammarDetail({ pattern }) {
   const navigate = useNavigate()
-  const currentIndex = GRAMMAR.findIndex(g => g.id === pattern.id)
-  const prev = GRAMMAR[currentIndex - 1] ?? null
-  const next = GRAMMAR[currentIndex + 1] ?? null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-      <button onClick={() => navigate('/')} className="back-to-translate" style={{ alignSelf: 'flex-start' }}>
-        ← 홈으로
-      </button>
 
       {/* 헤더 카드 */}
       <div className="card" style={{ padding: '24px 20px 20px' }}>
@@ -233,15 +226,14 @@ export default function GrammarDetail({ pattern }) {
       {/* 히라가나 오십음도 — 상세 페이지에서는 펼친 상태 */}
       <HiraganaTable defaultOpen={true} />
 
-      {/* 이전 / 다음 */}
-      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-        <button className="particle-nav-btn" disabled={!prev} onClick={() => prev && navigate(`/grammar/${prev.id}`)}>
-          ← {prev ? prev.pattern : '처음'}
-        </button>
-        <button className="particle-nav-btn" disabled={!next} onClick={() => next && navigate(`/grammar/${next.id}`)}>
-          {next ? next.pattern : '마지막'} →
-        </button>
-      </div>
+      {/* 문법 목록으로 */}
+      <button
+        onClick={() => navigate('/grammar')}
+        className="particle-nav-btn"
+        style={{ width: '100%', marginTop: 4 }}
+      >
+        다른 문법 보기 →
+      </button>
 
     </div>
   )

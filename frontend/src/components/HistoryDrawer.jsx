@@ -9,6 +9,7 @@ const PRIMARY = '#5CA9CE'
 /* 품사 카테고리 레이블 */
 const CATEGORY_TABS = [
   { id: 'all',      label: '전체' },
+  { id: 'grammar',  label: '문법' },
   { id: 'verb',     label: '동사' },
   { id: 'adj-na',   label: 'な형' },
   { id: 'adj-i',    label: 'い형' },
@@ -17,11 +18,11 @@ const CATEGORY_TABS = [
 ]
 
 /* 카테고리 → 한국어 레이블 */
-const CAT_LABEL = { verb: '동사', 'adj-na': 'な형용사', 'adj-i': 'い형용사', noun: '명사', particle: '조사' }
+const CAT_LABEL = { grammar: '문법', verb: '동사', 'adj-na': 'な형용사', 'adj-i': 'い형용사', noun: '명사', particle: '조사' }
 
 /* 카테고리 → 상세 페이지 경로 */
 function getPath(category, id) {
-  const map = { verb: `/verbs/${id}`, 'adj-na': `/adj-na/${id}`, 'adj-i': `/adj-i/${id}`, noun: `/noun/${id}`, particle: `/particles/${id}` }
+  const map = { grammar: `/grammar/${id}`, verb: `/verbs/${id}`, 'adj-na': `/adj-na/${id}`, 'adj-i': `/adj-i/${id}`, noun: `/noun/${id}`, particle: `/particles/${id}` }
   return map[category] ?? null
 }
 

@@ -351,6 +351,8 @@ export default function App() {
 
   const hasContent = loading || error || result || typing
   const isWordTab = tab !== 'translate'
+  /* 문법 상세 페이지 여부 — 이 경우 '← 번역기' 버튼 숨김 */
+  const isGrammarDetail = /^\/grammar\/.+/.test(location.pathname)
 
   return (
     <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
@@ -431,7 +433,7 @@ export default function App() {
 
         {/* 품사 단어 목록 화면일 때 — 상단에 번역기로 돌아가기 + 카테고리 전환 바 */}
         {/* 문법 페이지는 자체 카테고리 탭이 있으므로 CategoryBars 숨김 */}
-        {isWordTab && (
+        {isWordTab && !isGrammarDetail && (
           <>
             <button onClick={() => navigate('/')} className="back-to-translate">
               ← 번역기

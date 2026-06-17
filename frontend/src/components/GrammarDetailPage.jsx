@@ -10,6 +10,7 @@ export default function GrammarDetailPage() {
   const pattern = GRAMMAR.find(g => g.id === id)
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     if (pattern) track('word_detail_view', { category: 'grammar', word_id: pattern.id, word: pattern.pattern })
   }, [pattern])
 

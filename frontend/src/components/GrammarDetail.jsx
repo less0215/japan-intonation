@@ -226,14 +226,16 @@ export default function GrammarDetail({ pattern }) {
       {/* 히라가나 오십음도 — 상세 페이지에서는 펼친 상태 */}
       <HiraganaTable defaultOpen={true} />
 
-      {/* 문법 목록으로 */}
-      <button
-        onClick={() => navigate('/grammar')}
-        className="particle-nav-btn"
-        style={{ width: '100%', marginTop: 4 }}
-      >
-        다른 문법 보기 →
-      </button>
+      {/* 문법 목록으로 — 위아래 여백 확보 */}
+      <div style={{ margin: '20px 0 44px', display: 'flex' }}>
+        <button
+          onClick={() => navigate('/grammar')}
+          className="particle-nav-btn"
+          style={{ width: '100%', height: 52 }}
+        >
+          다른 문법 보기 →
+        </button>
+      </div>
 
     </div>
   )

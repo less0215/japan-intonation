@@ -21,6 +21,10 @@ if (isApp) {
       registerOnDeepLink: true,
       registerConversionListener: true,
     })
+    // 인앱 이벤트 로깅 헬퍼 — track()에서 호출 (앱 환경에서만 존재)
+    window.__afLog = (eventName, eventValue = {}) => {
+      AppsFlyer.logEvent({ eventName, eventValue }).catch(() => {})
+    }
   })
 }
 

@@ -37,10 +37,25 @@ const menuItemStyle = {
   cursor: 'pointer', fontFamily: 'inherit',
 }
 
-/* GA4 이벤트 전송 헬퍼 */
+/* 내부 이벤트명 → AppsFlyer 인앱 이벤트명 매핑 (핵심 전환만) */
+const AF_EVENTS = {
+  analyze:          'af_translate',              // 번역 시도
+  signup_complete:  'af_complete_registration',  // 가입 완료
+  result_save:      'af_save_translation',       // 번역 저장
+  example_save:     'af_save_example',           // 예문 저장
+  word_save:        'af_save_word',              // 단어 저장
+  word_detail_view: 'af_content_view',           // 콘텐츠(단어/문법) 조회
+}
+
+/* 이벤트 전송 헬퍼 — GA4 + (앱 환경) AppsFlyer 인앱 이벤트 */
 export function track(eventName, params = {}) {
   if (typeof window.gtag === 'function') {
     window.gtag('event', eventName, params)
+  }
+  // AppsFlyer 인앱 이벤트 (앱 환경에서만, 핵심 전환에 한해)
+  const afName = AF_EVENTS[eventName]
+  if (afName && typeof window.__afLog === 'function') {
+    window.__afLog(afName, params)
   }
 }
 

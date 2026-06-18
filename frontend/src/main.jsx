@@ -28,7 +28,7 @@ if (isApp) {
     /* 2) AppsFlyer 초기화 — ATT 응답 이후 IDFA 포함 여부가 반영됨 */
     const { AppsFlyer } = await import('appsflyer-capacitor-plugin')
     AppsFlyer.initSDK({
-      appID: 'com.tickjapan.app',
+      appID: '6781296261',   // App Store 숫자 ID (어트리뷰션용)
       devKey: 'EX5AVwQz9vfi3LqsMnKER3',
       isDebug: false,
       waitForATTUserAuthorization: 10,

@@ -7,6 +7,7 @@ import CategoryBars from './components/CategoryBars'
 import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
 import TranslationHistoryDrawer from './components/TranslationHistoryDrawer'
+import AttPrePrompt from './components/AttPrePrompt'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
@@ -190,6 +191,7 @@ export default function App() {
   const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login' | 'translate_limit'
   const [showHistory, setShowHistory]         = useState(false)
   const [showTranslationHistory, setShowTranslationHistory] = useState(false)
+  const [showAttPrompt, setShowAttPrompt] = useState(false)
   const [menuOpen, setMenuOpen]               = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
@@ -284,6 +286,8 @@ export default function App() {
       }
       // 2단계: 무거운 문장 분해는 백그라운드로 채움 → 저장은 분해 병합 후 수행
       fetchBreakdown(data, text)
+      // 번역 1회 후 ATT 사전 안내 시트 (앱·미요청 상태에서만)
+      maybeShowAttPrompt()
     } catch (err) {
       const isFetchError = err.name === 'TypeError' || err.message.includes('fetch') || err.message.includes('network')
       setError(isFetchError ? '서버가 시작되는 중입니다. 잠시 후 다시 시도해 주세요.' : err.message)
@@ -331,6 +335,28 @@ export default function App() {
 
   function handleLogout() {
     setUser(null)
+  }
+
+  // ATT 사전 안내 시트 표시 여부 판단 (앱 + 아직 안 물음 + notDetermined)
+  async function maybeShowAttPrompt() {
+    if (!isApp) return
+    if (localStorage.getItem('tickjapan_att_asked') === 'true') return
+    try {
+      const { AppTrackingTransparency } = await import('@capgo/capacitor-app-tracking-transparency')
+      const { status } = await AppTrackingTransparency.getStatus()
+      if (status === 'notDetermined') setShowAttPrompt(true)
+      else localStorage.setItem('tickjapan_att_asked', 'true')
+    } catch { /* ATT 미지원 환경 무시 */ }
+  }
+
+  // '다음 화면' 클릭 → 시스템 ATT 팝업 호출
+  async function handleAttProceed() {
+    setShowAttPrompt(false)
+    localStorage.setItem('tickjapan_att_asked', 'true')
+    try {
+      const { AppTrackingTransparency } = await import('@capgo/capacitor-app-tracking-transparency')
+      await AppTrackingTransparency.requestPermission()
+    } catch { /* 무시 */ }
   }
 
   async function doSave(currentUser, text, data) {
@@ -712,6 +738,7 @@ export default function App() {
           onSelect={handleSelectSaved}
         />
       )}
+      {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}
       {showDeleteAccount && user && (
         <DeleteAccountModal
           user={user}

@@ -10,33 +10,18 @@ import './App.css'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 const Router = isApp ? HashRouter : BrowserRouter
 
-/* 앱 환경에서만: ATT(추적 동의) 팝업 → AppsFlyer SDK 초기화 */
+/* 앱 환경에서만 AppsFlyer 초기화 (ATT 요청은 번역 1회 후 사전 안내 시트에서 별도 처리) */
 if (isApp) {
-  /* 1) ATT 권한 요청 — iOS 추적 동의 팝업. 응답과 무관하게 AppsFlyer는 초기화 */
-  async function initTracking() {
-    try {
-      const { AppTrackingTransparency } = await import('@capgo/capacitor-app-tracking-transparency')
-      const { status } = await AppTrackingTransparency.getStatus()
-      // 아직 묻지 않은 상태면 권한 요청 팝업 표시
-      if (status === 'notDetermined') {
-        await AppTrackingTransparency.requestPermission()
-      }
-    } catch (e) {
-      /* ATT 미지원 환경(안드로이드 등)·오류 시 무시하고 진행 */
-    }
-
-    /* 2) AppsFlyer 초기화 — ATT 응답 이후 IDFA 포함 여부가 반영됨 */
-    const { AppsFlyer } = await import('appsflyer-capacitor-plugin')
+  import('appsflyer-capacitor-plugin').then(({ AppsFlyer }) => {
     AppsFlyer.initSDK({
       appID: '6781296261',   // App Store 숫자 ID (어트리뷰션용)
       devKey: 'EX5AVwQz9vfi3LqsMnKER3',
       isDebug: false,
-      waitForATTUserAuthorization: 10,
+      waitForATTUserAuthorization: 60,  // ATT는 번역 후 물으므로 대기시간 넉넉히
       registerOnDeepLink: true,
       registerConversionListener: true,
     })
-  }
-  initTracking()
+  })
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

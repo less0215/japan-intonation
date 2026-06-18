@@ -245,7 +245,11 @@ export default function App() {
       fetch(`${API_URL}/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          text,
+          user_id: user?.user_id ?? null,
+          anonymous_id: (() => { try { return localStorage.getItem('tickjapan_anon_id') } catch { return null } })(),
+        }),
       })
 
     try {

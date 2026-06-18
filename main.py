@@ -14,7 +14,7 @@ from google import genai
 from google.api_core.client_options import ClientOptions
 from google.cloud import texttospeech
 from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, Integer, String, Text, create_engine
+from sqlalchemy import Column, DateTime, Integer, String, Text, create_engine, text as sa_text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -252,12 +252,15 @@ class User(Base):
 
 class SavedResult(Base):
     __tablename__ = "saved_results"
+    # 데일리 체크 우선순위 순서 (좌→우): 시각·입력·결과·구분·누구·원본
     id           = Column(Integer, primary_key=True, index=True)
+    created_at   = Column(DateTime, default=now_kst)        # 언제 (KST)
+    input_text   = Column(String(500), nullable=False)      # 한국어 입력
+    japanese     = Column(String(500), nullable=True)       # 일본어 결과 (한눈에)
+    source       = Column(String(10), default='manual')     # 'auto'=번역시 자동기록 / 'manual'=사용자 저장
     user_id      = Column(Integer, nullable=True, index=True)
     anonymous_id = Column(String(36), nullable=True, index=True)
-    input_text   = Column(String(500), nullable=False)
-    result_json  = Column(Text, nullable=False)
-    created_at   = Column(DateTime, default=now_kst)
+    result_json  = Column(Text, nullable=True)              # 전체 결과(저장 복원용, auto는 비움)
 
 
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
@@ -266,12 +269,48 @@ engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base.metadata.create_all(bind=engine)
 
+
+def run_migrations():
+    """기존 saved_results 테이블에 신규 열 추가·백필 (PostgreSQL, 멱등)."""
+    if DATABASE_URL.startswith("sqlite"):
+        return
+    try:
+        with engine.begin() as conn:
+            conn.execute(sa_text("ALTER TABLE saved_results ADD COLUMN IF NOT EXISTS source VARCHAR(10) DEFAULT 'manual'"))
+            conn.execute(sa_text("ALTER TABLE saved_results ADD COLUMN IF NOT EXISTS japanese VARCHAR(500)"))
+            conn.execute(sa_text("ALTER TABLE saved_results ALTER COLUMN result_json DROP NOT NULL"))
+    except Exception as e:
+        print("[migration] add columns skipped:", e)
+    # 기존 행 japanese 백필 (result_json에서 추출)
+    try:
+        with engine.begin() as conn:
+            conn.execute(sa_text(
+                "UPDATE saved_results SET japanese = (result_json::json->>'japanese') "
+                "WHERE japanese IS NULL AND result_json IS NOT NULL"
+            ))
+    except Exception as e:
+        print("[migration] japanese backfill skipped:", e)
+    # 데일리 체크용 뷰 (우선순위 열 순서)
+    try:
+        with engine.begin() as conn:
+            conn.execute(sa_text(
+                "CREATE OR REPLACE VIEW saved_glance AS "
+                "SELECT created_at, input_text, japanese, source, user_id, anonymous_id, id "
+                "FROM saved_results ORDER BY created_at DESC"
+            ))
+    except Exception as e:
+        print("[migration] view skipped:", e)
+
+run_migrations()
+
 # ──────────────────────────────────────────────
 # Pydantic 스키마
 # ──────────────────────────────────────────────
 
 class AnalyzeRequest(BaseModel):
     text: str
+    user_id: int | None = None       # 로그인 사용자 (선택)
+    anonymous_id: str | None = None  # 비로그인 식별자 (선택)
 
 class AccentEntry(BaseModel):
     phrase_id: str
@@ -460,6 +499,27 @@ def parse_accent_data(html: str) -> list[dict]:
 # 엔드포인트
 # ──────────────────────────────────────────────
 
+def log_translation(input_text, japanese, user_id=None, anonymous_id=None):
+    """번역 시도를 saved_results에 자동 기록 (source='auto'). 실패해도 번역에 영향 없음."""
+    db = SessionLocal()
+    try:
+        row = SavedResult(
+            input_text=(input_text or "")[:500],
+            japanese=(japanese or "")[:500],
+            source='auto',
+            user_id=user_id,
+            anonymous_id=anonymous_id,
+            result_json=None,
+        )
+        db.add(row)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print("[log_translation] skipped:", e)
+    finally:
+        db.close()
+
+
 @app.get("/health")
 def health_check():
     """서버 상태 확인용 엔드포인트."""
@@ -485,6 +545,7 @@ def analyze(req: AnalyzeRequest):
     if text in _analyze_cache:
         print(f"[Analyze 캐시 HIT] {text[:40]!r}")
         cached = _analyze_cache[text]
+        log_translation(text, cached.get("japanese"), req.user_id, req.anonymous_id)
         return AnalyzeResponse(**cached)
     # ───────────────────────────────────────────
 
@@ -513,6 +574,9 @@ def analyze(req: AnalyzeRequest):
         del _analyze_cache[oldest_key]
     _analyze_cache[text] = result.model_dump()
     print(f"[Analyze 캐시 저장] {text[:40]!r}")
+
+    # 번역 시도 자동 기록 (웹·앱 공통, source='auto')
+    log_translation(text, result.japanese, req.user_id, req.anonymous_id)
 
     return result
 
@@ -708,6 +772,8 @@ def save_result(req: SaveRequest):
             user_id=req.user_id,
             anonymous_id=req.anonymous_id if not req.user_id else None,
             input_text=req.input_text,
+            japanese=(req.result.get("japanese") if isinstance(req.result, dict) else None),
+            source='manual',   # 사용자가 직접 저장
             result_json=json.dumps(req.result, ensure_ascii=False),
         )
         db.add(saved)
@@ -729,6 +795,7 @@ def get_saves(user_id: int):
         rows = (
             db.query(SavedResult)
             .filter(SavedResult.user_id == user_id)
+            .filter(SavedResult.source != 'auto')   # 자동 기록 제외, 사용자가 저장한 것만
             .order_by(SavedResult.created_at.desc())
             .all()
         )

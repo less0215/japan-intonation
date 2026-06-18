@@ -238,12 +238,17 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./tickjapan.db")
 class Base(DeclarativeBase):
     pass
 
+# 한국 표준시(KST) — created_at을 KST 벽시계 기준으로 저장
+KST = datetime.timezone(datetime.timedelta(hours=9))
+def now_kst():
+    return datetime.datetime.now(KST).replace(tzinfo=None)
+
 class User(Base):
     __tablename__ = "users"
     id         = Column(Integer, primary_key=True, index=True)
     name       = Column(String(100), nullable=False)
     phone      = Column(String(20), unique=True, nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=now_kst)
 
 class SavedResult(Base):
     __tablename__ = "saved_results"
@@ -252,7 +257,7 @@ class SavedResult(Base):
     anonymous_id = Column(String(36), nullable=True, index=True)
     input_text   = Column(String(500), nullable=False)
     result_json  = Column(Text, nullable=False)
-    created_at   = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at   = Column(DateTime, default=now_kst)
 
 
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요

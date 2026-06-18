@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
@@ -205,6 +205,32 @@ export default function App() {
   // 날짜 기반 오늘의 단어·문법 (당일 고정)
   const dailyVerb    = useMemo(() => pickDailyVerb(VERBS), [])
   const dailyGrammar = useMemo(() => pickDailyGrammar(GRAMMAR), [])
+
+  // 좌→우 가장자리 스와이프 = 뒤로가기 (iOS 제스처 대응)
+  useEffect(() => {
+    let startX = 0, startY = 0, startT = 0, armed = false
+    function onStart(e) {
+      const t = e.touches[0]
+      // 화면 왼쪽 가장자리(24px 이내)에서 시작한 터치만 인식 → 가로 스크롤과 충돌 방지
+      armed = t.clientX <= 24
+      startX = t.clientX; startY = t.clientY; startT = Date.now()
+    }
+    function onEnd(e) {
+      if (!armed) return
+      armed = false
+      const t = e.changedTouches[0]
+      const dx = t.clientX - startX
+      const dy = Math.abs(t.clientY - startY)
+      const dt = Date.now() - startT
+      if (dx > 70 && dy < 50 && dt < 600) navigate(-1)
+    }
+    document.addEventListener('touchstart', onStart, { passive: true })
+    document.addEventListener('touchend', onEnd, { passive: true })
+    return () => {
+      document.removeEventListener('touchstart', onStart)
+      document.removeEventListener('touchend', onEnd)
+    }
+  }, [navigate])
 
   async function handleAnalyze(text) {
     setLoading(true)

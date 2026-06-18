@@ -7,6 +7,7 @@ import { useUser } from '../context/UserContext'
 import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
+import ExampleCard from './ExampleCard'
 import { CONJ_LABELS } from '../data/verbs'
 
 const PRIMARY  = '#5CA9CE'
@@ -535,55 +536,17 @@ export default function VerbDetail({ verb, onBack }) {
         <ConjugationTable conjugations={verb.conjugations} accentType={verb.accentType ?? 0} />
       )}
 
-      {/* 예문 */}
+      {/* 예문 — 다른 품사와 동일한 공용 ExampleCard 사용 (UIUX 일관성) */}
       {verb.examples.length > 0 && (
       <div id="examples-section" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <p style={styles.sectionTitle}>예문</p>
         {verb.examples.map((ex, i) => (
-          <div key={i} style={styles.exampleCard}>
-
-            {/* ① 텍스트 + 버튼 — 좌우 padding */}
-            <div className="example-card-body">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: PRIMARY }}>{ex.korean}</span>
-                <RubyText text={ex.japanese} fontSize={17} />
-                <span style={{ fontSize: 12, color: '#888' }}>{ex.reading}</span>
-                {ex.pattern && <PatternBadge pattern={ex.pattern} />}
-              </div>
-              <div className="example-card-actions">
-                <ExampleBookmarkButton exampleInfo={{
-                  id: `verb_${verb.id}_${i}`,
-                  wordId: verb.id,
-                  wordText: verb.verb,
-                  wordReading: verb.reading,
-                  wordCategory: 'verb',
-                  exampleJp: ex.plain,
-                  exampleKr: ex.korean,
-                }} />
-                <PracticeButton japanesePlain={ex.plain} />
-              </div>
-            </div>
-
-            {/* ② 억양 그래프 — padding 없이 카드 full-width, overflow-x 스크롤 */}
-            {ex.accentData && ex.furigana && (
-              <div style={{
-                marginTop: 10,
-                overflowX: 'auto',
-                overflowY: 'hidden',
-                WebkitOverflowScrolling: 'touch',
-                paddingLeft: 16,
-                paddingBottom: 4,
-              }}>
-                <PitchGraph accentData={ex.accentData} furigana={ex.furigana} hideHeader />
-              </div>
-            )}
-
-            {/* ③ 뜻·원리 보기 — 좌우 padding */}
-            <div style={{ padding: '0 16px 14px' }}>
-              <ExampleAnalysis japaneseText={ex.plain} />
-            </div>
-
-          </div>
+          <ExampleCard
+            key={i}
+            example={ex}
+            index={i}
+            wordInfo={{ id: verb.id, category: 'verb', word: verb.verb, reading: verb.reading }}
+          />
         ))}
       </div>
       )}

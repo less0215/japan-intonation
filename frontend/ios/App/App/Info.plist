@@ -12,7 +12,7 @@
 		<string>ja</string>
 	</array>
 	<key>CFBundleDisplayName</key>
-        <string>TickJapan</string>
+        <string>틱재팬</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

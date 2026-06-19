@@ -42,6 +42,25 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
   const [wordCat,    setWordCat]    = useState('all')
   const [exampleCat, setExampleCat] = useState('all')
 
+  /* 다중 선택 삭제 모드 */
+  const [editMode, setEditMode] = useState(false)
+  const [selected, setSelected] = useState(() => new Set())
+
+  /* 탭 전환 시 선택모드 초기화 */
+  function changeTab(id) {
+    setMainTab(id)
+    setEditMode(false)
+    setSelected(new Set())
+  }
+  function toggleSelect(id) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  function exitEdit() { setEditMode(false); setSelected(new Set()) }
+
   /* 번역 저장 목록 불러오기 (로그인 시에만) */
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -105,6 +124,38 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
 
   function fmtCount(n) { return n >= 100 ? '99+' : n }
 
+  /* 현재 탭에 보이는 항목들 (선택/삭제 대상) */
+  function currentItems() {
+    if (mainTab === 'saves')    return items
+    if (mainTab === 'words')    return filteredWords
+    if (mainTab === 'examples') return filteredExamples
+    return []
+  }
+  const visibleIds = currentItems().map(i => i.id)
+  const allSelected = visibleIds.length > 0 && visibleIds.every(id => selected.has(id))
+
+  function toggleSelectAll() {
+    setSelected(allSelected ? new Set() : new Set(visibleIds))
+  }
+
+  /* 선택한 항목 일괄 삭제 */
+  async function deleteSelected() {
+    if (selected.size === 0) return
+    track('saved_bulk_delete', { tab: mainTab, count: selected.size })
+    if (mainTab === 'saves') {
+      const ids = [...selected]
+      await Promise.all(ids.map(id =>
+        fetch(`${API_URL}/saves/${id}?user_id=${user.user_id}`, { method: 'DELETE' }).catch(() => {})
+      ))
+      setItems(prev => prev.filter(i => !selected.has(i.id)))
+    } else if (mainTab === 'words') {
+      savedWords.filter(w => selected.has(w.id)).forEach(w => toggleSaveWord(w))
+    } else {
+      savedExamples.filter(e => selected.has(e.id)).forEach(e => toggleSaveExample(e))
+    }
+    exitEdit()
+  }
+
   /* 메인 탭 정의 */
   const MAIN_TABS = [
     { id: 'saves',    label: '번역 저장', count: loading ? 0 : items.length },
@@ -129,7 +180,7 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
           {MAIN_TABS.map(t => (
             <button
               key={t.id}
-              onClick={() => setMainTab(t.id)}
+              onClick={() => changeTab(t.id)}
               style={{
                 flex: 1,
                 padding: '10px 4px',
@@ -163,6 +214,31 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
           ))}
         </div>
 
+        {/* 선택 삭제 툴바 — 현재 탭에 항목이 있을 때만 */}
+        {visibleIds.length > 0 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '8px 16px', flexShrink: 0, borderBottom: '1px solid #f5f5f5',
+          }}>
+            {editMode ? (
+              <>
+                <button onClick={toggleSelectAll} style={toolBtn(PRIMARY)}>
+                  {allSelected ? '전체 해제' : '전체 선택'}
+                </button>
+                <span style={{ fontSize: 12.5, color: '#888' }}>{selected.size}개 선택됨</span>
+                <button onClick={exitEdit} style={toolBtn('#aaa')}>취소</button>
+              </>
+            ) : (
+              <>
+                <span />
+                <button onClick={() => setEditMode(true)} style={toolBtn('#888')}>
+                  선택 삭제
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         {/* ── 번역 저장 탭 ── */}
         {mainTab === 'saves' && (
           <div className="drawer-list">
@@ -177,13 +253,17 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
                 <div
                   key={item.id}
                   className="drawer-item"
-                  onClick={() => { track('saved_item_click', { tab: 'saves' }); onSelect(item.result, item.input_text); onClose() }}
+                  onClick={() => editMode
+                    ? toggleSelect(item.id)
+                    : (track('saved_item_click', { tab: 'saves' }), onSelect(item.result, item.input_text), onClose())}
+                  style={{ alignItems: 'center' }}
                 >
+                  {editMode && <SelBox on={selected.has(item.id)} />}
                   <div className="drawer-item-body">
                     <p className="drawer-item-input">{item.input_text}</p>
                     <p className="drawer-item-japanese">{item.japanese}</p>
                   </div>
-                  <button className="drawer-item-delete" onClick={e => handleDelete(e, item.id)} title="삭제">✕</button>
+                  {!editMode && <button className="drawer-item-delete" onClick={e => handleDelete(e, item.id)} title="삭제">✕</button>}
                 </div>
               ))
             )}
@@ -207,12 +287,13 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
                 </p>
               ) : (
                 filteredWords.map(word => (
-                  <div key={word.id} className="drawer-item" onClick={() => handleWordClick(word)} style={{ alignItems: 'center' }}>
+                  <div key={word.id} className="drawer-item" onClick={() => editMode ? toggleSelect(word.id) : handleWordClick(word)} style={{ alignItems: 'center' }}>
+                    {editMode && <SelBox on={selected.has(word.id)} />}
                     <div className="drawer-item-body">
                       <p className="drawer-item-japanese" style={{ marginBottom: 2 }}>{word.word}</p>
                       <p style={{ margin: 0, fontSize: 12, color: '#aaa' }}>{word.reading} · {word.meaning}</p>
                     </div>
-                    <button className="drawer-item-delete" onClick={e => { e.stopPropagation(); toggleSaveWord(word) }} title="저장 취소">✕</button>
+                    {!editMode && <button className="drawer-item-delete" onClick={e => { e.stopPropagation(); toggleSaveWord(word) }} title="저장 취소">✕</button>}
                   </div>
                 ))
               )}
@@ -239,7 +320,8 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
                 </p>
               ) : (
                 filteredExamples.map(ex => (
-                  <div key={ex.id} className="drawer-item" onClick={() => handleExampleClick(ex)}>
+                  <div key={ex.id} className="drawer-item" onClick={() => editMode ? toggleSelect(ex.id) : handleExampleClick(ex)} style={{ alignItems: 'center' }}>
+                    {editMode && <SelBox on={selected.has(ex.id)} />}
                     <div className="drawer-item-body">
                       <p style={{ margin: '0 0 3px', fontSize: 15, fontWeight: 500, fontFamily: "'Noto Sans JP', sans-serif", color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {ex.exampleJp}
@@ -251,11 +333,30 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
                         {ex.wordText} ({CAT_LABEL[ex.wordCategory] ?? ex.wordCategory}) 의 예문
                       </p>
                     </div>
-                    <button className="drawer-item-delete" onClick={e => { e.stopPropagation(); toggleSaveExample(ex) }} title="저장 취소">✕</button>
+                    {!editMode && <button className="drawer-item-delete" onClick={e => { e.stopPropagation(); toggleSaveExample(ex) }} title="저장 취소">✕</button>}
                   </div>
                 ))
               )}
             </div>
+          </div>
+        )}
+
+        {/* 선택 삭제 실행 바 — 편집 모드에서만 */}
+        {editMode && (
+          <div style={{ padding: '10px 16px', borderTop: '1px solid #f0f0f0', flexShrink: 0 }}>
+            <button
+              onClick={deleteSelected}
+              disabled={selected.size === 0}
+              style={{
+                width: '100%', height: 46, borderRadius: 12, border: 'none',
+                background: selected.size === 0 ? '#f0f0f0' : '#e24b4a',
+                color: selected.size === 0 ? '#bbb' : '#fff',
+                fontSize: 14.5, fontWeight: 700, fontFamily: 'inherit',
+                cursor: selected.size === 0 ? 'default' : 'pointer',
+              }}
+            >
+              {selected.size > 0 ? `${selected.size}개 삭제` : '삭제할 항목을 선택하세요'}
+            </button>
           </div>
         )}
 
@@ -302,6 +403,33 @@ export default function HistoryDrawer({ user, onClose, onSelect, onDeleteAccount
       </div>
     </div>
   )
+}
+
+/* 선택 체크 동그라미 */
+function SelBox({ on }) {
+  return (
+    <span style={{
+      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+      border: `2px solid ${on ? PRIMARY : '#d5d5d5'}`,
+      background: on ? PRIMARY : 'transparent',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      marginRight: 10,
+    }}>
+      {on && (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      )}
+    </span>
+  )
+}
+
+/* 툴바 텍스트 버튼 */
+function toolBtn(color) {
+  return {
+    background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: 12.5, fontWeight: 600, color, fontFamily: 'inherit', padding: '2px 4px',
+  }
 }
 
 function filterBtnStyle(active) {

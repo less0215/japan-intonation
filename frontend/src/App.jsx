@@ -8,6 +8,7 @@ import SignupModal from './components/SignupModal'
 import HistoryDrawer from './components/HistoryDrawer'
 import TranslationHistoryDrawer from './components/TranslationHistoryDrawer'
 import AttPrePrompt from './components/AttPrePrompt'
+import DownloadPage from './components/DownloadPage'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
@@ -427,6 +428,8 @@ export default function App() {
   const isWordTab = tab !== 'translate'
   /* 문법 상세 페이지 여부 — 이 경우 '← 번역기' 버튼 숨김 */
   const isGrammarDetail = /^\/grammar\/.+/.test(location.pathname)
+  /* 다운로드 페이지 — 탭 네비게이션 숨김(깔끔한 랜딩) */
+  const isDownload = location.pathname.startsWith('/download')
 
   return (
     <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
@@ -502,8 +505,8 @@ export default function App() {
           )}
         </div>
 
-        {/* 탭 네비게이션 */}
-        <div className="tab-nav">
+        {/* 탭 네비게이션 (다운로드 페이지에선 숨김) */}
+        {!isDownload && <div className="tab-nav">
           {/* 번역기 탭 */}
           <button
             onClick={() => navigate('/')}
@@ -531,7 +534,7 @@ export default function App() {
               {label}
             </button>
           ))}
-        </div>
+        </div>}
 
         {/* 품사 단어 목록 화면일 때 — 상단에 번역기로 돌아가기 + 카테고리 전환 바 */}
         {/* 문법 페이지는 자체 카테고리 탭이 있으므로 CategoryBars 숨김 */}
@@ -599,6 +602,7 @@ export default function App() {
           </>} />
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
           <Route path="/terms"   element={<LegalPage type="terms" />} />
+          <Route path="/download" element={<DownloadPage />} />
           <Route path="/grammar" element={<>
             <PageSEO
               title="일본어 문법 패턴 정리 - 접속·예문·피치 악센트"

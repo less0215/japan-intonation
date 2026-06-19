@@ -54,8 +54,9 @@ const AF_EVENTS = {
 
 /* 내부 이벤트명 → Meta Pixel 표준 이벤트명 매핑 (웹 전용 핵심 전환) */
 const META_EVENTS = {
-  signup_complete: 'CompleteRegistration',  // 가입 완료
-  download_click:  'Lead',                  // 실제 App Store 다운로드 클릭
+  signup_complete:    'CompleteRegistration',  // 가입 완료
+  download_page_view: 'ViewContent',           // 다운로드 페이지 도달 (퍼널 중간)
+  download_click:     'Lead',                  // 실제 App Store 다운로드 클릭
 }
 
 /* 이벤트 전송 헬퍼 — GA4 + (앱) AppsFlyer + (웹) Meta Pixel */

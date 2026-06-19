@@ -345,6 +345,7 @@ export default function App() {
         body: JSON.stringify({
           text,
           model: useModel,
+          platform: isApp ? 'app' : 'web',
           user_id: user?.user_id ?? null,
           anonymous_id: (() => { try { return localStorage.getItem('tickjapan_anon_id') } catch { return null } })(),
         }),

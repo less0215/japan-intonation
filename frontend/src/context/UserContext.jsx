@@ -55,9 +55,10 @@ export function UserProvider({ children }) {
   }, [translationHistory])
 
   const saveResult = useCallback(async (currentUser, inputText, result) => {
+    const platform = (window.Capacitor?.isNativePlatform?.() ?? false) ? 'app' : 'web'
     const body = currentUser
-      ? { user_id: currentUser.user_id, input_text: inputText, result }
-      : { anonymous_id: getAnonymousId(), input_text: inputText, result }
+      ? { user_id: currentUser.user_id, input_text: inputText, result, platform }
+      : { anonymous_id: getAnonymousId(), input_text: inputText, result, platform }
     const res = await fetch(`${API_URL}/saves`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

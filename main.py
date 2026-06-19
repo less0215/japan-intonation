@@ -280,6 +280,7 @@ class User(Base):
     id         = Column(Integer, primary_key=True, index=True)
     name       = Column(String(100), nullable=False)
     phone      = Column(String(20), unique=True, nullable=False, index=True)
+    platform   = Column(String(10), nullable=True)   # 가입 경로 'app' | 'web'
     created_at = Column(DateTime, default=now_kst)
 
 class SavedResult(Base):
@@ -290,6 +291,7 @@ class SavedResult(Base):
     input_text   = Column(String(500), nullable=False)      # 한국어 입력
     japanese     = Column(String(500), nullable=True)       # 일본어 결과 (한눈에)
     source       = Column(String(10), default='manual')     # 'auto'=번역시 자동기록 / 'manual'=사용자 저장
+    platform     = Column(String(10), nullable=True)        # 'app' | 'web' (요청 출처)
     user_id      = Column(Integer, nullable=True, index=True)
     anonymous_id = Column(String(36), nullable=True, index=True)
     result_json  = Column(Text, nullable=True)              # 전체 결과(저장 복원용, auto는 비움)
@@ -328,6 +330,8 @@ def run_migrations():
         with engine.begin() as conn:
             conn.execute(sa_text("ALTER TABLE saved_results ADD COLUMN IF NOT EXISTS source VARCHAR(10) DEFAULT 'manual'"))
             conn.execute(sa_text("ALTER TABLE saved_results ADD COLUMN IF NOT EXISTS japanese VARCHAR(500)"))
+            conn.execute(sa_text("ALTER TABLE saved_results ADD COLUMN IF NOT EXISTS platform VARCHAR(10)"))
+            conn.execute(sa_text("ALTER TABLE users ADD COLUMN IF NOT EXISTS platform VARCHAR(10)"))
             conn.execute(sa_text("ALTER TABLE saved_results ALTER COLUMN result_json DROP NOT NULL"))
     except Exception as e:
         print("[migration] add columns skipped:", e)
@@ -347,12 +351,13 @@ def run_migrations():
             conn.execute(sa_text("ALTER TABLE fast_usage ALTER COLUMN date_kst DROP NOT NULL"))
     except Exception as e:
         print("[migration] fast_usage window_start skipped:", e)
-    # 데일리 체크용 뷰 (우선순위 열 순서)
+    # 데일리 체크용 뷰 (우선순위 열 순서) — platform 추가 위해 재생성
     try:
         with engine.begin() as conn:
+            conn.execute(sa_text("DROP VIEW IF EXISTS saved_glance"))
             conn.execute(sa_text(
-                "CREATE OR REPLACE VIEW saved_glance AS "
-                "SELECT created_at, input_text, japanese, source, user_id, anonymous_id, id "
+                "CREATE VIEW saved_glance AS "
+                "SELECT created_at, input_text, japanese, source, platform, user_id, anonymous_id, id "
                 "FROM saved_results ORDER BY created_at DESC"
             ))
     except Exception as e:
@@ -369,6 +374,7 @@ class AnalyzeRequest(BaseModel):
     user_id: int | None = None       # 로그인 사용자 (선택)
     anonymous_id: str | None = None  # 비로그인 식별자 (선택)
     model: str = "basic"             # 'basic'(2.5) | 'fast'(3.1)
+    platform: str | None = None      # 'app' | 'web' (요청 출처)
 
 class AccentEntry(BaseModel):
     phrase_id: str
@@ -396,6 +402,7 @@ class TTSRequest(BaseModel):
 class SignupRequest(BaseModel):
     name: str
     phone: str
+    platform: str | None = None      # 'app' | 'web' (가입 경로)
 
 class SignupResponse(BaseModel):
     user_id: int
@@ -485,6 +492,7 @@ class SaveRequest(BaseModel):
     anonymous_id: str | None = None
     input_text: str
     result: dict
+    platform: str | None = None      # 'app' | 'web' (요청 출처)
 
 
 class AnalyzeResponse(BaseModel):
@@ -642,7 +650,7 @@ def parse_accent_data(html: str) -> list[dict]:
 # 엔드포인트
 # ──────────────────────────────────────────────
 
-def log_translation(input_text, japanese, user_id=None, anonymous_id=None):
+def log_translation(input_text, japanese, user_id=None, anonymous_id=None, platform=None):
     """번역 시도를 saved_results에 자동 기록 (source='auto'). 실패해도 번역에 영향 없음."""
     db = SessionLocal()
     try:
@@ -650,6 +658,7 @@ def log_translation(input_text, japanese, user_id=None, anonymous_id=None):
             input_text=(input_text or "")[:500],
             japanese=(japanese or "")[:500],
             source='auto',
+            platform=platform,
             user_id=user_id,
             anonymous_id=anonymous_id,
             result_json=None,
@@ -711,7 +720,7 @@ def analyze(req: AnalyzeRequest):
     if cache_key in _analyze_cache:
         print(f"[Analyze 캐시 HIT] {cache_key[:46]!r}")
         cached = _analyze_cache[cache_key]
-        log_translation(text, cached.get("japanese"), req.user_id, req.anonymous_id)
+        log_translation(text, cached.get("japanese"), req.user_id, req.anonymous_id, req.platform)
         return _with_usage(AnalyzeResponse(**cached))
     # ───────────────────────────────────────────
 
@@ -742,7 +751,7 @@ def analyze(req: AnalyzeRequest):
     print(f"[Analyze 캐시 저장] {cache_key[:46]!r}")
 
     # 번역 시도 자동 기록 (웹·앱 공통, source='auto')
-    log_translation(text, result.japanese, req.user_id, req.anonymous_id)
+    log_translation(text, result.japanese, req.user_id, req.anonymous_id, req.platform)
 
     return _with_usage(result)
 
@@ -908,7 +917,7 @@ def signup(req: SignupRequest):
                 detail="이미 가입된 휴대폰 번호입니다. 가입 시 사용한 이름을 입력해 주세요.",
             )
         # 신규 사용자 생성
-        new_user = User(name=req.name.strip(), phone=req.phone.strip())
+        new_user = User(name=req.name.strip(), phone=req.phone.strip(), platform=req.platform)
         db.add(new_user)
         try:
             db.commit()
@@ -985,6 +994,7 @@ def save_result(req: SaveRequest):
             input_text=req.input_text,
             japanese=(req.result.get("japanese") if isinstance(req.result, dict) else None),
             source='manual',   # 사용자가 직접 저장
+            platform=req.platform,
             result_json=json.dumps(req.result, ensure_ascii=False),
         )
         db.add(saved)

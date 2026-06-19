@@ -27,7 +27,7 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save', title, 
       const res = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), phone }),
+        body: JSON.stringify({ name: name.trim(), phone, platform: (window.Capacitor?.isNativePlatform?.() ?? false) ? 'app' : 'web' }),
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))

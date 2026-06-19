@@ -700,21 +700,20 @@ export default function App() {
               {/* 결과/입력 전 홈 화면 — 앱 사용 안내 + 품사 단어 목록 바 + 오늘의 단어 */}
               {!hasContent && (
                 <>
-                  <a
-                    className="app-guide-btn"
-                    href="https://www.donga.com/news/It/article/all/20250725/132074003/1"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={isApp ? { display: 'none' } : undefined}
-                  >
-                    앱처럼 이용하려면 이렇게!
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
-                  </a>
+                  {!isApp && (
+                    <button
+                      className="app-guide-btn"
+                      onClick={() => { track('download_cta_click', { from: 'home' }); navigate('/download') }}
+                    >
+                      틱재팬 앱 다운로드
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 3v12" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <path d="M5 21h14" />
+                      </svg>
+                    </button>
+                  )}
                   <CategoryBars current={tab} onNavigate={navigate} />
                   {dailyVerb    && <DailyVerbCard    verb={dailyVerb}       onNavigate={navigate} />}
                   {dailyGrammar && <DailyGrammarCard grammar={dailyGrammar} onNavigate={navigate} />}

@@ -6,23 +6,22 @@ import { useState, useEffect } from 'react'
  */
 const PRIMARY = '#5CA9CE'
 
-// 한국 자정(0시)까지 남은 시간 — "N시간 M분" 문자열
-function untilKstMidnight() {
-  const kst = new Date(Date.now() + 9 * 3600 * 1000)
-  const msIntoDay = ((kst.getUTCHours() * 60 + kst.getUTCMinutes()) * 60 + kst.getUTCSeconds()) * 1000
-  const left = 86400000 - msIntoDay
-  const h = Math.floor(left / 3600000)
-  const m = Math.floor((left % 3600000) / 60000)
-  return h > 0 ? `${h}시간 ${m}분` : `${m}분`
+// 남은 초 → "N시간 M분" / "M분" 문자열
+function fmtLeft(sec) {
+  const s = Math.max(0, sec)
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  if (h > 0) return `${h}시간 ${m}분`
+  return `${Math.max(1, m)}분`
 }
 
-export default function ModelSelector({ active, locked, usedPct, unlimited, onToggle }) {
-  // 한도 소진 시 자정까지 카운트다운 (1분마다 갱신)
-  const [resetIn, setResetIn] = useState(untilKstMidnight())
+export default function ModelSelector({ active, locked, usedPct, unlimited, resetSec = 0, onToggle }) {
+  // 한도 소진 시 충전(리셋)까지 카운트다운 — 서버가 준 남은 초 기준으로 1분마다 감소
+  const [leftSec, setLeftSec] = useState(resetSec)
+  useEffect(() => { setLeftSec(resetSec) }, [resetSec])
   useEffect(() => {
     if (!locked) return
-    const t = setInterval(() => setResetIn(untilKstMidnight()), 60000)
-    setResetIn(untilKstMidnight())
+    const t = setInterval(() => setLeftSec(v => Math.max(0, v - 60)), 60000)
     return () => clearInterval(t)
   }, [locked])
   return (
@@ -59,8 +58,8 @@ export default function ModelSelector({ active, locked, usedPct, unlimited, onTo
             </p>
           ) : locked ? (
             <p style={{ margin: 0, fontSize: 11.5, color: '#c98a00', lineHeight: 1.5 }}>
-              오늘 빠른 번역을 모두 사용했어요.<br />
-              <b style={{ fontWeight: 700 }}>{resetIn} 후</b>(자정 0시)에 다시 충전돼요.
+              빠른 번역을 모두 사용했어요.<br />
+              <b style={{ fontWeight: 700 }}>{fmtLeft(leftSec)} 후</b>에 다시 충전돼요.
             </p>
           ) : (
             <>

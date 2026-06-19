@@ -277,13 +277,14 @@ class AndroidWaitlist(Base):
     created_at = Column(DateTime, default=now_kst)
 
 class FastUsage(Base):
-    """빠른 번역(3.1) 일일 사용량 — 회원당 1행, 한국 자정 기준 리셋.
+    """빠른 번역(3.1) 사용량 — 회원당 1행, 5시간 롤링 윈도우(클로드 방식).
+    첫 사용 시점에 윈도우 시작 → 5시간 뒤 카운트 리셋.
     User/SavedResult 스키마는 건드리지 않는 별도 테이블."""
     __tablename__ = "fast_usage"
-    user_id    = Column(Integer, primary_key=True, index=True)  # 회원당 1행
-    date_kst   = Column(String(10), nullable=False)             # "2026-06-19" (KST 날짜)
-    count      = Column(Integer, default=0)
-    updated_at = Column(DateTime, default=now_kst, onupdate=now_kst)
+    user_id      = Column(Integer, primary_key=True, index=True)  # 회원당 1행
+    window_start = Column(DateTime, nullable=True)                # 현재 윈도우 시작 시각 (KST naive)
+    count        = Column(Integer, default=0)
+    updated_at   = Column(DateTime, default=now_kst, onupdate=now_kst)
 
 
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
@@ -313,6 +314,13 @@ def run_migrations():
             ))
     except Exception as e:
         print("[migration] japanese backfill skipped:", e)
+    # fast_usage: 일일(date_kst) → 5시간 윈도우(window_start)로 전환
+    try:
+        with engine.begin() as conn:
+            conn.execute(sa_text("ALTER TABLE fast_usage ADD COLUMN IF NOT EXISTS window_start TIMESTAMP"))
+            conn.execute(sa_text("ALTER TABLE fast_usage ALTER COLUMN date_kst DROP NOT NULL"))
+    except Exception as e:
+        print("[migration] fast_usage window_start skipped:", e)
     # 데일리 체크용 뷰 (우선순위 열 순서)
     try:
         with engine.begin() as conn:
@@ -382,54 +390,67 @@ def _norm_phone(phone: str) -> str:
 def is_fast_unlimited(phone: str) -> bool:
     return _norm_phone(phone) in FAST_UNLIMITED_PHONES
 
-# 빠른 번역 일일 한도
-FAST_DAILY_LIMIT = 20
-
-def today_kst() -> str:
-    """한국 날짜 문자열 ('2026-06-19'). 한국 자정 기준 리셋 키."""
-    return now_kst().strftime("%Y-%m-%d")
+# 빠른 번역 한도 — 5시간 롤링 윈도우(클로드 방식)
+FAST_WINDOW_LIMIT = 20            # 윈도우당 횟수
+FAST_WINDOW_SEC   = 5 * 3600      # 윈도우 길이(초)
 
 def _is_unlimited_user(db, user_id: int) -> bool:
     u = db.query(User).filter(User.id == user_id).first()
     return bool(u and is_fast_unlimited(u.phone))
 
+def _reset_in_sec(window_start) -> int:
+    """현재 윈도우 종료까지 남은 초. 윈도우 없으면 0."""
+    if not window_start:
+        return 0
+    elapsed = (now_kst() - window_start).total_seconds()
+    return max(0, int(FAST_WINDOW_SEC - elapsed))
+
 def get_fast_usage(user_id: int) -> dict:
-    """회원의 오늘 빠른 번역 사용량 조회 (리셋 반영). 무제한이면 unlimited=True."""
+    """회원의 빠른 번역 사용량 조회 (5시간 윈도우 리셋 반영)."""
     db = SessionLocal()
     try:
         if _is_unlimited_user(db, user_id):
-            return {"unlimited": True, "used": 0, "limit": FAST_DAILY_LIMIT, "pct": 0, "remaining": FAST_DAILY_LIMIT}
+            return {"unlimited": True, "used": 0, "limit": FAST_WINDOW_LIMIT, "pct": 0,
+                    "remaining": FAST_WINDOW_LIMIT, "reset_in_sec": 0}
         row = db.query(FastUsage).filter(FastUsage.user_id == user_id).first()
-        used = row.count if (row and row.date_kst == today_kst()) else 0
-        pct = min(100, round(used / FAST_DAILY_LIMIT * 100))
-        return {"unlimited": False, "used": used, "limit": FAST_DAILY_LIMIT,
-                "pct": pct, "remaining": max(0, FAST_DAILY_LIMIT - used)}
+        # 윈도우가 만료됐으면 0으로 간주
+        if not row or not row.window_start or _reset_in_sec(row.window_start) <= 0:
+            return {"unlimited": False, "used": 0, "limit": FAST_WINDOW_LIMIT, "pct": 0,
+                    "remaining": FAST_WINDOW_LIMIT, "reset_in_sec": 0}
+        used = row.count
+        pct = min(100, round(used / FAST_WINDOW_LIMIT * 100))
+        return {"unlimited": False, "used": used, "limit": FAST_WINDOW_LIMIT, "pct": pct,
+                "remaining": max(0, FAST_WINDOW_LIMIT - used), "reset_in_sec": _reset_in_sec(row.window_start)}
     finally:
         db.close()
 
 def consume_fast_usage(user_id: int) -> dict:
-    """빠른 번역 1회 차감 시도. 가능하면 count+1 후 allowed=True, 한도 초과면 allowed=False.
+    """빠른 번역 1회 차감 시도(5시간 윈도우). 가능하면 count+1 후 allowed=True, 초과면 allowed=False.
     무제한 회원은 차감 없이 항상 allowed=True."""
     db = SessionLocal()
     try:
         if _is_unlimited_user(db, user_id):
-            return {"allowed": True, "unlimited": True, "pct": 0, "remaining": FAST_DAILY_LIMIT}
-        today = today_kst()
+            return {"allowed": True, "unlimited": True, "pct": 0,
+                    "remaining": FAST_WINDOW_LIMIT, "reset_in_sec": 0}
+        now = now_kst()
         row = db.query(FastUsage).filter(FastUsage.user_id == user_id).first()
         if row is None:
-            row = FastUsage(user_id=user_id, date_kst=today, count=0)
+            row = FastUsage(user_id=user_id, window_start=now, count=0)
             db.add(row)
-        if row.date_kst != today:   # 날짜 바뀜 → 리셋
-            row.date_kst = today
+        # 윈도우 없음/만료 → 새 윈도우 시작
+        if not row.window_start or (now - row.window_start).total_seconds() >= FAST_WINDOW_SEC:
+            row.window_start = now
             row.count = 0
-        if row.count >= FAST_DAILY_LIMIT:
+        if row.count >= FAST_WINDOW_LIMIT:
             db.commit()
-            return {"allowed": False, "unlimited": False, "pct": 100, "remaining": 0}
+            return {"allowed": False, "unlimited": False, "pct": 100, "remaining": 0,
+                    "reset_in_sec": _reset_in_sec(row.window_start)}
         row.count += 1
         db.commit()
-        pct = min(100, round(row.count / FAST_DAILY_LIMIT * 100))
+        pct = min(100, round(row.count / FAST_WINDOW_LIMIT * 100))
         return {"allowed": True, "unlimited": False, "pct": pct,
-                "remaining": max(0, FAST_DAILY_LIMIT - row.count)}
+                "remaining": max(0, FAST_WINDOW_LIMIT - row.count),
+                "reset_in_sec": _reset_in_sec(row.window_start)}
     finally:
         db.close()
 
@@ -450,8 +471,9 @@ class AnalyzeResponse(BaseModel):
     # 빠른 번역 사용량 (요청별로 채움, 캐시값은 무시하고 덮어씀)
     model_used: str = "basic"        # 실제 사용 모델 'basic' | 'fast'
     fast_limited: bool = False        # 한도 초과로 기본 번역 폴백됨
-    fast_used_pct: int | None = None  # 오늘 빠른 번역 사용량 %
+    fast_used_pct: int | None = None  # 빠른 번역 사용량 %
     fast_unlimited: bool = False      # 무제한 회원
+    fast_reset_sec: int | None = None # 윈도우 리셋까지 남은 초
 
 # ──────────────────────────────────────────────
 # 번역 로직 — Gemini API
@@ -640,11 +662,12 @@ def analyze(req: AnalyzeRequest):
     # 빠른 번역은 로그인 회원만. 한도 초과/비회원이면 기본 번역으로 폴백.
     want_fast = (req.model == "fast")
     usage_fields = {"model_used": "basic", "fast_limited": False,
-                    "fast_used_pct": None, "fast_unlimited": False}
+                    "fast_used_pct": None, "fast_unlimited": False, "fast_reset_sec": None}
     if want_fast and req.user_id:
         u = consume_fast_usage(req.user_id)
         usage_fields["fast_unlimited"] = u.get("unlimited", False)
         usage_fields["fast_used_pct"] = u.get("pct")
+        usage_fields["fast_reset_sec"] = u.get("reset_in_sec")
         if u["allowed"]:
             usage_fields["model_used"] = "fast"
         else:

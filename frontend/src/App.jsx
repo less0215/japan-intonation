@@ -187,6 +187,31 @@ function DailyVerbCard({ verb, onNavigate }) {
 /* 네이티브 앱 환경 여부 */
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 
+/* 빠른 번역 충전 완료 로컬 알림 예약 (앱 전용)
+ * - 한도 소진 시 호출 → resetSec(초) 뒤에 "다시 사용 가능" 알림
+ * - 권한이 없거나 웹이면 조용히 무시 */
+async function scheduleFastResetNotification(resetSec) {
+  if (!isApp || !resetSec || resetSec < 60) return
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications')
+    const perm = await LocalNotifications.checkPermissions()
+    if (perm.display !== 'granted') {
+      const req = await LocalNotifications.requestPermissions()
+      if (req.display !== 'granted') return
+    }
+    const id = 7001 // 빠른 번역 충전 알림 고정 ID (재예약 시 덮어씀)
+    await LocalNotifications.cancel({ notifications: [{ id }] })
+    await LocalNotifications.schedule({
+      notifications: [{
+        id,
+        title: '빠른 번역이 충전됐어요 ⚡',
+        body: '지금 다시 더 빠르고 똑똑한 번역을 사용할 수 있어요.',
+        schedule: { at: new Date(Date.now() + resetSec * 1000) },
+      }],
+    })
+  } catch { /* 플러그인 미설치/권한거부 등은 무시 */ }
+}
+
 export default function App() {
   const location  = useLocation()
   const navigate  = useNavigate()
@@ -215,24 +240,26 @@ export default function App() {
   const [menuOpen, setMenuOpen]               = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
-  // 빠른 번역(3.1) 토글 — 사용량은 서버(DB)에서 관리(계정 기준, 한국 자정 리셋)
+  // 빠른 번역(3.1) 토글 — 사용량은 서버(DB)에서 관리, 5시간 롤링 윈도우 리셋
   const [selectedModel, setSelectedModel] = useState('basic')
   const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
   const [showReviewReward, setShowReviewReward] = useState(false)   // 빠른 번역 소진 회원 → 후기 이용권 팝업
   // 서버에서 받은 사용량 상태
   const [fastUsedPct, setFastUsedPct] = useState(0)
-  const [fastLocked, setFastLocked] = useState(false)        // 오늘 한도 소진
+  const [fastLocked, setFastLocked] = useState(false)        // 현재 윈도우 한도 소진
+  const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
   const fastUnlimited = !!user?.fast_unlimited
 
-  // 로그인 회원의 오늘 빠른 번역 사용량 조회 (진입·로그인 시)
+  // 로그인 회원의 빠른 번역 사용량 조회 (진입·로그인 시)
   useEffect(() => {
-    if (!user?.user_id) { setFastUsedPct(0); setFastLocked(false); return }
+    if (!user?.user_id) { setFastUsedPct(0); setFastLocked(false); setFastResetSec(0); return }
     fetch(`${API_URL}/fast-usage/${user.user_id}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (!d) return
         setFastUsedPct(d.unlimited ? 0 : (d.pct ?? 0))
         setFastLocked(!d.unlimited && (d.remaining ?? 1) <= 0)
+        setFastResetSec(d.reset_in_sec ?? 0)
       })
       .catch(() => {})
   }, [user?.user_id])
@@ -347,11 +374,13 @@ export default function App() {
       // 빠른 번역 사용량 갱신 (서버 판정 결과 반영)
       if (selectedModel === 'fast' && user) {
         if (typeof data.fast_used_pct === 'number') setFastUsedPct(data.fast_unlimited ? 0 : data.fast_used_pct)
+        if (typeof data.fast_reset_sec === 'number') setFastResetSec(data.fast_reset_sec)
         if (data.fast_limited) {
-          // 한도 초과 → 기본 번역으로 자동 폴백 + 후기 이용권 팝업
+          // 한도 초과 → 기본 번역 폴백 + 후기 팝업 + 충전 시점 로컬 알림 예약
           setFastLocked(true)
           setSelectedModel('basic')
           track('fast_limit_reached')
+          scheduleFastResetNotification(data.fast_reset_sec)
           try {
             if (localStorage.getItem('tickjapan_review_reward_dismissed') !== '1') {
               setShowReviewReward(true)
@@ -535,6 +564,16 @@ export default function App() {
                 style={{ background: 'transparent', color: '#555', borderColor: '#e0e0e0', display: 'flex', alignItems: 'center', gap: 5 }}
               >
                 {user.name}님
+                {fastUnlimited && (
+                  <span
+                    title="빠른 번역 무제한 회원"
+                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 17, height: 17, borderRadius: '50%', background: 'linear-gradient(145deg, #ffd97a 0%, #f0a500 100%)', boxShadow: '0 1px 3px rgba(240,165,0,0.45)' }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                      <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
+                    </svg>
+                  </span>
+                )}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
                   style={{ transform: menuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
                   <polyline points="6 9 12 15 18 9" />
@@ -718,6 +757,7 @@ export default function App() {
                   locked={fastLocked}
                   usedPct={fastUsedPct}
                   unlimited={fastUnlimited}
+                  resetSec={fastResetSec}
                   onToggle={handleFastToggle}
                 />
                 <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />

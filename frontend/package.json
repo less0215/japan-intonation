@@ -12,6 +12,7 @@
     "@capacitor/cli": "^8.4.0",
     "@capacitor/core": "^8.4.0",
     "@capacitor/ios": "^8.4.0",
+    "@capacitor/local-notifications": "^8.2.0",
     "@capgo/capacitor-app-tracking-transparency": "^8.1.12",
     "appsflyer-capacitor-plugin": "^6.18.0",
     "react": "^18.2.0",

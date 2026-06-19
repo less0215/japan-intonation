@@ -52,7 +52,13 @@ const AF_EVENTS = {
   word_detail_view: 'af_content_view',           // 콘텐츠(단어/문법) 조회
 }
 
-/* 이벤트 전송 헬퍼 — GA4 + (앱 환경) AppsFlyer 인앱 이벤트 */
+/* 내부 이벤트명 → Meta Pixel 표준 이벤트명 매핑 (웹 전용 핵심 전환) */
+const META_EVENTS = {
+  signup_complete: 'CompleteRegistration',  // 가입 완료
+  download_click:  'Lead',                  // 실제 App Store 다운로드 클릭
+}
+
+/* 이벤트 전송 헬퍼 — GA4 + (앱) AppsFlyer + (웹) Meta Pixel */
 export function track(eventName, params = {}) {
   if (typeof window.gtag === 'function') {
     window.gtag('event', eventName, params)
@@ -61,6 +67,11 @@ export function track(eventName, params = {}) {
   const afName = AF_EVENTS[eventName]
   if (afName && typeof window.__afLog === 'function') {
     window.__afLog(afName, params)
+  }
+  // Meta Pixel 표준 이벤트 (fbq는 웹에서만 로드됨 → 앱에선 자동 skip)
+  const metaName = META_EVENTS[eventName]
+  if (metaName && typeof window.fbq === 'function') {
+    window.fbq('track', metaName)
   }
 }
 

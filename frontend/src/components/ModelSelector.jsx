@@ -1,10 +1,30 @@
+import { useState, useEffect } from 'react'
+
 /* 빠른 번역 토글 (⚡) — 누르면 활성화, 아래 안내·사용량(%) 표시
  * - 기본 OFF = 기본 번역(2.5) / ON = 빠른 번역(3.1)
  * - 로그인 회원만 사용, 하루 사용량 제한(횟수는 숨기고 %로 표기)
  */
 const PRIMARY = '#5CA9CE'
 
+// 한국 자정(0시)까지 남은 시간 — "N시간 M분" 문자열
+function untilKstMidnight() {
+  const kst = new Date(Date.now() + 9 * 3600 * 1000)
+  const msIntoDay = ((kst.getUTCHours() * 60 + kst.getUTCMinutes()) * 60 + kst.getUTCSeconds()) * 1000
+  const left = 86400000 - msIntoDay
+  const h = Math.floor(left / 3600000)
+  const m = Math.floor((left % 3600000) / 60000)
+  return h > 0 ? `${h}시간 ${m}분` : `${m}분`
+}
+
 export default function ModelSelector({ active, locked, usedPct, unlimited, onToggle }) {
+  // 한도 소진 시 자정까지 카운트다운 (1분마다 갱신)
+  const [resetIn, setResetIn] = useState(untilKstMidnight())
+  useEffect(() => {
+    if (!locked) return
+    const t = setInterval(() => setResetIn(untilKstMidnight()), 60000)
+    setResetIn(untilKstMidnight())
+    return () => clearInterval(t)
+  }, [locked])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start', width: '100%' }}>
       {/* 토글 칩 */}
@@ -39,7 +59,8 @@ export default function ModelSelector({ active, locked, usedPct, unlimited, onTo
             </p>
           ) : locked ? (
             <p style={{ margin: 0, fontSize: 11.5, color: '#c98a00', lineHeight: 1.5 }}>
-              오늘 빠른 번역을 모두 사용했어요. 내일 다시 이용할 수 있어요.
+              오늘 빠른 번역을 모두 사용했어요.<br />
+              <b style={{ fontWeight: 700 }}>{resetIn} 후</b>(자정 0시)에 다시 충전돼요.
             </p>
           ) : (
             <>

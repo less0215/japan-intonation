@@ -75,11 +75,16 @@ export default function DownloadPage() {
           onClick={handleIos}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-            height: 56, borderRadius: 14, textDecoration: 'none',
-            background: iosPrimary ? '#111' : '#fff',
+            height: 56, borderRadius: 16, textDecoration: 'none',
+            background: iosPrimary
+              ? 'linear-gradient(145deg, #3a3a3c 0%, #1c1c1e 55%, #000 100%)'
+              : '#fff',
             color: iosPrimary ? '#fff' : '#111',
-            border: iosPrimary ? 'none' : '1.5px solid #e2e2e2',
-            fontSize: 15.5, fontWeight: 600,
+            border: iosPrimary ? '1px solid rgba(255,255,255,0.08)' : '1.5px solid #e2e2e2',
+            boxShadow: iosPrimary
+              ? '0 8px 22px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.14)'
+              : 'none',
+            fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.2px',
           }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

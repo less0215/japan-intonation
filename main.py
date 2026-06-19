@@ -40,9 +40,9 @@ app.add_middleware(
 # 상수
 # ──────────────────────────────────────────────
 
-# 번역 모델 — flash-lite는 2.5 계열 중 최저 지연(latency) 모델로 번역 응답 속도가 빠름.
-# 악센트 품질이 떨어진다고 판단되면 "gemini-2.5-flash"로 되돌리면 됨.
-GEMINI_MODEL = "gemini-2.5-flash-lite"
+# 번역 모델 — 3.1 flash-lite: 번역·분류에 최적화된 차세대 저지연 모델(2.5보다 빠르고 똑똑).
+# 문제 발생 시 "gemini-2.5-flash-lite"로 즉시 롤백 가능.
+GEMINI_MODEL = "gemini-3.1-flash-lite"
 
 # Gemini 클라이언트 — 요청마다 재생성하지 않고 앱 시작 시 1회 초기화
 _gemini_client: genai.Client | None = None

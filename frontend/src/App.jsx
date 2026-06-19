@@ -214,10 +214,11 @@ export default function App() {
   const [menuOpen, setMenuOpen]               = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
-  // 번역 모델 선택 + 빠른 번역 일일 제한
-  const FAST_LIMIT = 15
+  // 빠른 번역(3.1) 토글 + 일일 제한(횟수 숨김, %로만 표기) + 로그인 필수
+  const FAST_LIMIT = 20
   const [selectedModel, setSelectedModel] = useState('basic')
   const [fastUsed, setFastUsed] = useState(0)
+  const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
   const todayKey = () => new Date().toISOString().slice(0, 10)
   useEffect(() => {
     try {
@@ -226,10 +227,25 @@ export default function App() {
     } catch { setFastUsed(0) }
   }, [])
   const fastRemaining = Math.max(0, FAST_LIMIT - fastUsed)
+  const fastUsedPct = Math.min(100, Math.round((fastUsed / FAST_LIMIT) * 100))
   function bumpFastUsage() {
     const next = fastUsed + 1
     setFastUsed(next)
     try { localStorage.setItem('tickjapan_fast_usage', JSON.stringify({ date: todayKey(), count: next })) } catch {}
+  }
+
+  // '빠른 번역' 토글 — 로그인 회원만. 비회원이면 로그인 모달
+  function handleFastToggle() {
+    if (selectedModel === 'fast') { setSelectedModel('basic'); return }   // 끄기
+    if (!user) {
+      setPendingFast(true)
+      setSignupMode('fast')
+      setShowSignup(true)
+      track('fast_login_required')
+      return
+    }
+    setSelectedModel('fast')
+    track('fast_enabled')
   }
 
   // 비로그인 번역 횟수 — localStorage 기반, 3회 초과 시 로그인 유도
@@ -434,6 +450,8 @@ export default function App() {
     localStorage.removeItem('tickjapan_translate_count')
     // 저장 모드일 때만 자동 저장
     if (signupMode === 'save' && result) doSave(newUser, inputText, result)
+    // 빠른 번역 로그인 흐름 → 로그인 후 바로 활성화
+    if (pendingFast) { setSelectedModel('fast'); setPendingFast(false); track('fast_enabled') }
   }
 
   // 입력을 모두 지웠을 때 — 이전 결과/상태 초기화
@@ -671,10 +689,10 @@ export default function App() {
               />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <ModelSelector
-                  model={selectedModel}
-                  onChange={setSelectedModel}
-                  fastRemaining={fastRemaining}
-                  fastLimit={FAST_LIMIT}
+                  active={selectedModel === 'fast'}
+                  locked={fastRemaining <= 0}
+                  usedPct={fastUsedPct}
+                  onToggle={handleFastToggle}
                 />
                 <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
               </div>
@@ -793,7 +811,12 @@ export default function App() {
         <SignupModal
           mode={signupMode}
           onSuccess={handleSignupSuccess}
-          onClose={() => { track('signup_abandon', { mode: signupMode }); setShowSignup(false) }}
+          onClose={() => { track('signup_abandon', { mode: signupMode }); setShowSignup(false); setPendingFast(false) }}
+          {...(signupMode === 'fast' ? {
+            title: '⚡ 빠른 번역은 로그인 후 이용해요',
+            subtitle: '이름과 휴대폰 번호만 입력하면 바로 빠른 번역을 쓸 수 있어요.',
+            submitLabel: '로그인하고 빠른 번역 켜기',
+          } : {})}
         />
       )}
       {showHistory && (

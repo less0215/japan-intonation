@@ -9,6 +9,7 @@ import HistoryDrawer from './components/HistoryDrawer'
 import TranslationHistoryDrawer from './components/TranslationHistoryDrawer'
 import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
+import AppDownloadPromo from './components/AppDownloadPromo'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
@@ -761,6 +762,8 @@ export default function App() {
         />
       )}
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}
+      {/* 첫 방문 앱 다운로드 유도 — 웹 + 다운로드 페이지 아님 */}
+      {!isApp && !isDownload && <AppDownloadPromo onDownload={() => navigate('/download')} />}
       {showDeleteAccount && user && (
         <DeleteAccountModal
           user={user}

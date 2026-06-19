@@ -231,20 +231,24 @@ body {
   width: 100%;
   height: 52px;
   padding: 0 20px;
-  background-color: #5CA9CE;
+  background: linear-gradient(145deg, #6fb6d6 0%, #5CA9CE 55%, #4f96bb 100%);
   color: #ffffff;
-  border: none;
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
   font-size: 16px;
   font-weight: 700;
+  letter-spacing: -0.2px;
   font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: opacity 0.15s;
+  box-shadow: 0 8px 22px rgba(92, 169, 206, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: filter 0.15s, transform 0.05s, opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
+.search-btn:not(:disabled):hover { filter: brightness(1.04); }
+.search-btn:not(:disabled):active { transform: scale(0.99); }
 
 /* ── 번역 준비 중 점 표시 (디바운스 대기) */
 .translating-dots {
@@ -861,19 +865,25 @@ body {
 
 .modal-submit {
   height: 50px;
-  background: #5CA9CE;
+  background: linear-gradient(145deg, #6fb6d6 0%, #5CA9CE 55%, #4f96bb 100%);
   color: #ffffff;
-  border: none;
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 13px;
   font-size: 16px;
   font-weight: 600;
+  letter-spacing: -0.2px;
   font-family: inherit;
   cursor: pointer;
+  box-shadow: 0 8px 22px rgba(92, 169, 206, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: filter 0.15s, transform 0.05s;
   -webkit-tap-highlight-color: transparent;
 }
+.modal-submit:not(:disabled):hover { filter: brightness(1.04); }
+.modal-submit:not(:disabled):active { transform: scale(0.99); }
 
 .modal-submit:disabled {
   opacity: 0.6;
+  box-shadow: none;
 }
 
 /* ══════════════════════════════════════

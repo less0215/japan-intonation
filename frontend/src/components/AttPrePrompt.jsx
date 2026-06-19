@@ -42,9 +42,12 @@ export default function AttPrePrompt({ onProceed }) {
         <button
           onClick={onProceed}
           style={{
-            width: '100%', height: 50, border: 'none', borderRadius: 13,
-            background: PRIMARY, color: '#fff', fontSize: 15, fontWeight: 700,
+            width: '100%', height: 50, borderRadius: 14,
+            border: '1px solid rgba(255,255,255,0.12)',
+            background: 'linear-gradient(145deg, #6fb6d6 0%, #5CA9CE 55%, #4f96bb 100%)',
+            color: '#fff', fontSize: 15, fontWeight: 700, letterSpacing: '-0.2px',
             cursor: 'pointer', fontFamily: 'inherit',
+            boxShadow: '0 8px 22px rgba(92,169,206,0.38), inset 0 1px 0 rgba(255,255,255,0.28)',
           }}
         >
           다음 화면

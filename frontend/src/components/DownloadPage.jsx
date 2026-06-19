@@ -4,11 +4,9 @@ import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
 
-/* App Store 링크 (UTM + Apple 캠페인 토큰 ct) — GA4·App Analytics 추적용 */
-const IOS_URL =
-  'https://apps.apple.com/kr/app/id6781296261' +
-  '?mt=8&ct=download_page' +
-  '&utm_source=tickjapan_web&utm_medium=download_page&utm_campaign=launch'
+/* AppsFlyer OneLink — 클릭→설치 어트리뷰션. iOS는 App Store로 리다이렉트됨
+ * pid=download_page, c=web_launch 가 링크에 내장되어 AppsFlyer에서 추적 */
+const IOS_URL = 'https://tickjapan.onelink.me/NFsQ/jzbm8oeu'
 
 function detectOS() {
   const ua = navigator.userAgent || ''

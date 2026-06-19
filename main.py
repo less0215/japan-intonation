@@ -7,8 +7,10 @@ import uuid
 
 import requests
 from bs4 import BeautifulSoup
-from fastapi import FastAPI, HTTPException
+import time
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import StreamingResponse
 from google import genai
 from google.api_core.client_options import ClientOptions
@@ -35,6 +37,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# 응답 압축 — 분해/번역 JSON 전송 시간 단축 (특히 모바일)
+app.add_middleware(GZipMiddleware, minimum_size=600)
+
+# 동시 처리량 확대 — 동기 핸들러는 스레드풀에서 실행되므로,
+# Gemini 호출(수백 ms~1초)이 몰려도 줄서지 않도록 풀 크기를 키운다.
+@app.on_event("startup")
+async def _tune_concurrency():
+    try:
+        import anyio
+        anyio.to_thread.current_default_thread_limiter().total_tokens = 200
+        print("[startup] thread limiter → 200")
+    except Exception as e:
+        print("[startup] thread limiter skip:", e)
+
+# 처리 시간 측정 — 응답 헤더 X-Process-Time-ms + 핵심 엔드포인트 로그
+@app.middleware("http")
+async def _timing(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    ms = (time.perf_counter() - start) * 1000
+    response.headers["X-Process-Time-ms"] = f"{ms:.0f}"
+    if request.url.path in ("/analyze", "/breakdown"):
+        print(f"[{request.method} {request.url.path}] {ms:.0f}ms")
+    return response
 
 # ──────────────────────────────────────────────
 # 상수
@@ -490,18 +516,18 @@ _GEN_CONFIG = genai.types.GenerateContentConfig(
 
 def _call_gemini_json(prompt: str, model: str = None) -> dict:
     """Gemini에 프롬프트를 보내고 JSON 응답을 파싱해 dict로 반환한다 (공통 호출 로직)."""
-    import time
-
     client = get_gemini_client()
     model = model or GEMINI_MODEL
 
     for attempt in range(2):  # 최대 1회 재시도 (서버 부하 방지)
         try:
+            _t0 = time.perf_counter()
             response = client.models.generate_content(
                 model=model,
                 contents=prompt,
                 config=_GEN_CONFIG,
             )
+            print(f"[Gemini {model}] {(time.perf_counter() - _t0) * 1000:.0f}ms")
             break
         except Exception as e:
             err_str = str(e)
@@ -709,7 +735,7 @@ def analyze(req: AnalyzeRequest):
     )
 
     # 결과를 캐시에 저장 (최대 500개, 초과 시 오래된 항목 제거)
-    if len(_analyze_cache) >= 500:
+    if len(_analyze_cache) >= 2000:
         oldest_key = next(iter(_analyze_cache))
         del _analyze_cache[oldest_key]
     _analyze_cache[cache_key] = result.model_dump()
@@ -760,7 +786,7 @@ def breakdown(req: BreakdownRequest):
     result = BreakdownResponse(breakdown=entries)
 
     # 캐시에 저장 (최대 500개)
-    if len(_breakdown_cache) >= 500:
+    if len(_breakdown_cache) >= 2000:
         del _breakdown_cache[next(iter(_breakdown_cache))]
     _breakdown_cache[text] = [e.model_dump() for e in entries]
     print(f"[Breakdown 캐시 저장] {text[:40]!r}")
@@ -783,7 +809,7 @@ def get_accent(req: AccentRequest):
 
     accent_data = fetch_accent_data(text)
 
-    if len(_accent_cache) >= 500:
+    if len(_accent_cache) >= 2000:
         oldest = next(iter(_accent_cache))
         del _accent_cache[oldest]
     _accent_cache[text] = accent_data

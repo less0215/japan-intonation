@@ -46,11 +46,11 @@ export default function DownloadPage() {
       />
 
       {/* 타이틀 */}
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '20px 0 6px' }}>
-        틱재팬 앱 다운로드
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111', margin: '20px 0 8px', lineHeight: 1.4 }}>
+        일본어에만 집중한<br />AI 통번역 및 학습 앱
       </h1>
       <p style={{ fontSize: 14.5, color: '#777', lineHeight: 1.6, margin: '0 0 32px', maxWidth: 320 }}>
-        억양·뉘앙스까지 알려주는 일본어 특화 AI 번역.<br />지금 설치하고 더 똑똑하게 공부해요.
+        앱 다운 후 쾌적한 환경에서 이용해 보세요!
       </p>
 
       {/* 버튼 영역 */}

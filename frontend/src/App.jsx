@@ -215,28 +215,27 @@ export default function App() {
   const [menuOpen, setMenuOpen]               = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
-  // 빠른 번역(3.1) 토글 + 일일 제한(횟수 숨김, %로만 표기) + 로그인 필수
-  const FAST_LIMIT = 20
+  // 빠른 번역(3.1) 토글 — 사용량은 서버(DB)에서 관리(계정 기준, 한국 자정 리셋)
   const [selectedModel, setSelectedModel] = useState('basic')
-  const [fastUsed, setFastUsed] = useState(0)
   const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
   const [showReviewReward, setShowReviewReward] = useState(false)   // 빠른 번역 소진 회원 → 후기 이용권 팝업
-  const todayKey = () => new Date().toISOString().slice(0, 10)
-  useEffect(() => {
-    try {
-      const raw = JSON.parse(localStorage.getItem('tickjapan_fast_usage') || '{}')
-      setFastUsed(raw.date === todayKey() ? (raw.count || 0) : 0)
-    } catch { setFastUsed(0) }
-  }, [])
-  // 화이트리스트(후기 인증 회원 등)는 사용량 제한 없이 사용
+  // 서버에서 받은 사용량 상태
+  const [fastUsedPct, setFastUsedPct] = useState(0)
+  const [fastLocked, setFastLocked] = useState(false)        // 오늘 한도 소진
   const fastUnlimited = !!user?.fast_unlimited
-  const fastRemaining = fastUnlimited ? Infinity : Math.max(0, FAST_LIMIT - fastUsed)
-  const fastUsedPct = fastUnlimited ? 0 : Math.min(100, Math.round((fastUsed / FAST_LIMIT) * 100))
-  function bumpFastUsage() {
-    const next = fastUsed + 1
-    setFastUsed(next)
-    try { localStorage.setItem('tickjapan_fast_usage', JSON.stringify({ date: todayKey(), count: next })) } catch {}
-  }
+
+  // 로그인 회원의 오늘 빠른 번역 사용량 조회 (진입·로그인 시)
+  useEffect(() => {
+    if (!user?.user_id) { setFastUsedPct(0); setFastLocked(false); return }
+    fetch(`${API_URL}/fast-usage/${user.user_id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d) return
+        setFastUsedPct(d.unlimited ? 0 : (d.pct ?? 0))
+        setFastLocked(!d.unlimited && (d.remaining ?? 1) <= 0)
+      })
+      .catch(() => {})
+  }, [user?.user_id])
 
   // '빠른 번역' 토글 — 로그인 회원만. 비회원이면 로그인 모달
   function handleFastToggle() {
@@ -309,24 +308,8 @@ export default function App() {
     setSaved(false)
     setInputText(text)
 
-    // 빠른 번역 선택 + 잔여 있을 때만 fast, 아니면 basic 폴백
-    let useModel = 'basic'
-    if (selectedModel === 'fast') {
-      if (fastRemaining > 0) { useModel = 'fast'; if (!fastUnlimited) bumpFastUsage() }
-      else {
-        setSelectedModel('basic')
-        track('fast_limit_reached')
-        // 빠른 번역 소진 회원에게 후기 무제한 이용권 팝업 노출 (1회/다시보지않기)
-        if (user) {
-          try {
-            if (localStorage.getItem('tickjapan_review_reward_dismissed') !== '1') {
-              setShowReviewReward(true)
-              track('review_reward_shown')
-            }
-          } catch { setShowReviewReward(true) }
-        }
-      }
-    }
+    // 빠른 번역 여부만 서버에 전달 — 한도 차감·리셋·폴백은 서버가 판정
+    const useModel = (selectedModel === 'fast' && user) ? 'fast' : 'basic'
 
     const fetchAnalyze = () =>
       fetch(`${API_URL}/analyze`, {
@@ -360,6 +343,23 @@ export default function App() {
       // 1단계: 번역 + 그래프를 먼저 표시 (분해는 비어 있음)
       setResult(data)
       setLoading(false)
+
+      // 빠른 번역 사용량 갱신 (서버 판정 결과 반영)
+      if (selectedModel === 'fast' && user) {
+        if (typeof data.fast_used_pct === 'number') setFastUsedPct(data.fast_unlimited ? 0 : data.fast_used_pct)
+        if (data.fast_limited) {
+          // 한도 초과 → 기본 번역으로 자동 폴백 + 후기 이용권 팝업
+          setFastLocked(true)
+          setSelectedModel('basic')
+          track('fast_limit_reached')
+          try {
+            if (localStorage.getItem('tickjapan_review_reward_dismissed') !== '1') {
+              setShowReviewReward(true)
+              track('review_reward_shown')
+            }
+          } catch { setShowReviewReward(true) }
+        }
+      }
       // GA4 커스텀 이벤트 전송
       track('analyze', {
         input_length: text.length,
@@ -715,7 +715,7 @@ export default function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <ModelSelector
                   active={selectedModel === 'fast'}
-                  locked={fastRemaining <= 0}
+                  locked={fastLocked}
                   usedPct={fastUsedPct}
                   unlimited={fastUnlimited}
                   onToggle={handleFastToggle}

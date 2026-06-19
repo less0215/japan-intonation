@@ -276,6 +276,15 @@ class AndroidWaitlist(Base):
     notified   = Column(Integer, default=0)   # 0=대기, 1=알림 본 상태(중복 방지용)
     created_at = Column(DateTime, default=now_kst)
 
+class FastUsage(Base):
+    """빠른 번역(3.1) 일일 사용량 — 회원당 1행, 한국 자정 기준 리셋.
+    User/SavedResult 스키마는 건드리지 않는 별도 테이블."""
+    __tablename__ = "fast_usage"
+    user_id    = Column(Integer, primary_key=True, index=True)  # 회원당 1행
+    date_kst   = Column(String(10), nullable=False)             # "2026-06-19" (KST 날짜)
+    count      = Column(Integer, default=0)
+    updated_at = Column(DateTime, default=now_kst, onupdate=now_kst)
+
 
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
@@ -373,6 +382,57 @@ def _norm_phone(phone: str) -> str:
 def is_fast_unlimited(phone: str) -> bool:
     return _norm_phone(phone) in FAST_UNLIMITED_PHONES
 
+# 빠른 번역 일일 한도
+FAST_DAILY_LIMIT = 20
+
+def today_kst() -> str:
+    """한국 날짜 문자열 ('2026-06-19'). 한국 자정 기준 리셋 키."""
+    return now_kst().strftime("%Y-%m-%d")
+
+def _is_unlimited_user(db, user_id: int) -> bool:
+    u = db.query(User).filter(User.id == user_id).first()
+    return bool(u and is_fast_unlimited(u.phone))
+
+def get_fast_usage(user_id: int) -> dict:
+    """회원의 오늘 빠른 번역 사용량 조회 (리셋 반영). 무제한이면 unlimited=True."""
+    db = SessionLocal()
+    try:
+        if _is_unlimited_user(db, user_id):
+            return {"unlimited": True, "used": 0, "limit": FAST_DAILY_LIMIT, "pct": 0, "remaining": FAST_DAILY_LIMIT}
+        row = db.query(FastUsage).filter(FastUsage.user_id == user_id).first()
+        used = row.count if (row and row.date_kst == today_kst()) else 0
+        pct = min(100, round(used / FAST_DAILY_LIMIT * 100))
+        return {"unlimited": False, "used": used, "limit": FAST_DAILY_LIMIT,
+                "pct": pct, "remaining": max(0, FAST_DAILY_LIMIT - used)}
+    finally:
+        db.close()
+
+def consume_fast_usage(user_id: int) -> dict:
+    """빠른 번역 1회 차감 시도. 가능하면 count+1 후 allowed=True, 한도 초과면 allowed=False.
+    무제한 회원은 차감 없이 항상 allowed=True."""
+    db = SessionLocal()
+    try:
+        if _is_unlimited_user(db, user_id):
+            return {"allowed": True, "unlimited": True, "pct": 0, "remaining": FAST_DAILY_LIMIT}
+        today = today_kst()
+        row = db.query(FastUsage).filter(FastUsage.user_id == user_id).first()
+        if row is None:
+            row = FastUsage(user_id=user_id, date_kst=today, count=0)
+            db.add(row)
+        if row.date_kst != today:   # 날짜 바뀜 → 리셋
+            row.date_kst = today
+            row.count = 0
+        if row.count >= FAST_DAILY_LIMIT:
+            db.commit()
+            return {"allowed": False, "unlimited": False, "pct": 100, "remaining": 0}
+        row.count += 1
+        db.commit()
+        pct = min(100, round(row.count / FAST_DAILY_LIMIT * 100))
+        return {"allowed": True, "unlimited": False, "pct": pct,
+                "remaining": max(0, FAST_DAILY_LIMIT - row.count)}
+    finally:
+        db.close()
+
 class SaveRequest(BaseModel):
     user_id: int | None = None
     anonymous_id: str | None = None
@@ -387,6 +447,11 @@ class AnalyzeResponse(BaseModel):
     furigana_html: str          # 예: 日本語(にほんご)を勉強(べんきょう)しています
     accent_data: list[AccentEntry]
     breakdown: list[BreakdownEntry]
+    # 빠른 번역 사용량 (요청별로 채움, 캐시값은 무시하고 덮어씀)
+    model_used: str = "basic"        # 실제 사용 모델 'basic' | 'fast'
+    fast_limited: bool = False        # 한도 초과로 기본 번역 폴백됨
+    fast_used_pct: int | None = None  # 오늘 빠른 번역 사용량 %
+    fast_unlimited: bool = False      # 무제한 회원
 
 # ──────────────────────────────────────────────
 # 번역 로직 — Gemini API
@@ -571,8 +636,26 @@ def analyze(req: AnalyzeRequest):
     if not text:
         raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
 
-    # 모델별 캐시 키 (basic/fast 결과 분리)
-    model_key = "fast" if req.model == "fast" else "basic"
+    # ── 빠른 번역 한도 판정 (서버에서 차감·리셋) ──
+    # 빠른 번역은 로그인 회원만. 한도 초과/비회원이면 기본 번역으로 폴백.
+    want_fast = (req.model == "fast")
+    usage_fields = {"model_used": "basic", "fast_limited": False,
+                    "fast_used_pct": None, "fast_unlimited": False}
+    if want_fast and req.user_id:
+        u = consume_fast_usage(req.user_id)
+        usage_fields["fast_unlimited"] = u.get("unlimited", False)
+        usage_fields["fast_used_pct"] = u.get("pct")
+        if u["allowed"]:
+            usage_fields["model_used"] = "fast"
+        else:
+            usage_fields["fast_limited"] = True   # 한도 초과 → 기본 번역으로 폴백
+    model_key = usage_fields["model_used"]   # 'fast' or 'basic'
+
+    def _with_usage(resp: AnalyzeResponse) -> AnalyzeResponse:
+        for k, v in usage_fields.items():
+            setattr(resp, k, v)
+        return resp
+
     cache_key = f"{model_key}:{text}"
 
     # ── 캐시 조회 ──────────────────────────────
@@ -580,7 +663,7 @@ def analyze(req: AnalyzeRequest):
         print(f"[Analyze 캐시 HIT] {cache_key[:46]!r}")
         cached = _analyze_cache[cache_key]
         log_translation(text, cached.get("japanese"), req.user_id, req.anonymous_id)
-        return AnalyzeResponse(**cached)
+        return _with_usage(AnalyzeResponse(**cached))
     # ───────────────────────────────────────────
 
     # 한국어 → 일본어 번역 + 억양 데이터 (선택 모델)
@@ -612,7 +695,13 @@ def analyze(req: AnalyzeRequest):
     # 번역 시도 자동 기록 (웹·앱 공통, source='auto')
     log_translation(text, result.japanese, req.user_id, req.anonymous_id)
 
-    return result
+    return _with_usage(result)
+
+
+@app.get("/fast-usage/{user_id}")
+def fast_usage(user_id: int):
+    """회원의 오늘 빠른 번역 사용량 (%, 무제한 여부) — 로그인/진입 시 표시용."""
+    return get_fast_usage(user_id)
 
 
 class BreakdownRequest(BaseModel):

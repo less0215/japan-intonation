@@ -224,6 +224,17 @@ export default function App() {
   const dailyVerb    = useMemo(() => pickDailyVerb(VERBS), [])
   const dailyGrammar = useMemo(() => pickDailyGrammar(GRAMMAR), [])
 
+  // SPA 가상 페이지뷰 — 라우트 변경마다 GA4 page_view 전송 (경로·퍼널 분석용)
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: location.pathname,
+        page_location: window.location.href,
+        page_title: document.title,
+      })
+    }
+  }, [location.pathname])
+
   // 좌→우 가장자리 스와이프 = 뒤로가기 (iOS 제스처 대응)
   useEffect(() => {
     let startX = 0, startY = 0, startT = 0, armed = false
@@ -312,6 +323,7 @@ export default function App() {
       const isFetchError = err.name === 'TypeError' || err.message.includes('fetch') || err.message.includes('network')
       setError(isFetchError ? '서버가 시작되는 중입니다. 잠시 후 다시 시도해 주세요.' : err.message)
       setLoading(false)
+      track('analyze_error', { type: isFetchError ? 'network' : 'server', input_length: text.length })
     }
   }
 
@@ -703,7 +715,7 @@ export default function App() {
                   {!isApp && (
                     <button
                       className="app-guide-btn"
-                      onClick={() => { track('download_cta_click', { from: 'home' }); navigate('/download') }}
+                      onClick={() => { track('download_cta_click', { from: 'home' }); navigate('/download?from=home_cta') }}
                     >
                       틱재팬 앱 다운로드
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -743,7 +755,7 @@ export default function App() {
         <SignupModal
           mode={signupMode}
           onSuccess={handleSignupSuccess}
-          onClose={() => setShowSignup(false)}
+          onClose={() => { track('signup_abandon', { mode: signupMode }); setShowSignup(false) }}
         />
       )}
       {showHistory && (

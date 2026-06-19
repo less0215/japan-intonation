@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { track } from '../App'
 
 /* 한국어 입력창 + 번역 버튼
  * - 큰 textarea (여러 줄 입력)
@@ -55,6 +56,14 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear }) {
   }
 
   const disabled = loading || !text.trim()
+  const focusedRef = useRef(false)
+
+  function handleFocus() {
+    // 세션 첫 입력창 포커스만 기록 (번역 깔때기 시작점)
+    if (focusedRef.current) return
+    focusedRef.current = true
+    track('search_focus')
+  }
 
   return (
     <form onSubmit={handleSubmit} className="search-form">
@@ -62,6 +71,7 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear }) {
         value={text}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
         placeholder="번역할 내용을 입력하세요"
         className="search-input"
         rows={3}

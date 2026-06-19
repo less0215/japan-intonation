@@ -17,16 +17,28 @@ function detectOS() {
   return 'other'
 }
 
+function getFrom() {
+  try { return new URLSearchParams(window.location.search).get('from') || 'direct' }
+  catch { return 'direct' }
+}
+
 export default function DownloadPage() {
   const [os, setOs] = useState('other')
+  const [androidDone, setAndroidDone] = useState(false)
   useEffect(() => {
     setOs(detectOS())
-    track('download_page_view', { os: detectOS() })
+    track('download_page_view', { os: detectOS(), from: getFrom() })
   }, [])
 
   function handleIos() {
-    track('download_click', { os: 'ios', store: 'app_store' })
+    track('download_click', { os: 'ios', store: 'app_store', from: getFrom() })
     if (typeof window.__afLog === 'function') window.__afLog('af_download_click', { store: 'app_store' })
+  }
+
+  function handleAndroid() {
+    if (androidDone) return
+    setAndroidDone(true)
+    track('android_interest', { from: getFrom() })
   }
 
   const iosPrimary = os !== 'android'   // 안드로이드 기기가 아니면 iOS를 강조
@@ -76,21 +88,34 @@ export default function DownloadPage() {
           App Store에서 받기
         </a>
 
-        {/* Android — 출시 예정 */}
-        <div
+        {/* Android — 출시 예정 (클릭 시 관심 표시 기록) */}
+        <button
+          onClick={handleAndroid}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-            height: 56, borderRadius: 14,
-            background: '#f5f5f5', color: '#aaa',
-            border: '1.5px solid #eee',
-            fontSize: 15.5, fontWeight: 600, cursor: 'default',
+            height: 56, borderRadius: 14, width: '100%', fontFamily: 'inherit',
+            background: androidDone ? '#eaf7f1' : '#f5f5f5',
+            color: androidDone ? '#1d9e75' : '#999',
+            border: `1.5px solid ${androidDone ? '#bfe8d6' : '#eee'}`,
+            fontSize: 15.5, fontWeight: 600, cursor: androidDone ? 'default' : 'pointer',
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 20.5V3.5c0-.35.18-.66.46-.85L13.5 12 3.46 21.35A.99.99 0 0 1 3 20.5zm13.81-5.31l-2.54-1.46L12.4 12l1.87-1.73 2.54-1.46 2.2 1.27c.71.41.71 1.43 0 1.84l-2.2 1.27zM5.5 2.62l8.55 4.93-1.9 1.76-6.65-6.69zm0 18.76l6.65-6.69 1.9 1.76-8.55 4.93z"/>
-          </svg>
-          Android 출시 예정
-        </div>
+          {androidDone ? (
+            <>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              출시되면 알려드릴게요!
+            </>
+          ) : (
+            <>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 20.5V3.5c0-.35.18-.66.46-.85L13.5 12 3.46 21.35A.99.99 0 0 1 3 20.5zm13.81-5.31l-2.54-1.46L12.4 12l1.87-1.73 2.54-1.46 2.2 1.27c.71.41.71 1.43 0 1.84l-2.2 1.27zM5.5 2.62l8.55 4.93-1.9 1.76-6.65-6.69zm0 18.76l6.65-6.69 1.9 1.76-8.55 4.93z"/>
+              </svg>
+              Android 출시 알림 받기
+            </>
+          )}
+        </button>
       </div>
 
       {/* OS 안내 문구 */}

@@ -262,6 +262,14 @@ class SavedResult(Base):
     anonymous_id = Column(String(36), nullable=True, index=True)
     result_json  = Column(Text, nullable=True)              # 전체 결과(저장 복원용, auto는 비움)
 
+class AndroidWaitlist(Base):
+    """안드로이드 출시 알림 신청자 — 출시 시 이 회원들에게만 알림 팝업 노출"""
+    __tablename__ = "android_waitlist"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, unique=True, nullable=False, index=True)
+    notified   = Column(Integer, default=0)   # 0=대기, 1=알림 본 상태(중복 방지용)
+    created_at = Column(DateTime, default=now_kst)
+
 
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
@@ -748,6 +756,43 @@ def signup(req: SignupRequest):
             )
         db.refresh(new_user)
         return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True)
+    finally:
+        db.close()
+
+
+# ──────────────────────────────────────────────
+# 안드로이드 출시 알림 신청
+# ──────────────────────────────────────────────
+
+class AndroidInterestRequest(BaseModel):
+    user_id: int
+
+@app.post("/android-interest")
+def android_interest(req: AndroidInterestRequest):
+    """안드로이드 출시 알림 신청 (로그인 회원만). 중복 신청은 무시."""
+    db = SessionLocal()
+    try:
+        if not db.query(User).filter(User.id == req.user_id).first():
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        exists = db.query(AndroidWaitlist).filter(AndroidWaitlist.user_id == req.user_id).first()
+        if exists:
+            return {"ok": True, "already": True}
+        db.add(AndroidWaitlist(user_id=req.user_id))
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+        return {"ok": True, "already": False}
+    finally:
+        db.close()
+
+@app.get("/android-interest/{user_id}")
+def android_interest_status(user_id: int):
+    """이 회원이 안드로이드 알림 신청했는지 + 아직 알림 안 봤는지 (출시 팝업 노출 판단용)."""
+    db = SessionLocal()
+    try:
+        row = db.query(AndroidWaitlist).filter(AndroidWaitlist.user_id == user_id).first()
+        return {"opted_in": bool(row), "notified": bool(row and row.notified)}
     finally:
         db.close()
 

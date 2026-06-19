@@ -1,8 +1,11 @@
 /* 앱 다운로드 페이지 — OS 감지 + 추적(UTM) 링크 */
 import { useEffect, useState } from 'react'
 import { track } from '../App'
+import { useUser } from '../context/UserContext'
+import SignupModal from './SignupModal'
 
 const PRIMARY = '#5CA9CE'
+const API_URL = 'https://japan-intonation-production.up.railway.app'
 
 /* AppsFlyer OneLink — 클릭→설치 어트리뷰션. iOS는 App Store로 리다이렉트됨
  * pid=download_page, c=web_launch 가 링크에 내장되어 AppsFlyer에서 추적 */
@@ -21,8 +24,10 @@ function getFrom() {
 }
 
 export default function DownloadPage() {
+  const { user, setUser } = useUser()
   const [os, setOs] = useState('other')
   const [androidDone, setAndroidDone] = useState(false)
+  const [showSignup, setShowSignup] = useState(false)
   useEffect(() => {
     setOs(detectOS())
     track('download_page_view', { os: detectOS(), from: getFrom() })
@@ -33,10 +38,33 @@ export default function DownloadPage() {
     if (typeof window.__afLog === 'function') window.__afLog('af_download_click', { store: 'app_store' })
   }
 
+  /* 알림 신청 서버 기록 (로그인 회원만) */
+  async function recordInterest(u) {
+    if (!u?.user_id) return
+    try {
+      await fetch(`${API_URL}/android-interest`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: u.user_id }),
+      })
+    } catch { /* 무시 */ }
+    try { localStorage.setItem('tickjapan_android_notify', 'true') } catch {}
+    setAndroidDone(true)
+    track('android_interest', { from: getFrom(), logged_in: true })
+  }
+
+  /* Android '출시 알림 받기' — 로그인 안 했으면 가입 모달, 했으면 바로 신청 */
   function handleAndroid() {
     if (androidDone) return
-    setAndroidDone(true)
-    track('android_interest', { from: getFrom() })
+    track('android_interest_click', { from: getFrom(), logged_in: !!user })
+    if (user?.user_id) recordInterest(user)
+    else setShowSignup(true)
+  }
+
+  /* 가입/로그인 성공 → 유저 저장 후 알림 신청 */
+  function handleSignupSuccess(u) {
+    setUser(u)
+    setShowSignup(false)
+    recordInterest(u)
   }
 
   const iosPrimary = os !== 'android'   // 안드로이드 기기가 아니면 iOS를 강조
@@ -129,6 +157,17 @@ export default function DownloadPage() {
           ? '버튼을 누르면 App Store로 이동합니다.'
           : '아이폰은 App Store에서, 안드로이드는 곧 만나요.'}
       </p>
+
+      {/* 알림 신청용 가입/로그인 모달 */}
+      {showSignup && (
+        <SignupModal
+          onSuccess={handleSignupSuccess}
+          onClose={() => setShowSignup(false)}
+          title="Android 출시 알림 받기"
+          subtitle="이름과 휴대폰 번호를 남기면, Android 앱이 출시될 때 가장 먼저 알려드려요."
+          submitLabel="알림 신청하기"
+        />
+      )}
     </div>
   )
 }

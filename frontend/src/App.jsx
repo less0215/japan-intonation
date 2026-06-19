@@ -716,6 +716,7 @@ export default function App() {
                   {!isApp && (
                     <button
                       className="app-guide-btn"
+                      style={{ marginTop: -10 }}
                       onClick={() => { track('download_cta_click', { from: 'home' }); navigate('/download?from=home_cta') }}
                     >
                       틱재팬 앱 다운로드
@@ -740,8 +741,8 @@ export default function App() {
 
       {/* 푸터 — 개인정보처리방침·이용약관 (앱·웹 공통 표시, 심사 필수) */}
       <footer style={{
-        marginTop: 40,
-        paddingBottom: isApp ? 32 : 24,
+        marginTop: 18,
+        paddingBottom: isApp ? 24 : 16,
         display: 'flex',
         justifyContent: 'center',
         gap: 20,

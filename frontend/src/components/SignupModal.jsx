@@ -10,7 +10,7 @@ function formatPhone(value) {
   return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
 }
 
-export default function SignupModal({ onSuccess, onClose, mode = 'save' }) {
+export default function SignupModal({ onSuccess, onClose, mode = 'save', title, subtitle, submitLabel }) {
   const [name, setName]       = useState('')
   const [phone, setPhone]     = useState('')
   const [loading, setLoading] = useState(false)
@@ -50,12 +50,12 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save' }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
           <p className="modal-title">
-            {mode === 'login' ? '로그인' : '저장하기'}
+            {title ?? (mode === 'login' ? '로그인' : '저장하기')}
           </p>
           <p className="modal-subtitle">
-            {mode === 'login'
+            {subtitle ?? (mode === 'login'
               ? '가입 시 입력한 이름과 휴대폰 번호를 그대로 입력하시면 로그인됩니다'
-              : '이름과 휴대폰 번호를 입력하면 저장이 시작됩니다. 다음에 같은 정보로 다시 불러올 수 있어요'}
+              : '이름과 휴대폰 번호를 입력하면 저장이 시작됩니다. 다음에 같은 정보로 다시 불러올 수 있어요')}
           </p>
 
           {/* 중복 가입 방지 안내 — 번호 고유 식별 */}
@@ -97,7 +97,7 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save' }) {
           />
           {error && <p style={{ fontSize: 13, color: '#c53030', margin: '0 2px' }}>{error}</p>}
           <button type="submit" className="modal-submit" disabled={loading} style={{ marginTop: 4 }}>
-            {loading ? '처리 중...' : mode === 'login' ? '로그인' : '가입하고 저장하기'}
+            {loading ? '처리 중...' : (submitLabel ?? (mode === 'login' ? '로그인' : '가입하고 저장하기'))}
           </button>
         </form>
       </div>

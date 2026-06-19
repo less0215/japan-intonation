@@ -10,6 +10,7 @@ import TranslationHistoryDrawer from './components/TranslationHistoryDrawer'
 import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
+import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
@@ -777,6 +778,8 @@ export default function App() {
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}
       {/* 첫 방문 앱 다운로드 유도 — 웹 + 다운로드 페이지 아님 */}
       {!isApp && !isDownload && <AppDownloadPromo onDownload={() => navigate('/download')} />}
+      {/* 안드로이드 출시 시 알림 신청 회원에게 노출 (현재 플래그 OFF) */}
+      <AndroidLaunchPopup />
       {showDeleteAccount && user && (
         <DeleteAccountModal
           user={user}

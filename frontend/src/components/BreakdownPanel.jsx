@@ -186,6 +186,47 @@ export function ExampleAnalysis({ japaneseText }) {
   )
 }
 
+/* ── 문장 분해 접힘 상태 미리보기
+ * - 정적 예시(고정 데이터, API 호출 없음)로 기능을 이해시키고
+ * - 강조된 CTA로 실제 분해(온디맨드 호출)를 유도 → 호출 절감 */
+const EXAMPLE_BREAKDOWN = [
+  { unit: '日本語を', hiragana: 'にほんごを', korean_pronunciation: '니혼고오', korean_meaning: '일본어를', part_of_speech: '명사+조사' },
+  { unit: '話す',     hiragana: 'はなす',     korean_pronunciation: '하나스',   korean_meaning: '말하다',   part_of_speech: '동사' },
+  { unit: 'ことができますか', hiragana: 'ことができますか', korean_pronunciation: '코토가데키마스카', korean_meaning: '~할 수 있습니까?', part_of_speech: '문법 패턴' },
+]
+
+export function BreakdownPreview({ onExpand }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      {/* 정적 예시 (흐리게, 상호작용 불가) */}
+      <div style={{ position: 'relative', opacity: 0.5, pointerEvents: 'none', userSelect: 'none', maxHeight: 132, overflow: 'hidden', filter: 'grayscale(0.15)' }} aria-hidden="true">
+        <span style={{ position: 'absolute', top: 6, right: 4, zIndex: 2, fontSize: 10, fontWeight: 700, color: '#fff', background: '#b9c4cc', borderRadius: 6, padding: '2px 7px' }}>예시</span>
+        <BreakdownTable breakdown={EXAMPLE_BREAKDOWN} showDetail={false} />
+        <BreakdownCards breakdown={EXAMPLE_BREAKDOWN} showDetail={false} />
+      </div>
+      {/* 하단 페이드 + CTA */}
+      <div style={{ position: 'relative', marginTop: -34, paddingTop: 34, background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 62%)', textAlign: 'center' }}>
+        <p style={{ margin: '0 0 8px', fontSize: 12, color: '#888' }}>단어·문법·활용 원리까지 이렇게 분해해 드려요</p>
+        <button
+          onClick={onExpand}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, height: 40, padding: '0 18px',
+            borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700,
+            letterSpacing: '-0.2px', color: '#fff', border: '1px solid rgba(255,255,255,0.14)',
+            background: 'linear-gradient(145deg, #6fb6d6 0%, #5CA9CE 55%, #4f96bb 100%)',
+            boxShadow: '0 6px 16px rgba(92,169,206,0.32), inset 0 1px 0 rgba(255,255,255,0.28)',
+          }}
+        >
+          내 문장 분해 보기
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ── 뜻·원리 보기 토글 버튼 */
 export function DetailToggleButton({ showDetail, onToggle }) {
   return (

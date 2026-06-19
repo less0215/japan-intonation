@@ -405,8 +405,9 @@ export default function App() {
           setShowSignup(true)
         }
       }
-      // 2단계: 무거운 문장 분해는 백그라운드로 채움 → 저장은 분해 병합 후 수행
-      fetchBreakdown(data, text)
+      // 문장 분해는 기본 접힘 — 사용자가 펼칠 때만 호출(서버 부하 절감).
+      // 번역 기록은 즉시 보관(분해 없이), 분해는 펼치면 병합 저장됨.
+      addToHistory(text, data)
       // 번역 1회 후 ATT 사전 안내 시트 (앱·미요청 상태에서만)
       maybeShowAttPrompt()
     } catch (err) {
@@ -519,13 +520,9 @@ export default function App() {
     setResult(savedResult)
     setInputText(savedInput)
     setSaved(true)
+    setBreakdownLoading(false)
     navigate('/')
-    /* 저장 당시 breakdown 누락 시 재요청 */
-    if (!savedResult.breakdown?.length) {
-      fetchBreakdown(savedResult, savedInput, true)
-    } else {
-      setBreakdownLoading(false)
-    }
+    // 분해는 기본 접힘 — 저장 당시 누락됐어도 사용자가 펼칠 때 온디맨드 호출
   }
 
   const hasContent = loading || error || result || typing
@@ -827,6 +824,7 @@ export default function App() {
                   saved={saved}
                   inputText={inputText}
                   breakdownLoading={breakdownLoading}
+                  onRequestBreakdown={() => fetchBreakdown(result, inputText)}
                 />
               )}
 

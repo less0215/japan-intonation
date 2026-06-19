@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import PitchGraph from './PitchGraph'
 import CopyButton from './CopyButton'
-import { BreakdownTable, BreakdownCards, DetailToggleButton } from './BreakdownPanel'
+import { BreakdownTable, BreakdownCards, DetailToggleButton, BreakdownPreview } from './BreakdownPanel'
 import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
@@ -71,13 +71,24 @@ function SaveButton({ onSave, saved }) {
   )
 }
 
-export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading }) {
+export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading, onRequestBreakdown }) {
   const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = data
   const hasBreakdown = breakdown && breakdown.length > 0
 
   const [gender, setGender]         = useState('female')
   const [audioState, setAudioState] = useState('idle')
   const [showDetail, setShowDetail] = useState(false)
+  // 문장 분해는 기본 접힘 — 펼칠 때만 실제 호출(온디맨드)
+  const [expanded, setExpanded]     = useState(false)
+
+  function handleExpandBreakdown() {
+    track('breakdown_expand', { text_length: japanese.length })
+    setExpanded(true)
+    if (!hasBreakdown) onRequestBreakdown?.()   // 아직 없으면 이때 1회 호출
+  }
+
+  // 새 번역(다른 문장)이 오면 분해 다시 접기
+  useEffect(() => { setExpanded(false); setShowDetail(false) }, [japanese])
   const audioRef = useRef(null)
 
   const segments = parseFurigana(furigana_html)
@@ -150,28 +161,35 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
 
       <hr className="divider" />
 
-      {/* 섹션 2: 문장 분해 — 별도 호출로 뒤이어 채워짐 */}
+      {/* 섹션 2: 문장 분해 — 기본 접힘(정적 예시), 펼칠 때만 실제 호출 */}
       <div className="section">
         <div className="section-header">
           <span className="section-label">문장 분해</span>
-          {hasBreakdown && (
-            <DetailToggleButton showDetail={showDetail} onToggle={() => {
-              if (!showDetail) track('breakdown_expand', { text_length: japanese.length })
-              setShowDetail(v => !v)
-            }} />
+          {expanded && hasBreakdown && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <DetailToggleButton showDetail={showDetail} onToggle={() => setShowDetail(v => !v)} />
+              <button
+                onClick={() => setExpanded(false)}
+                style={{ height: 26, padding: '0 8px', borderRadius: 13, fontSize: 11, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', border: '1.5px solid #e0e0e0', background: 'transparent', color: '#aaa' }}
+              >
+                접기
+              </button>
+            </div>
           )}
         </div>
-        {hasBreakdown ? (
+        {!expanded ? (
+          <BreakdownPreview onExpand={handleExpandBreakdown} />
+        ) : hasBreakdown ? (
           <>
             <BreakdownTable breakdown={breakdown} showDetail={showDetail} />
             <BreakdownCards breakdown={breakdown} showDetail={showDetail} />
           </>
-        ) : breakdownLoading ? (
+        ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 4px', color: '#aaa' }}>
             <span className="spinner" style={{ width: 14, height: 14 }} />
             <span style={{ fontSize: 13 }}>문장 분해 분석 중...</span>
           </div>
-        ) : null}
+        )}
       </div>
 
       {/* 저장 버튼 */}

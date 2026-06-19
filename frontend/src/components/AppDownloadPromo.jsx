@@ -37,34 +37,49 @@ export default function AppDownloadPromo({ onDownload }) {
   if (!visible) return null
 
   return (
-    <div className="modal-backdrop" onClick={closeSession}>
-      <div className="modal-sheet" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
+    <div
+      onClick={closeSession}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(20,30,40,0.45)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 24,
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          position: 'relative', width: '100%', maxWidth: 320,
+          background: '#fff', borderRadius: 20,
+          padding: '28px 24px 16px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+        }}
+      >
         {/* 닫기(세션) */}
         <button
           onClick={closeSession}
           aria-label="닫기"
           style={{
-            position: 'absolute', top: 12, right: 14, width: 28, height: 28,
+            position: 'absolute', top: 12, right: 14, width: 26, height: 26,
             background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 18, color: '#ccc', lineHeight: 1, padding: 0,
+            fontSize: 17, color: '#ccc', lineHeight: 1, padding: 0,
           }}
         >✕</button>
-
-        <div className="modal-handle" />
 
         {/* 아이콘 */}
         <img
           src="/apple-touch-icon.png"
           alt="틱재팬"
-          width="64" height="64"
-          style={{ borderRadius: 16, margin: '4px 0 16px', boxShadow: '0 4px 16px rgba(92,169,206,0.22)' }}
+          width="60" height="60"
+          style={{ borderRadius: 15, marginBottom: 12, boxShadow: '0 4px 16px rgba(92,169,206,0.22)' }}
         />
 
         {/* 카피 */}
-        <p style={{ fontSize: 19, fontWeight: 700, color: '#111', margin: '0 0 8px', lineHeight: 1.4 }}>
+        <p style={{ fontSize: 17, fontWeight: 700, color: '#111', margin: '0 0 6px', lineHeight: 1.35 }}>
           앱으로 더 쾌적하게 공부해요
         </p>
-        <p style={{ fontSize: 14, color: '#777', margin: '0 0 22px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: '#888', margin: '0 0 18px', lineHeight: 1.55 }}>
           틱재팬 앱을 설치하면 더 빠르고 편하게<br />일본어를 번역하고 학습할 수 있어요.
         </p>
 
@@ -72,7 +87,7 @@ export default function AppDownloadPromo({ onDownload }) {
         <button
           onClick={handleDownload}
           style={{
-            width: '100%', height: 50, border: 'none', borderRadius: 13,
+            width: '100%', height: 48, border: 'none', borderRadius: 12,
             background: PRIMARY, color: '#fff', fontSize: 15, fontWeight: 700,
             cursor: 'pointer', fontFamily: 'inherit',
           }}
@@ -84,9 +99,9 @@ export default function AppDownloadPromo({ onDownload }) {
         <button
           onClick={dismissForever}
           style={{
-            width: '100%', height: 42, marginTop: 4,
+            width: '100%', height: 36, marginTop: 2,
             background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 13, color: '#aaa', fontFamily: 'inherit',
+            fontSize: 12.5, color: '#aaa', fontFamily: 'inherit',
           }}
         >
           이미 앱이 있어요 · 다시 보지 않기

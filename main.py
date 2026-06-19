@@ -414,6 +414,8 @@ class SignupResponse(BaseModel):
 # (후기 작성 인증 회원 등 — 숫자만, 하이픈/공백 무시)
 FAST_UNLIMITED_PHONES = {
     "01033530215",
+    "01048414546",
+    "01098504859",
 }
 
 def _norm_phone(phone: str) -> str:

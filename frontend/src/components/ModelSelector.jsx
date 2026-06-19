@@ -53,8 +53,8 @@ export default function ModelSelector({ active, locked, usedPct, unlimited, rese
       {active && (
         <div style={{ width: '100%', maxWidth: 280 }}>
           {unlimited ? (
-            <p style={{ margin: 0, fontSize: 11.5, color: PRIMARY, fontWeight: 700, lineHeight: 1.5 }}>
-              ⚡ 무제한 이용 중 — 더 빠르고 똑똑한 번역을 마음껏 사용하세요.
+            <p style={{ margin: 0, fontSize: 11.5, color: PRIMARY, fontWeight: 700, lineHeight: 1.5, whiteSpace: 'nowrap' }}>
+              ⚡ 무제한 이용 중 — 마음껏 사용하세요.
             </p>
           ) : locked ? (
             <p style={{ margin: 0, fontSize: 11.5, color: '#c98a00', lineHeight: 1.5 }}>

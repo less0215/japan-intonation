@@ -4,7 +4,7 @@
  */
 const PRIMARY = '#5CA9CE'
 
-export default function ModelSelector({ active, locked, usedPct, onToggle }) {
+export default function ModelSelector({ active, locked, usedPct, unlimited, onToggle }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start', width: '100%' }}>
       {/* 토글 칩 */}
@@ -33,7 +33,11 @@ export default function ModelSelector({ active, locked, usedPct, onToggle }) {
       {/* 활성화 시 안내 + 사용량(%) */}
       {active && (
         <div style={{ width: '100%', maxWidth: 280 }}>
-          {locked ? (
+          {unlimited ? (
+            <p style={{ margin: 0, fontSize: 11.5, color: PRIMARY, fontWeight: 700, lineHeight: 1.5 }}>
+              ⚡ 무제한 이용 중 — 더 빠르고 똑똑한 번역을 마음껏 사용하세요.
+            </p>
+          ) : locked ? (
             <p style={{ margin: 0, fontSize: 11.5, color: '#c98a00', lineHeight: 1.5 }}>
               오늘 빠른 번역을 모두 사용했어요. 내일 다시 이용할 수 있어요.
             </p>

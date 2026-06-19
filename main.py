@@ -358,6 +358,20 @@ class SignupResponse(BaseModel):
     user_id: int
     name: str
     is_new: bool   # True=신규, False=기존 사용자 로그인
+    fast_unlimited: bool = False   # 빠른 번역 무제한 화이트리스트 여부
+
+# 빠른 번역(3.1) 사용량 제한 없이 쓸 수 있는 휴대폰 번호 화이트리스트.
+# (후기 작성 인증 회원 등 — 숫자만, 하이픈/공백 무시)
+FAST_UNLIMITED_PHONES = {
+    # "01012345678",
+}
+
+def _norm_phone(phone: str) -> str:
+    """휴대폰 번호에서 숫자만 추출 (하이픈/공백 표기 차이 무시)."""
+    return "".join(c for c in (phone or "") if c.isdigit())
+
+def is_fast_unlimited(phone: str) -> bool:
+    return _norm_phone(phone) in FAST_UNLIMITED_PHONES
 
 class SaveRequest(BaseModel):
     user_id: int | None = None
@@ -749,7 +763,8 @@ def signup(req: SignupRequest):
             # 번호는 고유 식별자. 이름이 일치하면 본인 → 로그인,
             # 다르면 이미 다른 사람이 가입한 번호이므로 차단.
             if existing.name == req.name.strip():
-                return SignupResponse(user_id=existing.id, name=existing.name, is_new=False)
+                return SignupResponse(user_id=existing.id, name=existing.name, is_new=False,
+                                      fast_unlimited=is_fast_unlimited(existing.phone))
             raise HTTPException(
                 status_code=409,
                 detail="이미 가입된 휴대폰 번호입니다. 가입 시 사용한 이름을 입력해 주세요.",
@@ -767,7 +782,8 @@ def signup(req: SignupRequest):
                 detail="이미 가입된 휴대폰 번호입니다. 가입 시 사용한 이름을 입력해 주세요.",
             )
         db.refresh(new_user)
-        return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True)
+        return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True,
+                              fast_unlimited=is_fast_unlimited(new_user.phone))
     finally:
         db.close()
 

@@ -12,6 +12,7 @@ import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import ModelSelector from './components/ModelSelector'
+import ReviewRewardPopup from './components/ReviewRewardPopup'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
@@ -219,6 +220,7 @@ export default function App() {
   const [selectedModel, setSelectedModel] = useState('basic')
   const [fastUsed, setFastUsed] = useState(0)
   const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
+  const [showReviewReward, setShowReviewReward] = useState(false)   // 빠른 번역 소진 회원 → 후기 이용권 팝업
   const todayKey = () => new Date().toISOString().slice(0, 10)
   useEffect(() => {
     try {
@@ -226,8 +228,10 @@ export default function App() {
       setFastUsed(raw.date === todayKey() ? (raw.count || 0) : 0)
     } catch { setFastUsed(0) }
   }, [])
-  const fastRemaining = Math.max(0, FAST_LIMIT - fastUsed)
-  const fastUsedPct = Math.min(100, Math.round((fastUsed / FAST_LIMIT) * 100))
+  // 화이트리스트(후기 인증 회원 등)는 사용량 제한 없이 사용
+  const fastUnlimited = !!user?.fast_unlimited
+  const fastRemaining = fastUnlimited ? Infinity : Math.max(0, FAST_LIMIT - fastUsed)
+  const fastUsedPct = fastUnlimited ? 0 : Math.min(100, Math.round((fastUsed / FAST_LIMIT) * 100))
   function bumpFastUsage() {
     const next = fastUsed + 1
     setFastUsed(next)
@@ -308,8 +312,20 @@ export default function App() {
     // 빠른 번역 선택 + 잔여 있을 때만 fast, 아니면 basic 폴백
     let useModel = 'basic'
     if (selectedModel === 'fast') {
-      if (fastRemaining > 0) { useModel = 'fast'; bumpFastUsage() }
-      else { setSelectedModel('basic'); track('fast_limit_reached') }
+      if (fastRemaining > 0) { useModel = 'fast'; if (!fastUnlimited) bumpFastUsage() }
+      else {
+        setSelectedModel('basic')
+        track('fast_limit_reached')
+        // 빠른 번역 소진 회원에게 후기 무제한 이용권 팝업 노출 (1회/다시보지않기)
+        if (user) {
+          try {
+            if (localStorage.getItem('tickjapan_review_reward_dismissed') !== '1') {
+              setShowReviewReward(true)
+              track('review_reward_shown')
+            }
+          } catch { setShowReviewReward(true) }
+        }
+      }
     }
 
     const fetchAnalyze = () =>
@@ -692,6 +708,7 @@ export default function App() {
                   active={selectedModel === 'fast'}
                   locked={fastRemaining <= 0}
                   usedPct={fastUsedPct}
+                  unlimited={fastUnlimited}
                   onToggle={handleFastToggle}
                 />
                 <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
@@ -834,6 +851,16 @@ export default function App() {
         />
       )}
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}
+      {showReviewReward && (
+        <ReviewRewardPopup
+          onClose={() => setShowReviewReward(false)}
+          onDismissForever={() => {
+            try { localStorage.setItem('tickjapan_review_reward_dismissed', '1') } catch {}
+            setShowReviewReward(false)
+            track('review_reward_dismissed')
+          }}
+        />
+      )}
       {/* 첫 방문 앱 다운로드 유도 — 웹 + 다운로드 페이지 아님 */}
       {!isApp && !isDownload && <AppDownloadPromo onDownload={() => navigate('/download')} />}
       {/* 안드로이드 출시 시 알림 신청 회원에게 노출 (현재 플래그 OFF) */}

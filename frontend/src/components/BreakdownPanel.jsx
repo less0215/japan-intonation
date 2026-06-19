@@ -204,21 +204,25 @@ export function BreakdownPreview({ onExpand }) {
         <BreakdownTable breakdown={EXAMPLE_BREAKDOWN} showDetail={false} />
         <BreakdownCards breakdown={EXAMPLE_BREAKDOWN} showDetail={false} />
       </div>
-      {/* 하단 페이드 + CTA */}
-      <div style={{ position: 'relative', marginTop: -34, paddingTop: 34, background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 62%)', textAlign: 'center' }}>
-        <p style={{ margin: '0 0 8px', fontSize: 12, color: '#888' }}>단어·문법·활용 원리까지 이렇게 분해해 드려요</p>
+      {/* 하단 페이드 + CTA (저장하기 파란 버튼과 구분되도록 골드 계열·풀폭) */}
+      <div style={{ position: 'relative', marginTop: -34, paddingTop: 34, padding: '34px 16px 0', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 62%)', textAlign: 'center' }}>
+        <p style={{ margin: '0 0 10px', fontSize: 12, color: '#888' }}>단어·문법·활용 원리까지 이렇게 분해해 드려요</p>
         <button
           onClick={onExpand}
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, height: 40, padding: '0 18px',
-            borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700,
-            letterSpacing: '-0.2px', color: '#fff', border: '1px solid rgba(255,255,255,0.14)',
-            background: 'linear-gradient(145deg, #6fb6d6 0%, #5CA9CE 55%, #4f96bb 100%)',
-            boxShadow: '0 6px 16px rgba(92,169,206,0.32), inset 0 1px 0 rgba(255,255,255,0.28)',
+            display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: 7, height: 48,
+            borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 700,
+            letterSpacing: '-0.2px', color: '#fff', border: '1px solid rgba(255,255,255,0.18)',
+            background: 'linear-gradient(145deg, #ffb648 0%, #f0a500 55%, #e08e00 100%)',
+            boxShadow: '0 8px 20px rgba(240,165,0,0.34), inset 0 1px 0 rgba(255,255,255,0.32)',
           }}
         >
-          내 문장 분해 보기
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
+          문장 분해 결과 보기
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>

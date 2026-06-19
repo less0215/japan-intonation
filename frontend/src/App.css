@@ -288,17 +288,19 @@ body {
   gap: 8px;
   width: 100%;
   padding: 15px 18px;
-  background: #5CA9CE;
+  background: linear-gradient(145deg, #6fb6d6 0%, #5CA9CE 55%, #4f96bb 100%);
   color: #ffffff;
-  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
   font-size: 15px;
   font-weight: 700;
+  letter-spacing: -0.2px;
   text-decoration: none;
-  box-shadow: 0 4px 14px #5CA9CE4d;
-  transition: background-color 0.15s, transform 0.05s;
+  box-shadow: 0 8px 22px rgba(92, 169, 206, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: filter 0.15s, transform 0.05s, box-shadow 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.app-guide-btn:hover { background: #4f9abd; }
+.app-guide-btn:hover { filter: brightness(1.04); box-shadow: 0 10px 26px rgba(92, 169, 206, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.28); }
 .app-guide-btn:active { transform: scale(0.99); }
 
 /* ── 품사 카테고리 바 (Papago의 음성/대화/이미지 스타일) */

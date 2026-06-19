@@ -40,9 +40,15 @@ app.add_middleware(
 # 상수
 # ──────────────────────────────────────────────
 
-# 번역 모델 — 3.1 flash-lite: 번역·분류에 최적화된 차세대 저지연 모델(2.5보다 빠르고 똑똑).
-# 문제 발생 시 "gemini-2.5-flash-lite"로 즉시 롤백 가능.
-GEMINI_MODEL = "gemini-3.1-flash-lite"
+# 번역 모델 2종
+# - basic(기본): 2.5 flash-lite (무제한)
+# - fast(빠른) : 3.1 flash-lite (차세대 저지연, 일일 제한)
+BASIC_MODEL = "gemini-2.5-flash-lite"
+FAST_MODEL  = "gemini-3.1-flash-lite"
+GEMINI_MODEL = BASIC_MODEL   # 분해/악센트 등 기본 호출용
+
+def resolve_model(key: str) -> str:
+    return FAST_MODEL if key == "fast" else BASIC_MODEL
 
 # Gemini 클라이언트 — 요청마다 재생성하지 않고 앱 시작 시 1회 초기화
 _gemini_client: genai.Client | None = None
@@ -319,6 +325,7 @@ class AnalyzeRequest(BaseModel):
     text: str
     user_id: int | None = None       # 로그인 사용자 (선택)
     anonymous_id: str | None = None  # 비로그인 식별자 (선택)
+    model: str = "basic"             # 'basic'(2.5) | 'fast'(3.1)
 
 class AccentEntry(BaseModel):
     phrase_id: str
@@ -380,16 +387,17 @@ _GEN_CONFIG = genai.types.GenerateContentConfig(
 )
 
 
-def _call_gemini_json(prompt: str) -> dict:
+def _call_gemini_json(prompt: str, model: str = None) -> dict:
     """Gemini에 프롬프트를 보내고 JSON 응답을 파싱해 dict로 반환한다 (공통 호출 로직)."""
     import time
 
     client = get_gemini_client()
+    model = model or GEMINI_MODEL
 
     for attempt in range(2):  # 최대 1회 재시도 (서버 부하 방지)
         try:
             response = client.models.generate_content(
-                model=GEMINI_MODEL,
+                model=model,
                 contents=prompt,
                 config=_GEN_CONFIG,
             )
@@ -425,9 +433,9 @@ def _call_gemini_json(prompt: str) -> dict:
         )
 
 
-def translate_korean_to_japanese(korean_text: str) -> dict:
+def translate_korean_to_japanese(korean_text: str, model: str = None) -> dict:
     """한국어 문장을 Gemini API로 번역해 번역문·발음·악센트를 반환한다 (문장 분해 제외)."""
-    result = _call_gemini_json(f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}")
+    result = _call_gemini_json(f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}", model=model)
 
     required_keys = {"japanese", "furigana", "korean_pronunciation", "furigana_html", "accent_data"}
     missing = required_keys - result.keys()
@@ -549,16 +557,20 @@ def analyze(req: AnalyzeRequest):
     if not text:
         raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
 
+    # 모델별 캐시 키 (basic/fast 결과 분리)
+    model_key = "fast" if req.model == "fast" else "basic"
+    cache_key = f"{model_key}:{text}"
+
     # ── 캐시 조회 ──────────────────────────────
-    if text in _analyze_cache:
-        print(f"[Analyze 캐시 HIT] {text[:40]!r}")
-        cached = _analyze_cache[text]
+    if cache_key in _analyze_cache:
+        print(f"[Analyze 캐시 HIT] {cache_key[:46]!r}")
+        cached = _analyze_cache[cache_key]
         log_translation(text, cached.get("japanese"), req.user_id, req.anonymous_id)
         return AnalyzeResponse(**cached)
     # ───────────────────────────────────────────
 
-    # 한국어 → 일본어 번역 + 억양 데이터
-    translation = translate_korean_to_japanese(text)
+    # 한국어 → 일본어 번역 + 억양 데이터 (선택 모델)
+    translation = translate_korean_to_japanese(text, model=resolve_model(model_key))
 
     # Gemini가 직접 제공한 억양 데이터 사용
     raw_accent = translation.get("accent_data", [])
@@ -580,8 +592,8 @@ def analyze(req: AnalyzeRequest):
     if len(_analyze_cache) >= 500:
         oldest_key = next(iter(_analyze_cache))
         del _analyze_cache[oldest_key]
-    _analyze_cache[text] = result.model_dump()
-    print(f"[Analyze 캐시 저장] {text[:40]!r}")
+    _analyze_cache[cache_key] = result.model_dump()
+    print(f"[Analyze 캐시 저장] {cache_key[:46]!r}")
 
     # 번역 시도 자동 기록 (웹·앱 공통, source='auto')
     log_translation(text, result.japanese, req.user_id, req.anonymous_id)

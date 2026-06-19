@@ -11,6 +11,7 @@ import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
+import ModelSelector from './components/ModelSelector'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
@@ -213,6 +214,24 @@ export default function App() {
   const [menuOpen, setMenuOpen]               = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
+  // 번역 모델 선택 + 빠른 번역 일일 제한
+  const FAST_LIMIT = 15
+  const [selectedModel, setSelectedModel] = useState('basic')
+  const [fastUsed, setFastUsed] = useState(0)
+  const todayKey = () => new Date().toISOString().slice(0, 10)
+  useEffect(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem('tickjapan_fast_usage') || '{}')
+      setFastUsed(raw.date === todayKey() ? (raw.count || 0) : 0)
+    } catch { setFastUsed(0) }
+  }, [])
+  const fastRemaining = Math.max(0, FAST_LIMIT - fastUsed)
+  function bumpFastUsage() {
+    const next = fastUsed + 1
+    setFastUsed(next)
+    try { localStorage.setItem('tickjapan_fast_usage', JSON.stringify({ date: todayKey(), count: next })) } catch {}
+  }
+
   // 비로그인 번역 횟수 — localStorage 기반, 3회 초과 시 로그인 유도
   const TRANSLATE_LIMIT = 2
   function getGuestCount() { return parseInt(localStorage.getItem('tickjapan_translate_count') || '0', 10) }
@@ -270,12 +289,20 @@ export default function App() {
     setSaved(false)
     setInputText(text)
 
+    // 빠른 번역 선택 + 잔여 있을 때만 fast, 아니면 basic 폴백
+    let useModel = 'basic'
+    if (selectedModel === 'fast') {
+      if (fastRemaining > 0) { useModel = 'fast'; bumpFastUsage() }
+      else { setSelectedModel('basic'); track('fast_limit_reached') }
+    }
+
     const fetchAnalyze = () =>
       fetch(`${API_URL}/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,
+          model: useModel,
           user_id: user?.user_id ?? null,
           anonymous_id: (() => { try { return localStorage.getItem('tickjapan_anon_id') } catch { return null } })(),
         }),
@@ -642,7 +669,15 @@ export default function App() {
                 description="파파고 대신 써보세요. 틱재팬은 무료 한국어-일본어 번역기로 히라가나 독음과 피치악센트를 한 번에 확인할 수 있습니다."
                 path="/"
               />
-              <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <ModelSelector
+                  model={selectedModel}
+                  onChange={setSelectedModel}
+                  fastRemaining={fastRemaining}
+                  fastLimit={FAST_LIMIT}
+                />
+                <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
+              </div>
 
               {/* 동사 감지 시 인스타 강의 CTA — 번역 버튼 아래, 결과 카드 위 */}
               {result?.breakdown && (() => {

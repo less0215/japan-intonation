@@ -803,29 +803,27 @@ body {
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   display: flex;
-  align-items: flex-end;   /* 모바일: 하단 시트 */
+  align-items: center;     /* 화면 정중앙 */
   justify-content: center;
   z-index: 100;
-  padding: 0;
+  padding: 24px;
 }
 
 .modal-sheet {
   background: #ffffff;
-  border-radius: 20px 20px 0 0;
-  padding: 20px 24px 44px;
+  border-radius: 20px;
+  padding: 26px 24px 24px;
   width: 100%;
-  max-width: 500px;
+  max-width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
 }
 
+/* 중앙 모달에선 하단 시트용 드래그 핸들 숨김 */
 .modal-handle {
-  width: 40px;
-  height: 4px;
-  background: #e0e0e0;
-  border-radius: 2px;
-  margin: 0 auto 4px;
+  display: none;
 }
 
 .modal-title {

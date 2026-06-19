@@ -231,24 +231,20 @@ body {
   width: 100%;
   height: 52px;
   padding: 0 20px;
-  background: linear-gradient(145deg, #6fb6d6 0%, #5CA9CE 55%, #4f96bb 100%);
+  background-color: #5CA9CE;
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
+  border: none;
+  border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.2px;
   font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(92, 169, 206, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  transition: filter 0.15s, transform 0.05s, opacity 0.15s;
+  transition: opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.search-btn:not(:disabled):hover { filter: brightness(1.04); }
-.search-btn:not(:disabled):active { transform: scale(0.99); }
 
 /* ── 번역 준비 중 점 표시 (디바운스 대기) */
 .translating-dots {

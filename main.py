@@ -380,7 +380,7 @@ class SignupResponse(BaseModel):
 # 빠른 번역(3.1) 사용량 제한 없이 쓸 수 있는 휴대폰 번호 화이트리스트.
 # (후기 작성 인증 회원 등 — 숫자만, 하이픈/공백 무시)
 FAST_UNLIMITED_PHONES = {
-    # "01012345678",
+    "01033530215",
 }
 
 def _norm_phone(phone: str) -> str:

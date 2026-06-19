@@ -556,6 +556,15 @@ export default function App() {
                     <button style={menuItemStyle} onClick={() => { setMenuOpen(false); track('saved_list_open', { logged_in: true }); setShowHistory(true) }}>
                       저장 목록
                     </button>
+                    <button
+                      style={{ ...menuItemStyle, color: '#357694', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}
+                      onClick={() => { setMenuOpen(false); track('review_reward_open_menu'); setShowReviewReward(true) }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="#e09b00" stroke="none">
+                        <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
+                      </svg>
+                      빠른 번역 무제한
+                    </button>
                     <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
                     <button style={{ ...menuItemStyle, color: '#aaa' }} onClick={() => { setMenuOpen(false); handleLogout() }}>
                       로그아웃

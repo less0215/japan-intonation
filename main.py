@@ -769,6 +769,34 @@ def fast_usage(user_id: int):
     return get_fast_usage(user_id)
 
 
+# 무제한 회원 조회용 관리 토큰 (개인정보 노출 방지)
+FAST_ADMIN_KEY = "tickjapan-admin-9f3a2b"
+
+@app.get("/fast-unlimited")
+def fast_unlimited_list(key: str = ""):
+    """무제한 화이트리스트 번호를 DB 가입정보(이름)와 자동 대조해 보여준다.
+    개인정보(이름·번호) 노출 방지를 위해 ?key=관리토큰 필요."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다. ?key=... 를 붙여주세요.")
+    db = SessionLocal()
+    try:
+        by_norm = {_norm_phone(u.phone): u for u in db.query(User).all()}
+        members = []
+        for p in sorted(FAST_UNLIMITED_PHONES):
+            u = by_norm.get(_norm_phone(p))
+            members.append({
+                "phone": p,
+                "name": u.name if u else None,
+                "registered": bool(u),      # 실제 가입 여부
+                "platform": u.platform if u else None,
+                "created_at": u.created_at.isoformat() if (u and u.created_at) else None,
+            })
+        registered = sum(1 for m in members if m["registered"])
+        return {"total": len(members), "registered": registered, "members": members}
+    finally:
+        db.close()
+
+
 class BreakdownRequest(BaseModel):
     japanese: str
 

@@ -35,13 +35,13 @@ body {
 
 /* ── 레이아웃 */
 .page {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 32px 20px 28px;
 }
 
 /* 결과 없을 때 (홈 화면) */
 .page--center {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -206,25 +206,39 @@ body {
   gap: 10px;
 }
 
+/* 입력창 + 하단 툴바 묶음 박스 (채팅 입력창 패턴) */
+.search-box {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.search-box:focus-within {
+  border-color: #5CA9CE;
+}
+/* 입력창 하단 툴바 — 빠른 번역 칩 위치 */
+.search-box-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px 12px;
+}
+
 .search-input {
   width: 100%;
-  min-height: 96px;
-  padding: 16px 18px;
+  min-height: 84px;
+  padding: 16px 18px 4px;
   font-size: 17px;       /* iOS 자동 확대 방지 (16px 이상) */
   line-height: 1.55;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 14px;
+  border: none;
+  border-radius: 0;
   outline: none;
   font-family: inherit;
   color: #111111;
-  background: #ffffff;
-  transition: border-color 0.15s;
+  background: transparent;
   -webkit-appearance: none;
-  resize: vertical;      /* 세로로만 크기 조절 */
-}
-
-.search-input:focus {
-  border-color: #5CA9CE;
+  resize: none;          /* 박스 안 툴바와 겹치지 않게 고정 */
+  display: block;
 }
 
 .search-btn {
@@ -704,7 +718,7 @@ body {
 ══════════════════════════════════════ */
 @media (max-width: 480px) {
   .page {
-    padding: 20px 14px 60px;
+    padding: 20px 14px 24px;
   }
 
   .container {

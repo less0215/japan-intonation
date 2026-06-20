@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { track } from '../App'
+import ModelSelector from './ModelSelector'
 
 /* 한국어 입력창 + 번역 버튼
  * - 큰 textarea (여러 줄 입력)
@@ -8,7 +9,7 @@ import { track } from '../App'
  */
 const DEBOUNCE_MS = 600
 
-export default function SearchBar({ onAnalyze, loading, onTyping, onClear }) {
+export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast }) {
   const [text, setText] = useState('')
   const timerRef = useRef(null)
   const lastSubmittedRef = useRef('')
@@ -67,15 +68,25 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear }) {
 
   return (
     <form onSubmit={handleSubmit} className="search-form">
-      <textarea
-        value={text}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        placeholder="번역할 내용을 입력하세요"
-        className="search-input"
-        rows={3}
-      />
+      {/* 입력창 + 하단 툴바(빠른 번역 칩)를 한 박스로 */}
+      <div className="search-box">
+        <textarea
+          value={text}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
+          placeholder="번역할 내용을 입력하세요"
+          className="search-input"
+          rows={3}
+        />
+        {fast && (
+          <div className="search-box-toolbar">
+            <ModelSelector variant="chip" {...fast} />
+          </div>
+        )}
+      </div>
+      {/* 빠른 번역 활성 시 사용량(%) 안내는 입력창 아래에 표시 */}
+      {fast && fast.active && <ModelSelector variant="info" {...fast} />}
       <button
         type="submit"
         disabled={disabled}

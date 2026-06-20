@@ -11,7 +11,6 @@ import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
-import ModelSelector from './components/ModelSelector'
 import ReviewRewardPopup from './components/ReviewRewardPopup'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
@@ -761,17 +760,20 @@ export default function App() {
                 description="파파고 대신 써보세요. 틱재팬은 무료 한국어-일본어 번역기로 히라가나 독음과 피치악센트를 한 번에 확인할 수 있습니다."
                 path="/"
               />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <ModelSelector
-                  active={selectedModel === 'fast'}
-                  locked={fastLocked}
-                  usedPct={fastUsedPct}
-                  unlimited={fastUnlimited}
-                  resetSec={fastResetSec}
-                  onToggle={handleFastToggle}
-                />
-                <SearchBar onAnalyze={handleAnalyze} loading={loading} onTyping={setTyping} onClear={handleClear} />
-              </div>
+              <SearchBar
+                onAnalyze={handleAnalyze}
+                loading={loading}
+                onTyping={setTyping}
+                onClear={handleClear}
+                fast={{
+                  active: selectedModel === 'fast',
+                  locked: fastLocked,
+                  usedPct: fastUsedPct,
+                  unlimited: fastUnlimited,
+                  resetSec: fastResetSec,
+                  onToggle: handleFastToggle,
+                }}
+              />
 
               {/* 동사 감지 시 인스타 강의 CTA — 번역 버튼 아래, 결과 카드 위 */}
               {result?.breakdown && (() => {

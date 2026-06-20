@@ -152,7 +152,12 @@ Korean Slang Dictionary (참고용 — 직역 금지, 문맥에 맞게 자연스
 - 샤갈(쌰갈): 열 받거나 당황스러울 때 쓰는 감탄사
 
 Rules:
-- "japanese": natural Japanese translation using kanji where appropriate
+- "japanese": natural Japanese translation using kanji where appropriate.
+  Match the SPEECH LEVEL (politeness) of the Korean input EXACTLY:
+    • Polite Korean (해요체/합니다체) → polite Japanese (です・ます / 敬体)
+    • Casual/plain Korean (반말, 해체/한다체) → casual Japanese (常体 / タメ口, plain form)
+  Do NOT default everything to polite form — mirror the input's register faithfully.
+  If the input is a single word or its register is genuinely ambiguous, default to polite (です・ます).
 - "furigana": FULL reading in hiragana only (no kanji, no spaces) — concatenation of ALL morae in order
 - "korean_pronunciation": how the JAPANESE translation (the "japanese" field) SOUNDS,
   transcribed phonetically using KOREAN Hangul characters (한글).

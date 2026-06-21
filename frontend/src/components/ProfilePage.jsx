@@ -21,7 +21,7 @@ export default function ProfilePage({ user, fastUnlimited, onReviewReward, onLog
       <h2 style={{ fontSize: 20, fontWeight: 700, margin: '4px 2px 10px' }}>프로필</h2>
 
       {user ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, border: '1px solid #eaecef', borderRadius: 14, padding: 12, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, border: '1px solid #eaecef', borderRadius: 14, padding: 12, marginBottom: 14 }}>
           <div style={{ width: 42, height: 42, borderRadius: '50%', background: PRIMARY, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{user.name?.[0] ?? '회'}</div>
           <div>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
@@ -47,7 +47,7 @@ export default function ProfilePage({ user, fastUnlimited, onReviewReward, onLog
         onClick={onReviewReward}
         style={{
           display: 'flex', alignItems: 'center', gap: 11, width: '100%', textAlign: 'left',
-          padding: '14px 14px', marginBottom: 10, cursor: 'pointer', fontFamily: 'inherit',
+          padding: '14px 14px', marginBottom: 14, cursor: 'pointer', fontFamily: 'inherit',
           border: '1px solid #d8e7f0', borderRadius: 13,
           background: 'linear-gradient(135deg, #eef7fc 0%, #e2f0fa 55%, #dcedf8 100%)',
           boxShadow: '0 2px 10px rgba(92,169,206,0.12)',

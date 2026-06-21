@@ -818,18 +818,7 @@ export default function App() {
 
       </div>
 
-      {/* 푸터 — 개인정보처리방침·이용약관: 홈에서만 표시 (다른 페이지는 거슬려서 숨김, 약관은 프로필 탭에도 있음) */}
-      {location.pathname === '/' && <footer style={{
-        marginTop: 18,
-        paddingBottom: isApp ? 24 : 16,
-        display: 'flex',
-        justifyContent: 'center',
-        gap: 20,
-        width: '100%',
-      }}>
-        <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>개인정보처리방침</button>
-        <button onClick={() => navigate('/terms')}   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
-      </footer>}
+      {/* 개인정보처리방침·이용약관은 프로필 탭에만 표시 (전역 푸터 제거) */}
 
       {/* 하단 탭 네비게이션 (다운로드 페이지 제외) */}
       {!isDownload && <BottomNav onHome={handleHome} />}

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
 import SkeletonCard from './components/SkeletonCard'
@@ -13,7 +13,6 @@ import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import ReviewRewardPopup from './components/ReviewRewardPopup'
 import BottomNav from './components/BottomNav'
-import StudyPage from './components/StudyPage'
 import SavesPage from './components/SavesPage'
 import ProfilePage from './components/ProfilePage'
 import VerbLibrary from './components/VerbLibrary'
@@ -652,7 +651,7 @@ export default function App() {
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
           <Route path="/terms"   element={<LegalPage type="terms" />} />
           <Route path="/download" element={<DownloadPage />} />
-          <Route path="/study"   element={<StudyPage />} />
+          <Route path="/study"   element={<Navigate to="/verbs" replace />} />
           <Route path="/saves"   element={<SavesPage onSelectHistory={handleSelectSaved} />} />
           <Route path="/profile" element={
             <ProfilePage

@@ -12,6 +12,10 @@ import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import ReviewRewardPopup from './components/ReviewRewardPopup'
+import BottomNav from './components/BottomNav'
+import StudyPage from './components/StudyPage'
+import SavesPage from './components/SavesPage'
+import ProfilePage from './components/ProfilePage'
 import VerbLibrary from './components/VerbLibrary'
 import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
@@ -565,115 +569,32 @@ export default function App() {
           </h1>
 
           {user ? (
-            /* 로그인 상태: 이름 버튼 + 드롭다운 메뉴 */
-            <div style={{ position: 'relative', marginLeft: 'auto' }}>
-              <button
-                onClick={() => setMenuOpen(v => !v)}
-                className="login-btn"
-                style={{ background: 'transparent', color: '#555', borderColor: '#e0e0e0', display: 'flex', alignItems: 'center', gap: 5 }}
-              >
-                {user.name}님
-                {fastUnlimited && (
-                  <span
-                    title="빠른 번역 무제한 회원"
-                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 17, height: 17, borderRadius: '50%', background: 'linear-gradient(145deg, #ffd97a 0%, #f0a500 100%)', boxShadow: '0 1px 3px rgba(240,165,0,0.45)' }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                      <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
-                    </svg>
-                  </span>
-                )}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ transform: menuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-              {menuOpen && (
-                <>
-                  {/* 바깥 클릭 시 닫힘 */}
-                  <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-                  <div style={{
-                    position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 50,
-                    minWidth: 150, background: '#fff', border: '1px solid #eee',
-                    borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                    overflow: 'hidden', padding: '4px 0',
-                  }}>
-                    <button style={menuItemStyle} onClick={() => { setMenuOpen(false); track('translation_history_open', { logged_in: true }); setShowTranslationHistory(true) }}>
-                      번역 기록
-                    </button>
-                    <button style={menuItemStyle} onClick={() => { setMenuOpen(false); track('saved_list_open', { logged_in: true }); setShowHistory(true) }}>
-                      저장 목록
-                    </button>
-                    <button
-                      style={{ ...menuItemStyle, color: '#357694', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}
-                      onClick={() => { setMenuOpen(false); track('review_reward_open_menu'); setShowReviewReward(true) }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="#e09b00" stroke="none">
-                        <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
-                      </svg>
-                      빠른 번역 무제한
-                    </button>
-                    <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
-                    <button style={{ ...menuItemStyle, color: '#aaa' }} onClick={() => { setMenuOpen(false); handleLogout() }}>
-                      로그아웃
-                    </button>
-                  </div>
-                </>
+            /* 로그인: 프로필 아바타 (탭 → 프로필) */
+            <button
+              onClick={() => navigate('/profile')}
+              aria-label="프로필"
+              style={{ marginLeft: 'auto', position: 'relative', width: 36, height: 36, borderRadius: '50%', background: '#5CA9CE', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {user.name?.[0] ?? '회'}
+              {fastUnlimited && (
+                <span style={{ position: 'absolute', bottom: -2, right: -2, width: 15, height: 15, borderRadius: '50%', background: 'linear-gradient(145deg, #ffd97a 0%, #f0a500 100%)', border: '1.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+                </span>
               )}
-            </div>
+            </button>
           ) : (
-            /* 비로그인: 저장 목록 버튼 + 로그인 버튼 */
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', marginLeft: 'auto' }}>
-              <button onClick={() => { track('translation_history_open', { logged_in: false }); setShowTranslationHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#888', borderColor: '#e0e0e0' }}>
-                번역 기록
-              </button>
-              <button onClick={() => { track('saved_list_open', { logged_in: false }); setShowHistory(true) }} className="login-btn" style={{ background: 'transparent', color: '#5CA9CE', borderColor: '#5CA9CE' }}>
-                저장 목록
-              </button>
-              <button onClick={handleLoginClick} className="login-btn">
-                로그인
-              </button>
-            </div>
+            <button onClick={handleLoginClick} className="login-btn" style={{ marginLeft: 'auto' }}>
+              로그인
+            </button>
           )}
         </div>
 
-        {/* 탭 네비게이션 (다운로드 페이지에선 숨김) */}
-        {!isDownload && <div className="tab-nav">
-          {/* 번역기 탭 */}
-          <button
-            onClick={() => navigate('/')}
-            className="tab-btn tab-btn--dark"
-            data-active={tab === 'translate'}
-          >
-            번역기
-          </button>
-
-          {/* 품사 탭 (핵심 문법 맨 앞) */}
-          {[
-            { key: 'grammar',   path: '/grammar',   label: '핵심 문법' },
-            { key: 'verbs',     path: '/verbs',     label: '동사 TOP100' },
-            { key: 'adj-i',     path: '/adj-i',     label: 'い형용사 TOP100' },
-            { key: 'adj-na',    path: '/adj-na',    label: 'な형용사 TOP100' },
-            { key: 'noun',      path: '/noun',      label: '명사 TOP100' },
-            { key: 'particles', path: '/particles', label: '조사 TOP10' },
-          ].map(({ key, path, label }) => (
-            <button
-              key={key}
-              onClick={() => { track('tab_view', { tab: key }); navigate(path) }}
-              className="tab-btn tab-btn--primary"
-              data-active={tab === key}
-            >
-              {label}
-            </button>
-          ))}
-        </div>}
-
-        {/* 품사 단어 목록 화면일 때 — 상단에 번역기로 돌아가기 + 카테고리 전환 바 */}
+        {/* 품사 단어 목록 화면일 때 — 상단에 학습으로 돌아가기 + 카테고리 전환 바 */}
         {/* 문법 페이지는 자체 카테고리 탭이 있으므로 CategoryBars 숨김 */}
         {isWordTab && !isGrammarDetail && (
           <>
-            <button onClick={() => navigate('/')} className="back-to-translate">
-              ← 번역기
+            <button onClick={() => navigate('/study')} className="back-to-translate">
+              ← 학습
             </button>
             {tab !== 'grammar' && <CategoryBars current={tab} onNavigate={navigate} />}
           </>
@@ -735,6 +656,19 @@ export default function App() {
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
           <Route path="/terms"   element={<LegalPage type="terms" />} />
           <Route path="/download" element={<DownloadPage />} />
+          <Route path="/study"   element={<StudyPage />} />
+          <Route path="/saves"   element={<SavesPage onSelectHistory={handleSelectSaved} />} />
+          <Route path="/profile" element={
+            <ProfilePage
+              user={user}
+              fastUnlimited={fastUnlimited}
+              isApp={isApp}
+              onReviewReward={() => { track('review_reward_open_menu'); setShowReviewReward(true) }}
+              onLogout={handleLogout}
+              onDeleteAccount={() => setShowDeleteAccount(true)}
+              onLogin={handleLoginClick}
+            />
+          } />
           <Route path="/grammar" element={<>
             <PageSEO
               title="일본어 문법 패턴 정리 - 접속·예문·피치 악센트"
@@ -884,6 +818,9 @@ export default function App() {
         <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>개인정보처리방침</button>
         <button onClick={() => navigate('/terms')}   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
       </footer>
+
+      {/* 하단 탭 네비게이션 (다운로드 페이지 제외) */}
+      {!isDownload && <BottomNav />}
 
 
       {showSignup && (

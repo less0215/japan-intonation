@@ -36,7 +36,34 @@ body {
 /* ── 레이아웃 */
 .page {
   min-height: 100dvh;
-  padding: 32px 20px 28px;
+  padding: 32px 20px 92px;   /* 하단 탭바 공간 확보 */
+}
+
+/* 하단 탭 네비게이션 — 모바일/앱은 화면 하단 고정, 데스크톱은 가운데 정렬 플로팅 */
+.bottom-nav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 60;
+  display: flex;
+  max-width: 680px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-top: 1px solid #eef1f3;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 0 10px;
+  background: none;
+  border: none;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 결과 없을 때 (홈 화면) */
@@ -46,7 +73,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px 20px 28px;
+  padding: 32px 20px 92px;
 }
 
 /* 네이티브 앱(iOS/Android) — 상태바 아래로 콘텐츠 내림.
@@ -718,7 +745,7 @@ body {
 ══════════════════════════════════════ */
 @media (max-width: 480px) {
   .page {
-    padding: 20px 14px 24px;
+    padding: 20px 14px 88px;
   }
 
   .container {

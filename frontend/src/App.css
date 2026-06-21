@@ -1301,9 +1301,10 @@ body {
   }
   .bottom-nav {
     position: static;
+    width: 100%;
+    max-width: 680px;
     margin: 18px auto 0;
-    border-top: 1px solid #eef1f3;
-    border-radius: 14px;
     border: 1px solid #eef1f3;
+    border-radius: 14px;
   }
 }

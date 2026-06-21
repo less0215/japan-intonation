@@ -1291,3 +1291,19 @@ body {
   border-top: 1px dashed #e8e8e8;
   margin: 0;
 }
+
+/* ── 데스크톱(>768px): 하단 고정 탭 → 콘텐츠 흐름 배치 (PC 빈 여백 제거) */
+@media (min-width: 769px) {
+  .page,
+  .page--center {
+    min-height: 0;
+    padding-bottom: 24px;
+  }
+  .bottom-nav {
+    position: static;
+    margin: 18px auto 0;
+    border-top: 1px solid #eef1f3;
+    border-radius: 14px;
+    border: 1px solid #eef1f3;
+  }
+}

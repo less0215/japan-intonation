@@ -15,7 +15,7 @@ const TABS = [
   { key: 'profile',   path: '/profile', label: '프로필', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21c0-4 4-6 8-6s8 2 8 6' },
 ]
 
-export default function BottomNav() {
+export default function BottomNav({ onHome }) {
   const location = useLocation()
   const navigate = useNavigate()
   const p = location.pathname
@@ -37,7 +37,12 @@ export default function BottomNav() {
           <button
             key={t.key}
             className="bottom-nav-item"
-            onClick={() => { if (!on) track('tab_nav', { tab: t.key }); navigate(t.path) }}
+            onClick={() => {
+              if (!on) track('tab_nav', { tab: t.key })
+              // 번역 탭은 항상 새 홈으로 초기화 (결과가 떠 있어도 리셋)
+              if (t.key === 'translate' && onHome) onHome()
+              else navigate(t.path)
+            }}
             style={{ color: on ? PRIMARY : '#b3b8bd' }}
           >
             <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">

@@ -826,7 +826,7 @@ export default function App() {
       </footer>}
 
       {/* 하단 탭 네비게이션 (다운로드 페이지 제외) */}
-      {!isDownload && <BottomNav />}
+      {!isDownload && <BottomNav onHome={handleHome} />}
 
 
       {showSignup && (

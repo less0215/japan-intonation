@@ -6,7 +6,7 @@ const PRIMARY = '#5CA9CE'
 
 function Row({ icon, label, color = '#333', onClick }) {
   return (
-    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '14px 2px', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid #f0f0f0', fontSize: 13.5, color, cursor: 'pointer', fontFamily: 'inherit' }}>
+    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '12px 2px', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid #f0f0f0', fontSize: 13.5, color, cursor: 'pointer', fontFamily: 'inherit' }}>
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={color === '#333' ? PRIMARY : color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d={icon} /></svg>
       {label}
     </button>
@@ -18,10 +18,10 @@ export default function ProfilePage({ user, fastUnlimited, onReviewReward, onLog
   return (
     <>
       <PageSEO title="프로필 - 틱재팬" description="틱재팬 계정 관리" path="/profile" />
-      <h2 style={{ fontSize: 20, fontWeight: 700, margin: '4px 2px 14px' }}>프로필</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, margin: '4px 2px 10px' }}>프로필</h2>
 
       {user ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, border: '1px solid #eaecef', borderRadius: 14, padding: 12, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, border: '1px solid #eaecef', borderRadius: 14, padding: 12, marginBottom: 10 }}>
           <div style={{ width: 42, height: 42, borderRadius: '50%', background: PRIMARY, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{user.name?.[0] ?? '회'}</div>
           <div>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
@@ -32,7 +32,7 @@ export default function ProfilePage({ user, fastUnlimited, onReviewReward, onLog
           </div>
         </div>
       ) : (
-        <div style={{ border: '1px solid #eaecef', borderRadius: 14, padding: '20px 16px', marginBottom: 16, textAlign: 'center' }}>
+        <div style={{ border: '1px solid #eaecef', borderRadius: 14, padding: '20px 16px', marginBottom: 10, textAlign: 'center' }}>
           <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#eaf4fa', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
           </div>
@@ -49,7 +49,7 @@ export default function ProfilePage({ user, fastUnlimited, onReviewReward, onLog
         {user && <Row icon="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" label="로그아웃" color="#888" onClick={onLogout} />}
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ textAlign: 'center', marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {user && <button onClick={onDeleteAccount} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#d05050', cursor: 'pointer', fontFamily: 'inherit' }}>회원탈퇴</button>}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 14 }}>
           <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', fontSize: 11, color: '#b3b8bd', cursor: 'pointer', fontFamily: 'inherit' }}>개인정보처리방침</button>

@@ -31,7 +31,7 @@ export default function SavesPage({ onSelectHistory }) {
     <>
       <PageSEO title="저장 - 틱재팬" description="저장한 번역·단어·예문을 모아보세요." path="/saves" noindex />
       <h2 style={{ fontSize: 20, fontWeight: 700, margin: '4px 2px 10px' }}>저장</h2>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
         <button style={segStyle(seg === 'history')} onClick={() => setSeg('history')}>번역 기록</button>
         <button style={segStyle(seg === 'words')}   onClick={() => setSeg('words')}>단어</button>
         <button style={segStyle(seg === 'examples')} onClick={() => setSeg('examples')}>예문</button>

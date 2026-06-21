@@ -513,10 +513,11 @@ export default function App() {
     setSaved(false)
   }
 
-  // 홈으로 — 번역기 화면으로 이동 + 결과 초기화
+  // 홈으로 — 번역기 화면으로 이동 + 결과 초기화 + 맨 위로 스크롤
   function handleHome() {
     navigate('/')
     handleClear()
+    try { window.scrollTo({ top: 0, behavior: 'auto' }) } catch { window.scrollTo(0, 0) }
   }
 
   function handleSelectSaved(savedResult, savedInput) {

@@ -592,7 +592,7 @@ export default function App() {
             <button onClick={() => navigate('/study')} className="back-to-translate">
               ← 학습
             </button>
-            {tab !== 'grammar' && <CategoryBars current={tab} onNavigate={navigate} />}
+            <CategoryBars current={tab} onNavigate={navigate} />
           </>
         )}
 

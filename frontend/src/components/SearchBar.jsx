@@ -1,6 +1,52 @@
 import { useState, useRef, useEffect } from 'react'
 import { track } from '../App'
-import ModelSelector from './ModelSelector'
+
+const PRIMARY = '#5CA9CE'
+
+/* 남은 초 → "오후 5:50" 형태의 초기화 시각 */
+function resetClock(sec) {
+  const d = new Date(Date.now() + Math.max(0, sec) * 1000)
+  let h = d.getHours()
+  const m = d.getMinutes()
+  const ap = h < 12 ? '오전' : '오후'
+  h = h % 12 || 12
+  return `${ap} ${h}:${String(m).padStart(2, '0')}`
+}
+
+/* 빠른 번역 스위치 + 사용량 (입력창 내부 하단 한 줄) */
+function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onToggle }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', width: '100%' }}>
+      {/* 좌측: 사용량 (활성 + 일반 회원일 때만) */}
+      {active && !unlimited && (
+        <>
+          <span style={{ width: 48, height: 5, borderRadius: 3, background: '#eef1f3', overflow: 'hidden', flexShrink: 0 }}>
+            <span style={{ display: 'block', height: '100%', width: `${usedPct}%`, background: locked ? '#e9a020' : PRIMARY, borderRadius: 3 }} />
+          </span>
+          <span style={{ fontSize: 10.5, color: locked ? '#c98a00' : '#9aa0a6' }}>
+            {resetClock(resetSec)} 초기화 · <b style={{ fontWeight: 600, color: locked ? '#c98a00' : PRIMARY }}>{usedPct}%</b>
+          </span>
+        </>
+      )}
+      {active && unlimited && (
+        <span style={{ fontSize: 10.5, color: PRIMARY, fontWeight: 600 }}>무제한 이용 중 !</span>
+      )}
+      {/* 우측: ⚡ 빠른 번역 + 스위치 */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-pressed={active}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 500, color: active ? '#357694' : '#8a9197' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={active ? PRIMARY : 'none'} stroke={active ? 'none' : '#a3a9af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+        빠른 번역
+        <span style={{ width: 44, height: 26, borderRadius: 13, background: active ? PRIMARY : '#dfe3e7', position: 'relative', transition: 'background .15s' }}>
+          <span style={{ position: 'absolute', top: 3, left: active ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .15s' }} />
+        </span>
+      </button>
+    </div>
+  )
+}
 
 /* 한국어 입력창 + 번역 버튼
  * - 큰 textarea (여러 줄 입력)
@@ -81,12 +127,10 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast 
         />
         {fast && (
           <div className="search-box-toolbar">
-            <ModelSelector variant="chip" {...fast} />
+            <FastToolbar {...fast} />
           </div>
         )}
       </div>
-      {/* 빠른 번역 활성 시 사용량(%) 안내는 입력창 아래에 표시 */}
-      {fast && fast.active && <ModelSelector variant="info" {...fast} />}
       <button
         type="submit"
         disabled={disabled}

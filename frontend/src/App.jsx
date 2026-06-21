@@ -790,7 +790,30 @@ export default function App() {
                       </svg>
                     </button>
                   )}
-                  <CategoryBars current={tab} onNavigate={navigate} />
+                  {/* 학습 콘텐츠 — 가로 스크롤 카드 (전체는 학습 탭) */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '2px 2px 0' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197' }}>학습 콘텐츠</span>
+                    <button onClick={() => navigate('/verbs')} style={{ background: 'none', border: 'none', fontSize: 12, color: '#5CA9CE', cursor: 'pointer', fontFamily: 'inherit' }}>전체 ›</button>
+                  </div>
+                  <div style={{ display: 'flex', gap: 9, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2, margin: '0 -2px' }}>
+                    {[
+                      { jp: '法', label: '핵심 문법', sub: '패턴 모아보기', path: '/grammar' },
+                      { jp: '動', label: '동사',      sub: 'TOP 100',     path: '/verbs' },
+                      { jp: 'い', label: 'い형용사',  sub: 'TOP 100',     path: '/adj-i' },
+                      { jp: 'な', label: 'な형용사',  sub: 'TOP 100',     path: '/adj-na' },
+                      { jp: '名', label: '명사',      sub: 'TOP 100',     path: '/noun' },
+                      { jp: '助', label: '조사',      sub: 'TOP 10',      path: '/particles' },
+                    ].map(c => (
+                      <button key={c.path} onClick={() => navigate(c.path)} style={{ flex: '0 0 112px', textAlign: 'left', background: '#fff', border: '1px solid #eef1f3', borderRadius: 13, padding: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 9, background: '#f0f6fa', color: '#7bb4d3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 500 }}>{c.jp}</div>
+                        <p style={{ margin: '8px 0 0', fontSize: 12, fontWeight: 600, color: '#4b5563' }}>{c.label}</p>
+                        <p style={{ margin: '1px 0 0', fontSize: 10.5, color: '#9aa0a6' }}>{c.sub}</p>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* 오늘의 학습 */}
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197', margin: '4px 2px 0' }}>오늘의 학습</span>
                   {dailyVerb    && <DailyVerbCard    verb={dailyVerb}       onNavigate={navigate} />}
                   {dailyGrammar && <DailyGrammarCard grammar={dailyGrammar} onNavigate={navigate} />}
                 </>

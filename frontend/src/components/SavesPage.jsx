@@ -20,7 +20,12 @@ export default function SavesPage({ onSelectHistory }) {
     background: on ? PRIMARY : '#f3f5f7', color: on ? '#fff' : '#888',
   })
   const card = { background: '#fff', border: '1px solid #eaecef', borderRadius: 13, padding: '12px 13px', marginBottom: 8, cursor: 'pointer', width: '100%', textAlign: 'left', fontFamily: 'inherit' }
-  const empty = (t) => <p style={{ textAlign: 'center', color: '#b3b8bd', fontSize: 13, padding: '40px 0' }}>{t}</p>
+  const empty = (t) => (
+    <div style={{ background: '#fff', border: '1px solid #eaecef', borderRadius: 14, padding: '48px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#d4dade" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" /></svg>
+      <p style={{ margin: 0, textAlign: 'center', color: '#9aa0a6', fontSize: 13 }}>{t}</p>
+    </div>
+  )
 
   return (
     <>

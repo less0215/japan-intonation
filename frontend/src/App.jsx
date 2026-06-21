@@ -582,11 +582,7 @@ export default function App() {
                 </span>
               )}
             </button>
-          ) : (
-            <button onClick={handleLoginClick} className="login-btn" style={{ marginLeft: 'auto' }}>
-              로그인
-            </button>
-          )}
+          ) : null}
         </div>
 
         {/* 품사 단어 목록 화면일 때 — 상단에 학습으로 돌아가기 + 카테고리 전환 바 */}
@@ -806,8 +802,8 @@ export default function App() {
 
       </div>
 
-      {/* 푸터 — 개인정보처리방침·이용약관 (앱·웹 공통 표시, 심사 필수) */}
-      <footer style={{
+      {/* 푸터 — 개인정보처리방침·이용약관 (프로필 탭은 자체 표기하므로 중복 숨김) */}
+      {location.pathname !== '/profile' && <footer style={{
         marginTop: 18,
         paddingBottom: isApp ? 24 : 16,
         display: 'flex',
@@ -817,7 +813,7 @@ export default function App() {
       }}>
         <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>개인정보처리방침</button>
         <button onClick={() => navigate('/terms')}   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#aaa', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
-      </footer>
+      </footer>}
 
       {/* 하단 탭 네비게이션 (다운로드 페이지 제외) */}
       {!isDownload && <BottomNav />}

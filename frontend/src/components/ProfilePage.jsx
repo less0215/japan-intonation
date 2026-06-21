@@ -32,7 +32,14 @@ export default function ProfilePage({ user, fastUnlimited, onReviewReward, onLog
           </div>
         </div>
       ) : (
-        <button onClick={onLogin} style={{ width: '100%', height: 48, borderRadius: 13, background: PRIMARY, color: '#fff', border: 'none', fontSize: 15, fontWeight: 500, cursor: 'pointer', marginBottom: 16, fontFamily: 'inherit' }}>로그인 / 회원가입</button>
+        <div style={{ border: '1px solid #eaecef', borderRadius: 14, padding: '20px 16px', marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#eaf4fa', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+          </div>
+          <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 600, color: '#1f2937' }}>로그인하고 더 편하게 이용하세요</p>
+          <p style={{ margin: '0 0 14px', fontSize: 12, color: '#9aa0a6', lineHeight: 1.5 }}>번역 저장·빠른 번역 등 회원 전용 기능을 사용할 수 있어요.</p>
+          <button onClick={onLogin} style={{ width: '100%', height: 46, borderRadius: 12, background: PRIMARY, color: '#fff', border: 'none', fontSize: 14.5, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>로그인 / 회원가입</button>
+        </div>
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>

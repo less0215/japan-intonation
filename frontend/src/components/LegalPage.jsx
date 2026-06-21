@@ -93,6 +93,23 @@ function InfoBox({ children }) {
 function PrivacyPolicy() {
   return (
     <article>
+      <Section title="계정 및 데이터 삭제 방법">
+        <p><strong>틱재팬(TickJapan)</strong> 회원은 다음 방법으로 계정과 데이터를 삭제할 수 있습니다.</p>
+        <p style={{ fontWeight: 600, margin: '14px 0 6px' }}>▸ 삭제 방법</p>
+        <List items={[
+          '앱/웹에서 [프로필] 탭 → 하단 [회원탈퇴] 선택',
+          `또는 이메일(${CONTACT_EMAIL})로 탈퇴 요청`,
+        ]} />
+        <p style={{ fontWeight: 600, margin: '14px 0 6px' }}>▸ 삭제되는 데이터 및 보관 기간</p>
+        <List items={[
+          '삭제 항목: 이름, 휴대폰 번호, 번역 저장 기록 등 계정과 연결된 모든 개인정보',
+          '보관 기간: 탈퇴 즉시 삭제 (관련 법령상 보존 의무가 있는 항목은 해당 기간 동안만 보관 후 파기)',
+        ]} />
+        <InfoBox>
+          비로그인 상태에서 기기에만 저장된 단어·예문은 앱 삭제 또는 브라우저 저장소 삭제로 제거됩니다.
+        </InfoBox>
+      </Section>
+
       <Section title="제1조 수집하는 개인정보 항목">
         <p>틱재팬은 서비스 제공을 위해 아래와 같은 최소한의 개인정보를 수집합니다.</p>
 

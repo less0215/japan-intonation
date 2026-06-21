@@ -431,6 +431,7 @@ FAST_UNLIMITED_PHONES = {
     "01075837418",
     "01055044769",
     "01026802463",
+    "01053020716",
 }
 
 def _norm_phone(phone: str) -> str:

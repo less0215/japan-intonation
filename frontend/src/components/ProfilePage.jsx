@@ -42,8 +42,25 @@ export default function ProfilePage({ user, fastUnlimited, onReviewReward, onLog
         </div>
       )}
 
+      {/* 무제한 받기 — 행 자체를 은은한 푸른 그라데이션으로 강조 */}
+      <button
+        onClick={onReviewReward}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 11, width: '100%', textAlign: 'left',
+          padding: '14px 14px', marginBottom: 10, cursor: 'pointer', fontFamily: 'inherit',
+          border: '1px solid #d8e7f0', borderRadius: 13,
+          background: 'linear-gradient(135deg, #eef7fc 0%, #e2f0fa 55%, #dcedf8 100%)',
+          boxShadow: '0 2px 10px rgba(92,169,206,0.12)',
+        }}
+      >
+        <span style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 9, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="#f0a500" stroke="none"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+        </span>
+        <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#2a5a72' }}>빠른 번역 무제한 받기</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7fb0c9" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+      </button>
+
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Row icon="M13 2L3 14h7l-1 8 10-12h-7l1-8z" label="빠른 번역 무제한 받기" onClick={onReviewReward} />
         <Row icon="M4 4h16v16H4z M4 6l8 6 8-6" label="문의하기" onClick={() => { window.location.href = 'mailto:mgz.less@tickjapan.com?subject=[틱재팬] 문의' }} />
         {!isApp && <Row icon="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" label="앱 다운로드" onClick={() => navigate('/download')} />}
         {user && <Row icon="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" label="로그아웃" color="#888" onClick={onLogout} />}

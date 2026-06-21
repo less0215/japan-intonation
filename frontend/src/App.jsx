@@ -818,8 +818,8 @@ export default function App() {
 
       </div>
 
-      {/* 푸터 — 개인정보처리방침·이용약관 (프로필 탭은 자체 표기하므로 중복 숨김) */}
-      {location.pathname !== '/profile' && <footer style={{
+      {/* 푸터 — 개인정보처리방침·이용약관: 홈에서만 표시 (다른 페이지는 거슬려서 숨김, 약관은 프로필 탭에도 있음) */}
+      {location.pathname === '/' && <footer style={{
         marginTop: 18,
         paddingBottom: isApp ? 24 : 16,
         display: 'flex',

@@ -5,8 +5,6 @@ import ResultCard from './components/ResultCard'
 import SkeletonCard from './components/SkeletonCard'
 import CategoryBars from './components/CategoryBars'
 import SignupModal from './components/SignupModal'
-import HistoryDrawer from './components/HistoryDrawer'
-import TranslationHistoryDrawer from './components/TranslationHistoryDrawer'
 import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
@@ -36,13 +34,6 @@ import { GRAMMAR } from './data/grammar'
 
 const API_URL   = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY   = '#5CA9CE'
-
-const menuItemStyle = {
-  display: 'block', width: '100%', padding: '11px 16px',
-  background: 'none', border: 'none', textAlign: 'left',
-  fontSize: 13.5, fontWeight: 500, color: '#333',
-  cursor: 'pointer', fontFamily: 'inherit',
-}
 
 /* 내부 이벤트명 → AppsFlyer 인앱 이벤트명 매핑 (핵심 전환만) */
 const AF_EVENTS = {
@@ -248,10 +239,7 @@ export default function App() {
   const [saved, setSaved]             = useState(false)
   const [showSignup, setShowSignup]   = useState(false)
   const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login' | 'translate_limit'
-  const [showHistory, setShowHistory]         = useState(false)
-  const [showTranslationHistory, setShowTranslationHistory] = useState(false)
   const [showAttPrompt, setShowAttPrompt] = useState(false)
-  const [menuOpen, setMenuOpen]               = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
   // 빠른 번역(3.1) 토글 — 사용량은 서버(DB)에서 관리, 5시간 롤링 윈도우 리셋
@@ -851,20 +839,6 @@ export default function App() {
             subtitle: '이름과 휴대폰 번호만 입력하면 바로 빠른 번역을 쓸 수 있어요.',
             submitLabel: '로그인하고 빠른 번역 켜기',
           } : {})}
-        />
-      )}
-      {showHistory && (
-        <HistoryDrawer
-          user={user}
-          onClose={() => setShowHistory(false)}
-          onSelect={handleSelectSaved}
-          onDeleteAccount={() => setShowDeleteAccount(true)}
-        />
-      )}
-      {showTranslationHistory && (
-        <TranslationHistoryDrawer
-          onClose={() => setShowTranslationHistory(false)}
-          onSelect={handleSelectSaved}
         />
       )}
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}

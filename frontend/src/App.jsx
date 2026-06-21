@@ -252,6 +252,11 @@ export default function App() {
   const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
   const fastUnlimited = !!user?.fast_unlimited
 
+  // 무제한 회원은 빠른 번역을 기본 ON
+  useEffect(() => {
+    if (user?.fast_unlimited) setSelectedModel('fast')
+  }, [user?.fast_unlimited])
+
   // 로그인 회원의 빠른 번역 사용량 조회 (진입·로그인 시)
   useEffect(() => {
     if (!user?.user_id) { setFastUsedPct(0); setFastLocked(false); setFastResetSec(0); return }

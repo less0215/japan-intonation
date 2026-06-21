@@ -121,8 +121,23 @@ export function UserProvider({ children }) {
     setTranslationHistory([])
   }, [])
 
+  /* 저장 단어 다중/전체 삭제 (ids 미지정 시 전체) */
+  const removeWords = useCallback((ids) => {
+    setSavedWords(prev => ids ? prev.filter(w => !ids.includes(w.id)) : [])
+  }, [])
+
+  /* 저장 예문 다중/전체 삭제 (ids 미지정 시 전체) */
+  const removeExamples = useCallback((ids) => {
+    setSavedExamples(prev => ids ? prev.filter(e => !ids.includes(e.id)) : [])
+  }, [])
+
+  /* 번역 기록 다중 삭제 */
+  const removeHistoryItems = useCallback((ids) => {
+    setTranslationHistory(prev => ids ? prev.filter(h => !ids.includes(h.id)) : [])
+  }, [])
+
   return (
-    <UserContext.Provider value={{ user, setUser, saveResult, savedWords, isWordSaved, toggleSaveWord, savedExamples, isExampleSaved, toggleSaveExample, translationHistory, addToHistory, removeHistoryItem, clearHistory }}>
+    <UserContext.Provider value={{ user, setUser, saveResult, savedWords, isWordSaved, toggleSaveWord, savedExamples, isExampleSaved, toggleSaveExample, translationHistory, addToHistory, removeHistoryItem, removeHistoryItems, clearHistory, removeWords, removeExamples }}>
       {children}
     </UserContext.Provider>
   )

@@ -43,7 +43,7 @@ export default function ProfilePage({ user, fastUnlimited, onReviewReward, onLog
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Row icon="M13 2L3 14h7l-1 8 10-12h-7l1-8z" label="빠른 번역 무제한 받기" color={PRIMARY} onClick={onReviewReward} />
+        <Row icon="M13 2L3 14h7l-1 8 10-12h-7l1-8z" label="빠른 번역 무제한 받기" onClick={onReviewReward} />
         <Row icon="M4 4h16v16H4z M4 6l8 6 8-6" label="문의하기" onClick={() => { window.location.href = 'mailto:mgz.less@tickjapan.com?subject=[틱재팬] 문의' }} />
         {!isApp && <Row icon="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" label="앱 다운로드" onClick={() => navigate('/download')} />}
         {user && <Row icon="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" label="로그아웃" color="#888" onClick={onLogout} />}

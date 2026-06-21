@@ -162,7 +162,14 @@ Rules:
 - "korean_pronunciation": how the JAPANESE translation (the "japanese" field) SOUNDS,
   transcribed phonetically using KOREAN Hangul characters (한글).
   This is NOT katakana and NOT the original Korean input — it is the Japanese reading written in Hangul.
-  Example: japanese "退勤後に何をしますか" → korean_pronunciation "타이킨고니 나니오 시마스카?"
+  CRITICAL: Convert the "furigana" (hiragana) mora-by-mora into Hangul, accurately and consistently.
+  Map each kana to its standard Hangul sound. Common correct mappings (follow EXACTLY):
+    あ=아 い=이 う=우 え=에 お=오 / か=카 き=키 く=쿠 け=케 こ=코 /
+    さ=사 し=시 す=스 せ=세 そ=소 / た=타 ち=치 つ=츠 て=테 と=토 /
+    な=나 に=니 ぬ=누 ね=네 の=노 / は=하 ひ=히 ふ=후 へ=헤 ほ=호 /
+    ま=마 み=미 む=무 め=메 も=모 / や=야 ゆ=유 よ=요 / ら=라 り=리 る=루 れ=레 ろ=로 / わ=와 を=오 ん=ㄴ받침
+  Examples (MUST match): いや→이야, 愛してる(あいしてる)→아이시테루, ありがとう→아리가토-, 日本語(にほんご)→니혼고.
+  Double-check: the first kana い ALWAYS starts with 이 (never 미). あ ALWAYS 아 (never 마).
 - "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
 - "accent_data": Tokyo Japanese pitch accent per phrase/word group.
   Split the sentence into natural accent phrases (usually 2–5 morae each).
@@ -552,6 +559,7 @@ class AnalyzeResponse(BaseModel):
 _GEN_CONFIG = genai.types.GenerateContentConfig(
     thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
     response_mime_type="application/json",
+    temperature=0,   # 출력 일관성 ↑ (한글 독음 등 간헐 오류 완화)
 )
 
 

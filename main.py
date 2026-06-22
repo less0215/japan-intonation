@@ -1114,7 +1114,9 @@ def travel_products():
             "url": s["url"], "city": s["city"],
             "keywords": [k for k in s["keywords"].split(",") if k],
         } for s in STATIC_TRAVEL_PRODUCTS]
-        return {"products": static + mrt}
+        # 이미지도 없고 가격도 없는(회색 빈 카드) 항목은 노출 제외
+        products = [p for p in (static + mrt) if p["image"] or (p["price"] or 0) > 0]
+        return {"products": products}
     finally:
         db.close()
 

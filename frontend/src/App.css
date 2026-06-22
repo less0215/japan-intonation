@@ -1308,3 +1308,6 @@ body {
     border-radius: 14px;
   }
 }
+
+/* AdSense — 광고가 안 채워진 슬롯은 빈 여백 남기지 않게 접기 */
+ins.adsbygoogle[data-ad-status="unfilled"] { display: none !important; }

@@ -1163,19 +1163,6 @@ def mrt_revenue_summary(key: str = ""):
     return _revenue_summary()
 
 
-@app.get("/admin/revenue")
-def admin_revenue(user_id: int):
-    """수익 요약 (관리자 계정 로그인 기반 — 프론트 대시보드용). 관리자 번호만 접근."""
-    db = SessionLocal()
-    try:
-        u = db.query(User).filter(User.id == user_id).first()
-        if not u or not is_admin_phone(u.phone):
-            raise HTTPException(status_code=403, detail="관리자만 접근할 수 있습니다.")
-    finally:
-        db.close()
-    return _revenue_summary()
-
-
 @app.post("/admin/rename-user")
 def admin_rename_user(key: str = "", phone: str = "", new_name: str = ""):
     """회원 이름 변경 (관리 토큰). 보안상 노출된 이름과 다른 비공개 이름으로 교체할 때 사용."""

@@ -265,7 +265,14 @@ export default function App() {
 
   // 로그인 회원의 빠른 번역 사용량 조회 (진입·로그인 시)
   useEffect(() => {
-    if (!user?.user_id) { setFastUsedPct(0); setFastLocked(false); setFastResetSec(0); return }
+    if (!user?.user_id) {
+      // 비회원: 저장된 로컬 사용량 반영 (재진입 시 진행률 유지)
+      const g = readGuestFast()
+      setFastUsedPct(guestFastPct(g.count))
+      setFastLocked(g.count >= FAST_GUEST_LIMIT)
+      setFastResetSec(g.start ? guestFastResetSec(g.start) : 0)
+      return
+    }
     fetch(`${API_URL}/fast-usage/${user.user_id}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
@@ -319,6 +326,7 @@ export default function App() {
     if (!ok) return
     try {
       if (user?.user_id) await fetch(`${API_URL}/fast-usage/${user.user_id}/reset`, { method: 'POST' })
+      else resetGuestFast()   // 비회원: 로컬 윈도우 초기화
     } catch {}
     setFastLocked(false)
     setFastUsedPct(0)
@@ -336,6 +344,32 @@ export default function App() {
     const next = getGuestCount() + 1
     localStorage.setItem('tickjapan_translate_count', String(next))
     return next
+  }
+
+  // 비회원 빠른 번역 사용량 — user_id가 없어 localStorage 5시간 윈도우로 추적 (회원과 동일 20회)
+  const FAST_GUEST_LIMIT = 20
+  const FAST_GUEST_WINDOW_MS = 5 * 3600 * 1000
+  function readGuestFast() {
+    try {
+      const r = JSON.parse(localStorage.getItem('tickjapan_guest_fast') || '{}')
+      if (!r.start || Date.now() - r.start >= FAST_GUEST_WINDOW_MS) return { start: 0, count: 0 }
+      return { start: r.start, count: r.count || 0 }
+    } catch { return { start: 0, count: 0 } }
+  }
+  function guestFastResetSec(start) {
+    return Math.max(0, Math.round((start + FAST_GUEST_WINDOW_MS - Date.now()) / 1000))
+  }
+  function guestFastPct(count) { return Math.min(100, Math.round(count / FAST_GUEST_LIMIT * 100)) }
+  function consumeGuestFast() {
+    let { start, count } = readGuestFast()
+    if (!start) start = Date.now()
+    if (count >= FAST_GUEST_LIMIT) return { allowed: false, pct: 100, resetSec: guestFastResetSec(start) }
+    count += 1
+    try { localStorage.setItem('tickjapan_guest_fast', JSON.stringify({ start, count })) } catch {}
+    return { allowed: true, pct: guestFastPct(count), resetSec: guestFastResetSec(start) }
+  }
+  function resetGuestFast() {
+    try { localStorage.setItem('tickjapan_guest_fast', JSON.stringify({ start: Date.now(), count: 0 })) } catch {}
   }
 
   // 날짜 기반 오늘의 단어·문법 (당일 고정)
@@ -386,9 +420,30 @@ export default function App() {
     setSaved(false)
     setInputText(text)
 
-    // 빠른 번역 여부만 서버에 전달 — 한도 차감·리셋·폴백은 서버가 판정
-    // 빠른 번역: 로그인 회원 OR 앱에서 광고로 잠금해제한 비로그인 세션
-    const useModel = (selectedModel === 'fast' && (user || sessionFastUnlocked)) ? 'fast' : 'basic'
+    // 빠른 번역: 로그인 회원(서버 한도) OR 광고로 잠금해제한 비로그인 세션(로컬 한도)
+    const wantFast = selectedModel === 'fast' && (user || sessionFastUnlocked)
+    let guestFastBlocked = false
+    if (wantFast && !user) {
+      // 비회원: localStorage 5시간 윈도우로 사용량 차감
+      const g = consumeGuestFast()
+      setFastUsedPct(g.pct)
+      setFastResetSec(g.resetSec)
+      if (g.allowed) {
+        setFastLocked(false)
+      } else {
+        // 소진 → 기본 번역 폴백 + 재충전 광고
+        guestFastBlocked = true
+        setFastLocked(true)
+        setSelectedModel('basic')
+        track('fast_limit_reached', { guest: true })
+        scheduleFastResetNotification(g.resetSec)
+        if (isApp) {
+          setAdPopup({ mode: 'unlock5h' })
+          track('fast_ad_prompt', { mode: 'unlock5h', guest: true })
+        }
+      }
+    }
+    const useModel = (wantFast && !guestFastBlocked) ? 'fast' : 'basic'
 
     const fetchAnalyze = () =>
       fetch(`${API_URL}/analyze`, {
@@ -455,7 +510,8 @@ export default function App() {
         is_logged_in: !!user,
       })
       // 비로그인 번역 횟수 카운트 → 5회 초과 시 로그인 유도 모달
-      if (!user) {
+      // (단, 광고로 빠른 번역을 잠금해제한 비회원은 로그인 강제 대신 빠른 번역 사용 흐름 유지)
+      if (!user && !sessionFastUnlocked) {
         const count = incrementGuestCount()
         // 6회째 최초 노출, 이후 3회 간격마다 재노출 (6, 9, 12, ...)
         if (count > TRANSLATE_LIMIT && (count - TRANSLATE_LIMIT) % 3 === 1) {

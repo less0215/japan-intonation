@@ -44,9 +44,14 @@ export function matchTravelProducts(products, ...texts) {
 // 클릭 → 추적 링크 + utm_content(배치__상품) 부착 후 열기 (배치별 전환 추적용)
 export function openTravelProduct(item, placement) {
   if (!item?.url) return
-  const utm = `${placement}__${item.gid || item.id}`.slice(0, 100)
-  const sep = item.url.includes('?') ? '&' : '?'
-  const url = `${item.url}${sep}utm_content=${encodeURIComponent(utm)}`
-  try { window.gtag?.('event', 'affiliate_click', { partner: 'myrealtrip', item_id: item.gid, placement }) } catch {}
+  const partner = item.partner || 'myrealtrip'
+  let url = item.url
+  // 마이리얼트립만 utm_content(배치__상품) 추적 부착. 세시간전 등은 원본 링크 그대로.
+  if (partner === 'myrealtrip') {
+    const utm = `${placement}__${item.gid || item.id}`.slice(0, 100)
+    const sep = url.includes('?') ? '&' : '?'
+    url = `${url}${sep}utm_content=${encodeURIComponent(utm)}`
+  }
+  try { window.gtag?.('event', 'affiliate_click', { partner, item_id: item.gid, placement }) } catch {}
   window.open(url, '_blank', 'noopener,noreferrer')
 }

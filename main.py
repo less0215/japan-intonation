@@ -922,6 +922,50 @@ MRT_TARGETS = [
 # 비(非)일본 상품 혼입 방지 — 제목에 아래 지명이 있으면 제외 (검색이 글로벌 결과를 섞어줄 때 가드)
 MRT_EXCLUDE_TITLE = ["베이징", "싱가포르", "리스보아", "리스본", "타이베이", "방콕", "홍콩", "마카오", "상하이", "베트남", "다낭", "세부", "발리", "괌", "하와이"]
 
+# 세시간전(3ha.in) 정적 제휴 링크 — API 없음. /travel/products에서 MRT 카탈로그와 합쳐 노출.
+# partner=3hours: 클릭은 GA4로만 집계(수익은 세시간전 자체 대시보드). utm_content 미부착.
+STATIC_TRAVEL_PRODUCTS = [
+    {"gid": "3ha-507661", "cat": "esim", "city": "전국", "title": "일본 eSIM (도코모/소프트뱅크)", "price": 500,
+     "image": "https://res.klook.com/images/w_1200,h_630,c_fill,q_65/activities/ghnf5uishypet3i2v23q/일본eSIM-DOCOMO.jpg",
+     "url": "https://3ha.in/r/507661", "keywords": "이심,esim,유심,심,sim,데이터,로밍,인터넷,와이파이"},
+    {"gid": "3ha-507658", "cat": "esim", "city": "전국", "title": "유심사 일본 유심/eSIM", "price": 0,
+     "image": "",
+     "url": "https://3ha.in/r/507658", "keywords": "이심,esim,유심,심,sim,데이터,로밍,인터넷,와이파이"},
+    {"gid": "3ha-507665", "cat": "park", "city": "도쿄", "title": "도쿄 디즈니랜드 & 디즈니씨 티켓", "price": 71100,
+     "image": "https://res.klook.com/images/w_1200,h_630,c_fill,q_65/activities/hoo92psxybodfjagbdhu/도쿄디즈니랜드도쿄디즈니씨티켓.jpg",
+     "url": "https://3ha.in/r/507665", "keywords": "디즈니,디즈니랜드,디즈니씨,놀이공원,테마파크,입장권"},
+    {"gid": "3ha-507670", "cat": "park", "city": "오사카", "title": "오사카 유니버설 스튜디오 재팬(USJ) 입장권", "price": 83700,
+     "image": "https://res.klook.com/images/w_1200,h_630,c_fill,q_65/activities/tfutvhekax4sl8ryt5u2/오사카유니버설스튜디오재팬입장권.jpg",
+     "url": "https://3ha.in/r/507670", "keywords": "유니버설,유니버셜,usj,놀이공원,테마파크,닌텐도,입장권"},
+    {"gid": "3ha-507666", "cat": "pass", "city": "도쿄", "title": "나리타 공항 스카이라이너 티켓", "price": 19800,
+     "image": "https://res.klook.com/images/w_1200,h_630,c_fill,q_65/activities/gh6jbhvciql6webjdmwg/나리타공항스카이라이너티켓.jpg",
+     "url": "https://3ha.in/r/507666", "keywords": "나리타,공항,스카이라이너,전철,우에노,닛포리,교통,역까지"},
+    {"gid": "3ha-507673", "cat": "pass", "city": "도쿄", "title": "게이세이 스카이라이너 티켓(나리타→우에노)", "price": 21877,
+     "image": "https://image.kkday.com/v2/image/get/s1.kkday.com/product_18566/20180430104240_XHgkl/jpg",
+     "url": "https://3ha.in/r/507673", "keywords": "나리타,공항,스카이라이너,게이세이,우에노,전철,교통,역까지"},
+    {"gid": "3ha-507677", "cat": "pass", "city": "오사카", "title": "오사카 라피트 특급(간사이공항↔난바)", "price": 49000,
+     "image": "https://image.kkday.com/v2/image/get/s1.kkday.com/product_29003/20241008010030_lcvE4/jpg",
+     "url": "https://3ha.in/r/507677", "keywords": "간사이,공항,라피트,난바,오사카,전철,교통,역까지"},
+    {"gid": "3ha-507668", "cat": "pass", "city": "도쿄", "title": "도쿄 지하철 티켓(도쿄 메트로)", "price": 9100,
+     "image": "https://res.klook.com/images/w_1200,h_630,c_fill,q_65/activities/cdeua5hww0ladox5bp7v/도쿄지하철티켓.jpg",
+     "url": "https://3ha.in/r/507668", "keywords": "지하철,메트로,전철,도쿄,교통,역까지,패스"},
+    {"gid": "3ha-507682", "cat": "park", "city": "도쿄", "title": "도쿄 팀랩 플래닛(teamLab Planets) 입장권", "price": 30800,
+     "image": "",
+     "url": "https://3ha.in/r/507682", "keywords": "팀랩,teamlab,플래닛,전시,미술,입장권,체험"},
+    {"gid": "3ha-507684", "cat": "park", "city": "도쿄", "title": "도쿄 스카이트리 입장권", "price": 19600,
+     "image": "",
+     "url": "https://3ha.in/r/507684", "keywords": "스카이트리,전망대,타워,도쿄,입장권"},
+    {"gid": "3ha-507700", "cat": "general", "city": "후지·하코네", "title": "후지산·하코네 일일 투어(도쿄 출발)", "price": 55600,
+     "image": "https://res.klook.com/images/w_1200,h_630,c_fill,q_65/activities/z0pgbdeyzw3p0rfq8v2n/하코네후지하코네1일투어.jpg",
+     "url": "https://3ha.in/r/507700", "keywords": "후지산,후지,하코네,투어,온천,당일,도쿄"},
+    {"gid": "3ha-507708", "cat": "general", "city": "교토", "title": "교토·나라 일일 투어(아라시야마·후시미이나리)", "price": 0,
+     "image": "",
+     "url": "https://3ha.in/r/507708", "keywords": "교토,나라,아라시야마,후시미이나리,투어,여행"},
+    {"gid": "3ha-507724", "cat": "hotel", "city": "도쿄", "title": "도쿄 호텔·숙소(라쿠텐트래블)", "price": 0,
+     "image": "",
+     "url": "https://3ha.in/r/507724", "keywords": "호텔,숙소,숙박,료칸,도쿄,여행"},
+]
+
 def _to_int(x) -> int:
     """가격 등 정수화 — 문자열/콤마/None 안전 처리."""
     try:
@@ -1057,11 +1101,20 @@ def travel_products():
         rows = (db.query(MrtProduct)
                   .filter(MrtProduct.active == 1)
                   .order_by(MrtProduct.cat, MrtProduct.sort_order).all())
-        return {"products": [{
-            "id": r.id, "cat": r.cat, "gid": r.gid, "title": r.title, "price": r.sale_price,
-            "image": r.image_url, "url": r.mylink_url or r.product_url, "city": r.city,
+        mrt = [{
+            "id": f"mrt-{r.id}", "partner": "myrealtrip", "cat": r.cat, "gid": r.gid,
+            "title": r.title, "price": r.sale_price, "image": r.image_url,
+            "url": r.mylink_url or r.product_url, "city": r.city,
             "keywords": [k for k in (r.keywords or "").split(",") if k],
-        } for r in rows]}
+        } for r in rows]
+        # 세시간전 정적 상품 합치기 (utm 미부착, GA4 클릭만)
+        static = [{
+            "id": s["gid"], "partner": "3hours", "cat": s["cat"], "gid": s["gid"],
+            "title": s["title"], "price": s["price"], "image": s["image"],
+            "url": s["url"], "city": s["city"],
+            "keywords": [k for k in s["keywords"].split(",") if k],
+        } for s in STATIC_TRAVEL_PRODUCTS]
+        return {"products": static + mrt}
     finally:
         db.close()
 

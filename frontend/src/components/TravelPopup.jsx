@@ -63,12 +63,12 @@ export default function TravelPopup({ input, japanese, armed }) {
 
 const ov = {
   position: 'fixed', inset: 0, zIndex: 5000, background: 'rgba(20,30,40,0.5)',
-  display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
 }
 const sheet = {
-  position: 'relative', width: '100%', maxWidth: 460, background: '#fff',
-  borderRadius: '20px 20px 0 0', padding: '22px 18px calc(20px + env(safe-area-inset-bottom))',
-  boxShadow: '0 -8px 40px rgba(0,0,0,0.2)', maxHeight: '85vh', overflowY: 'auto',
+  position: 'relative', width: '100%', maxWidth: 400, background: '#fff',
+  borderRadius: 20, padding: '22px 18px 18px',
+  boxShadow: '0 12px 40px rgba(0,0,0,0.22)', maxHeight: '85vh', overflowY: 'auto',
 }
 const closeBtn = {
   position: 'absolute', top: 14, right: 14, width: 30, height: 30, borderRadius: '50%',

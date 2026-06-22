@@ -82,16 +82,21 @@ const iconBox = {
   width: 54, height: 54, borderRadius: 15, background: '#eef7fc',
   display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px',
 }
-const head = { fontSize: 19, fontWeight: 600, color: '#1f2937', margin: '0 0 14px', letterSpacing: '-0.3px' }
+// 이모지(🙇)가 두부로 깨지지 않도록 이모지 폰트 fallback 명시
+const head = {
+  fontSize: 19, fontWeight: 600, color: '#1f2937', margin: '0 0 14px', letterSpacing: '-0.3px',
+  fontFamily: "'Noto Sans KR', 'Apple Color Emoji', sans-serif",
+}
 const body = { fontSize: 13, color: '#666', lineHeight: 1.7, margin: '0 0 18px' }
+// 버튼은 기본적으로 body 폰트를 상속하지 않으므로 font-family: inherit 필수 (한글 깨짐 방지)
 const primaryBtn = {
   width: '100%', height: 50, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 14,
   background: 'linear-gradient(145deg,#6fb6d6 0%,#5CA9CE 55%,#4f96bb 100%)',
-  color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+  color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
   boxShadow: '0 8px 22px rgba(92,169,206,0.34),inset 0 1px 0 rgba(255,255,255,0.28)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 }
 const secondaryBtn = {
   width: '100%', height: 38, marginTop: 2, background: 'none', border: 'none',
-  fontSize: 12.5, color: '#bbb', cursor: 'pointer',
+  fontSize: 12.5, color: '#bbb', cursor: 'pointer', fontFamily: 'inherit',
 }

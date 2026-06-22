@@ -327,6 +327,26 @@ class FastUsage(Base):
     updated_at   = Column(DateTime, default=now_kst, onupdate=now_kst)
 
 
+class MrtProduct(Base):
+    """마이리얼트립 큐레이션 상품 카탈로그 — 배치가 주기적으로 갱신, 프론트는 이 캐시만 노출.
+    User/SavedResult 스키마와 무관한 별도 테이블."""
+    __tablename__ = "mrt_product"
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    cat          = Column(String, index=True)   # 내부 카테고리: esim/pass/experience/park/food/general
+    gid          = Column(String, index=True)   # MRT 상품 식별자(gid/itemId)
+    title        = Column(String)
+    sale_price   = Column(Integer, default=0)   # 원화 정수(노출용 최저가)
+    image_url    = Column(Text)
+    product_url  = Column(Text)                 # MRT 원본 productUrl (마이링크 targetUrl)
+    mylink_url   = Column(Text)                 # 발급된 단축 추적링크 (myrealt.rip)
+    mylink_id    = Column(String)
+    city         = Column(String)
+    keywords     = Column(Text)                 # 맥락 매칭용 키워드(CSV)
+    active       = Column(Integer, default=1)   # 1=노출
+    sort_order   = Column(Integer, default=0)
+    updated_at   = Column(DateTime, default=now_kst, onupdate=now_kst)
+
+
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
@@ -850,6 +870,153 @@ def fast_unlimited_list(key: str = ""):
         return {"total": len(members), "registered": registered, "members": members}
     finally:
         db.close()
+
+
+# ──────────────────────────────────────────────
+# 마이리얼트립(MyRealTrip) 마케팅파트너 API — 여행 상품 제휴 (Phase 1)
+# - API 키는 서버 사이드 전용(MRT_API_KEY, Railway 환경변수). 프론트엔드 노출 금지.
+# - 큐레이션+캐싱 방식: 배치가 검색→마이링크→DB 저장, 프론트는 /travel/products 캐시만 노출.
+# ──────────────────────────────────────────────
+MRT_BASE = "https://partner-ext-api.myrealtrip.com"
+
+# 큐레이션 타깃 — 내부 카테고리별로 어떤 상품을 모을지 정의 (필요 시 자유롭게 수정)
+# cat_hint: tna/categories 응답에서 적합한 category value를 고르기 위한 라벨 힌트
+MRT_TARGETS = [
+    {"cat": "experience", "city": "도쿄",   "keyword": "도쿄 체험",       "cat_hint": ["ticket", "투어", "티켓", "액티비티"], "keywords": "스시,초밥,기모노,유카타,체험,요리,도자기"},
+    {"cat": "park",       "city": "오사카", "keyword": "유니버설 스튜디오", "cat_hint": ["ticket", "티켓", "입장권"],         "keywords": "유니버설,유니버셜,usj,디즈니,지브리,놀이공원,입장권"},
+    {"cat": "pass",       "city": "오사카", "keyword": "교통 패스",        "cat_hint": ["ticket", "교통", "패스", "티켓"],     "keywords": "jr,신칸센,패스,전철,지하철,기차,교통,역까지"},
+    {"cat": "general",    "city": "오사카", "keyword": "오사카 투어",      "cat_hint": ["tour", "투어"],                      "keywords": "오사카,도쿄,교토,후지,여행,관광,투어,일정"},
+]
+
+def _to_int(x) -> int:
+    """가격 등 정수화 — 문자열/콤마/None 안전 처리."""
+    try:
+        if x is None:
+            return 0
+        if isinstance(x, (int, float)):
+            return int(x)
+        return int(re.sub(r"[^0-9]", "", str(x)) or 0)
+    except Exception:
+        return 0
+
+def mrt_request(method: str, path: str, json_body=None, params=None, retries: int = 3):
+    """MRT 공통 클라이언트 — Bearer 주입 + 지수 백오프(429/500/503) + 4xx 즉시 실패."""
+    key = os.environ.get("MRT_API_KEY")
+    if not key:
+        raise HTTPException(status_code=503, detail="MRT_API_KEY 환경변수가 설정되지 않았습니다.")
+    url = MRT_BASE + path
+    headers = {"Authorization": f"Bearer {key}"}
+    if json_body is not None:
+        headers["Content-Type"] = "application/json"
+    delay = 1.0
+    for attempt in range(retries + 1):
+        try:
+            resp = requests.request(method, url, headers=headers, json=json_body, params=params, timeout=20)
+        except requests.RequestException as e:
+            if attempt < retries:
+                time.sleep(delay); delay *= 2; continue
+            raise HTTPException(status_code=502, detail=f"MRT 요청 실패: {e}")
+        # 429/500/503 → 백오프 재시도
+        if resp.status_code in (429, 500, 503) and attempt < retries:
+            time.sleep(delay); delay *= 2; continue
+        # 4xx(400/401/403/404 등) → 재시도 없이 즉시 실패
+        if resp.status_code >= 400:
+            print(f"[MRT] {resp.status_code} {path}: {resp.text[:300]}")
+            raise HTTPException(status_code=resp.status_code, detail=f"MRT {resp.status_code}: {resp.text[:200]}")
+        try:
+            return resp.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="MRT 응답 파싱 실패")
+
+def mrt_create_mylink(target_url: str):
+    """productUrl로 단축 추적링크 발급 → (mylink_url, mylink_id). 실패 시 (None, None)."""
+    try:
+        body = mrt_request("POST", "/v1/mylink", json_body={"targetUrl": target_url})
+        data = body.get("data") or {}
+        return data.get("mylink"), data.get("mylinkId")
+    except HTTPException:
+        return None, None
+
+def refresh_mrt_catalog():
+    """큐레이션 배치 — 타깃별로 카테고리 조회→상품 검색→마이링크 발급→DB 갱신. 관리자가 트리거."""
+    db = SessionLocal()
+    summary = []
+    try:
+        for t in MRT_TARGETS:
+            # 1) 카테고리 조회 (도시마다 value 다름 → 하드코딩 금지)
+            catval = None
+            try:
+                cresp = mrt_request("POST", "/v1/products/tna/categories", json_body={"city": t["city"]})
+                cats = (cresp.get("data") or {}).get("categories") or cresp.get("data") or []
+                for c in cats:
+                    label = f"{c.get('label') or c.get('name') or ''} {c.get('value') or ''}"
+                    if any(h.lower() in label.lower() for h in t["cat_hint"]):
+                        catval = c.get("value"); break
+                if catval is None and cats:
+                    catval = cats[0].get("value")
+            except HTTPException as e:
+                summary.append({"cat": t["cat"], "error": f"categories: {e.detail}"}); continue
+            time.sleep(1)
+
+            # 2) 상품 검색 (투어는 page 1-based)
+            sbody = {"keyword": t["keyword"], "sort": "review_score_desc", "page": 1, "size": 8}
+            if catval:
+                sbody["category"] = catval
+            try:
+                sresp = mrt_request("POST", "/v1/products/tna/search", json_body=sbody)
+                items = (sresp.get("data") or {}).get("items") or sresp.get("data") or []
+            except HTTPException as e:
+                summary.append({"cat": t["cat"], "error": f"search: {e.detail}"}); continue
+
+            # 3) 기존 동일 카테고리 비활성화 후 신규 저장(+마이링크)
+            db.query(MrtProduct).filter(MrtProduct.cat == t["cat"]).update({"active": 0})
+            saved = 0
+            for idx, it in enumerate(items[:6]):
+                gid = str(it.get("gid") or it.get("itemId") or "")
+                purl = it.get("productUrl") or (f"https://www.myrealtrip.com/offers/{gid}" if gid else None)
+                if not purl:
+                    continue
+                mylink, mylink_id = mrt_create_mylink(purl)
+                db.add(MrtProduct(
+                    cat=t["cat"], gid=gid,
+                    title=it.get("itemName") or it.get("title") or "",
+                    sale_price=_to_int(it.get("salePrice")),
+                    image_url=it.get("imageUrl") or "",
+                    product_url=purl, mylink_url=mylink, mylink_id=mylink_id,
+                    city=t["city"], keywords=t["keywords"], active=1, sort_order=idx,
+                ))
+                saved += 1
+                time.sleep(1)  # 레이트리밋 권장 간격
+            db.commit()
+            summary.append({"cat": t["cat"], "saved": saved})
+        return {"ok": True, "summary": summary}
+    finally:
+        db.close()
+
+
+@app.get("/travel/products")
+def travel_products():
+    """프론트 노출용 — 큐레이션된 활성 상품(캐시). 비밀정보 없음(공개)."""
+    db = SessionLocal()
+    try:
+        rows = (db.query(MrtProduct)
+                  .filter(MrtProduct.active == 1)
+                  .order_by(MrtProduct.cat, MrtProduct.sort_order).all())
+        return {"products": [{
+            "id": r.id, "cat": r.cat, "gid": r.gid, "title": r.title, "price": r.sale_price,
+            "image": r.image_url, "url": r.mylink_url or r.product_url, "city": r.city,
+            "keywords": [k for k in (r.keywords or "").split(",") if k],
+        } for r in rows]}
+    finally:
+        db.close()
+
+
+@app.post("/mrt/refresh")
+def mrt_refresh(key: str = ""):
+    """큐레이션 배치 수동 트리거 (관리 토큰 필요). 추후 cron으로 자동화 예정."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다. ?key=... 를 붙여주세요.")
+    return refresh_mrt_catalog()
 
 
 class BreakdownRequest(BaseModel):

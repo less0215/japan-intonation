@@ -1,18 +1,17 @@
-import { KLOOK_PRODUCTS } from '../data/klookProducts'
+import { useState, useEffect } from 'react'
+import { loadTravelProducts, openTravelProduct } from '../travel'
 
-/* 일본 여행 준비 — Klook 제휴 추천 섹션
- * - 가로 스크롤 카드. 광고 배너가 아닌 "여행 준비 도움" 톤
- * - 클릭 시 GA4 이벤트 기록(내 클릭 수 자체 집계 → 대시보드 대조용) 후 새 탭으로 이동
- * - TODO(앱): @capacitor/browser 설치 후 외부 브라우저로 열어 추적 쿠키 보장 */
+/* 일본 여행 준비 — 마이리얼트립 제휴 추천 섹션 (홈)
+ * - 백엔드 큐레이션 카탈로그(/travel/products)에서 받아 가로 스크롤 카드로 노출
+ * - 카탈로그가 비어있으면(키 미설정/배치 전) 아무것도 안 보임 */
 const PRIMARY = '#5CA9CE'
 
-function openAffiliate(item) {
-  // 자체 클릭 집계 (Klook 대시보드와 대조용)
-  try { window.gtag?.('event', 'affiliate_click', { partner: 'klook', item_id: item.id, price: item.price }) } catch {}
-  window.open(item.url, '_blank', 'noopener,noreferrer')
-}
-
 export default function TravelAffiliate() {
+  const [items, setItems] = useState([])
+  useEffect(() => { loadTravelProducts().then(setItems) }, [])
+
+  if (items.length === 0) return null
+
   return (
     <div style={{ marginTop: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 2px 8px' }}>
@@ -21,10 +20,10 @@ export default function TravelAffiliate() {
       </div>
 
       <div style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '2px 2px 6px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-        {KLOOK_PRODUCTS.map((item) => (
+        {items.map((item) => (
           <button
             key={item.id}
-            onClick={() => openAffiliate(item)}
+            onClick={() => openTravelProduct(item, 'home_banner')}
             style={{
               flex: '0 0 auto', width: 142, textAlign: 'left', padding: 0, cursor: 'pointer',
               background: '#fff', border: '1px solid #eaecef', borderRadius: 13, overflow: 'hidden',
@@ -37,10 +36,12 @@ export default function TravelAffiliate() {
               <p style={{
                 margin: '0 0 6px', fontSize: 11.5, color: '#2b2f33', lineHeight: 1.35,
                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 31,
-              }}>{item.name}</p>
-              <span style={{ fontSize: 12, fontWeight: 600, color: PRIMARY }}>
-                ₩{item.price.toLocaleString()}~
-              </span>
+              }}>{item.title}</p>
+              {item.price > 0 && (
+                <span style={{ fontSize: 12, fontWeight: 600, color: PRIMARY }}>
+                  ₩{item.price.toLocaleString()}~
+                </span>
+              )}
             </div>
           </button>
         ))}

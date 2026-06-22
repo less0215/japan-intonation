@@ -16,7 +16,7 @@ export default function ContextualTravel({ input, japanese }) {
   if (items.length === 0) return null
 
   return (
-    <div style={{ marginTop: 8, border: '1px solid #e3eef4', borderRadius: 13, background: 'linear-gradient(135deg, #f4fafd 0%, #eef6fb 100%)', padding: '11px 12px' }}>
+    <div style={{ marginTop: -4, marginBottom: -4, border: '1px solid #e3eef4', borderRadius: 13, background: 'linear-gradient(135deg, #f4fafd 0%, #eef6fb 100%)', padding: '11px 12px' }}>
       <p style={{ margin: '0 0 9px', fontSize: 12.5, fontWeight: 600, color: '#3a6f8a' }}>
         일본 여행 준비 중이세요? 이건 어때요
       </p>

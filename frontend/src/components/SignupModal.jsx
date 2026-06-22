@@ -35,7 +35,7 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save', title, 
       }
       const data = await res.json()
       track('signup_complete', { trigger: mode })
-      onSuccess({ user_id: data.user_id, name: data.name, fast_unlimited: !!data.fast_unlimited })
+      onSuccess({ user_id: data.user_id, name: data.name, fast_unlimited: !!data.fast_unlimited, is_admin: !!data.is_admin })
     } catch (err) {
       setError(err.message)
     } finally {

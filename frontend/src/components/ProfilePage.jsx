@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
+import AdminRevenue from './AdminRevenue'
 
 /* 프로필 탭 — 계정·문의·다운로드·로그아웃·회원탈퇴 */
 const PRIMARY = '#5CA9CE'
@@ -41,6 +42,9 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
           <button onClick={onLogin} style={{ width: '100%', height: 46, borderRadius: 12, background: PRIMARY, color: '#fff', border: 'none', fontSize: 14.5, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>로그인 / 회원가입</button>
         </div>
       )}
+
+      {/* 관리자 전용 — 제휴 수익 대시보드 */}
+      {user?.is_admin && <AdminRevenue userId={user.user_id} />}
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Row icon="M4 4h16v16H4z M4 6l8 6 8-6" label="문의하기" onClick={() => { window.location.href = 'mailto:mgz.less@tickjapan.com?subject=[틱재팬] 문의' }} />

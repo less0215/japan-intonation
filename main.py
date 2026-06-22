@@ -460,6 +460,7 @@ class SignupResponse(BaseModel):
     name: str
     is_new: bool   # True=신규, False=기존 사용자 로그인
     fast_unlimited: bool = False   # 빠른 번역 무제한 화이트리스트 여부
+    is_admin: bool = False         # 관리자 계정 여부 (수익 대시보드 노출용)
 
 # 빠른 번역(3.1) 사용량 제한 없이 쓸 수 있는 휴대폰 번호 화이트리스트.
 # (후기 작성 인증 회원 등 — 숫자만, 하이픈/공백 무시)
@@ -522,6 +523,12 @@ def _norm_phone(phone: str) -> str:
 
 def is_fast_unlimited(phone: str) -> bool:
     return _norm_phone(phone) in FAST_UNLIMITED_PHONES
+
+# 관리자 계정(휴대폰 번호) — 수익 대시보드 등 관리 기능 접근 권한
+ADMIN_PHONES = {"01033530215"}
+
+def is_admin_phone(phone: str) -> bool:
+    return _norm_phone(phone) in {_norm_phone(p) for p in ADMIN_PHONES}
 
 # 빠른 번역 한도 — 5시간 롤링 윈도우(클로드 방식)
 FAST_WINDOW_LIMIT = 20            # 윈도우당 횟수
@@ -1123,11 +1130,8 @@ def mrt_sync_revenues(key: str = "", days: int = 35):
     return sync_mrt_revenues(days=days)
 
 
-@app.get("/mrt/revenue-summary")
-def mrt_revenue_summary(key: str = ""):
-    """수익 요약 — 총액 + 배치별(home_banner/result_popup) + 상품별 TOP (관리 토큰)."""
-    if key != FAST_ADMIN_KEY:
-        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+def _revenue_summary():
+    """수익 요약 계산 — 총액 + 배치별(home_banner/result_popup) + 상품별 TOP."""
     db = SessionLocal()
     try:
         rows = db.query(MrtRevenue).all()
@@ -1147,6 +1151,50 @@ def mrt_revenue_summary(key: str = ""):
             "by_placement": by_place,
             "top_products": [{"title": t, **v} for t, v in top],
         }
+    finally:
+        db.close()
+
+
+@app.get("/mrt/revenue-summary")
+def mrt_revenue_summary(key: str = ""):
+    """수익 요약 (관리 토큰 — 내부/curl용)."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    return _revenue_summary()
+
+
+@app.get("/admin/revenue")
+def admin_revenue(user_id: int):
+    """수익 요약 (관리자 계정 로그인 기반 — 프론트 대시보드용). 관리자 번호만 접근."""
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.id == user_id).first()
+        if not u or not is_admin_phone(u.phone):
+            raise HTTPException(status_code=403, detail="관리자만 접근할 수 있습니다.")
+    finally:
+        db.close()
+    return _revenue_summary()
+
+
+@app.post("/admin/rename-user")
+def admin_rename_user(key: str = "", phone: str = "", new_name: str = ""):
+    """회원 이름 변경 (관리 토큰). 보안상 노출된 이름과 다른 비공개 이름으로 교체할 때 사용."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    if not phone or not new_name.strip():
+        raise HTTPException(status_code=400, detail="phone, new_name 이 필요합니다.")
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.phone == phone.strip()).first()
+        if not u:
+            # 하이픈 표기 차이 대비 — 정규화 비교
+            u = next((x for x in db.query(User).all() if _norm_phone(x.phone) == _norm_phone(phone)), None)
+        if not u:
+            raise HTTPException(status_code=404, detail="해당 번호의 회원을 찾을 수 없습니다.")
+        old = u.name
+        u.name = new_name.strip()
+        db.commit()
+        return {"ok": True, "phone": u.phone, "old_name": old, "new_name": u.name}
     finally:
         db.close()
 
@@ -1322,7 +1370,8 @@ def signup(req: SignupRequest):
             # 다르면 이미 다른 사람이 가입한 번호이므로 차단.
             if existing.name == req.name.strip():
                 return SignupResponse(user_id=existing.id, name=existing.name, is_new=False,
-                                      fast_unlimited=is_fast_unlimited(existing.phone))
+                                      fast_unlimited=is_fast_unlimited(existing.phone),
+                                      is_admin=is_admin_phone(existing.phone))
             raise HTTPException(
                 status_code=409,
                 detail="이미 가입된 휴대폰 번호입니다. 가입 시 사용한 이름을 입력해 주세요.",
@@ -1341,7 +1390,8 @@ def signup(req: SignupRequest):
             )
         db.refresh(new_user)
         return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True,
-                              fast_unlimited=is_fast_unlimited(new_user.phone))
+                              fast_unlimited=is_fast_unlimited(new_user.phone),
+                              is_admin=is_admin_phone(new_user.phone))
     finally:
         db.close()
 

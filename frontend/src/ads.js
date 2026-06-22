@@ -50,26 +50,38 @@ export async function initAds() {
 }
 
 // 보상형 광고 1회 표시. 보상 지급 시 true, 닫힘/실패 시 false 반환.
+// 보상(Rewarded)·닫힘(Dismissed) 이벤트 도착 순서가 보장되지 않으므로,
+// Dismissed/실패 시점에 그동안 보상 여부 플래그를 읽어 판정한다(레이스 방지).
 export async function showRewardedAd() {
   if (!isApp) return false
   try {
     if (!_ready) await initAds()
     if (!_admob) return false
-
     const { RewardAdPluginEvents } = await import('@capacitor-community/admob')
-    let rewarded = false
-    const handle = await _admob.addListener(RewardAdPluginEvents.Rewarded, () => {
-      rewarded = true
-    })
 
-    await _admob.prepareRewardVideoAd({
-      adId: rewardedAdId(),
-      isTesting: USE_TEST,
-    })
-    await _admob.showRewardVideoAd()   // 닫힐 때까지 대기
+    return await new Promise((resolve) => {
+      let rewarded = false
+      let done = false
+      const handles = []
+      const cleanup = () => handles.forEach(h => { try { h.remove() } catch {} })
+      const finish = (val) => { if (!done) { done = true; cleanup(); resolve(val) } }
 
-    try { await handle.remove() } catch {}
-    return rewarded
+      const add = async (evt, cb) => { handles.push(await _admob.addListener(evt, cb)) }
+
+      ;(async () => {
+        await add(RewardAdPluginEvents.Rewarded, () => { rewarded = true })
+        await add(RewardAdPluginEvents.Dismissed, () => finish(rewarded))
+        await add(RewardAdPluginEvents.FailedToShow, () => finish(false))
+        await add(RewardAdPluginEvents.FailedToLoad, () => finish(false))
+        try {
+          await _admob.prepareRewardVideoAd({ adId: rewardedAdId(), isTesting: USE_TEST })
+          await _admob.showRewardVideoAd()
+        } catch (e) {
+          console.warn('[ads] rewarded 표시 실패', e)
+          finish(false)
+        }
+      })()
+    })
   } catch (e) {
     console.warn('[ads] rewarded 실패', e)
     return false

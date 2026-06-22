@@ -1,3 +1,4 @@
+import base64
 import datetime
 import io
 import json
@@ -922,6 +923,34 @@ MRT_TARGETS = [
 # 비(非)일본 상품 혼입 방지 — 제목에 아래 지명이 있으면 제외 (검색이 글로벌 결과를 섞어줄 때 가드)
 MRT_EXCLUDE_TITLE = ["베이징", "싱가포르", "리스보아", "리스본", "타이베이", "방콕", "홍콩", "마카오", "상하이", "베트남", "다낭", "세부", "발리", "괌", "하와이"]
 
+# 이미지 없는 상품용 디자인 썸네일 — 자체 생성 SVG(데이터 URI). 외부 의존·저작권 0.
+def _svg_thumb(svg: str) -> str:
+    return "data:image/svg+xml;base64," + base64.b64encode(svg.strip().encode("utf-8")).decode("ascii")
+
+_THUMB_TEAMLAB = _svg_thumb(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225">'
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+    '<stop offset="0" stop-color="#7b6cf0"/><stop offset="1" stop-color="#a99bf7"/></linearGradient></defs>'
+    '<rect width="400" height="225" fill="url(#g)"/>'
+    '<path d="M200 58 l13 33 33 13 -33 13 -13 33 -13 -33 -33 -13 33 -13 z" fill="#fff" opacity="0.96"/>'
+    '<circle cx="138" cy="150" r="6" fill="#fff" opacity="0.85"/>'
+    '<circle cx="270" cy="68" r="4.5" fill="#fff" opacity="0.8"/>'
+    '<text x="200" y="200" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="19" opacity="0.95">teamLab</text>'
+    '</svg>'
+)
+_THUMB_SKYTREE = _svg_thumb(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225">'
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+    '<stop offset="0" stop-color="#4aa3d8"/><stop offset="1" stop-color="#8fd0ee"/></linearGradient></defs>'
+    '<rect width="400" height="225" fill="url(#g)"/>'
+    '<path d="M200 52 L217 150 L183 150 Z" fill="#fff" opacity="0.92"/>'
+    '<line x1="200" y1="34" x2="200" y2="52" stroke="#fff" stroke-width="5" stroke-linecap="round"/>'
+    '<circle cx="200" cy="104" r="12" fill="#62b5e0"/>'
+    '<rect x="176" y="147" width="48" height="7" rx="3" fill="#fff" opacity="0.92"/>'
+    '<text x="200" y="196" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="19" opacity="0.95">전망대</text>'
+    '</svg>'
+)
+
 # 세시간전(3ha.in) 정적 제휴 링크 — API 없음. /travel/products에서 MRT 카탈로그와 합쳐 노출.
 # partner=3hours: 클릭은 GA4로만 집계(수익은 세시간전 자체 대시보드). utm_content 미부착.
 STATIC_TRAVEL_PRODUCTS = [
@@ -950,10 +979,10 @@ STATIC_TRAVEL_PRODUCTS = [
      "image": "https://res.klook.com/images/w_1200,h_630,c_fill,q_65/activities/cdeua5hww0ladox5bp7v/도쿄지하철티켓.jpg",
      "url": "https://3ha.in/r/507668", "keywords": "지하철,메트로,전철,도쿄,교통,역까지,패스"},
     {"gid": "3ha-507682", "cat": "park", "city": "도쿄", "title": "도쿄 팀랩 플래닛(teamLab Planets) 입장권", "price": 30800,
-     "image": "",
+     "image": _THUMB_TEAMLAB,
      "url": "https://3ha.in/r/507682", "keywords": "팀랩,teamlab,플래닛,전시,미술,입장권,체험"},
     {"gid": "3ha-507684", "cat": "park", "city": "도쿄", "title": "도쿄 스카이트리 입장권", "price": 19600,
-     "image": "",
+     "image": _THUMB_SKYTREE,
      "url": "https://3ha.in/r/507684", "keywords": "스카이트리,전망대,타워,도쿄,입장권"},
     {"gid": "3ha-507700", "cat": "general", "city": "후지·하코네", "title": "후지산·하코네 일일 투어(도쿄 출발)", "price": 55600,
      "image": "https://res.klook.com/images/w_1200,h_630,c_fill,q_65/activities/z0pgbdeyzw3p0rfq8v2n/하코네후지하코네1일투어.jpg",

@@ -347,6 +347,25 @@ class MrtProduct(Base):
     updated_at   = Column(DateTime, default=now_kst, onupdate=now_kst)
 
 
+class MrtRevenue(Base):
+    """마이리얼트립 수익/예약 — 매일 동기화 누적. utm_content로 우리 배치(home_banner/result_popup) 매핑."""
+    __tablename__ = "mrt_revenue"
+    id              = Column(Integer, primary_key=True, autoincrement=True)
+    reservation_no  = Column(String, index=True)   # 예약번호(업서트 키)
+    link_id         = Column(String, index=True)
+    gid             = Column(String)
+    product_title   = Column(Text)
+    sale_price      = Column(Integer, default=0)
+    commission      = Column(Integer, default=0)   # VAT 포함, 환불 시 음수
+    commission_rate = Column(String)
+    utm_content     = Column(String, index=True)
+    placement       = Column(String, index=True)   # utm_content의 '__' 앞부분 (배치)
+    status          = Column(String)
+    status_kor      = Column(String)
+    revenue_date    = Column(String)               # API 제공 날짜(문자열)
+    updated_at      = Column(DateTime, default=now_kst, onupdate=now_kst)
+
+
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
@@ -1042,6 +1061,116 @@ def mrt_refresh(key: str = ""):
     if key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다. ?key=... 를 붙여주세요.")
     return refresh_mrt_catalog()
+
+
+# ── Phase 2: 수익/예약 동기화 (utm_content → 배치 매핑) ──
+def _placement_of(utm):
+    """utm_content('home_banner__12345')에서 배치명만 추출."""
+    if not utm:
+        return None
+    return utm.split("__")[0] if "__" in utm else utm
+
+def sync_mrt_revenues(days: int = 35, date_type: str = "SETTLEMENT"):
+    """최근 N일 수익현황을 가져와 DB에 업서트(멱등). 환불·상태변경 반영 위해 넓게 조회."""
+    end = now_kst().date()
+    start = end - datetime.timedelta(days=days)
+    resp = mrt_request("GET", "/v1/revenues", params={
+        "startDate": start.isoformat(), "endDate": end.isoformat(), "dateSearchType": date_type,
+    })
+    records = _mrt_data_list(resp, "revenues")
+    if not records:  # data 구조 변형 대비 — 흔한 키들 추가 탐색
+        data = resp.get("data")
+        if isinstance(data, dict):
+            for k in ("list", "items", "content"):
+                if isinstance(data.get(k), list):
+                    records = data[k]; break
+    db = SessionLocal()
+    saved = 0
+    try:
+        for r in records:
+            if not isinstance(r, dict):
+                continue
+            rno = str(r.get("reservationNo") or "")
+            if not rno:
+                continue
+            utm = r.get("utmContent")
+            row = db.query(MrtRevenue).filter(MrtRevenue.reservation_no == rno).first()
+            if not row:
+                row = MrtRevenue(reservation_no=rno); db.add(row)
+            row.link_id        = str(r.get("linkId") or "")
+            row.gid            = str(r.get("gid") or "")
+            row.product_title  = r.get("productTitle") or ""
+            row.sale_price     = _to_int(r.get("salePrice"))
+            row.commission     = _to_int(r.get("commission"))
+            row.commission_rate = str(r.get("commissionRate") or "")
+            row.utm_content    = utm
+            row.placement      = _placement_of(utm)
+            row.status         = r.get("status") or ""
+            row.status_kor     = r.get("statusKor") or ""
+            row.revenue_date   = str(r.get("settlementDate") or r.get("paymentDate") or r.get("date") or "")
+            saved += 1
+        db.commit()
+        return {"ok": True, "fetched": len(records), "saved": saved}
+    finally:
+        db.close()
+
+
+@app.post("/mrt/sync-revenues")
+def mrt_sync_revenues(key: str = "", days: int = 35):
+    """수익 동기화 수동 트리거 (관리 토큰). 매일 자동으로도 실행됨."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    return sync_mrt_revenues(days=days)
+
+
+@app.get("/mrt/revenue-summary")
+def mrt_revenue_summary(key: str = ""):
+    """수익 요약 — 총액 + 배치별(home_banner/result_popup) + 상품별 TOP (관리 토큰)."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    db = SessionLocal()
+    try:
+        rows = db.query(MrtRevenue).all()
+        by_place, by_prod = {}, {}
+        for r in rows:
+            p = r.placement or "(미상)"
+            bp = by_place.setdefault(p, {"reservations": 0, "sales": 0, "commission": 0})
+            bp["reservations"] += 1; bp["sales"] += r.sale_price or 0; bp["commission"] += r.commission or 0
+            t = r.product_title or r.gid or "(?)"
+            pr = by_prod.setdefault(t, {"reservations": 0, "commission": 0})
+            pr["reservations"] += 1; pr["commission"] += r.commission or 0
+        top = sorted(by_prod.items(), key=lambda x: -x[1]["commission"])[:15]
+        return {
+            "total_reservations": len(rows),
+            "total_sales": sum(r.sale_price or 0 for r in rows),
+            "total_commission": sum(r.commission or 0 for r in rows),
+            "by_placement": by_place,
+            "top_products": [{"title": t, **v} for t, v in top],
+        }
+    finally:
+        db.close()
+
+
+@app.on_event("startup")
+async def _mrt_revenue_scheduler():
+    """매일 KST 07:30에 수익 자동 동기화 (정산 06시 이후). 키 없으면 미동작."""
+    if not os.environ.get("MRT_API_KEY"):
+        return
+    import threading
+    def loop():
+        while True:
+            try:
+                now = now_kst()
+                target = now.replace(hour=7, minute=30, second=0, microsecond=0)
+                if target <= now:
+                    target += datetime.timedelta(days=1)
+                time.sleep(max(60, (target - now).total_seconds()))
+                sync_mrt_revenues(days=35)
+                print("[mrt] 일일 수익 동기화 완료")
+            except Exception as e:
+                print("[mrt] 수익 동기화 루프 오류:", e)
+                time.sleep(3600)
+    threading.Thread(target=loop, daemon=True).start()
 
 
 class BreakdownRequest(BaseModel):

@@ -71,7 +71,7 @@ function SaveButton({ onSave, saved }) {
   )
 }
 
-export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading, onRequestBreakdown }) {
+export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading, onRequestBreakdown, onBreakdownExpanded }) {
   const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = data
   const hasBreakdown = breakdown && breakdown.length > 0
 
@@ -87,6 +87,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
     track('breakdown_expand', { text_length: japanese.length })
     setExpanded(true)
     if (!hasBreakdown) onRequestBreakdown?.()   // 아직 없으면 이때 1회 호출
+    onBreakdownExpanded?.()   // 여행 추천 팝업 트리거 armed
   }
 
   // 펼친 직후 + 분해 콘텐츠가 실제로 그려진 뒤, 누른 자리(분해 섹션)를 화면 상단으로

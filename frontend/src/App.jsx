@@ -11,7 +11,7 @@ import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
 import TravelAffiliate from './components/TravelAffiliate'
-import ContextualTravel from './components/ContextualTravel'
+import TravelPopup from './components/TravelPopup'
 import BottomNav from './components/BottomNav'
 import SavesPage from './components/SavesPage'
 import ProfilePage from './components/ProfilePage'
@@ -235,6 +235,7 @@ export default function App() {
   const [loading, setLoading]         = useState(false)
   const [result, setResult]           = useState(null)
   const [breakdownLoading, setBreakdownLoading] = useState(false)
+  const [breakdownExpanded, setBreakdownExpanded] = useState(false)   // 여행 팝업 트리거: 분해 펼침 여부
   const [typing, setTyping]           = useState(false)
   const [inputText, setInputText]     = useState('')
   const [error, setError]             = useState(null)
@@ -340,6 +341,7 @@ export default function App() {
     setLoading(true)
     setError(null)
     setResult(null)
+    setBreakdownExpanded(false)
     setSaved(false)
     setInputText(text)
 
@@ -506,6 +508,7 @@ export default function App() {
   // 입력을 모두 지웠을 때 — 이전 결과/상태 초기화
   function handleClear() {
     setResult(null)
+    setBreakdownExpanded(false)
     setError(null)
     setTyping(false)
     setBreakdownLoading(false)
@@ -692,9 +695,6 @@ export default function App() {
                 }}
               />
 
-              {/* 번역 결과가 여행 관련이면 관련 Klook 상품 맥락 추천 — 번역 버튼 아래, 결과 카드 위 */}
-              {result && <ContextualTravel input={inputText} japanese={result.japanese} />}
-
               {error && <div className="error-box">{error}</div>}
               {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
               {typing && !loading && !result && (
@@ -711,8 +711,11 @@ export default function App() {
                   inputText={inputText}
                   breakdownLoading={breakdownLoading}
                   onRequestBreakdown={() => fetchBreakdown(result, inputText)}
+                  onBreakdownExpanded={() => setBreakdownExpanded(true)}
                 />
               )}
+              {/* 여행 추천 팝업 — 분해 펼친 뒤 아래로 스크롤 시 1회 (여행 문장 한정) */}
+              {result && <TravelPopup input={inputText} japanese={result.japanese} armed={breakdownExpanded} />}
               {/* 동사 감지 시 인스타 강의 CTA — 결과 카드 아래 */}
               {result?.breakdown && (() => {
                 const verbRow = result.breakdown.find(r => r.part_of_speech?.includes('동사'))

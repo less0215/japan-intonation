@@ -9,7 +9,6 @@ import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
-import ReviewRewardPopup from './components/ReviewRewardPopup'
 import AdSenseUnit from './components/AdSenseUnit'
 import BottomNav from './components/BottomNav'
 import SavesPage from './components/SavesPage'
@@ -246,7 +245,6 @@ export default function App() {
   // 빠른 번역(3.1) 토글 — 사용량은 서버(DB)에서 관리, 5시간 롤링 윈도우 리셋
   const [selectedModel, setSelectedModel] = useState('basic')
   const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
-  const [showReviewReward, setShowReviewReward] = useState(false)   // 빠른 번역 소진 회원 → 후기 이용권 팝업
   // 서버에서 받은 사용량 상태
   const [fastUsedPct, setFastUsedPct] = useState(0)
   const [fastLocked, setFastLocked] = useState(false)        // 현재 윈도우 한도 소진
@@ -385,17 +383,11 @@ export default function App() {
         if (typeof data.fast_used_pct === 'number') setFastUsedPct(data.fast_unlimited ? 0 : data.fast_used_pct)
         if (typeof data.fast_reset_sec === 'number') setFastResetSec(data.fast_reset_sec)
         if (data.fast_limited) {
-          // 한도 초과 → 기본 번역 폴백 + 후기 팝업 + 충전 시점 로컬 알림 예약
+          // 한도 초과 → 기본 번역 폴백 + 충전 시점 로컬 알림 예약
           setFastLocked(true)
           setSelectedModel('basic')
           track('fast_limit_reached')
           scheduleFastResetNotification(data.fast_reset_sec)
-          try {
-            if (localStorage.getItem('tickjapan_review_reward_dismissed') !== '1') {
-              setShowReviewReward(true)
-              track('review_reward_shown')
-            }
-          } catch { setShowReviewReward(true) }
         }
       }
       // GA4 커스텀 이벤트 전송
@@ -653,7 +645,6 @@ export default function App() {
               user={user}
               fastUnlimited={fastUnlimited}
               isApp={isApp}
-              onReviewReward={() => { track('review_reward_open_menu'); setShowReviewReward(true) }}
               onLogout={handleLogout}
               onDeleteAccount={() => setShowDeleteAccount(true)}
               onLogin={handleLoginClick}
@@ -842,16 +833,6 @@ export default function App() {
         />
       )}
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}
-      {showReviewReward && (
-        <ReviewRewardPopup
-          onClose={() => setShowReviewReward(false)}
-          onDismissForever={() => {
-            try { localStorage.setItem('tickjapan_review_reward_dismissed', '1') } catch {}
-            setShowReviewReward(false)
-            track('review_reward_dismissed')
-          }}
-        />
-      )}
       {/* 첫 방문 앱 다운로드 유도 — 웹 + 다운로드 페이지 아님 */}
       {!isApp && !isDownload && <AppDownloadPromo onDownload={() => navigate('/download')} />}
       {/* 안드로이드 출시 시 알림 신청 회원에게 노출 (현재 플래그 OFF) */}

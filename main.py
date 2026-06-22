@@ -882,11 +882,15 @@ MRT_BASE = "https://partner-ext-api.myrealtrip.com"
 # 큐레이션 타깃 — 내부 카테고리별로 어떤 상품을 모을지 정의 (필요 시 자유롭게 수정)
 # cat_hint: tna/categories 응답에서 적합한 category value를 고르기 위한 라벨 힌트
 MRT_TARGETS = [
-    {"cat": "experience", "city": "도쿄",   "keyword": "도쿄 체험",       "cat_hint": ["ticket", "투어", "티켓", "액티비티"], "keywords": "스시,초밥,기모노,유카타,체험,요리,도자기"},
-    {"cat": "park",       "city": "오사카", "keyword": "유니버설 스튜디오", "cat_hint": ["ticket", "티켓", "입장권"],         "keywords": "유니버설,유니버셜,usj,디즈니,지브리,놀이공원,입장권"},
-    {"cat": "pass",       "city": "오사카", "keyword": "교통 패스",        "cat_hint": ["ticket", "교통", "패스", "티켓"],     "keywords": "jr,신칸센,패스,전철,지하철,기차,교통,역까지"},
-    {"cat": "general",    "city": "오사카", "keyword": "오사카 투어",      "cat_hint": ["tour", "투어"],                      "keywords": "오사카,도쿄,교토,후지,여행,관광,투어,일정"},
+    {"cat": "experience", "city": "도쿄",   "keyword": "일본 기모노 체험",            "cat_hint": ["ticket", "투어", "티켓", "액티비티"], "keywords": "기모노,유카타,전통,사진,체험"},
+    {"cat": "experience", "city": "도쿄",   "keyword": "도쿄 스시 만들기 체험",        "cat_hint": ["ticket", "투어", "티켓", "액티비티"], "keywords": "스시,초밥,요리,쿠킹,만들기,체험"},
+    {"cat": "park",       "city": "오사카", "keyword": "오사카 유니버설 스튜디오 재팬", "cat_hint": ["ticket", "티켓", "입장권"],         "keywords": "유니버설,유니버셜,usj,놀이공원,입장권,테마파크"},
+    {"cat": "pass",       "city": "오사카", "keyword": "일본 JR 패스",               "cat_hint": ["ticket", "교통", "패스", "티켓"],     "keywords": "jr,신칸센,패스,전철,지하철,기차,교통,역까지"},
+    {"cat": "general",    "city": "오사카", "keyword": "오사카 교토 투어",            "cat_hint": ["tour", "투어"],                      "keywords": "오사카,도쿄,교토,후지,여행,관광,투어,일정"},
 ]
+
+# 비(非)일본 상품 혼입 방지 — 제목에 아래 지명이 있으면 제외 (검색이 글로벌 결과를 섞어줄 때 가드)
+MRT_EXCLUDE_TITLE = ["베이징", "싱가포르", "리스보아", "리스본", "타이베이", "방콕", "홍콩", "마카오", "상하이", "베트남", "다낭", "세부", "발리", "괌", "하와이"]
 
 def _to_int(x) -> int:
     """가격 등 정수화 — 문자열/콤마/None 안전 처리."""
@@ -942,6 +946,9 @@ def refresh_mrt_catalog():
     db = SessionLocal()
     summary = []
     try:
+        # 시작 시 전체 비활성화 1회 (같은 cat에 타깃 여러 개 허용)
+        db.query(MrtProduct).update({"active": 0})
+        db.commit()
         for t in MRT_TARGETS:
             # 1) 카테고리 조회 (도시마다 value 다름 → 하드코딩 금지)
             catval = None
@@ -968,14 +975,18 @@ def refresh_mrt_catalog():
             except HTTPException as e:
                 summary.append({"cat": t["cat"], "error": f"search: {e.detail}"}); continue
 
-            # 3) 기존 동일 카테고리 비활성화 후 신규 저장(+마이링크)
-            db.query(MrtProduct).filter(MrtProduct.cat == t["cat"]).update({"active": 0})
+            # 3) 신규 저장(+마이링크). 비일본 상품은 제외.
             saved = 0
-            for idx, it in enumerate(items[:6]):
+            for idx, it in enumerate(items[:8]):
+                title = it.get("itemName") or it.get("title") or ""
+                if any(x in title for x in MRT_EXCLUDE_TITLE):
+                    continue
                 gid = str(it.get("gid") or it.get("itemId") or "")
                 purl = it.get("productUrl") or (f"https://www.myrealtrip.com/offers/{gid}" if gid else None)
                 if not purl:
                     continue
+                if saved >= 6:
+                    break
                 mylink, mylink_id = mrt_create_mylink(purl)
                 db.add(MrtProduct(
                     cat=t["cat"], gid=gid,

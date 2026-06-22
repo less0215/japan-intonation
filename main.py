@@ -1044,20 +1044,6 @@ def mrt_refresh(key: str = ""):
     return refresh_mrt_catalog()
 
 
-@app.get("/mrt/diag")
-def mrt_diag(key: str = ""):
-    """환경변수 가시성 진단 — 값은 노출하지 않고 존재 여부/길이만 (임시)."""
-    if key != FAST_ADMIN_KEY:
-        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
-    mk = os.environ.get("MRT_API_KEY")
-    return {
-        "mrt_key_present": bool(mk),
-        "mrt_key_len": len(mk) if mk else 0,
-        "gemini_present": bool(os.environ.get("GEMINI_API_KEY")),
-        "env_keys_with_MRT": [k for k in os.environ.keys() if "MRT" in k.upper()],
-    }
-
-
 class BreakdownRequest(BaseModel):
     japanese: str
 

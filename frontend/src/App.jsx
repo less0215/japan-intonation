@@ -9,7 +9,6 @@ import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
-import ReviewRewardPopup from './components/ReviewRewardPopup'
 import AdConsentPopup from './components/AdConsentPopup'
 import { showRewardedAd } from './ads'
 import AdSenseUnit from './components/AdSenseUnit'
@@ -248,7 +247,6 @@ export default function App() {
   // 빠른 번역(3.1) 토글 — 사용량은 서버(DB)에서 관리, 5시간 롤링 윈도우 리셋
   const [selectedModel, setSelectedModel] = useState('basic')
   const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
-  const [showReviewReward, setShowReviewReward] = useState(false)   // 빠른 번역 소진 회원 → 후기 이용권 팝업
   // 앱 보상형 광고: 팝업 상태({mode}) + 이번 세션 광고 시청 완료 여부(앱 재시작 시 초기화)
   const [adPopup, setAdPopup] = useState(null)
   const [sessionFastUnlocked, setSessionFastUnlocked] = useState(false)
@@ -484,7 +482,7 @@ export default function App() {
         if (typeof data.fast_used_pct === 'number') setFastUsedPct(data.fast_unlimited ? 0 : data.fast_used_pct)
         if (typeof data.fast_reset_sec === 'number') setFastResetSec(data.fast_reset_sec)
         if (data.fast_limited) {
-          // 한도 초과 → 기본 번역 폴백 + 후기 팝업 + 충전 시점 로컬 알림 예약
+          // 한도 초과 → 기본 번역 폴백 + 충전 시점 로컬 알림 예약
           setFastLocked(true)
           setSelectedModel('basic')
           track('fast_limit_reached')
@@ -493,13 +491,6 @@ export default function App() {
             // 앱: 광고 보고 5시간 기다리지 않고 즉시 해제
             setAdPopup({ mode: 'unlock5h' })
             track('fast_ad_prompt', { mode: 'unlock5h' })
-          } else {
-            try {
-              if (localStorage.getItem('tickjapan_review_reward_dismissed') !== '1') {
-                setShowReviewReward(true)
-                track('review_reward_shown')
-              }
-            } catch { setShowReviewReward(true) }
           }
         }
       }
@@ -763,7 +754,6 @@ export default function App() {
               user={user}
               fastUnlimited={fastUnlimited}
               isApp={isApp}
-              onReviewReward={() => { track('review_reward_open_menu'); setShowReviewReward(true) }}
               onLogout={handleLogout}
               onDeleteAccount={() => setShowDeleteAccount(true)}
               onLogin={handleLoginClick}
@@ -952,16 +942,6 @@ export default function App() {
         />
       )}
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}
-      {showReviewReward && (
-        <ReviewRewardPopup
-          onClose={() => setShowReviewReward(false)}
-          onDismissForever={() => {
-            try { localStorage.setItem('tickjapan_review_reward_dismissed', '1') } catch {}
-            setShowReviewReward(false)
-            track('review_reward_dismissed')
-          }}
-        />
-      )}
       {/* 보상형 광고 양해 팝업 (앱 전용) */}
       {adPopup && (
         <AdConsentPopup

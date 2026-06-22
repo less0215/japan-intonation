@@ -11,6 +11,7 @@ import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
 import TravelAffiliate from './components/TravelAffiliate'
+import ContextualTravel from './components/ContextualTravel'
 import BottomNav from './components/BottomNav'
 import SavesPage from './components/SavesPage'
 import ProfilePage from './components/ProfilePage'
@@ -758,6 +759,8 @@ export default function App() {
                   onRequestBreakdown={() => fetchBreakdown(result, inputText)}
                 />
               )}
+              {/* 번역 결과가 여행 관련이면 관련 Klook 상품 맥락 추천 */}
+              {result && <ContextualTravel input={inputText} japanese={result.japanese} />}
               {/* 번역 결과 카드 아래 광고 (웹 전용) — 핵심 가치 소비 직후 */}
               {result && <AdSenseUnit slot="1147239321" style={{ marginTop: 4 }} />}
 

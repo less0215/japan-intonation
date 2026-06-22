@@ -26,6 +26,8 @@ if (isApp) {
       AppsFlyer.logEvent({ eventName, eventValue }).catch(() => {})
     }
   })
+  // AdMob 보상형 광고 초기화 (현재 테스트 광고)
+  import('./ads').then(({ initAds }) => initAds())
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

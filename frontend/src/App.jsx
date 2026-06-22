@@ -10,6 +10,8 @@ import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import ReviewRewardPopup from './components/ReviewRewardPopup'
+import AdConsentPopup from './components/AdConsentPopup'
+import { showRewardedAd } from './ads'
 import AdSenseUnit from './components/AdSenseUnit'
 import BottomNav from './components/BottomNav'
 import SavesPage from './components/SavesPage'
@@ -247,15 +249,18 @@ export default function App() {
   const [selectedModel, setSelectedModel] = useState('basic')
   const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
   const [showReviewReward, setShowReviewReward] = useState(false)   // 빠른 번역 소진 회원 → 후기 이용권 팝업
+  // 앱 보상형 광고: 팝업 상태({mode}) + 이번 세션 광고 시청 완료 여부(앱 재시작 시 초기화)
+  const [adPopup, setAdPopup] = useState(null)
+  const [sessionFastUnlocked, setSessionFastUnlocked] = useState(false)
   // 서버에서 받은 사용량 상태
   const [fastUsedPct, setFastUsedPct] = useState(0)
   const [fastLocked, setFastLocked] = useState(false)        // 현재 윈도우 한도 소진
   const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
   const fastUnlimited = !!user?.fast_unlimited
 
-  // 무제한 회원은 빠른 번역을 기본 ON
+  // 무제한 회원은 빠른 번역을 기본 ON (웹 한정 — 앱은 세션당 보상형 광고 1회 후 켜짐)
   useEffect(() => {
-    if (user?.fast_unlimited) setSelectedModel('fast')
+    if (user?.fast_unlimited && !isApp) setSelectedModel('fast')
   }, [user?.fast_unlimited])
 
   // 로그인 회원의 빠른 번역 사용량 조회 (진입·로그인 시)
@@ -282,8 +287,40 @@ export default function App() {
       track('fast_login_required')
       return
     }
+    // 앱: 이번 세션 첫 활성화는 보상형 광고 시청 후 (웹은 광고 없이 바로)
+    if (isApp && !sessionFastUnlocked) {
+      setAdPopup({ mode: 'enable' })
+      track('fast_ad_prompt', { mode: 'enable' })
+      return
+    }
     setSelectedModel('fast')
     track('fast_enabled')
+  }
+
+  // 보상형 광고 시청 → 빠른 번역 켜기 (앱 전용)
+  async function watchAdEnable() {
+    const ok = await showRewardedAd()
+    if (!ok) return                 // 보상 미지급(중도 닫기 등) → 변화 없음
+    setSessionFastUnlocked(true)
+    setAdPopup(null)
+    setSelectedModel('fast')
+    track('fast_enabled', { via: 'ad' })
+  }
+
+  // 보상형 광고 시청 → 5시간 한도 즉시 해제 후 다시 빠른 번역 켜기 (앱 전용)
+  async function watchAdUnlock5h() {
+    const ok = await showRewardedAd()
+    if (!ok) return
+    try {
+      if (user?.user_id) await fetch(`${API_URL}/fast-usage/${user.user_id}/reset`, { method: 'POST' })
+    } catch {}
+    setFastLocked(false)
+    setFastUsedPct(0)
+    setFastResetSec(0)
+    setSessionFastUnlocked(true)
+    setAdPopup(null)
+    setSelectedModel('fast')
+    track('fast_5h_unlocked', { via: 'ad' })
   }
 
   // 비로그인 번역 횟수 — localStorage 기반, 3회 초과 시 로그인 유도
@@ -390,12 +427,18 @@ export default function App() {
           setSelectedModel('basic')
           track('fast_limit_reached')
           scheduleFastResetNotification(data.fast_reset_sec)
-          try {
-            if (localStorage.getItem('tickjapan_review_reward_dismissed') !== '1') {
-              setShowReviewReward(true)
-              track('review_reward_shown')
-            }
-          } catch { setShowReviewReward(true) }
+          if (isApp) {
+            // 앱: 광고 보고 5시간 기다리지 않고 즉시 해제
+            setAdPopup({ mode: 'unlock5h' })
+            track('fast_ad_prompt', { mode: 'unlock5h' })
+          } else {
+            try {
+              if (localStorage.getItem('tickjapan_review_reward_dismissed') !== '1') {
+                setShowReviewReward(true)
+                track('review_reward_shown')
+              }
+            } catch { setShowReviewReward(true) }
+          }
         }
       }
       // GA4 커스텀 이벤트 전송
@@ -506,7 +549,11 @@ export default function App() {
     // 저장 모드일 때만 자동 저장
     if (signupMode === 'save' && result) doSave(newUser, inputText, result)
     // 빠른 번역 로그인 흐름 → 로그인 후 바로 활성화
-    if (pendingFast) { setSelectedModel('fast'); setPendingFast(false); track('fast_enabled') }
+    if (pendingFast) {
+      setPendingFast(false)
+      if (isApp) { setAdPopup({ mode: 'enable' }); track('fast_ad_prompt', { mode: 'enable' }) }
+      else { setSelectedModel('fast'); track('fast_enabled') }
+    }
   }
 
   // 입력을 모두 지웠을 때 — 이전 결과/상태 초기화
@@ -850,6 +897,14 @@ export default function App() {
             setShowReviewReward(false)
             track('review_reward_dismissed')
           }}
+        />
+      )}
+      {/* 보상형 광고 양해 팝업 (앱 전용) */}
+      {adPopup && (
+        <AdConsentPopup
+          mode={adPopup.mode}
+          onWatch={adPopup.mode === 'unlock5h' ? watchAdUnlock5h : watchAdEnable}
+          onClose={() => { setAdPopup(null); track('fast_ad_dismissed', { mode: adPopup.mode }) }}
         />
       )}
       {/* 첫 방문 앱 다운로드 유도 — 웹 + 다운로드 페이지 아님 */}

@@ -814,6 +814,27 @@ def fast_usage(user_id: int):
     return get_fast_usage(user_id)
 
 
+@app.post("/fast-usage/{user_id}/reset")
+def fast_usage_reset(user_id: int):
+    """보상형 광고 시청 보상: 5시간 윈도우를 즉시 초기화(count=0, 새 윈도우 시작).
+    앱에서 '소진 시 광고 보고 지금 바로 켜기' 보상으로 호출한다.
+    (주의: 현재는 클라이언트 호출 기반. 추후 AdMob 서버 사이드 검증(SSV)으로 강화 예정.)"""
+    db = SessionLocal()
+    try:
+        now = now_kst()
+        row = db.query(FastUsage).filter(FastUsage.user_id == user_id).first()
+        if row is None:
+            row = FastUsage(user_id=user_id, window_start=now, count=0)
+            db.add(row)
+        else:
+            row.window_start = now
+            row.count = 0
+        db.commit()
+        return {"ok": True, "pct": 0, "remaining": FAST_WINDOW_LIMIT, "reset_in_sec": FAST_WINDOW_SEC}
+    finally:
+        db.close()
+
+
 # 무제한 회원 조회용 관리 토큰 (개인정보 노출 방지)
 FAST_ADMIN_KEY = "tickjapan-admin-9f3a2b"
 

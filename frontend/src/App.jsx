@@ -10,6 +10,7 @@ import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
+import TravelAffiliate from './components/TravelAffiliate'
 import BottomNav from './components/BottomNav'
 import SavesPage from './components/SavesPage'
 import ProfilePage from './components/ProfilePage'
@@ -804,6 +805,8 @@ export default function App() {
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197', margin: '4px 2px 0' }}>오늘의 학습</span>
                   {dailyVerb    && <DailyVerbCard    verb={dailyVerb}       onNavigate={navigate} />}
                   {dailyGrammar && <DailyGrammarCard grammar={dailyGrammar} onNavigate={navigate} />}
+                  {/* 일본 여행 준비 — Klook 제휴 추천 */}
+                  <TravelAffiliate />
                   {/* 학습 콘텐츠 영역 하단 광고 (웹 전용) */}
                   <AdSenseUnit slot="2450758307" style={{ marginTop: 4 }} />
                 </>

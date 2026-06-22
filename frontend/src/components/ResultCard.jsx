@@ -81,11 +81,21 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
   // 문장 분해는 기본 접힘 — 펼칠 때만 실제 호출(온디맨드)
   const [expanded, setExpanded]     = useState(false)
 
+  const breakdownRef = useRef(null)
+
   function handleExpandBreakdown() {
     track('breakdown_expand', { text_length: japanese.length })
     setExpanded(true)
     if (!hasBreakdown) onRequestBreakdown?.()   // 아직 없으면 이때 1회 호출
   }
+
+  // 펼친 직후 + 분해 콘텐츠가 실제로 그려진 뒤, 누른 자리(분해 섹션)를 화면 상단으로
+  useEffect(() => {
+    if (!expanded) return
+    requestAnimationFrame(() => {
+      breakdownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [expanded, hasBreakdown])
 
   // 새 번역(다른 문장)이 오면 분해 다시 접기
   useEffect(() => { setExpanded(false); setShowDetail(false) }, [japanese])
@@ -162,7 +172,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
       <hr className="divider" />
 
       {/* 섹션 2: 문장 분해 — 기본 접힘(정적 예시), 펼칠 때만 실제 호출 */}
-      <div className="section">
+      <div className="section" ref={breakdownRef} style={{ scrollMarginTop: 12 }}>
         <div className="section-header">
           <span className="section-label">문장 분해</span>
           {expanded && hasBreakdown && (

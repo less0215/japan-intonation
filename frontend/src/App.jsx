@@ -280,17 +280,23 @@ export default function App() {
   // '빠른 번역' 토글 — 로그인 회원만. 비회원이면 로그인 모달
   function handleFastToggle() {
     if (selectedModel === 'fast') { setSelectedModel('basic'); return }   // 끄기
+    // 앱: 로그인 여부와 무관하게 광고 보고 빠른 번역 켜기 (회원가입보다 광고 우선)
+    if (isApp) {
+      if (!sessionFastUnlocked) {
+        setAdPopup({ mode: 'enable' })
+        track('fast_ad_prompt', { mode: 'enable', guest: !user })
+        return
+      }
+      setSelectedModel('fast')
+      track('fast_enabled', { guest: !user })
+      return
+    }
+    // 웹: 보상형 광고가 없으므로 비로그인은 기존대로 로그인 유도
     if (!user) {
       setPendingFast(true)
       setSignupMode('fast')
       setShowSignup(true)
       track('fast_login_required')
-      return
-    }
-    // 앱: 이번 세션 첫 활성화는 보상형 광고 시청 후 (웹은 광고 없이 바로)
-    if (isApp && !sessionFastUnlocked) {
-      setAdPopup({ mode: 'enable' })
-      track('fast_ad_prompt', { mode: 'enable' })
       return
     }
     setSelectedModel('fast')
@@ -381,7 +387,8 @@ export default function App() {
     setInputText(text)
 
     // 빠른 번역 여부만 서버에 전달 — 한도 차감·리셋·폴백은 서버가 판정
-    const useModel = (selectedModel === 'fast' && user) ? 'fast' : 'basic'
+    // 빠른 번역: 로그인 회원 OR 앱에서 광고로 잠금해제한 비로그인 세션
+    const useModel = (selectedModel === 'fast' && (user || sessionFastUnlocked)) ? 'fast' : 'basic'
 
     const fetchAnalyze = () =>
       fetch(`${API_URL}/analyze`, {

@@ -759,6 +759,9 @@ def analyze(req: AnalyzeRequest):
             usage_fields["model_used"] = "fast"
         else:
             usage_fields["fast_limited"] = True   # 한도 초과 → 기본 번역으로 폴백
+    elif want_fast and not req.user_id:
+        # 비로그인: 보상형 광고 시청 후 세션 한정 빠른 번역 (서버 사용량 추적 없음)
+        usage_fields["model_used"] = "fast"
     model_key = usage_fields["model_used"]   # 'fast' or 'basic'
 
     def _with_usage(resp: AnalyzeResponse) -> AnalyzeResponse:

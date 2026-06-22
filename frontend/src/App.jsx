@@ -10,6 +10,7 @@ import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import ReviewRewardPopup from './components/ReviewRewardPopup'
+import AdSenseUnit from './components/AdSenseUnit'
 import BottomNav from './components/BottomNav'
 import SavesPage from './components/SavesPage'
 import ProfilePage from './components/ProfilePage'
@@ -765,6 +766,8 @@ export default function App() {
                   onRequestBreakdown={() => fetchBreakdown(result, inputText)}
                 />
               )}
+              {/* 번역 결과 카드 아래 광고 (웹 전용) — 핵심 가치 소비 직후 */}
+              {result && <AdSenseUnit slot="1147239321" style={{ marginTop: 4 }} />}
 
               {/* 결과/입력 전 홈 화면 — 앱 사용 안내 + 품사 단어 목록 바 + 오늘의 단어 */}
               {!hasContent && (
@@ -810,6 +813,8 @@ export default function App() {
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197', margin: '4px 2px 0' }}>오늘의 학습</span>
                   {dailyVerb    && <DailyVerbCard    verb={dailyVerb}       onNavigate={navigate} />}
                   {dailyGrammar && <DailyGrammarCard grammar={dailyGrammar} onNavigate={navigate} />}
+                  {/* 학습 콘텐츠 영역 하단 광고 (웹 전용) */}
+                  <AdSenseUnit slot="2450758307" style={{ marginTop: 4 }} />
                 </>
               )}
             </>

@@ -941,6 +941,16 @@ def mrt_create_mylink(target_url: str):
     except HTTPException:
         return None, None
 
+def _mrt_data_list(resp, key):
+    """MRT 응답 data에서 목록 추출 — data가 {key:[...]} 든 [...] 든 안전 처리."""
+    data = resp.get("data")
+    if isinstance(data, dict):
+        v = data.get(key)
+        return v if isinstance(v, list) else []
+    if isinstance(data, list):
+        return data
+    return []
+
 def refresh_mrt_catalog():
     """큐레이션 배치 — 타깃별로 카테고리 조회→상품 검색→마이링크 발급→DB 갱신. 관리자가 트리거."""
     db = SessionLocal()
@@ -950,56 +960,60 @@ def refresh_mrt_catalog():
         db.query(MrtProduct).update({"active": 0})
         db.commit()
         for t in MRT_TARGETS:
-            # 1) 카테고리 조회 (도시마다 value 다름 → 하드코딩 금지)
-            catval = None
             try:
+                # 1) 카테고리 조회 (도시마다 value 다름 → 하드코딩 금지)
                 cresp = mrt_request("POST", "/v1/products/tna/categories", json_body={"city": t["city"]})
-                cats = (cresp.get("data") or {}).get("categories") or cresp.get("data") or []
+                cats = _mrt_data_list(cresp, "categories")
+                catval = None
                 for c in cats:
+                    if not isinstance(c, dict):
+                        continue
                     label = f"{c.get('label') or c.get('name') or ''} {c.get('value') or ''}"
                     if any(h.lower() in label.lower() for h in t["cat_hint"]):
                         catval = c.get("value"); break
-                if catval is None and cats:
+                if catval is None and cats and isinstance(cats[0], dict):
                     catval = cats[0].get("value")
-            except HTTPException as e:
-                summary.append({"cat": t["cat"], "error": f"categories: {e.detail}"}); continue
-            time.sleep(1)
+                time.sleep(1)
 
-            # 2) 상품 검색 (투어는 page 1-based)
-            sbody = {"keyword": t["keyword"], "sort": "review_score_desc", "page": 1, "size": 8}
-            if catval:
-                sbody["category"] = catval
-            try:
+                # 2) 상품 검색 (투어는 page 1-based)
+                sbody = {"keyword": t["keyword"], "sort": "review_score_desc", "page": 1, "size": 8}
+                if catval:
+                    sbody["category"] = catval
                 sresp = mrt_request("POST", "/v1/products/tna/search", json_body=sbody)
-                items = (sresp.get("data") or {}).get("items") or sresp.get("data") or []
-            except HTTPException as e:
-                summary.append({"cat": t["cat"], "error": f"search: {e.detail}"}); continue
+                items = _mrt_data_list(sresp, "items")
 
-            # 3) 신규 저장(+마이링크). 비일본 상품은 제외.
-            saved = 0
-            for idx, it in enumerate(items[:8]):
-                title = it.get("itemName") or it.get("title") or ""
-                if any(x in title for x in MRT_EXCLUDE_TITLE):
-                    continue
-                gid = str(it.get("gid") or it.get("itemId") or "")
-                purl = it.get("productUrl") or (f"https://www.myrealtrip.com/offers/{gid}" if gid else None)
-                if not purl:
-                    continue
-                if saved >= 6:
-                    break
-                mylink, mylink_id = mrt_create_mylink(purl)
-                db.add(MrtProduct(
-                    cat=t["cat"], gid=gid,
-                    title=it.get("itemName") or it.get("title") or "",
-                    sale_price=_to_int(it.get("salePrice")),
-                    image_url=it.get("imageUrl") or "",
-                    product_url=purl, mylink_url=mylink, mylink_id=mylink_id,
-                    city=t["city"], keywords=t["keywords"], active=1, sort_order=idx,
-                ))
-                saved += 1
-                time.sleep(1)  # 레이트리밋 권장 간격
-            db.commit()
-            summary.append({"cat": t["cat"], "saved": saved})
+                # 3) 신규 저장(+마이링크). 비일본 상품은 제외.
+                saved = 0
+                for idx, it in enumerate(items[:8]):
+                    if not isinstance(it, dict):
+                        continue
+                    title = it.get("itemName") or it.get("title") or ""
+                    if any(x in title for x in MRT_EXCLUDE_TITLE):
+                        continue
+                    gid = str(it.get("gid") or it.get("itemId") or "")
+                    purl = it.get("productUrl") or (f"https://www.myrealtrip.com/offers/{gid}" if gid else None)
+                    if not purl:
+                        continue
+                    if saved >= 6:
+                        break
+                    mylink, mylink_id = mrt_create_mylink(purl)
+                    db.add(MrtProduct(
+                        cat=t["cat"], gid=gid, title=title,
+                        sale_price=_to_int(it.get("salePrice")),
+                        image_url=it.get("imageUrl") or "",
+                        product_url=purl, mylink_url=mylink, mylink_id=mylink_id,
+                        city=t["city"], keywords=t["keywords"], active=1, sort_order=idx,
+                    ))
+                    saved += 1
+                    time.sleep(1)  # 레이트리밋 권장 간격
+                db.commit()
+                summary.append({"cat": t["cat"], "keyword": t["keyword"], "saved": saved})
+            except HTTPException as e:
+                db.rollback()
+                summary.append({"cat": t["cat"], "keyword": t["keyword"], "error": f"http: {e.detail}"})
+            except Exception as e:
+                db.rollback()
+                summary.append({"cat": t["cat"], "keyword": t["keyword"], "error": f"{type(e).__name__}: {e}"})
         return {"ok": True, "summary": summary}
     finally:
         db.close()

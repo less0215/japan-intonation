@@ -692,7 +692,28 @@ export default function App() {
                 }}
               />
 
-              {/* 동사 감지 시 인스타 강의 CTA — 번역 버튼 아래, 결과 카드 위 */}
+              {/* 번역 결과가 여행 관련이면 관련 Klook 상품 맥락 추천 — 번역 버튼 아래, 결과 카드 위 */}
+              {result && <ContextualTravel input={inputText} japanese={result.japanese} />}
+
+              {error && <div className="error-box">{error}</div>}
+              {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
+              {typing && !loading && !result && (
+                <div className="translating-dots" aria-label="번역 준비 중">
+                  <span /><span /><span />
+                </div>
+              )}
+              {loading && <SkeletonCard inputText={inputText} />}
+              {result && (
+                <ResultCard
+                  data={result}
+                  onSave={handleSave}
+                  saved={saved}
+                  inputText={inputText}
+                  breakdownLoading={breakdownLoading}
+                  onRequestBreakdown={() => fetchBreakdown(result, inputText)}
+                />
+              )}
+              {/* 동사 감지 시 인스타 강의 CTA — 결과 카드 아래 */}
               {result?.breakdown && (() => {
                 const verbRow = result.breakdown.find(r => r.part_of_speech?.includes('동사'))
                 if (!verbRow) return null
@@ -706,6 +727,7 @@ export default function App() {
                     rel="noopener noreferrer"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
+                      marginTop: 8,
                       padding: '12px 14px',
                       background: 'linear-gradient(135deg, #fdf0f8 0%, #fff5fb 100%)',
                       border: '1.5px solid #f0c0de',
@@ -740,27 +762,6 @@ export default function App() {
                   </a>
                 )
               })()}
-
-              {error && <div className="error-box">{error}</div>}
-              {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
-              {typing && !loading && !result && (
-                <div className="translating-dots" aria-label="번역 준비 중">
-                  <span /><span /><span />
-                </div>
-              )}
-              {loading && <SkeletonCard inputText={inputText} />}
-              {result && (
-                <ResultCard
-                  data={result}
-                  onSave={handleSave}
-                  saved={saved}
-                  inputText={inputText}
-                  breakdownLoading={breakdownLoading}
-                  onRequestBreakdown={() => fetchBreakdown(result, inputText)}
-                />
-              )}
-              {/* 번역 결과가 여행 관련이면 관련 Klook 상품 맥락 추천 */}
-              {result && <ContextualTravel input={inputText} japanese={result.japanese} />}
               {/* 번역 결과 카드 아래 광고 (웹 전용) — 핵심 가치 소비 직후 */}
               {result && <AdSenseUnit slot="1147239321" style={{ marginTop: 4 }} />}
 

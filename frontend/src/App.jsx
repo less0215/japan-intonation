@@ -347,7 +347,7 @@ export default function App() {
   }
 
   // 비회원 빠른 번역 사용량 — user_id가 없어 localStorage 5시간 윈도우로 추적 (회원과 동일 20회)
-  const FAST_GUEST_LIMIT = 20
+  const FAST_GUEST_LIMIT = 3   // ⚠️ 임시 테스트용 (원래 20) — 재충전 광고 흐름 확인 후 20으로 복구
   const FAST_GUEST_WINDOW_MS = 5 * 3600 * 1000
   function readGuestFast() {
     try {

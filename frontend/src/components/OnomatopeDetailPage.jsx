@@ -22,7 +22,7 @@ export default function OnomatopeDetailPage() {
 
       <button onClick={() => navigate('/onomatope')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: '#8a9197', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', padding: '2px 0 10px' }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-        오노마토페
+        의성어·의태어
       </button>
 
       {/* 헤더 */}

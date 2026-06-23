@@ -806,7 +806,7 @@ export default function App() {
                       { jp: 'な', label: 'な형용사',  sub: 'TOP 100',     path: '/adj-na' },
                       { jp: '名', label: '명사',      sub: 'TOP 100',     path: '/noun' },
                       { jp: '助', label: '조사',      sub: 'TOP 10',      path: '/particles' },
-                      { jp: '音', label: '오노마토페', sub: '의성어·의태어', path: '/onomatope' },
+                      { jp: '音', label: '의성어·의태어', sub: 'JLPT별', path: '/onomatope' },
                     ].map(c => (
                       <button key={c.path} onClick={() => navigate(c.path)} style={{ flex: '0 0 112px', textAlign: 'left', background: '#fff', border: '1px solid #eef1f3', borderRadius: 13, padding: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
                         <div style={{ width: 34, height: 34, borderRadius: 9, background: '#f0f6fa', color: '#7bb4d3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 500 }}>{c.jp}</div>

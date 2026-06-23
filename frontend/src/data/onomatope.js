@@ -14,7 +14,7 @@ export const ONOMATOPE = [
   },
   {
     id: 'wakuwaku', rank: 2, word: 'ワクワク', kana: 'わくわく', reading: '와쿠와쿠',
-    meaning: '두근두근(설렘)', sub: '기대로 마음이 들뜸', category: '감정', icon: 'star', jlpt: null, usage: 'ワクワクする',
+    meaning: '두근두근(설렘)', sub: '기대로 마음이 들뜸', category: '감정', icon: 'star', jlpt: 'N3', approx: true, usage: 'ワクワクする',
     examples: [
       { korean: '여행 생각에 두근두근 설레.', japanese: '旅行のことを考えるとワクワクする。', reading: '료코-노 코토오 칸가에루토 와쿠와쿠스루' },
       { korean: '내일이 너무 기대돼.', japanese: '明日が楽しみでワクワクする。', reading: '아시타가 타노시미데 와쿠와쿠스루' },
@@ -38,7 +38,7 @@ export const ONOMATOPE = [
   },
   {
     id: 'bikkuri', rank: 5, word: 'びっくり', kana: 'びっくり', reading: '빅쿠리',
-    meaning: '깜짝 놀람', sub: '갑작스러운 일에 놀람', category: '감정', icon: 'surprise', jlpt: null, usage: 'びっくりする',
+    meaning: '깜짝 놀람', sub: '갑작스러운 일에 놀람', category: '감정', icon: 'surprise', jlpt: 'N4', approx: true, usage: 'びっくりする',
     examples: [
       { korean: '갑자기 소리가 나서 깜짝 놀랐어.', japanese: '急に音がしてびっくりした。', reading: '큐-니 오토가 시테 빅쿠리시타' },
       { korean: '깜짝 놀랄 만큼 쌌어.', japanese: 'びっくりするほど安かった。', reading: '빅쿠리스루호도 야스캇타' },
@@ -46,7 +46,7 @@ export const ONOMATOPE = [
   },
   {
     id: 'kirakira', rank: 6, word: 'キラキラ', kana: 'きらきら', reading: '키라키라',
-    meaning: '반짝반짝', sub: '빛이 작게 반짝이는 모양', category: '모양', icon: 'sparkle', jlpt: null, usage: 'キラキラする / キラキラ光る',
+    meaning: '반짝반짝', sub: '빛이 작게 반짝이는 모양', category: '모양', icon: 'sparkle', jlpt: 'N3', approx: true, usage: 'キラキラする / キラキラ光る',
     examples: [
       { korean: '별이 반짝반짝 빛나고 있어.', japanese: '星がキラキラ光っている。', reading: '호시가 키라키라 히캇테이루' },
       { korean: '눈이 반짝반짝 빛났다.', japanese: '目がキラキラしていた。', reading: '메가 키라키라시테이타' },
@@ -70,7 +70,7 @@ export const ONOMATOPE = [
   },
   {
     id: 'sakusaku', rank: 9, word: 'サクサク', kana: 'さくさく', reading: '사쿠사쿠',
-    meaning: '바삭바삭', sub: '가볍게 씹히는 식감/소리', category: '식감', icon: 'food', jlpt: null, usage: 'サクサクする / サクサクの〜',
+    meaning: '바삭바삭', sub: '가볍게 씹히는 식감/소리', category: '식감', icon: 'food', jlpt: 'N2', approx: true, usage: 'サクサクする / サクサクの〜',
     examples: [
       { korean: '튀김이 바삭바삭해.', japanese: '天ぷらがサクサクだ。', reading: '텐푸라가 사쿠사쿠다' },
       { korean: '쿠키가 바삭바삭해서 맛있어.', japanese: 'クッキーがサクサクしておいしい。', reading: '쿡키-가 사쿠사쿠시테 오이시이' },
@@ -78,7 +78,7 @@ export const ONOMATOPE = [
   },
   {
     id: 'mochimochi', rank: 10, word: 'もちもち', kana: 'もちもち', reading: '모치모치',
-    meaning: '쫀득쫀득', sub: '말랑하고 탄력 있는 식감', category: '식감', icon: 'food', jlpt: null, usage: 'もちもちする / もちもちの〜',
+    meaning: '쫀득쫀득', sub: '말랑하고 탄력 있는 식감', category: '식감', icon: 'food', jlpt: 'N2', approx: true, usage: 'もちもちする / もちもちの〜',
     examples: [
       { korean: '이 떡은 쫀득쫀득해.', japanese: 'このお餅はもちもちだ。', reading: '코노 오모치와 모치모치다' },
       { korean: '쫀득쫀득한 빵을 좋아해.', japanese: 'もちもちのパンが好きだ。', reading: '모치모치노 판가 스키다' },
@@ -118,7 +118,7 @@ export const ONOMATOPE = [
   },
   {
     id: 'gorogoro', rank: 15, word: 'ゴロゴロ', kana: 'ごろごろ', reading: '고로고로',
-    meaning: '빈둥빈둥 / 우르릉', sub: '뒹굴거림, 또는 천둥 소리', category: '소리', icon: 'sound', jlpt: null, usage: 'ゴロゴロする',
+    meaning: '빈둥빈둥 / 우르릉', sub: '뒹굴거림, 또는 천둥 소리', category: '소리', icon: 'sound', jlpt: 'N3', approx: true, usage: 'ゴロゴロする',
     examples: [
       { korean: '주말엔 집에서 빈둥거렸어.', japanese: '週末は家でゴロゴロしていた。', reading: '슈-마츠와 이에데 고로고로시테이타' },
       { korean: '천둥이 우르릉 울렸다.', japanese: '雷がゴロゴロ鳴った。', reading: '카미나리가 고로고로 낫타' },
@@ -126,7 +126,7 @@ export const ONOMATOPE = [
   },
   {
     id: 'wanwan', rank: 16, word: 'ワンワン', kana: 'わんわん', reading: '완완',
-    meaning: '멍멍', sub: '개 짖는 소리', category: '소리', icon: 'dog', jlpt: null, usage: 'ワンワン(吠える)',
+    meaning: '멍멍', sub: '개 짖는 소리', category: '소리', icon: 'dog', jlpt: 'N4', approx: true, usage: 'ワンワン(吠える)',
     examples: [
       { korean: '개가 멍멍 짖고 있어.', japanese: '犬がワンワン吠えている。', reading: '이누가 완완 호에테이루' },
       { korean: '멍멍 소리가 들려.', japanese: 'ワンワンという声が聞こえる。', reading: '완완토 이우 코에가 키코에루' },

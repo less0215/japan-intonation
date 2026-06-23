@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
+import JlptBadge from './JlptBadge'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
 import { ExampleAnalysis } from './BreakdownPanel'
@@ -216,12 +217,15 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
         padding: '18px 20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{
-            fontSize: 11, fontWeight: 700, color: PRIMARY,
-            background: `${PRIMARY}18`, borderRadius: 8, padding: '2px 8px',
-          }}>
-            {posLabel} #{item.rank}위
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <JlptBadge level={item.jlpt} />
+            <span style={{
+              fontSize: 11, fontWeight: 700, color: PRIMARY,
+              background: `${PRIMARY}18`, borderRadius: 8, padding: '2px 8px',
+            }}>
+              {posLabel} #{item.rank}위
+            </span>
+          </div>
           <WordBookmarkButton wordInfo={{ id: item.id, category: wordType, word: item.verb ?? item.word, reading: item.reading, meaning: item.meaning }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>

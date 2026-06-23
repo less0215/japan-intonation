@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { BreakdownTable, BreakdownCards, DetailToggleButton, ExampleAnalysis } from './BreakdownPanel'
 import { track } from '../App'
+import JlptBadge from './JlptBadge'
 import PitchGraph from './PitchGraph'
 import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
@@ -441,12 +442,15 @@ export default function VerbDetail({ verb, onBack }) {
         padding: '18px 20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{
-            fontSize: 11, fontWeight: 700, color: PRIMARY,
-            background: `${PRIMARY}18`, borderRadius: 8, padding: '2px 8px',
-          }}>
-            동사 #{verb.rank}위
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <JlptBadge level={verb.jlpt} />
+            <span style={{
+              fontSize: 11, fontWeight: 700, color: PRIMARY,
+              background: `${PRIMARY}18`, borderRadius: 8, padding: '2px 8px',
+            }}>
+              동사 #{verb.rank}위
+            </span>
+          </div>
           <WordBookmarkButton wordInfo={{ id: verb.id, category: 'verb', word: verb.verb, reading: verb.reading, meaning: verb.meaning }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>

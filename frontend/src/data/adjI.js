@@ -29,7 +29,7 @@ export const ADJ_I = [
    * 1위  多い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ooi', rank: 1, verb: '多い', reading: '오오이', meaning: '많다',
+    id: 'ooi', rank: 1, verb: '多い', jlpt: 'N5', reading: '오오이', meaning: '많다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -98,7 +98,7 @@ export const ADJ_I = [
    * 2위  高い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'takai', rank: 2, verb: '高い', reading: '타카이', meaning: '높다; 비싸다',
+    id: 'takai', rank: 2, verb: '高い', jlpt: 'N5', reading: '타카이', meaning: '높다; 비싸다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -165,7 +165,7 @@ export const ADJ_I = [
    * 3위  大きい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ookii', rank: 3, verb: '大きい', reading: '오오키이', meaning: '크다',
+    id: 'ookii', rank: 3, verb: '大きい', jlpt: 'N5', reading: '오오키이', meaning: '크다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -231,7 +231,7 @@ export const ADJ_I = [
    * 4위  強い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsuyoi', rank: 4, verb: '強い', reading: '츠요이', meaning: '강하다; 강력하다',
+    id: 'tsuyoi', rank: 4, verb: '強い', jlpt: 'N5', reading: '츠요이', meaning: '강하다; 강력하다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -297,7 +297,7 @@ export const ADJ_I = [
    * 5위  悪い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'warui', rank: 5, verb: '悪い', reading: '와루이', meaning: '나쁘다',
+    id: 'warui', rank: 5, verb: '悪い', jlpt: 'N5', reading: '와루이', meaning: '나쁘다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -363,7 +363,7 @@ export const ADJ_I = [
    * 6위  少ない
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sukunai', rank: 6, verb: '少ない', reading: '스쿠나이', meaning: '적다; 드물다',
+    id: 'sukunai', rank: 6, verb: '少ない', jlpt: 'N5', reading: '스쿠나이', meaning: '적다; 드물다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -429,7 +429,7 @@ export const ADJ_I = [
    * 7위  長い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'nagai', rank: 7, verb: '長い', reading: '나가이', meaning: '길다 (길이·시간)',
+    id: 'nagai', rank: 7, verb: '長い', jlpt: 'N5', reading: '나가이', meaning: '길다 (길이·시간)',
     accentType: 2,
     conjugations: {
       formal: [
@@ -495,7 +495,7 @@ export const ADJ_I = [
    * 8위  早い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hayai', rank: 8, verb: '早い', reading: '하야이', meaning: '빠르다; 이르다',
+    id: 'hayai', rank: 8, verb: '早い', jlpt: 'N5', reading: '하야이', meaning: '빠르다; 이르다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -560,7 +560,7 @@ export const ADJ_I = [
    * 9위  新しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'atarashii', rank: 9, verb: '新しい', reading: '아타라시이', meaning: '새롭다',
+    id: 'atarashii', rank: 9, verb: '新しい', jlpt: 'N5', reading: '아타라시이', meaning: '새롭다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -625,7 +625,7 @@ export const ADJ_I = [
    * 10위  深い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'fukai', rank: 10, verb: '深い', reading: '후카이', meaning: '깊다',
+    id: 'fukai', rank: 10, verb: '深い', jlpt: 'N4', reading: '후카이', meaning: '깊다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -692,7 +692,7 @@ export const ADJ_I = [
    * 11위  若い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'wakai', rank: 11, verb: '若い', reading: '와카이', meaning: '젊다',
+    id: 'wakai', rank: 11, verb: '若い', jlpt: 'N5', reading: '와카이', meaning: '젊다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -757,7 +757,7 @@ export const ADJ_I = [
    * 12위  旨い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'umai', rank: 12, verb: '旨い', reading: '우마이', meaning: '맛있다; 잘하다',
+    id: 'umai', rank: 12, verb: '旨い', jlpt: 'N4', reading: '우마이', meaning: '맛있다; 잘하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -822,7 +822,7 @@ export const ADJ_I = [
    * 13위  凄い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sugoi', rank: 13, verb: '凄い', reading: '스고이', meaning: '대단하다; 굉장하다',
+    id: 'sugoi', rank: 13, verb: '凄い', jlpt: 'N4', reading: '스고이', meaning: '대단하다; 굉장하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -887,7 +887,7 @@ export const ADJ_I = [
    * 14위  小さい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chiisai', rank: 14, verb: '小さい', reading: '치이사이', meaning: '작다',
+    id: 'chiisai', rank: 14, verb: '小さい', jlpt: 'N5', reading: '치이사이', meaning: '작다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -952,7 +952,7 @@ export const ADJ_I = [
    * 15위  楽しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tanoshii', rank: 15, verb: '楽しい', reading: '타노시이', meaning: '즐겁다; 재미있다',
+    id: 'tanoshii', rank: 15, verb: '楽しい', jlpt: 'N5', reading: '타노시이', meaning: '즐겁다; 재미있다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1017,7 +1017,7 @@ export const ADJ_I = [
    * 16위  難しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'muzukashii', rank: 16, verb: '難しい', reading: '무즈카시이', meaning: '어렵다',
+    id: 'muzukashii', rank: 16, verb: '難しい', jlpt: 'N5', reading: '무즈카시이', meaning: '어렵다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -1082,7 +1082,7 @@ export const ADJ_I = [
    * 17위  美味しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'oishii', rank: 17, verb: '美味しい', reading: '오이시이', meaning: '맛있다',
+    id: 'oishii', rank: 17, verb: '美味しい', jlpt: 'N5', reading: '오이시이', meaning: '맛있다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1147,7 +1147,7 @@ export const ADJ_I = [
    * 18위  面白い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'omoshiroi', rank: 18, verb: '面白い', reading: '오모시로이', meaning: '재미있다; 흥미롭다',
+    id: 'omoshiroi', rank: 18, verb: '面白い', jlpt: 'N5', reading: '오모시로이', meaning: '재미있다; 흥미롭다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -1212,7 +1212,7 @@ export const ADJ_I = [
    * 19위  近い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chikai', rank: 19, verb: '近い', reading: '치카이', meaning: '가깝다',
+    id: 'chikai', rank: 19, verb: '近い', jlpt: 'N5', reading: '치카이', meaning: '가깝다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1278,7 +1278,7 @@ export const ADJ_I = [
    * 20위  低い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hikui', rank: 20, verb: '低い', reading: '히쿠이', meaning: '낮다',
+    id: 'hikui', rank: 20, verb: '低い', jlpt: 'N5', reading: '히쿠이', meaning: '낮다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1345,7 +1345,7 @@ export const ADJ_I = [
    * 21위  嬉しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ureshii', rank: 21, verb: '嬉しい', reading: '우레시이', meaning: '기쁘다',
+    id: 'ureshii', rank: 21, verb: '嬉しい', jlpt: 'N4', reading: '우레시이', meaning: '기쁘다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1410,7 +1410,7 @@ export const ADJ_I = [
    * 22위  広い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hiroi', rank: 22, verb: '広い', reading: '히로이', meaning: '넓다',
+    id: 'hiroi', rank: 22, verb: '広い', jlpt: 'N5', reading: '히로이', meaning: '넓다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1475,7 +1475,7 @@ export const ADJ_I = [
    * 23위  美しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'utsukushii', rank: 23, verb: '美しい', reading: '우츠쿠시이', meaning: '아름답다',
+    id: 'utsukushii', rank: 23, verb: '美しい', jlpt: 'N4', reading: '우츠쿠시이', meaning: '아름답다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -1540,7 +1540,7 @@ export const ADJ_I = [
    * 24위  詳しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kuwashii', rank: 24, verb: '詳しい', reading: '쿠와시이', meaning: '자세하다; 정통하다',
+    id: 'kuwashii', rank: 24, verb: '詳しい', jlpt: 'N3', reading: '쿠와시이', meaning: '자세하다; 정통하다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1605,7 +1605,7 @@ export const ADJ_I = [
    * 25위  白い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shiroi', rank: 25, verb: '白い', reading: '시로이', meaning: '하얗다',
+    id: 'shiroi', rank: 25, verb: '白い', jlpt: 'N5', reading: '시로이', meaning: '하얗다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1670,7 +1670,7 @@ export const ADJ_I = [
    * 26위  厳しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kibishii', rank: 26, verb: '厳しい', reading: '키비시이', meaning: '엄격하다; 혹독하다',
+    id: 'kibishii', rank: 26, verb: '厳しい', jlpt: 'N4', reading: '키비시이', meaning: '엄격하다; 혹독하다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1735,7 +1735,7 @@ export const ADJ_I = [
    * 27위  可愛い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kawaii', rank: 27, verb: '可愛い', reading: '카와이이', meaning: '귀엽다',
+    id: 'kawaii', rank: 27, verb: '可愛い', jlpt: 'N5', reading: '카와이이', meaning: '귀엽다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1800,7 +1800,7 @@ export const ADJ_I = [
    * 28위  優しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yasashii', rank: 28, verb: '優しい', reading: '야사시이', meaning: '친절하다; 상냥하다',
+    id: 'yasashii', rank: 28, verb: '優しい', jlpt: 'N4', reading: '야사시이', meaning: '친절하다; 상냥하다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1865,7 +1865,7 @@ export const ADJ_I = [
    * 29위  正しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tadashii', rank: 29, verb: '正しい', reading: '타다시이', meaning: '올바르다',
+    id: 'tadashii', rank: 29, verb: '正しい', jlpt: 'N4', reading: '타다시이', meaning: '올바르다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1930,7 +1930,7 @@ export const ADJ_I = [
    * 30위  酷い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hidoi', rank: 30, verb: '酷い', reading: '히도이', meaning: '심하다; 너무하다',
+    id: 'hidoi', rank: 30, verb: '酷い', jlpt: 'N4', reading: '히도이', meaning: '심하다; 너무하다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1997,7 +1997,7 @@ export const ADJ_I = [
    * 31위  安い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yasui', rank: 31, verb: '安い', reading: '야스이', meaning: '싸다; 저렴하다',
+    id: 'yasui', rank: 31, verb: '安い', jlpt: 'N5', reading: '야스이', meaning: '싸다; 저렴하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2056,7 +2056,7 @@ export const ADJ_I = [
    * 32위  軽い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'karui', rank: 32, verb: '軽い', reading: '카루이', meaning: '가볍다',
+    id: 'karui', rank: 32, verb: '軽い', jlpt: 'N5', reading: '카루이', meaning: '가볍다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2115,7 +2115,7 @@ export const ADJ_I = [
    * 33위  古い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'furui', rank: 33, verb: '古い', reading: '후루이', meaning: '낡다; 오래되다',
+    id: 'furui', rank: 33, verb: '古い', jlpt: 'N5', reading: '후루이', meaning: '낡다; 오래되다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2174,7 +2174,7 @@ export const ADJ_I = [
    * 34위  怖い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kowai', rank: 34, verb: '怖い', reading: '코와이', meaning: '무섭다',
+    id: 'kowai', rank: 34, verb: '怖い', jlpt: 'N4', reading: '코와이', meaning: '무섭다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -2233,7 +2233,7 @@ export const ADJ_I = [
    * 35위  激しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hageshii', rank: 35, verb: '激しい', reading: '하게시이', meaning: '격렬하다; 심하다',
+    id: 'hageshii', rank: 35, verb: '激しい', jlpt: 'N3', reading: '하게시이', meaning: '격렬하다; 심하다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -2292,7 +2292,7 @@ export const ADJ_I = [
    * 36위  重い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'omoi', rank: 36, verb: '重い', reading: '오모이', meaning: '무겁다',
+    id: 'omoi', rank: 36, verb: '重い', jlpt: 'N5', reading: '오모이', meaning: '무겁다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2351,7 +2351,7 @@ export const ADJ_I = [
    * 37위  明るい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'akarui', rank: 37, verb: '明るい', reading: '아카루이', meaning: '밝다',
+    id: 'akarui', rank: 37, verb: '明るい', jlpt: 'N5', reading: '아카루이', meaning: '밝다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2410,7 +2410,7 @@ export const ADJ_I = [
    * 38위  辛い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsurai', rank: 38, verb: '辛い', reading: '츠라이', meaning: '괴롭다; 힘들다',
+    id: 'tsurai', rank: 38, verb: '辛い', jlpt: 'N5', reading: '츠라이', meaning: '괴롭다; 힘들다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2469,7 +2469,7 @@ export const ADJ_I = [
    * 39위  素晴らしい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'subarashii', rank: 39, verb: '素晴らしい', reading: '스바라시이', meaning: '훌륭하다; 멋지다',
+    id: 'subarashii', rank: 39, verb: '素晴らしい', jlpt: 'N4', reading: '스바라시이', meaning: '훌륭하다; 멋지다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -2528,7 +2528,7 @@ export const ADJ_I = [
    * 40위  可笑しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'okashii', rank: 40, verb: '可笑しい', reading: '오카시이', meaning: '이상하다; 웃기다',
+    id: 'okashii', rank: 40, verb: '可笑しい', jlpt: 'N4', reading: '오카시이', meaning: '이상하다; 웃기다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -2588,7 +2588,7 @@ export const ADJ_I = [
    * 41위  寒い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'samui', rank: 41, verb: '寒い', reading: '사무이', meaning: '춥다',
+    id: 'samui', rank: 41, verb: '寒い', jlpt: 'N5', reading: '사무이', meaning: '춥다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -2660,7 +2660,7 @@ export const ADJ_I = [
    * 42위  痛い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'itai', rank: 42, verb: '痛い', reading: '이타이', meaning: '아프다',
+    id: 'itai', rank: 42, verb: '痛い', jlpt: 'N5', reading: '이타이', meaning: '아프다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -2730,7 +2730,7 @@ export const ADJ_I = [
    * 43위  赤い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'akai', rank: 43, verb: '赤い', reading: '아카이', meaning: '빨갛다',
+    id: 'akai', rank: 43, verb: '赤い', jlpt: 'N5', reading: '아카이', meaning: '빨갛다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2801,7 +2801,7 @@ export const ADJ_I = [
    * 44위  短い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mijikai', rank: 44, verb: '短い', reading: '미지카이', meaning: '짧다',
+    id: 'mijikai', rank: 44, verb: '短い', jlpt: 'N5', reading: '미지카이', meaning: '짧다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -2874,7 +2874,7 @@ export const ADJ_I = [
    * 45위  遅い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'osoi', rank: 45, verb: '遅い', reading: '오소이', meaning: '늦다; 느리다',
+    id: 'osoi', rank: 45, verb: '遅い', jlpt: 'N5', reading: '오소이', meaning: '늦다; 느리다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2946,7 +2946,7 @@ export const ADJ_I = [
    * 46위  固い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'katai', rank: 46, verb: '固い', reading: '카타이', meaning: '단단하다; 딱딱하다',
+    id: 'katai', rank: 46, verb: '固い', jlpt: 'N4', reading: '카타이', meaning: '단단하다; 딱딱하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3017,7 +3017,7 @@ export const ADJ_I = [
    * 47위  弱い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yowai', rank: 47, verb: '弱い', reading: '요와이', meaning: '약하다',
+    id: 'yowai', rank: 47, verb: '弱い', jlpt: 'N5', reading: '요와이', meaning: '약하다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -3088,7 +3088,7 @@ export const ADJ_I = [
    * 48위  薄い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'usui', rank: 48, verb: '薄い', reading: '우스이', meaning: '얇다; 옅다',
+    id: 'usui', rank: 48, verb: '薄い', jlpt: 'N5', reading: '우스이', meaning: '얇다; 옅다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3160,7 +3160,7 @@ export const ADJ_I = [
    * 49위  暗い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kurai', rank: 49, verb: '暗い', reading: '쿠라이', meaning: '어둡다',
+    id: 'kurai', rank: 49, verb: '暗い', jlpt: 'N5', reading: '쿠라이', meaning: '어둡다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3232,7 +3232,7 @@ export const ADJ_I = [
    * 50위  黒い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kuroi', rank: 50, verb: '黒い', reading: '쿠로이', meaning: '검다',
+    id: 'kuroi', rank: 50, verb: '黒い', jlpt: 'N5', reading: '쿠로이', meaning: '검다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -3305,7 +3305,7 @@ export const ADJ_I = [
    * 51위  遠い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tooi', rank: 51, verb: '遠い', reading: '토오이', meaning: '멀다',
+    id: 'tooi', rank: 51, verb: '遠い', jlpt: 'N5', reading: '토오이', meaning: '멀다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3379,7 +3379,7 @@ export const ADJ_I = [
    * 52위  甘い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'amai', rank: 52, verb: '甘い', reading: '아마이', meaning: '달다; 달콤하다',
+    id: 'amai', rank: 52, verb: '甘い', jlpt: 'N5', reading: '아마이', meaning: '달다; 달콤하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3453,7 +3453,7 @@ export const ADJ_I = [
    * 53위  温かい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'atatakai', rank: 53, verb: '温かい', reading: '아타타카이', meaning: '따뜻하다',
+    id: 'atatakai', rank: 53, verb: '温かい', jlpt: 'N3', reading: '아타타카이', meaning: '따뜻하다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -3524,7 +3524,7 @@ export const ADJ_I = [
    * 54위  狭い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'semai', rank: 54, verb: '狭い', reading: '세마이', meaning: '좁다',
+    id: 'semai', rank: 54, verb: '狭い', jlpt: 'N5', reading: '세마이', meaning: '좁다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3595,7 +3595,7 @@ export const ADJ_I = [
    * 55위  珍しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mezurashii', rank: 55, verb: '珍しい', reading: '메즈라시이', meaning: '드물다; 신기하다',
+    id: 'mezurashii', rank: 55, verb: '珍しい', jlpt: 'N4', reading: '메즈라시이', meaning: '드물다; 신기하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3666,7 +3666,7 @@ export const ADJ_I = [
    * 56위  寂しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sabishii', rank: 56, verb: '寂しい', reading: '사비시이', meaning: '쓸쓸하다; 외롭다',
+    id: 'sabishii', rank: 56, verb: '寂しい', jlpt: 'N4', reading: '사비시이', meaning: '쓸쓸하다; 외롭다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -3737,7 +3737,7 @@ export const ADJ_I = [
    * 57위  忙しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'isogashii', rank: 57, verb: '忙しい', reading: '이소가시이', meaning: '바쁘다',
+    id: 'isogashii', rank: 57, verb: '忙しい', jlpt: 'N5', reading: '이소가시이', meaning: '바쁘다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3808,7 +3808,7 @@ export const ADJ_I = [
    * 58위  冷たい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsumetai', rank: 58, verb: '冷たい', reading: '츠메타이', meaning: '차갑다',
+    id: 'tsumetai', rank: 58, verb: '冷たい', jlpt: 'N5', reading: '츠메타이', meaning: '차갑다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3879,7 +3879,7 @@ export const ADJ_I = [
    * 59위  暑い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'atsui_natsu', rank: 59, verb: '暑い', reading: '아츠이', meaning: '덥다',
+    id: 'atsui_natsu', rank: 59, verb: '暑い', jlpt: 'N5', reading: '아츠이', meaning: '덥다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -3951,7 +3951,7 @@ export const ADJ_I = [
    * 60위  久しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hisashii', rank: 60, verb: '久しい', reading: '히사시이', meaning: '오랜만이다',
+    id: 'hisashii', rank: 60, verb: '久しい', jlpt: 'N1', reading: '히사시이', meaning: '오랜만이다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4024,7 +4024,7 @@ export const ADJ_I = [
    * 61위  細かい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'komakai', rank: 61, verb: '細かい', reading: '코마카이', meaning: '세세하다; 작다',
+    id: 'komakai', rank: 61, verb: '細かい', jlpt: 'N4', reading: '코마카이', meaning: '세세하다; 작다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4095,7 +4095,7 @@ export const ADJ_I = [
    * 62위  熱い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'atsui_nabe', rank: 62, verb: '熱い', reading: '아츠이', meaning: '뜨겁다',
+    id: 'atsui_nabe', rank: 62, verb: '熱い', jlpt: 'N5', reading: '아츠이', meaning: '뜨겁다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -4167,7 +4167,7 @@ export const ADJ_I = [
    * 63위  悲しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kanashii', rank: 63, verb: '悲しい', reading: '카나시이', meaning: '슬프다',
+    id: 'kanashii', rank: 63, verb: '悲しい', jlpt: 'N4', reading: '카나시이', meaning: '슬프다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -4237,7 +4237,7 @@ export const ADJ_I = [
    * 64위  細い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hosoi', rank: 64, verb: '細い', reading: '호소이', meaning: '가늘다',
+    id: 'hosoi', rank: 64, verb: '細い', jlpt: 'N5', reading: '호소이', meaning: '가늘다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4311,7 +4311,7 @@ export const ADJ_I = [
    * 65위  恐ろしい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'osoroshii', rank: 65, verb: '恐ろしい', reading: '오소로시이', meaning: '무섭다; 끔찍하다',
+    id: 'osoroshii', rank: 65, verb: '恐ろしい', jlpt: 'N3', reading: '오소로시이', meaning: '무섭다; 끔찍하다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -4384,7 +4384,7 @@ export const ADJ_I = [
    * 66위  濃い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'koi', rank: 66, verb: '濃い', reading: '코이', meaning: '진하다; 짙다',
+    id: 'koi', rank: 66, verb: '濃い', jlpt: 'N3', reading: '코이', meaning: '진하다; 짙다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -4457,7 +4457,7 @@ export const ADJ_I = [
    * 67위  宜しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yoroshii', rank: 67, verb: '宜しい', reading: '요로시이', meaning: '좋다; 괜찮다 (정중)',
+    id: 'yoroshii', rank: 67, verb: '宜しい', jlpt: 'N4', reading: '요로시이', meaning: '좋다; 괜찮다 (정중)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4528,7 +4528,7 @@ export const ADJ_I = [
    * 68위  青い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'aoi', rank: 68, verb: '青い', reading: '아오이', meaning: '파랗다; 미숙하다',
+    id: 'aoi', rank: 68, verb: '青い', jlpt: 'N5', reading: '아오이', meaning: '파랗다; 미숙하다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -4601,7 +4601,7 @@ export const ADJ_I = [
    * 69위  恥ずかしい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hazukashii', rank: 69, verb: '恥ずかしい', reading: '하즈카시이', meaning: '부끄럽다; 창피하다',
+    id: 'hazukashii', rank: 69, verb: '恥ずかしい', jlpt: 'N4', reading: '하즈카시이', meaning: '부끄럽다; 창피하다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -4671,7 +4671,7 @@ export const ADJ_I = [
    * 70위  著しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ichijirushii', rank: 70, verb: '著しい', reading: '이치지루시이', meaning: '현저하다; 두드러지다',
+    id: 'ichijirushii', rank: 70, verb: '著しい', jlpt: 'N1', reading: '이치지루시이', meaning: '현저하다; 두드러지다',
     accentType: 5,
     conjugations: {
       formal: [
@@ -4741,7 +4741,7 @@ export const ADJ_I = [
    * 71위  厚い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'atsui_hon', rank: 71, verb: '厚い', reading: '아츠이', meaning: '두껍다',
+    id: 'atsui_hon', rank: 71, verb: '厚い', jlpt: 'N5', reading: '아츠이', meaning: '두껍다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4814,7 +4814,7 @@ export const ADJ_I = [
    * 72위  苦しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kurushii', rank: 72, verb: '苦しい', reading: '쿠루시이', meaning: '괴롭다; 힘들다',
+    id: 'kurushii', rank: 72, verb: '苦しい', jlpt: 'N3', reading: '쿠루시이', meaning: '괴롭다; 힘들다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -4960,7 +4960,7 @@ export const ADJ_I = [
    * 74위  太い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'futoi', rank: 74, verb: '太い', reading: '후토이', meaning: '굵다; 두껍다',
+    id: 'futoi', rank: 74, verb: '太い', jlpt: 'N5', reading: '후토이', meaning: '굵다; 두껍다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5034,7 +5034,7 @@ export const ADJ_I = [
    * 75위  相応しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'fusawashii', rank: 75, verb: '相応しい', reading: '후사와시이', meaning: '어울리다; 적합하다',
+    id: 'fusawashii', rank: 75, verb: '相応しい', jlpt: 'N1', reading: '후사와시이', meaning: '어울리다; 적합하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5107,7 +5107,7 @@ export const ADJ_I = [
    * 76위  偉い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'erai', rank: 76, verb: '偉い', reading: '에라이', meaning: '대단하다; 훌륭하다',
+    id: 'erai', rank: 76, verb: '偉い', jlpt: 'N2', reading: '에라이', meaning: '대단하다; 훌륭하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5181,7 +5181,7 @@ export const ADJ_I = [
    * 77위  鋭い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'surudoi', rank: 77, verb: '鋭い', reading: '스루도이', meaning: '날카롭다; 예리하다',
+    id: 'surudoi', rank: 77, verb: '鋭い', jlpt: 'N3', reading: '스루도이', meaning: '날카롭다; 예리하다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -5253,7 +5253,7 @@ export const ADJ_I = [
    * 78위  有り難い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'arigatai', rank: 78, verb: '有り難い', reading: '아리가타이', meaning: '감사하다; 고맙다',
+    id: 'arigatai', rank: 78, verb: '有り難い', jlpt: 'N2', reading: '아리가타이', meaning: '감사하다; 고맙다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -5324,7 +5324,7 @@ export const ADJ_I = [
    * 79위  物凄い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'monosugoi', rank: 79, verb: '物凄い', reading: '모노스고이', meaning: '굉장하다; 엄청나다',
+    id: 'monosugoi', rank: 79, verb: '物凄い', jlpt: 'N2', reading: '모노스고이', meaning: '굉장하다; 엄청나다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -5397,7 +5397,7 @@ export const ADJ_I = [
    * 80위  懐かしい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'natsukashii', rank: 80, verb: '懐かしい', reading: '나츠카시이', meaning: '그립다; 향수를 느끼다',
+    id: 'natsukashii', rank: 80, verb: '懐かしい', jlpt: 'N2', reading: '나츠카시이', meaning: '그립다; 향수를 느끼다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -5472,7 +5472,7 @@ export const ADJ_I = [
    * 81위  幼い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'osanai', rank: 81, verb: '幼い', reading: '오사나이', meaning: '어리다',
+    id: 'osanai', rank: 81, verb: '幼い', jlpt: 'N3', reading: '오사나이', meaning: '어리다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5547,7 +5547,7 @@ export const ADJ_I = [
    * 82위  きつい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kitsui', rank: 82, verb: 'きつい', reading: '키츠이', meaning: '힘들다; 꽉 끼다',
+    id: 'kitsui', rank: 82, verb: 'きつい', jlpt: 'N3', reading: '키츠이', meaning: '힘들다; 꽉 끼다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5620,7 +5620,7 @@ export const ADJ_I = [
    * 83위  親しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shitashii', rank: 83, verb: '親しい', reading: '시타시이', meaning: '친하다; 친밀하다',
+    id: 'shitashii', rank: 83, verb: '親しい', jlpt: 'N3', reading: '시타시이', meaning: '친하다; 친밀하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5694,7 +5694,7 @@ export const ADJ_I = [
    * 84위  丸い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'marui', rank: 84, verb: '丸い', reading: '마루이', meaning: '둥글다',
+    id: 'marui', rank: 84, verb: '丸い', jlpt: 'N5', reading: '마루이', meaning: '둥글다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5766,7 +5766,7 @@ export const ADJ_I = [
    * 85위  柔らかい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yawarakai', rank: 85, verb: '柔らかい', reading: '야와라카이', meaning: '부드럽다',
+    id: 'yawarakai', rank: 85, verb: '柔らかい', jlpt: 'N4', reading: '야와라카이', meaning: '부드럽다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5838,7 +5838,7 @@ export const ADJ_I = [
    * 86위  望ましい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'nozomashii', rank: 86, verb: '望ましい', reading: '노조마시이', meaning: '바람직하다',
+    id: 'nozomashii', rank: 86, verb: '望ましい', jlpt: 'N1', reading: '노조마시이', meaning: '바람직하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5912,7 +5912,7 @@ export const ADJ_I = [
    * 87위  めでたい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'medetai', rank: 87, verb: 'めでたい', reading: '메데타이', meaning: '경사스럽다; 축하할만하다',
+    id: 'medetai', rank: 87, verb: 'めでたい', jlpt: 'N2', reading: '메데타이', meaning: '경사스럽다; 축하할만하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5983,7 +5983,7 @@ export const ADJ_I = [
    * 88위  素早い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'subayai', rank: 88, verb: '素早い', reading: '스바야이', meaning: '재빠르다; 날렵하다',
+    id: 'subayai', rank: 88, verb: '素早い', jlpt: 'N1', reading: '스바야이', meaning: '재빠르다; 날렵하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6055,7 +6055,7 @@ export const ADJ_I = [
    * 89위  眠い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'nemui', rank: 89, verb: '眠い', reading: '네무이', meaning: '졸리다',
+    id: 'nemui', rank: 89, verb: '眠い', jlpt: 'N4', reading: '네무이', meaning: '졸리다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6126,7 +6126,7 @@ export const ADJ_I = [
    * 90위  怪しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ayashii', rank: 90, verb: '怪しい', reading: '아야시이', meaning: '수상하다; 의심스럽다',
+    id: 'ayashii', rank: 90, verb: '怪しい', jlpt: 'N2', reading: '아야시이', meaning: '수상하다; 의심스럽다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6198,7 +6198,7 @@ export const ADJ_I = [
    * 91위  不味い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mazui', rank: 91, verb: '不味い', reading: '마즈이', meaning: '맛없다; 좋지 않다',
+    id: 'mazui', rank: 91, verb: '不味い', jlpt: 'N5', reading: '마즈이', meaning: '맛없다; 좋지 않다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6268,7 +6268,7 @@ export const ADJ_I = [
    * 92위  煩い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'urusai', rank: 92, verb: '煩い', reading: '우루사이', meaning: '시끄럽다; 귀찮다',
+    id: 'urusai', rank: 92, verb: '煩い', jlpt: 'N5', reading: '우루사이', meaning: '시끄럽다; 귀찮다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6341,7 +6341,7 @@ export const ADJ_I = [
    * 93위  危ない
    * ══════════════════════════════════════════════════ */
   {
-    id: 'abunai', rank: 93, verb: '危ない', reading: '아부나이', meaning: '위험하다',
+    id: 'abunai', rank: 93, verb: '危ない', jlpt: 'N5', reading: '아부나이', meaning: '위험하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6486,7 +6486,7 @@ export const ADJ_I = [
    * 95위  悔しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kuyashii', rank: 95, verb: '悔しい', reading: '쿠야시이', meaning: '억울하다; 분하다',
+    id: 'kuyashii', rank: 95, verb: '悔しい', jlpt: 'N3', reading: '쿠야시이', meaning: '억울하다; 분하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6558,7 +6558,7 @@ export const ADJ_I = [
    * 96위  貧しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mazushii', rank: 96, verb: '貧しい', reading: '마즈시이', meaning: '가난하다',
+    id: 'mazushii', rank: 96, verb: '貧しい', jlpt: 'N3', reading: '마즈시이', meaning: '가난하다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -6632,7 +6632,7 @@ export const ADJ_I = [
    * 97위  等しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hitoshii', rank: 97, verb: '等しい', reading: '히토시이', meaning: '같다; 동등하다',
+    id: 'hitoshii', rank: 97, verb: '等しい', jlpt: 'N3', reading: '히토시이', meaning: '같다; 동등하다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -6706,7 +6706,7 @@ export const ADJ_I = [
    * 98위  軟らかい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yawarakai2', rank: 98, verb: '軟らかい', reading: '야와라카이', meaning: '부드럽다 (식감)',
+    id: 'yawarakai2', rank: 98, verb: '軟らかい', jlpt: 'N2', reading: '야와라카이', meaning: '부드럽다 (식감)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6778,7 +6778,7 @@ export const ADJ_I = [
    * 99위  大人しい
    * ══════════════════════════════════════════════════ */
   {
-    id: 'otonashii', rank: 99, verb: '大人しい', reading: '오토나시이', meaning: '얌전하다; 온순하다',
+    id: 'otonashii', rank: 99, verb: '大人しい', jlpt: 'N3', reading: '오토나시이', meaning: '얌전하다; 온순하다',
     accentType: 4,
     conjugations: {
       formal: [
@@ -6851,7 +6851,7 @@ export const ADJ_I = [
    * 100위  浅い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'asai', rank: 100, verb: '浅い', reading: '아사이', meaning: '얕다',
+    id: 'asai', rank: 100, verb: '浅い', jlpt: 'N4', reading: '아사이', meaning: '얕다',
     accentType: 0,
     conjugations: {
       formal: [

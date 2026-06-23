@@ -5,6 +5,7 @@ import { useUser } from '../context/UserContext'
 import { loadTossPayments } from '@tosspayments/payment-sdk'
 
 const PRIMARY = '#5CA9CE'
+const BUS_FARE = 1500   // 시내버스 한 번 요금 — 가격 앵커링용
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 // 토스 클라이언트키 — Vercel 환경변수 VITE_TOSS_CLIENT_KEY (없으면 교체 안내 더미)
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || 'test_ck_REPLACE_ME'
@@ -84,7 +85,10 @@ export default function SubscriptionPage() {
           <span style={{ fontSize: 16, fontWeight: 700, color: PRIMARY }}>플러스</span>
           <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{p.plus.unit} ₩{p.plus.total.toLocaleString()}</span>
         </div>
-        <p style={{ margin: '8px 0 0', fontSize: 30, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>하루 {p.plus.per}원</p>
+        <p style={{ margin: '8px 0 0', fontSize: 30, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
+          하루 {p.plus.per}원
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-3)', marginLeft: 8, letterSpacing: 0 }}>버스 한 번값({BUS_FARE.toLocaleString()}원)으로 {Math.floor(BUS_FARE / p.plus.per)}일</span>
+        </p>
         {p.plus.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0892a', fontWeight: 500 }}>{p.plus.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />광고 완전 제거</li>
@@ -100,7 +104,10 @@ export default function SubscriptionPage() {
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-strong)' }}>프로</span>
           <span style={{ fontSize: 12.5, color: 'var(--text-2)' }}>{p.pro.unit} ₩{p.pro.total.toLocaleString()}</span>
         </div>
-        <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>하루 {p.pro.per}원</p>
+        <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
+          하루 {p.pro.per}원
+          <span style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--text-3)', marginLeft: 8, letterSpacing: 0 }}>버스 한 번값({BUS_FARE.toLocaleString()}원)으로 {Math.floor(BUS_FARE / p.pro.per)}일</span>
+        </p>
         {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0892a', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {['광고 완전 제거', '빠른 번역 무제한', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (

@@ -12,6 +12,7 @@ const TABS = [
   { key: 'translate', path: '/',        label: '번역',   icon: 'M5 8h14M5 8l3-3M5 8l3 3M19 16H5m14 0l-3-3m3 3l-3 3' },
   { key: 'study',     path: '/study',   label: '학습',   icon: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z M19 3v18' },
   { key: 'saves',     path: '/saves',   label: '저장',   icon: 'M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z' },
+  { key: 'plans',     path: '/plans',   label: '광고 제거', icon: 'M12 3l1.9 4.6L18.5 9l-4.6 1.4L12 15l-1.9-4.6L5.5 9l4.6-1.4L12 3z M12 15v6' },
   { key: 'profile',   path: '/profile', label: '프로필', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21c0-4 4-6 8-6s8 2 8 6' },
 ]
 
@@ -24,6 +25,7 @@ export default function BottomNav({ onHome }) {
     if (p === '/') return 'translate'
     if (STUDY_PATHS.some(sp => p === sp || p.startsWith(sp + '/'))) return 'study'
     if (p.startsWith('/saves')) return 'saves'
+    if (p.startsWith('/plans')) return 'plans'
     if (p.startsWith('/profile')) return 'profile'
     return 'translate'
   }

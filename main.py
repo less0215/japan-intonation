@@ -1198,6 +1198,30 @@ def admin_grant_sub(req: GrantSubRequest):
         db.close()
 
 
+class DeleteUserRequest(BaseModel):
+    admin_phone: str
+    user_id: int
+
+@app.post("/admin/delete-user")
+def admin_delete_user(req: DeleteUserRequest):
+    """관리자 전용 — 특정 계정과 연관 데이터(구독·저장)를 삭제. 테스트 계정 정리용."""
+    if not is_admin_phone(req.admin_phone):
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.id == req.user_id).first()
+        if not u:
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        name = u.name
+        db.query(Subscription).filter(Subscription.user_id == req.user_id).delete()
+        db.query(SavedResult).filter(SavedResult.user_id == req.user_id).delete()
+        db.delete(u)
+        db.commit()
+        return {"ok": True, "deleted_user_id": req.user_id, "name": name}
+    finally:
+        db.close()
+
+
 # 무제한 회원 조회용 관리 토큰 (개인정보 노출 방지)
 FAST_ADMIN_KEY = "tickjapan-admin-9f3a2b"
 

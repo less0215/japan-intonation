@@ -52,7 +52,7 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, color: '#fff' }}>광고 제거 + 빠른 번역</span>
-            <span style={{ display: 'block', fontSize: 12, color: '#eaf5fb', marginTop: 1 }}>프로 하루 163원 · 지금 업그레이드</span>
+            <span style={{ display: 'block', fontSize: 12, color: '#eaf5fb', marginTop: 1 }}>플러스 하루 297원 · 지금 업그레이드</span>
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
         </button>

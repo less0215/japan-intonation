@@ -20,6 +20,8 @@ import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
 import WordDetailPage from './components/WordDetailPage'
 import ParticleLibrary from './components/ParticleLibrary'
+import OnomatopeLibrary from './components/OnomatopeLibrary'
+import OnomatopeDetailPage from './components/OnomatopeDetailPage'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
 import GrammarLibrary from './components/GrammarLibrary'
@@ -230,6 +232,7 @@ export default function App() {
             : location.pathname.startsWith('/adj-na')    ? 'adj-na'
             : location.pathname.startsWith('/noun')      ? 'noun'
             : location.pathname.startsWith('/particles') ? 'particles'
+            : location.pathname.startsWith('/onomatope') ? 'onomatope'
             : 'translate'
 
   const [loading, setLoading]         = useState(false)
@@ -578,7 +581,7 @@ export default function App() {
 
         {/* 품사 단어 목록 화면일 때 — 상단에 학습으로 돌아가기 + 카테고리 전환 바 */}
         {/* 문법 페이지는 자체 카테고리 탭이 있으므로 CategoryBars 숨김 */}
-        {isWordTab && !isGrammarDetail && (
+        {isWordTab && !isGrammarDetail && tab !== 'onomatope' && (
           <>
             <button onClick={() => navigate('/study')} className="back-to-translate">
               ← 학습
@@ -673,6 +676,8 @@ export default function App() {
             />
             <ParticleLibrary items={PARTICLES} />
           </>} />
+          <Route path="/onomatope"     element={<OnomatopeLibrary />} />
+          <Route path="/onomatope/:id" element={<OnomatopeDetailPage />} />
           <Route path="*" element={
             <>
               <PageSEO
@@ -801,6 +806,7 @@ export default function App() {
                       { jp: 'な', label: 'な형용사',  sub: 'TOP 100',     path: '/adj-na' },
                       { jp: '名', label: '명사',      sub: 'TOP 100',     path: '/noun' },
                       { jp: '助', label: '조사',      sub: 'TOP 10',      path: '/particles' },
+                      { jp: '音', label: '오노마토페', sub: '의성어·의태어', path: '/onomatope' },
                     ].map(c => (
                       <button key={c.path} onClick={() => navigate(c.path)} style={{ flex: '0 0 112px', textAlign: 'left', background: '#fff', border: '1px solid #eef1f3', borderRadius: 13, padding: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
                         <div style={{ width: 34, height: 34, borderRadius: 9, background: '#f0f6fa', color: '#7bb4d3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 500 }}>{c.jp}</div>

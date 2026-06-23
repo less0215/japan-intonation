@@ -25,23 +25,23 @@ export default function ReviewEventPopup({ onClose }) {
   }
 
   const Step = ({ n, children }) => (
-    <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
+    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
       <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: PRIMARY, color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n}</span>
-      <span style={{ fontSize: 13, color: 'var(--text-1)', lineHeight: 1.45 }}>{children}</span>
+      <span style={{ fontSize: 13, color: 'var(--text-1)', lineHeight: 1.45, whiteSpace: 'nowrap' }}>{children}</span>
     </div>
   )
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 6000, background: 'rgba(20,30,40,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: 304, maxWidth: '92vw', background: 'var(--surface)', borderRadius: 22, padding: '28px 24px 18px', boxShadow: '0 16px 48px rgba(0,0,0,0.28)' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: 356, maxWidth: '94vw', background: 'var(--surface)', borderRadius: 22, padding: '28px 24px 18px', boxShadow: '0 16px 48px rgba(0,0,0,0.28)' }}>
         <button onClick={onClose} aria-label="닫기" style={{ position: 'absolute', top: 15, right: 15, width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'var(--surface-2)', color: 'var(--text-3)', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1, padding: 0 }}>✕</button>
 
-        <div style={{ width: 52, height: 52, borderRadius: 15, background: 'rgba(92,169,206,0.13)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+        <div style={{ width: 52, height: 52, borderRadius: 15, background: 'rgba(92,169,206,0.13)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '2px auto 16px' }}>
           <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg>
         </div>
 
-        <p style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', lineHeight: 1.35, letterSpacing: '-0.5px', whiteSpace: 'nowrap' }}>광고 제거 + 빠른 번역 1개월</p>
-        <p style={{ margin: '0 0 18px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>앱스토어/플레이스토어에 후기 작성해 주시면 플러스 1개월 <b style={{ fontWeight: 600, color: 'var(--text-1)' }}>(8,900원 상당)</b> 적용해 드려요!</p>
+        <p style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', lineHeight: 1.35, letterSpacing: '-0.5px', whiteSpace: 'nowrap', textAlign: 'center' }}>광고 제거 + 빠른 번역 1개월</p>
+        <p style={{ margin: '0 0 18px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, textAlign: 'center' }}>앱스토어/플레이스토어에 후기 작성해 주시면 플러스 1개월 <b style={{ fontWeight: 600, color: 'var(--text-1)' }}>(8,900원 상당)</b> 적용해 드려요!</p>
 
         <div style={{ background: 'var(--surface-2)', borderRadius: 14, padding: '15px 15px 14px', marginBottom: 18, display: 'flex', flexDirection: 'column', gap: 11 }}>
           <Step n={1}>앱스토어/플레이스토어에 후기를 작성한 뒤</Step>

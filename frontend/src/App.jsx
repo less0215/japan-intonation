@@ -95,6 +95,23 @@ export function track(eventName, params = {}) {
   }
 }
 
+/* 집단 지성 — 학습 행동 신호를 '우리 서버'에 적재(GA4로 휘발시키지 않고 누적).
+ * fire-and-forget: 실패해도 사용자 경험에 영향 없음. user/anon은 localStorage에서 읽음.
+ * eventType: 'tts_replay' | 'pitch_expand' | 'nuance_choice' | 'breakdown_expand' | 'pattern_expand' */
+export function logLearning(eventType, key, value) {
+  try {
+    let user_id = null
+    try { user_id = JSON.parse(localStorage.getItem('tickjapan_user') || 'null')?.user_id ?? null } catch {}
+    let anonymous_id = null
+    try { anonymous_id = localStorage.getItem('tickjapan_anon_id') } catch {}
+    const platform = (window.Capacitor?.isNativePlatform?.() ?? false) ? 'app' : 'web'
+    fetch(`${API_URL}/learning-event`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+      body: JSON.stringify({ event_type: eventType, key: key ?? null, value: value ?? null, user_id, anonymous_id, platform }),
+    }).catch(() => {})
+  } catch {}
+}
+
 /* ── 날짜 기반 시드 — 하루 동안 같은 항목 유지 */
 function dateSeed() {
   const d = new Date()

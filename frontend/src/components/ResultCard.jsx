@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import PitchGraph from './PitchGraph'
 import CopyButton from './CopyButton'
 import { BreakdownTable, BreakdownCards, DetailToggleButton, BreakdownPreview } from './BreakdownPanel'
-import { track } from '../App'
+import { track, logLearning } from '../App'
 
 const PRIMARY = '#5CA9CE'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
@@ -142,6 +142,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
 
   function handleExpandBreakdown() {
     track('breakdown_expand', { text_length: japanese.length })
+    logLearning('breakdown_expand', japanese, { input: inputText })   // 집단지성: 어떤 문장을 분해해 보나
     setExpanded(true)
     if (!hasBreakdown) {
       // natural은 부모가 결과에 병합, 그 외 톤은 현재 문장 기준으로 직접 받아온다
@@ -209,6 +210,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
       await audio.play()
       setAudioState('playing')
       track('tts_play', { gender, text_length: japanese.length })
+      logLearning('tts_replay', japanese, { kind: 'sentence', input: inputText })   // 집단지성: 어떤 발음을 다시 듣나
     } catch { setAudioState('idle') }
   }
 
@@ -278,7 +280,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
                   <span style={{ fontSize: 11.5, color: PRIMARY, fontWeight: 600 }}>{n.label}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 500, color: 'var(--text-strong)', flex: 1, minWidth: 0 }}>{n.japanese}</span>
-                    <CopyButton getText={() => n.japanese} onCopy={() => track('nuance_copy', { label: n.label, index: i, count: nuances.length })} />
+                    <CopyButton getText={() => n.japanese} onCopy={() => { track('nuance_copy', { label: n.label, index: i, count: nuances.length }); logLearning('nuance_choice', inputText, { input: inputText, candidates: nuances.map(x => x.label), chosen_index: i, chosen_label: n.label }) }} />
                   </div>
                   {n.reading && <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{n.reading}</span>}
                 </div>

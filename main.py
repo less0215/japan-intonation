@@ -413,6 +413,25 @@ class MrtRevenue(Base):
     updated_at      = Column(DateTime, default=now_kst, onupdate=now_kst)
 
 
+class LearningEvent(Base):
+    """집단 지성 — 사용자 학습 행동 신호를 서버에 적재(틱재팬 고유 차별 데이터 자산).
+    경쟁사 UI엔 없는 표면(피치악센트·뉘앙스·문장분해)에서 '한국 화자가 어디서 막히고
+    무엇을 골랐나'를 누적 → 난이도 맵/의도 분포/추천에 환류.
+    event_type: 'tts_replay'(발음 다시듣기) | 'pitch_expand'(악센트 그래프) |
+                'nuance_choice'(뜻 고르기) | 'breakdown_expand'(문장분해) | 'pattern_expand'(문법패턴)
+    key: 집계 단위(단어/문법패턴/입력) — 이 키로 '무엇이 자주 헷갈리나'를 집계
+    value_json: 이벤트별 상세(JSON)"""
+    __tablename__ = "learning_event"
+    id           = Column(Integer, primary_key=True, index=True)
+    created_at   = Column(DateTime, default=now_kst, index=True)
+    event_type   = Column(String(24), nullable=False, index=True)
+    key          = Column(String(200), nullable=True, index=True)
+    value_json   = Column(Text, nullable=True)
+    user_id      = Column(Integer, nullable=True, index=True)
+    anonymous_id = Column(String(36), nullable=True, index=True)
+    platform     = Column(String(10), nullable=True)
+
+
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
@@ -1421,6 +1440,70 @@ def fast_unlimited_list(key: str = ""):
             })
         registered = sum(1 for m in members if m["registered"])
         return {"total": len(members), "registered": registered, "members": members}
+    finally:
+        db.close()
+
+
+# ── 집단 지성: 학습 행동 신호 적재 ──────────────────────────
+ALLOWED_LEARNING_EVENTS = {"tts_replay", "pitch_expand", "nuance_choice", "breakdown_expand", "pattern_expand"}
+
+class LearningEventRequest(BaseModel):
+    event_type: str
+    key: str | None = None
+    value: dict | None = None
+    user_id: int | None = None
+    anonymous_id: str | None = None
+    platform: str | None = None
+
+@app.post("/learning-event")
+def learning_event(req: LearningEventRequest):
+    """학습 행동 신호(발음 다시듣기·뜻 고르기·문법 펼침 등)를 서버에 적재(fire-and-forget).
+    실패해도 사용자 경험에 영향 없음. 스팸 방지를 위해 허용된 이벤트만 저장."""
+    et = (req.event_type or "").strip()
+    if et not in ALLOWED_LEARNING_EVENTS:
+        return {"ok": False}
+    db = SessionLocal()
+    try:
+        row = LearningEvent(
+            event_type=et,
+            key=((req.key or "").strip()[:200] or None),
+            value_json=(json.dumps(req.value, ensure_ascii=False)[:2000] if req.value else None),
+            user_id=req.user_id,
+            anonymous_id=(req.anonymous_id if not req.user_id else None),
+            platform=req.platform,
+        )
+        db.add(row)
+        db.commit()
+        return {"ok": True}
+    except Exception as e:
+        print("[learning-event] 실패", str(e)[:120])
+        return {"ok": False}
+    finally:
+        db.close()
+
+@app.get("/admin/learning-summary")
+def learning_summary(key: str = "", event_type: str = "", limit: int = 30):
+    """관리자 — '한국인이 무엇을 자주 헷갈리나'를 집계해 보여준다(집단 지성 가시화).
+    ?key=관리토큰 필요. event_type으로 필터, key별 빈도 상위 N."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다. ?key=... 를 붙여주세요.")
+    from sqlalchemy import func
+    db = SessionLocal()
+    try:
+        total = db.query(func.count(LearningEvent.id)).scalar() or 0
+        by_type = dict(db.query(LearningEvent.event_type, func.count(LearningEvent.id))
+                         .group_by(LearningEvent.event_type).all())
+        q = (db.query(LearningEvent.event_type, LearningEvent.key, func.count(LearningEvent.id).label("n"))
+               .filter(LearningEvent.key.isnot(None)))
+        if event_type:
+            q = q.filter(LearningEvent.event_type == event_type)
+        rows = (q.group_by(LearningEvent.event_type, LearningEvent.key)
+                  .order_by(func.count(LearningEvent.id).desc()).limit(min(limit, 100)).all())
+        return {
+            "total_events": total,
+            "by_type": {k: v for k, v in by_type.items()},
+            "top": [{"event_type": r[0], "key": r[1], "count": r[2]} for r in rows],
+        }
     finally:
         db.close()
 

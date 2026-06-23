@@ -8,7 +8,7 @@ import PitchGraph from './PitchGraph'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
 import { ExampleAnalysis } from './BreakdownPanel'
-import { track } from '../App'
+import { track, logLearning } from '../App'
 
 const PRIMARY = '#5CA9CE'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
@@ -26,6 +26,7 @@ export default function ExampleCard({ example, wordInfo, index }) {
     if (audioState === 'loading') return
     setAudioState('loading')
     track('tts_play_example', { category: wordInfo?.category, word_id: wordInfo?.id })
+    logLearning('tts_replay', wordInfo?.word, { kind: 'word', category: wordInfo?.category, word_id: wordInfo?.id, reading: wordInfo?.reading })   // 집단지성: 어떤 단어 발음을 다시 듣나
     try {
       const res = await fetch(`${API_URL}/tts`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -65,7 +66,7 @@ export default function ExampleCard({ example, wordInfo, index }) {
             }} />
           )}
           {example.accentData?.length > 0 && (
-            <button onClick={() => { if (!showGraph) track('pitch_graph_expand', { category: wordInfo?.category, word_id: wordInfo?.id }); setShowGraph(v => !v) }} title="억양 그래프" style={{
+            <button onClick={() => { if (!showGraph) { track('pitch_graph_expand', { category: wordInfo?.category, word_id: wordInfo?.id }); logLearning('pitch_expand', wordInfo?.word, { category: wordInfo?.category, word_id: wordInfo?.id }) } setShowGraph(v => !v) }} title="억양 그래프" style={{
               width: 26, height: 26, borderRadius: 6, border: `1px solid ${graphActive ? PRIMARY : 'var(--bd)'}`,
               backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -99,7 +100,7 @@ export default function ExampleCard({ example, wordInfo, index }) {
       )}
       {example.pattern && (
         <>
-          <button onClick={() => { if (!showPattern) track('pattern_expand', { pattern: example.pattern.name, category: wordInfo?.category }); setShowPattern(v => !v) }} style={{
+          <button onClick={() => { if (!showPattern) { track('pattern_expand', { pattern: example.pattern.name, category: wordInfo?.category }); logLearning('pattern_expand', example.pattern.name, { category: wordInfo?.category, word: wordInfo?.word }) } setShowPattern(v => !v) }} style={{
             alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 4,
             height: 22, padding: '0 8px', borderRadius: 11, fontSize: 11, fontWeight: 700,
             fontFamily: 'inherit', cursor: 'pointer',

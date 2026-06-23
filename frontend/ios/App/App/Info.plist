@@ -56,5 +56,12 @@
 	<string>앱 개선을 위해 익명의 사용 통계를 수집합니다. 개인을 식별하는 정보는 수집되지 않습니다.</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-8958373483224358~7325634868</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
 </dict>
 </plist>

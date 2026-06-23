@@ -7,7 +7,6 @@ import re
 import uuid
 
 import requests
-from bs4 import BeautifulSoup
 import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,7 +25,7 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 # ──────────────────────────────────────────────
 app = FastAPI(
     title="Korean → Japanese Accent Analyzer",
-    description="한국어 문장을 일본어로 번역하고 OJAD 악센트 배열을 반환하는 API",
+    description="한국어 문장을 일본어로 번역하고 Gemini 기반 악센트 배열을 반환하는 API",
     version="2.0.0",
 )
 
@@ -242,17 +241,7 @@ Fields:
   Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
 """
 
-OJAD_URL = "https://www.gavo.t.u-tokyo.ac.jp/ojad/phrasing/index"
-OJAD_HEADERS = {
-    "Content-Type": "application/x-www-form-urlencoded",
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-    "Referer": "https://www.gavo.t.u-tokyo.ac.jp/ojad/phrasing/index",
-}
-
-# set_accent_curve_phrase 호출 파싱용 정규식
-ACCENT_PATTERN = re.compile(
-    r"set_accent_curve_phrase\(\s*'#([\w]+)'\s*,\s*(\d+)\s*,\s*(\[[^\]]+\])"
-)
+# (악센트는 Gemini가 /analyze에서 직접 생성 — 구 OJAD 스크래핑은 타임아웃 잦아 폐기)
 
 # 성별에 따른 Google TTS Wavenet 음성 매핑
 TTS_VOICE_MAP = {
@@ -267,9 +256,6 @@ _tts_cache: dict[str, bytes] = {}
 
 # 번역 결과 캐시 — 키: 한국어 원문, 값: AnalyzeResponse dict
 _analyze_cache: dict[str, dict] = {}
-
-# 억양 전용 캐시 — 키: 일본어 원문, 값: accent_data list
-_accent_cache: dict[str, list] = {}
 
 # 문장 분해 캐시 — 키: 일본어 원문, 값: breakdown list
 _breakdown_cache: dict[str, list] = {}
@@ -850,62 +836,6 @@ def generate_breakdown(japanese_text: str) -> list[dict]:
         raise HTTPException(status_code=502, detail="Gemini 분해 응답에 breakdown 배열이 없습니다.")
 
     return breakdown
-
-# ──────────────────────────────────────────────
-# OJAD 악센트 파싱 로직
-# ──────────────────────────────────────────────
-
-def fetch_accent_data(japanese_text: str) -> list[dict]:
-    """일본어 텍스트를 OJAD 스즈키쿤에 POST 요청하여 악센트 데이터를 반환한다."""
-    payload = {
-        "_method": "POST",
-        "data[Phrasing][text]": japanese_text,
-        "data[Phrasing][curve]": "advanced",
-        "data[Phrasing][accent]": "advanced",
-        "data[Phrasing][accent_mark]": "all",
-        "data[Phrasing][estimation]": "crf",
-        "data[Phrasing][analyze]": "true",
-        "data[Phrasing][phrase_component]": "invisible",
-        "data[Phrasing][param]": "invisible",
-        "data[Phrasing][subscript]": "visible",
-        "data[Phrasing][jeita]": "invisible",
-    }
-
-    try:
-        response = requests.post(OJAD_URL, data=payload, headers=OJAD_HEADERS, timeout=8)
-        response.raise_for_status()
-    except requests.exceptions.Timeout:
-        raise HTTPException(status_code=504, detail="OJAD 서버 요청 시간이 초과되었습니다 (15초).")
-    except requests.exceptions.ConnectionError:
-        raise HTTPException(status_code=503, detail="OJAD 서버에 연결할 수 없습니다.")
-    except requests.exceptions.HTTPError as e:
-        raise HTTPException(status_code=502, detail=f"OJAD HTTP 오류: {e}")
-
-    return parse_accent_data(response.text)
-
-
-def parse_accent_data(html: str) -> list[dict]:
-    """응답 HTML에서 set_accent_curve_phrase 호출을 파싱하여 악센트 데이터를 추출한다."""
-    soup = BeautifulSoup(html, "html.parser")
-    scripts = [tag.string for tag in soup.find_all("script") if tag.string]
-
-    results = []
-    for script in scripts:
-        for match in ACCENT_PATTERN.finditer(script):
-            phrase_id  = match.group(1)
-            mora_count = int(match.group(2))
-            accent_raw = match.group(3)
-            accent_list = [int(x) for x in re.findall(r"\d+", accent_raw)]
-            results.append({
-                "phrase_id":  phrase_id,
-                "mora_count": mora_count,
-                "accent":     accent_list,
-            })
-
-    if not results:
-        raise HTTPException(status_code=502, detail="OJAD에서 악센트 데이터를 파싱하지 못했습니다.")
-
-    return results
 
 # ──────────────────────────────────────────────
 # 엔드포인트
@@ -1943,27 +1873,7 @@ def breakdown(req: BreakdownRequest, request: Request):
     return result
 
 
-class AccentRequest(BaseModel):
-    japanese: str
-
-@app.post("/accent")
-def get_accent(req: AccentRequest):
-    """일본어 텍스트를 받아 OJAD 억양 데이터를 반환한다. (동사 활용형 억양 표시용)"""
-    text = req.japanese.strip()
-    if not text:
-        raise HTTPException(status_code=400, detail="입력이 비어 있습니다.")
-
-    if text in _accent_cache:
-        return {"accent_data": _accent_cache[text]}
-
-    accent_data = fetch_accent_data(text)
-
-    if len(_accent_cache) >= 2000:
-        oldest = next(iter(_accent_cache))
-        del _accent_cache[oldest]
-    _accent_cache[text] = accent_data
-
-    return {"accent_data": [AccentEntry(**e) for e in accent_data]}
+# (구 /accent 엔드포인트 제거 — OJAD 기반이었고 프론트 미사용. 악센트는 /analyze의 Gemini 출력 사용)
 
 
 @app.post("/tts")

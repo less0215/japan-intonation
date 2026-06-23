@@ -328,6 +328,23 @@ class FastUsage(Base):
     updated_at   = Column(DateTime, default=now_kst, onupdate=now_kst)
 
 
+class Subscription(Base):
+    """유료 구독(웹 결제, 토스페이먼츠 자동결제). User/SavedResult 스키마와 무관한 별도 테이블.
+    plan: 'plus' | 'pro' / period: 'monthly' | 'yearly' / status: 'active' | 'canceled' | 'expired'"""
+    __tablename__ = "subscription"
+    id          = Column(Integer, primary_key=True, autoincrement=True)
+    user_id     = Column(Integer, index=True, nullable=False)
+    plan        = Column(String(10), nullable=False)     # plus | pro
+    period      = Column(String(10), nullable=False)     # monthly | yearly
+    status      = Column(String(12), default='active', index=True)
+    billing_key = Column(Text, nullable=True)            # 토스 빌링키(자동결제용)
+    customer_key= Column(String(64), nullable=True)
+    started_at  = Column(DateTime, default=now_kst)
+    expires_at  = Column(DateTime, nullable=True, index=True)  # 이 시각까지 유효
+    last_paid_at= Column(DateTime, nullable=True)
+    updated_at  = Column(DateTime, default=now_kst, onupdate=now_kst)
+
+
 class MrtProduct(Base):
     """마이리얼트립 큐레이션 상품 카탈로그 — 배치가 주기적으로 갱신, 프론트는 이 캐시만 노출.
     User/SavedResult 스키마와 무관한 별도 테이블."""
@@ -547,10 +564,35 @@ def is_admin_phone(phone: str) -> bool:
 FAST_WINDOW_LIMIT = 15            # 윈도우당 횟수
 FAST_WINDOW_SEC   = 5 * 3600      # 윈도우 길이(초)
 
+# ── 토스페이먼츠 자동결제(웹 구독) ──────────────────────────
+TOSS_SECRET_KEY = os.getenv("TOSS_SECRET_KEY", "")   # 라이브/테스트 시크릿키 (Railway 환경변수)
+TOSS_API = "https://api.tosspayments.com/v1"
+# 플랜·주기별 금액(원)·기간(일)
+SUB_PRICES = {
+    ("plus", "monthly"): (8900,  30),
+    ("plus", "yearly"):  (89000, 365),
+    ("pro",  "monthly"): (19900, 30),
+    ("pro",  "yearly"):  (199000, 365),
+}
+
+def get_active_subscription(db, user_id: int):
+    """현재 유효한 구독 1건 반환(만료 안 됨). 없으면 None."""
+    if not user_id:
+        return None
+    s = (db.query(Subscription)
+           .filter(Subscription.user_id == user_id, Subscription.status == 'active')
+           .order_by(Subscription.expires_at.desc())
+           .first())
+    if s and (not s.expires_at or s.expires_at > now_kst()):
+        return s
+    return None
+
 def _is_unlimited_user(db, user_id: int) -> bool:
     u = db.query(User).filter(User.id == user_id).first()
-    # 화이트리스트 무제한 OR 관리자(모든 제약 해제)
-    return bool(u and (is_fast_unlimited(u.phone) or is_admin_phone(u.phone)))
+    # 화이트리스트 무제한 OR 관리자(모든 제약 해제) OR 유효 구독자(플러스·프로)
+    if u and (is_fast_unlimited(u.phone) or is_admin_phone(u.phone)):
+        return True
+    return bool(get_active_subscription(db, user_id))
 
 
 def _is_admin_user(user_id) -> bool:
@@ -1032,6 +1074,86 @@ def translate_tone(req: ToneRequest, request: Request):
 def fast_usage(user_id: int):
     """회원의 오늘 빠른 번역 사용량 (%, 무제한 여부) — 로그인/진입 시 표시용."""
     return get_fast_usage(user_id)
+
+
+# ── 웹 구독 결제 (토스페이먼츠 자동결제) ──────────────────────
+class BillingConfirmRequest(BaseModel):
+    authKey: str
+    customerKey: str
+    user_id: int
+    plan: str      # plus | pro
+    period: str    # monthly | yearly
+
+
+@app.post("/billing/confirm")
+def billing_confirm(req: BillingConfirmRequest):
+    """결제창에서 받은 authKey로 빌링키 발급 → 즉시 1회 결제 → 구독 저장.
+    토스 시크릿키는 환경변수(TOSS_SECRET_KEY)에서 읽음 — 미설정 시 503."""
+    if not TOSS_SECRET_KEY:
+        raise HTTPException(status_code=503, detail="결제가 아직 준비 중이에요. 잠시 후 다시 시도해 주세요.")
+    price = SUB_PRICES.get((req.plan, req.period))
+    if not price:
+        raise HTTPException(status_code=400, detail="잘못된 플랜입니다.")
+    amount, days = price
+    auth = base64.b64encode(f"{TOSS_SECRET_KEY}:".encode()).decode()
+    headers = {"Authorization": f"Basic {auth}", "Content-Type": "application/json"}
+
+    # 1) 빌링키 발급
+    r = requests.post(f"{TOSS_API}/billing/authorizations/issue",
+                      json={"authKey": req.authKey, "customerKey": req.customerKey},
+                      headers=headers, timeout=15)
+    if not r.ok:
+        print("[billing] issue 실패", r.status_code, r.text[:200])
+        raise HTTPException(status_code=502, detail="카드 등록(빌링키 발급)에 실패했어요.")
+    billing_key = r.json().get("billingKey")
+
+    # 2) 즉시 1회 결제(첫 결제)
+    order_id = f"tj_{req.user_id}_{req.plan}_{int(time.time())}"
+    plan_kr = "프로" if req.plan == "pro" else "플러스"
+    period_kr = "연간" if req.period == "yearly" else "월간"
+    r2 = requests.post(f"{TOSS_API}/billing/{billing_key}",
+                       json={"customerKey": req.customerKey, "amount": amount,
+                             "orderId": order_id, "orderName": f"틱재팬 {plan_kr} ({period_kr})"},
+                       headers=headers, timeout=15)
+    if not r2.ok:
+        print("[billing] charge 실패", r2.status_code, r2.text[:200])
+        raise HTTPException(status_code=502, detail="결제 승인에 실패했어요. 카드를 확인해 주세요.")
+
+    # 3) 구독 저장(기존 active는 만료 처리)
+    db = SessionLocal()
+    try:
+        db.query(Subscription).filter(Subscription.user_id == req.user_id,
+                                       Subscription.status == 'active').update({"status": "expired"})
+        sub = Subscription(user_id=req.user_id, plan=req.plan, period=req.period, status='active',
+                           billing_key=billing_key, customer_key=req.customerKey,
+                           started_at=now_kst(), expires_at=now_kst() + datetime.timedelta(days=days),
+                           last_paid_at=now_kst())
+        db.add(sub)
+        db.commit()
+        return {"ok": True, "plan": req.plan, "period": req.period,
+                "expires_at": sub.expires_at.isoformat()}
+    finally:
+        db.close()
+
+
+@app.get("/subscription/{user_id}")
+def subscription_status(user_id: int):
+    """구독 상태 — 앱/웹이 이걸로 광고제거·한도 적용. 관리자·무제한 회원도 ad_free."""
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.id == user_id).first()
+        privileged = bool(u and (is_fast_unlimited(u.phone) or is_admin_phone(u.phone)))
+        s = get_active_subscription(db, user_id)
+        if s:
+            return {"active": True, "plan": s.plan, "period": s.period,
+                    "expires_at": s.expires_at.isoformat() if s.expires_at else None,
+                    "ad_free": True, "fast_unlimited": True}
+        if privileged:
+            return {"active": True, "plan": "comp", "period": None, "expires_at": None,
+                    "ad_free": True, "fast_unlimited": True}
+        return {"active": False, "ad_free": False, "fast_unlimited": False}
+    finally:
+        db.close()
 
 
 # 무제한 회원 조회용 관리 토큰 (개인정보 노출 방지)

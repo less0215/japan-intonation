@@ -27,6 +27,7 @@ import LiveCamDetailPage from './components/LiveCamDetailPage'
 import { LIVECAMS } from './data/livecams'
 import AdConsentPopup from './components/AdConsentPopup'
 import SubscriptionPage from './components/SubscriptionPage'
+import { BillingSuccess, BillingFail } from './components/BillingResult'
 import { showRewardedAd, showInterstitialAd } from './ads'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
@@ -261,6 +262,7 @@ export default function App() {
   const [adPopup, setAdPopup] = useState(null)
   const [adNotice, setAdNotice] = useState(false)   // 일반 번역 30회마다 전면 광고 사전 팝업
   const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
+  const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(또는 관리자/무제한) → 광고 제거
   // 정착(settled) 번역 세션 — 디바운스 중간 호출을 한 번역으로 묶어 한도·광고 카운트
   const editSessionRef = useRef({ text: '', time: 0, sid: '' })
   const lastBasicSidRef = useRef('')
@@ -300,6 +302,15 @@ export default function App() {
         setFastLocked(!d.unlimited && (d.remaining ?? 1) <= 0)
         setFastResetSec(d.reset_in_sec ?? 0)
       })
+      .catch(() => {})
+  }, [user?.user_id])
+
+  // 구독/관리자/무제한 → 광고 제거 여부 조회
+  useEffect(() => {
+    if (!user?.user_id) { setSubAdFree(false); return }
+    fetch(`${API_URL}/subscription/${user.user_id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setSubAdFree(!!d.ad_free) })
       .catch(() => {})
   }, [user?.user_id])
 
@@ -516,7 +527,7 @@ export default function App() {
       // 일반(basic) 번역 30회마다 전면 광고 — 회원 구분 없이(앱 전용). 광고 전 사전 팝업
       // 정착 기준: 같은 편집 세션의 중간 호출은 세지 않고, 새 번역(새 세션)일 때만 1 카운트
       const usedModel = data.model_used || useModel
-      if (isApp && usedModel === 'basic' && editSid !== lastBasicSidRef.current) {
+      if (isApp && !subAdFree && usedModel === 'basic' && editSid !== lastBasicSidRef.current) {
         lastBasicSidRef.current = editSid
         try {
           const n = (parseInt(localStorage.getItem('tickjapan_basic_count') || '0', 10) || 0) + 1
@@ -831,6 +842,8 @@ export default function App() {
           <Route path="/live"        element={<LiveCamLibrary />} />
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
           <Route path="/plans"       element={<SubscriptionPage />} />
+          <Route path="/billing/success" element={<BillingSuccess />} />
+          <Route path="/billing/fail"    element={<BillingFail />} />
           <Route path="*" element={
             <>
               <PageSEO
@@ -926,7 +939,7 @@ export default function App() {
                 )
               })()}
               {/* 번역 결과 카드 아래 광고 (웹 전용) — 핵심 가치 소비 직후 */}
-              {result && <AdSenseUnit slot="1147239321" style={{ marginTop: 4 }} />}
+              {result && !subAdFree && <AdSenseUnit slot="1147239321" style={{ marginTop: 4 }} />}
 
               {/* 결과/입력 전 홈 화면 — 앱 사용 안내 + 품사 단어 목록 바 + 오늘의 단어 */}
               {!hasContent && (
@@ -1007,7 +1020,7 @@ export default function App() {
                   </div>
                   </div>
                   {/* 학습 콘텐츠 영역 하단 광고 (웹 전용) */}
-                  <AdSenseUnit slot="2450758307" style={{ marginTop: 4 }} />
+                  {!subAdFree && <AdSenseUnit slot="2450758307" style={{ marginTop: 4 }} />}
                 </>
               )}
             </>

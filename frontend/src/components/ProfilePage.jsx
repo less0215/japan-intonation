@@ -46,8 +46,8 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
         </div>
       )}
 
-      {/* 프로 업그레이드 배너 */}
-      {!fastUnlimited && (
+      {/* 프로 업그레이드 배너 — iOS 안티스티어링: 앱에선 외부 결제 유도 금지 */}
+      {!fastUnlimited && !isApp && (
         <button onClick={() => navigate('/plans')} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', background: 'linear-gradient(135deg, #5CA9CE 0%, #4f96bb 100%)', border: 'none', borderRadius: 16, padding: '13px 16px', marginBottom: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
           <span style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>

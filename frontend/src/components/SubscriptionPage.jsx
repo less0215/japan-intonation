@@ -1,8 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
+import { useUser } from '../context/UserContext'
+import { loadTossPayments } from '@tosspayments/payment-sdk'
 
 const PRIMARY = '#5CA9CE'
+const isApp = window.Capacitor?.isNativePlatform?.() ?? false
+// 토스 클라이언트키 — Vercel 환경변수 VITE_TOSS_CLIENT_KEY (없으면 교체 안내 더미)
+const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || 'test_ck_REPLACE_ME'
 // App 순환 참조 방지 — 가벼운 자체 트래킹
 const track = (name, params = {}) => { try { window.gtag?.('event', name, params); window.__afLog?.(name, params) } catch {} }
 
@@ -18,11 +23,25 @@ function Check({ color }) {
 
 export default function SubscriptionPage() {
   const navigate = useNavigate()
+  const { user } = useUser()
   const [period, setPeriod] = useState('yearly')
-  const [notice, setNotice] = useState(null)
+  const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app'
   const p = PLANS[period]
 
-  function choose(plan) { track('subscribe_cta', { plan, period }); setNotice(plan) }
+  async function choose(plan) {
+    track('subscribe_cta', { plan, period })
+    // iOS 안티스티어링: 앱 안에서 외부 결제 유도 금지 → 안내만
+    if (isApp) { setNotice('app'); return }
+    if (!user?.user_id) { setNotice('login'); return }
+    try {
+      const toss = await loadTossPayments(TOSS_CLIENT_KEY)
+      await toss.requestBillingAuth('카드', {
+        customerKey: `tjuser_${user.user_id}`,
+        successUrl: `${window.location.origin}/billing/success?plan=${plan}&period=${period}`,
+        failUrl: `${window.location.origin}/billing/fail`,
+      })
+    } catch (e) { setNotice('error') }
+  }
 
   return (
     <>
@@ -92,25 +111,27 @@ export default function SubscriptionPage() {
       </div>
 
       <p style={{ margin: '4px 2px 0', fontSize: 10.5, color: 'var(--text-3)', lineHeight: 1.6, textAlign: 'center' }}>
-        App Store/Google Play 계정으로 결제·관리되며 언제든 해지할 수 있어요.
+        카드로 안전하게 결제되며(토스페이먼츠) 언제든 해지할 수 있어요.
       </p>
 
-      {/* 결제 연동 전 안내 모달 */}
-      {notice && (
-        <div onClick={() => setNotice(null)} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 300, maxWidth: '90vw', background: 'var(--surface)', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 16px 48px rgba(0,0,0,0.28)' }}>
-            <div style={{ width: 50, height: 50, borderRadius: 14, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill={PRIMARY}><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+      {/* 안내 모달 — 로그인 필요 / 앱(웹에서) / 오류 */}
+      {notice && (() => {
+        const N = {
+          login: { title: '로그인이 필요해요', body: '구독은 로그인 후 이용할 수 있어요.', primary: '로그인하러 가기', onPrimary: () => navigate('/profile') },
+          app:   { title: '구독은 웹에서', body: 'tickjapan.com 에서 구독하면 앱에서도 광고 없이 그대로 이용할 수 있어요.', primary: '확인', onPrimary: () => setNotice(null) },
+          error: { title: '문제가 발생했어요', body: '잠시 후 다시 시도해 주세요.', primary: '확인', onPrimary: () => setNotice(null) },
+        }[notice] || { title: '안내', body: '', primary: '확인', onPrimary: () => setNotice(null) }
+        return (
+          <div onClick={() => setNotice(null)} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: 300, maxWidth: '90vw', background: 'var(--surface)', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 16px 48px rgba(0,0,0,0.28)' }}>
+              <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)' }}>{N.title}</p>
+              <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{N.body}</p>
+              <button onClick={N.onPrimary} style={{ width: '100%', height: 46, border: 'none', borderRadius: 12, background: PRIMARY, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{N.primary}</button>
+              <button onClick={() => setNotice(null)} style={{ width: '100%', height: 36, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>닫기</button>
             </div>
-            <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)' }}>곧 만나요!</p>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{notice === 'pro' ? '프로' : '플러스'} 구독은 출시 준비 중이에요.<br />오픈 알림을 보내드릴까요?</p>
-            <button onClick={() => { track('subscribe_notify', { plan: notice, period }); setNotice('done') }} style={{ width: '100%', height: 46, border: 'none', borderRadius: 12, background: PRIMARY, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {notice === 'done' ? '신청 완료 ✓' : '오픈 알림 받기'}
-            </button>
-            <button onClick={() => setNotice(null)} style={{ width: '100%', height: 36, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>닫기</button>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </>
   )
 }

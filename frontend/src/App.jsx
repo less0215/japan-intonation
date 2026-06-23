@@ -28,7 +28,7 @@ import { LIVECAMS } from './data/livecams'
 import AdConsentPopup from './components/AdConsentPopup'
 import SubscriptionPage from './components/SubscriptionPage'
 import { BillingSuccess, BillingFail } from './components/BillingResult'
-import MessageInbox, { getReadIds } from './components/MessageInbox'
+import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbox'
 import { showRewardedAd, showInterstitialAd } from './ads'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
@@ -322,8 +322,8 @@ export default function App() {
     fetch(`${API_URL}/messages/${user.user_id}`)
       .then(r => r.ok ? r.json() : [])
       .then(list => {
-        const read = getReadIds()
-        setMsgUnread((Array.isArray(list) ? list : []).filter(m => !read.has(m.id)).length)
+        const read = getReadIds(); const hidden = getHiddenIds()
+        setMsgUnread((Array.isArray(list) ? list : []).filter(m => !read.has(m.id) && !hidden.has(m.id)).length)
       })
       .catch(() => {})
   }, [user?.user_id, location.pathname])

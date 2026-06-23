@@ -87,7 +87,7 @@ export default function SubscriptionPage() {
         </div>
         <p style={{ margin: '8px 0 0', fontSize: 30, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
           하루 {p.plus.per}원
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-3)', marginLeft: 8, letterSpacing: 0 }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원인걸요</span>
+          <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-3)', marginLeft: 7, letterSpacing: 0, whiteSpace: 'nowrap' }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원</span>
         </p>
         {p.plus.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0892a', fontWeight: 500 }}>{p.plus.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -106,7 +106,7 @@ export default function SubscriptionPage() {
         </div>
         <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
           하루 {p.pro.per}원
-          <span style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--text-3)', marginLeft: 8, letterSpacing: 0 }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원인걸요</span>
+          <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-3)', marginLeft: 7, letterSpacing: 0, whiteSpace: 'nowrap' }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원</span>
         </p>
         {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0892a', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>

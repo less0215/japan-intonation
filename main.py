@@ -1252,6 +1252,27 @@ def admin_send_message(req: SendMessageRequest):
         db.close()
 
 
+class DeleteMessageRequest(BaseModel):
+    admin_phone: str
+    message_id: int
+
+@app.post("/admin/delete-message")
+def admin_delete_message(req: DeleteMessageRequest):
+    """관리자 전용 — 메시지 비활성화(회수). 전체 회원 메시지함에서 사라짐."""
+    if not is_admin_phone(req.admin_phone):
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    db = SessionLocal()
+    try:
+        m = db.query(Message).filter(Message.id == req.message_id).first()
+        if not m:
+            raise HTTPException(status_code=404, detail="메시지를 찾을 수 없습니다.")
+        m.active = False
+        db.commit()
+        return {"ok": True, "message_id": req.message_id}
+    finally:
+        db.close()
+
+
 class DeleteUserRequest(BaseModel):
     admin_phone: str
     user_id: int

@@ -54,7 +54,7 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, color: '#fff' }}>광고 제거 + 빠른 번역</span>
-            <span style={{ display: 'block', fontSize: 12, color: '#eaf5fb', marginTop: 1 }}>플러스 하루 297원 · 지금 업그레이드</span>
+            <span style={{ display: 'block', fontSize: 12, color: '#eaf5fb', marginTop: 1 }}>플러스 하루 297원 · 버스 한 번 타는데 1,500원</span>
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
         </button>
@@ -69,11 +69,11 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
         {user && <Row icon="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" label="로그아웃" color="#888" onClick={onLogout} />}
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {user && <button onClick={onDeleteAccount} style={{ background: 'none', border: 'none', fontSize: 11.5, color: '#d05050', cursor: 'pointer', fontFamily: 'inherit' }}>회원탈퇴</button>}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 14 }}>
+      <div style={{ textAlign: 'center', marginTop: 18 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14 }}>
           <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', fontSize: 11, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>개인정보처리방침</button>
           <button onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', fontSize: 11, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>이용약관</button>
+          {user && <button onClick={onDeleteAccount} style={{ background: 'none', border: 'none', fontSize: 11, color: '#d05050', cursor: 'pointer', fontFamily: 'inherit' }}>회원탈퇴</button>}
         </div>
       </div>
     </>

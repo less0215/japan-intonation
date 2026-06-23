@@ -346,8 +346,14 @@ export default function App() {
   // '빠른 번역' 토글. 앱: 세션 첫 켜기 시 보상형 광고. 웹: 비회원이면 로그인 모달
   function handleFastToggle() {
     if (selectedModel === 'fast') { setSelectedModel('basic'); return }   // 끄기
-    // 앱: 로그인 여부·회원 등급과 무관하게 세션당 광고 1회 후 켜짐 (무제한 회원도 최초 토글 시 광고)
     if (isApp) {
+      // 광고 제거 회원(플러스/프로·무제한·관리자)은 광고 없이 바로 빠른 번역 켜짐
+      if (fastUnlimited || subAdFree) {
+        setSelectedModel('fast')
+        track('fast_enabled', { adfree: true })
+        return
+      }
+      // 일반 회원/비회원: 세션당 보상형 광고 1회 후 켜짐
       if (!sessionFastUnlocked) {
         setAdPopup({ mode: 'enable' })
         track('fast_ad_prompt', { mode: 'enable', guest: !user })
@@ -556,7 +562,7 @@ export default function App() {
       // 일반(basic) 번역 30회마다 전면 광고 — 회원 구분 없이(앱 전용). 광고 전 사전 팝업
       // 정착 기준: 같은 편집 세션의 중간 호출은 세지 않고, 새 번역(새 세션)일 때만 1 카운트
       const usedModel = data.model_used || useModel
-      if (isApp && !subAdFree && usedModel === 'basic' && editSid !== lastBasicSidRef.current) {
+      if (isApp && !subAdFree && !fastUnlimited && usedModel === 'basic' && editSid !== lastBasicSidRef.current) {
         lastBasicSidRef.current = editSid
         try {
           const n = (parseInt(localStorage.getItem('tickjapan_basic_count') || '0', 10) || 0) + 1

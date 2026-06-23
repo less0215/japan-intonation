@@ -44,6 +44,20 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
         </div>
       )}
 
+      {/* 프로 업그레이드 배너 */}
+      {!fastUnlimited && (
+        <button onClick={() => navigate('/plans')} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', background: 'linear-gradient(135deg, #5CA9CE 0%, #4f96bb 100%)', border: 'none', borderRadius: 16, padding: '15px 16px', marginBottom: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <span style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+          </span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, color: '#fff' }}>광고 제거 + 빠른 번역</span>
+            <span style={{ display: 'block', fontSize: 12, color: '#eaf5fb', marginTop: 1 }}>프로 하루 163원 · 지금 업그레이드</span>
+          </span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+        </button>
+      )}
+
       {/* 관리자 전용 — 제휴 수익 대시보드 */}
       {user?.is_admin && <AdminRevenue />}
 

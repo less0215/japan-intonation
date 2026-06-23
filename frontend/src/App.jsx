@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
@@ -26,6 +26,7 @@ import LiveCamLibrary from './components/LiveCamLibrary'
 import LiveCamDetailPage from './components/LiveCamDetailPage'
 import { LIVECAMS } from './data/livecams'
 import AdConsentPopup from './components/AdConsentPopup'
+import SubscriptionPage from './components/SubscriptionPage'
 import { showRewardedAd, showInterstitialAd } from './ads'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
@@ -829,6 +830,7 @@ export default function App() {
           <Route path="/onomatope/:id" element={<OnomatopeDetailPage />} />
           <Route path="/live"        element={<LiveCamLibrary />} />
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
+          <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="*" element={
             <>
               <PageSEO

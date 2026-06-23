@@ -23,7 +23,7 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
       <h2 style={{ fontSize: 20, fontWeight: 700, margin: '4px 2px 10px' }}>프로필</h2>
 
       {user ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, border: '1px solid var(--bd)', borderRadius: 14, padding: 12, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, border: '1px solid var(--bd)', borderRadius: 14, padding: 12, marginBottom: 10 }}>
           <div style={{ width: 42, height: 42, borderRadius: '50%', background: PRIMARY, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{user.name?.[0] ?? '회'}</div>
           <div>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
@@ -46,7 +46,7 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
 
       {/* 프로 업그레이드 배너 */}
       {!fastUnlimited && (
-        <button onClick={() => navigate('/plans')} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', background: 'linear-gradient(135deg, #5CA9CE 0%, #4f96bb 100%)', border: 'none', borderRadius: 16, padding: '15px 16px', marginBottom: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+        <button onClick={() => navigate('/plans')} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', background: 'linear-gradient(135deg, #5CA9CE 0%, #4f96bb 100%)', border: 'none', borderRadius: 16, padding: '13px 16px', marginBottom: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
           <span style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
           </span>

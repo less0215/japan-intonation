@@ -28,6 +28,7 @@ import { LIVECAMS } from './data/livecams'
 import AdConsentPopup from './components/AdConsentPopup'
 import SubscriptionPage from './components/SubscriptionPage'
 import { BillingSuccess, BillingFail } from './components/BillingResult'
+import MessageInbox, { getReadIds } from './components/MessageInbox'
 import { showRewardedAd, showInterstitialAd } from './ads'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
@@ -263,6 +264,7 @@ export default function App() {
   const [adNotice, setAdNotice] = useState(false)   // 일반 번역 30회마다 전면 광고 사전 팝업
   const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
   const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(또는 관리자/무제한) → 광고 제거
+  const [msgUnread, setMsgUnread] = useState(0)               // 메시지함 안 읽은 개수(헤더 빨간 점)
   // 정착(settled) 번역 세션 — 디바운스 중간 호출을 한 번역으로 묶어 한도·광고 카운트
   const editSessionRef = useRef({ text: '', time: 0, sid: '' })
   const lastBasicSidRef = useRef('')
@@ -313,6 +315,18 @@ export default function App() {
       .then(d => { if (d) setSubAdFree(!!d.ad_free) })
       .catch(() => {})
   }, [user?.user_id])
+
+  // 메시지함 안 읽은 개수 조회 (로그인 시) — 헤더 빨간 점
+  useEffect(() => {
+    if (!user?.user_id) { setMsgUnread(0); return }
+    fetch(`${API_URL}/messages/${user.user_id}`)
+      .then(r => r.ok ? r.json() : [])
+      .then(list => {
+        const read = getReadIds()
+        setMsgUnread((Array.isArray(list) ? list : []).filter(m => !read.has(m.id)).length)
+      })
+      .catch(() => {})
+  }, [user?.user_id, location.pathname])
 
   // '빠른 번역' 토글. 앱: 세션 첫 켜기 시 보상형 광고. 웹: 비회원이면 로그인 모달
   function handleFastToggle() {
@@ -715,6 +729,19 @@ export default function App() {
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
             {user && (
+              /* 로그인: 메시지함 (벨 + 안 읽은 빨간 점) */
+              <button
+                onClick={() => { setMsgUnread(0); navigate('/messages') }}
+                aria-label="메시지함"
+                style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: 'var(--surface-2,#f0f3f5)', border: '1px solid var(--bd,#e6eaee)', color: 'var(--text-2,#5f6b73)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+                {msgUnread > 0 && (
+                  <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8, background: '#e84c5a', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fff' }}>{msgUnread > 9 ? '9+' : msgUnread}</span>
+                )}
+              </button>
+            )}
+            {user && (
               /* 로그인: 프로필 아바타 (탭 → 프로필) */
               <button
                 onClick={() => navigate('/profile')}
@@ -844,6 +871,7 @@ export default function App() {
           <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="/billing/success" element={<BillingSuccess />} />
           <Route path="/billing/fail"    element={<BillingFail />} />
+          <Route path="/messages"    element={<MessageInbox />} />
           <Route path="*" element={
             <>
               <PageSEO

@@ -25,7 +25,7 @@ function Check({ color }) {
 export default function SubscriptionPage() {
   const navigate = useNavigate()
   const { user } = useUser()
-  const [period, setPeriod] = useState('yearly')
+  const [period, setPeriod] = useState('monthly')
   const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app'
   const p = PLANS[period]
 
@@ -87,7 +87,7 @@ export default function SubscriptionPage() {
         </div>
         <p style={{ margin: '8px 0 0', fontSize: 30, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
           하루 {p.plus.per}원
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-3)', marginLeft: 8, letterSpacing: 0 }}>버스 한 번값({BUS_FARE.toLocaleString()}원)으로 {Math.floor(BUS_FARE / p.plus.per)}일</span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-3)', marginLeft: 8, letterSpacing: 0 }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원인걸요</span>
         </p>
         {p.plus.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0892a', fontWeight: 500 }}>{p.plus.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -106,7 +106,7 @@ export default function SubscriptionPage() {
         </div>
         <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
           하루 {p.pro.per}원
-          <span style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--text-3)', marginLeft: 8, letterSpacing: 0 }}>버스 한 번값({BUS_FARE.toLocaleString()}원)으로 {Math.floor(BUS_FARE / p.pro.per)}일</span>
+          <span style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--text-3)', marginLeft: 8, letterSpacing: 0 }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원인걸요</span>
         </p>
         {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0892a', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>

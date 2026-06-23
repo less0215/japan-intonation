@@ -17,7 +17,7 @@ from google import genai
 from google.api_core.client_options import ClientOptions
 from google.cloud import texttospeech
 from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, Integer, String, Text, create_engine, text as sa_text
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, create_engine, text as sa_text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -343,6 +343,18 @@ class Subscription(Base):
     expires_at  = Column(DateTime, nullable=True, index=True)  # 이 시각까지 유효
     last_paid_at= Column(DateTime, nullable=True)
     updated_at  = Column(DateTime, default=now_kst, onupdate=now_kst)
+
+
+class Message(Base):
+    """운영자 → 회원 메시지(메시지함). User/SavedResult 스키마와 무관한 별도 테이블.
+    audience: 'all'(전체 공지) 또는 특정 user_id 문자열. 읽음 여부는 클라이언트(localStorage)에서 관리."""
+    __tablename__ = "message"
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    audience   = Column(String(32), default='all', index=True)  # 'all' | '<user_id>'
+    title      = Column(String(120), nullable=False)
+    body       = Column(Text, nullable=False)
+    active     = Column(Boolean, default=True, index=True)
+    created_at = Column(DateTime, default=now_kst, index=True)
 
 
 class MrtProduct(Base):
@@ -1194,6 +1206,48 @@ def admin_grant_sub(req: GrantSubRequest):
         db.commit()
         return {"ok": True, "user_id": req.user_id, "plan": req.plan, "period": req.period,
                 "expires_at": sub.expires_at.isoformat()}
+    finally:
+        db.close()
+
+
+@app.get("/messages/{user_id}")
+def get_messages(user_id: int):
+    """회원의 메시지함 — 전체 공지('all') + 본인 대상 메시지를 최신순으로."""
+    db = SessionLocal()
+    try:
+        rows = (db.query(Message)
+                  .filter(Message.active == True,
+                          Message.audience.in_(["all", str(user_id)]))
+                  .order_by(Message.created_at.desc())
+                  .all())
+        return [{"id": m.id, "title": m.title, "body": m.body,
+                 "created_at": m.created_at.isoformat() if m.created_at else None}
+                for m in rows]
+    finally:
+        db.close()
+
+
+class SendMessageRequest(BaseModel):
+    admin_phone: str
+    title: str
+    body: str
+    audience: str = "all"   # 'all' 또는 특정 user_id
+
+@app.post("/admin/send-message")
+def admin_send_message(req: SendMessageRequest):
+    """관리자 전용 — 메시지함에 메시지 발송(전체 공지 또는 특정 회원)."""
+    if not is_admin_phone(req.admin_phone):
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    if not req.title.strip() or not req.body.strip():
+        raise HTTPException(status_code=400, detail="제목과 내용을 입력해 주세요.")
+    db = SessionLocal()
+    try:
+        m = Message(audience=req.audience.strip() or "all",
+                    title=req.title.strip(), body=req.body.strip(), active=True)
+        db.add(m)
+        db.commit()
+        db.refresh(m)
+        return {"ok": True, "id": m.id, "audience": m.audience}
     finally:
         db.close()
 

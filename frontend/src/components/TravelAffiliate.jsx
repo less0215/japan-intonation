@@ -1,34 +1,63 @@
 import { useState, useEffect } from 'react'
-import { loadTravelProducts, openTravelProduct } from '../travel'
+import { loadTravelProducts, getCachedTravelProducts, openTravelProduct } from '../travel'
 
 /* 일본 여행 준비 — 마이리얼트립/세시간전 제휴 추천 (홈)
- * - 우→좌 자동 흐름(마퀴). 끊김 없는 무한 루프, 마우스 올리면 일시정지.
- * - 카탈로그가 비어있으면 아무것도 안 보임 */
+ * - 캐시가 있으면 첫 렌더에서 즉시 표시(레이아웃 점프 방지)
+ * - 첫 방문(캐시 없음)엔 같은 높이의 스켈레톤으로 자리 예약 후 부드럽게 전환
+ * - 우→좌 자동 흐름(마퀴), hover 시 일시정지 */
 const PRIMARY = '#5CA9CE'
 
+const Header = () => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 2px 8px' }}>
+    <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197' }}>일본 여행 준비</span>
+    <span style={{ fontSize: 11, color: '#b6bcc1' }}>· 더 싸고 편하게</span>
+  </div>
+)
+
+// 로딩(첫 방문) 스켈레톤 — 실제 카드와 같은 크기로 자리만 예약
+function Skeleton() {
+  return (
+    <div style={{ marginTop: 4 }}>
+      <Header />
+      <div style={{ display: 'flex', gap: 10, overflow: 'hidden', padding: '2px 0 6px' }}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} style={{ flex: '0 0 auto', width: 142, border: '1px solid #eef1f3', borderRadius: 13, overflow: 'hidden', background: '#fff' }}>
+            <div style={{ height: 90, background: '#eef1f3' }} />
+            <div style={{ padding: '8px 9px 10px' }}>
+              <div style={{ height: 8, width: '55%', background: '#eef1f3', borderRadius: 4, marginBottom: 7 }} />
+              <div style={{ height: 9, width: '90%', background: '#eef1f3', borderRadius: 4, marginBottom: 5 }} />
+              <div style={{ height: 9, width: '40%', background: '#eef1f3', borderRadius: 4 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function TravelAffiliate() {
-  const [items, setItems] = useState([])
+  // 캐시 있으면 즉시(동기) 표시, 없으면 null(=첫 방문 로딩)
+  const [items, setItems] = useState(() => getCachedTravelProducts())
   useEffect(() => { loadTravelProducts().then(setItems) }, [])
 
+  if (items == null) return <Skeleton />
   if (items.length === 0) return null
 
-  // 끊김 없는 루프를 위해 목록을 2번 이어붙이고 -50%까지 이동
   const loop = [...items, ...items]
   const duration = Math.max(24, Math.round(items.length * 2.6))
 
   return (
-    <div style={{ marginTop: 4 }}>
+    <div style={{ marginTop: 4 }} className="travel-fadein">
       <style>{`
         @keyframes travelflow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes travelfade { from { opacity: 0; } to { opacity: 1; } }
+        .travel-fadein { animation: travelfade .35s ease both; }
         .travel-marquee { animation: travelflow var(--dur,60s) linear infinite; }
         .travel-marquee:hover { animation-play-state: paused; }
-        @media (prefers-reduced-motion: reduce) { .travel-marquee { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .travel-marquee { animation: none; } .travel-fadein { animation: none; } }
       `}</style>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 2px 8px' }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197' }}>일본 여행 준비</span>
-        <span style={{ fontSize: 11, color: '#b6bcc1' }}>· 더 싸고 편하게</span>
-      </div>
+      <Header />
 
       <div style={{ overflow: 'hidden', padding: '2px 0 6px' }}>
         <div className="travel-marquee" style={{ display: 'flex', width: 'max-content', '--dur': `${duration}s` }}>

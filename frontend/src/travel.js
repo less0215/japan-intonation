@@ -2,19 +2,45 @@
 // (API 키는 서버에만 있고, 프론트는 우리 백엔드하고만 통신)
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
+const CACHE_KEY = 'tickjapan_travel_cache'
+const CACHE_TTL = 6 * 3600 * 1000   // 6시간
 
 let _cache = null
 let _promise = null
 
-// 카탈로그 1회 로드 + 메모리 캐시
-export function loadTravelProducts() {
-  if (_cache) return Promise.resolve(_cache)
+function _readCache() {
+  try {
+    const r = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null')
+    if (r && Array.isArray(r.products) && (Date.now() - r.t) < CACHE_TTL) return r.products
+  } catch {}
+  return null
+}
+function _writeCache(products) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), products })) } catch {}
+}
+
+// 동기 캐시 조회 — 첫 렌더에서 바로 쓸 수 있으면 반환(없으면 null) → 레이아웃 점프 방지
+export function getCachedTravelProducts() {
+  if (_cache) return _cache
+  const c = _readCache()
+  if (c) { _cache = c }
+  return _cache
+}
+
+function _fetchFresh() {
   if (_promise) return _promise
   _promise = fetch(`${API_URL}/travel/products`)
     .then((r) => (r.ok ? r.json() : { products: [] }))
-    .then((d) => { _cache = d.products || []; return _cache })
-    .catch(() => { _cache = []; return _cache })
+    .then((d) => { _cache = d.products || []; _writeCache(_cache); _promise = null; return _cache })
+    .catch(() => { _promise = null; return _cache || [] })
   return _promise
+}
+
+// 카탈로그 로드 — 캐시 있으면 즉시 반환 + 백그라운드 갱신, 없으면 fetch
+export function loadTravelProducts() {
+  const cached = getCachedTravelProducts()
+  if (cached) { _fetchFresh(); return Promise.resolve(cached) }   // 즉시 + 뒤에서 최신화
+  return _fetchFresh()
 }
 
 // 맥락 매칭 — 입력(한국어)+번역문에서 상품 keywords로 매칭. 최대 2개. 없으면 [].

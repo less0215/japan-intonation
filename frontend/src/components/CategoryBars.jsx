@@ -7,6 +7,7 @@ const CATEGORIES = [
   { key: 'adj-na',    path: '/adj-na',    label: '일본인이 많이 쓰는 な형용사 TOP100' },
   { key: 'noun',      path: '/noun',      label: '일본인이 많이 쓰는 명사 TOP100' },
   { key: 'particles', path: '/particles', label: '일본인이 많이 쓰는 조사 TOP10' },
+  { key: 'onomatope', path: '/onomatope', label: '일본인이 많이 쓰는 의성어·의태어' },
 ]
 
 export default function CategoryBars({ current, onNavigate }) {

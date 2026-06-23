@@ -7,7 +7,7 @@ import PageSEO from './PageSEO'
  * - 리스트형(유려한 간격), 편집 모드에서 우측 체크박스로 다중/전체 삭제
  */
 const PRIMARY = '#5CA9CE'
-const CAT_PATH = { verb: '/verbs', 'adj-i': '/adj-i', 'adj-na': '/adj-na', noun: '/noun', particle: '/particles' }
+const CAT_PATH = { verb: '/verbs', 'adj-i': '/adj-i', 'adj-na': '/adj-na', noun: '/noun', particle: '/particles', onomatope: '/onomatope' }
 
 export default function SavesPage({ onSelectHistory }) {
   const { translationHistory, savedWords, savedExamples, removeHistoryItems, removeWords, removeExamples } = useUser()

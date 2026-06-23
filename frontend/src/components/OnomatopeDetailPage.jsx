@@ -2,6 +2,7 @@ import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import OnomatopeIcon from './OnomatopeIcon'
 import JlptBadge from './JlptBadge'
+import WordBookmarkButton from './WordBookmarkButton'
 import { ONOMATOPE } from '../data/onomatope'
 
 const PRIMARY = '#5CA9CE'
@@ -27,9 +28,12 @@ export default function OnomatopeDetailPage() {
 
       {/* 헤더 */}
       <div style={{ background: '#fff', border: '1px solid #eaecef', borderRadius: 16, padding: '16px 18px 14px' }}>
-        <div style={{ display: 'flex', gap: 7, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
           <JlptBadge level={o.jlpt} />
           <span style={{ fontSize: 11, fontWeight: 600, color: '#5f6b73', background: '#eef1f3', borderRadius: 6, padding: '3px 9px' }}>{o.category}</span>
+          <div style={{ marginLeft: 'auto' }}>
+            <WordBookmarkButton wordInfo={{ id: o.id, category: 'onomatope', word: o.word, reading: o.reading, meaning: o.meaning }} />
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>

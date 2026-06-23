@@ -29,6 +29,7 @@ import AdConsentPopup from './components/AdConsentPopup'
 import SubscriptionPage from './components/SubscriptionPage'
 import { BillingSuccess, BillingFail } from './components/BillingResult'
 import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbox'
+import UpdateGate from './components/UpdateGate'
 import { showRewardedAd, showInterstitialAd } from './ads'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
@@ -709,6 +710,7 @@ export default function App() {
 
   return (
     <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
+      <UpdateGate />
       <div className="container">
 
         {/* 앱 헤더 */}

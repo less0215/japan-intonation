@@ -317,6 +317,14 @@ class AndroidWaitlist(Base):
     notified   = Column(Integer, default=0)   # 0=대기, 1=알림 본 상태(중복 방지용)
     created_at = Column(DateTime, default=now_kst)
 
+class AppSetting(Base):
+    """운영 설정 key/value — 앱 출시 없이 서버에서 바꾸는 값(예: 강제 업데이트 최소버전)"""
+    __tablename__ = "app_setting"
+    key        = Column(String(40), primary_key=True)
+    value      = Column(String(200), nullable=False)
+    updated_at = Column(DateTime, default=now_kst, onupdate=now_kst)
+
+
 class PaymentWaitlist(Base):
     """결제(구독) 출시 알림 신청자 — 정식 오픈 시 이 회원들에게 메시지 발송용"""
     __tablename__ = "payment_waitlist"
@@ -1937,6 +1945,53 @@ def android_interest_status(user_id: int):
     try:
         row = db.query(AndroidWaitlist).filter(AndroidWaitlist.user_id == user_id).first()
         return {"opted_in": bool(row), "notified": bool(row and row.notified)}
+    finally:
+        db.close()
+
+
+# ── 강제 업데이트 게이트 ──
+# DEFAULT_MIN_APP_VERSION 이상이 아니면 앱에서 '업데이트' 강제 팝업.
+# 평소엔 현재 출시버전과 같게 둬서 아무도 안 막힘. 새 버전 필수 반영 시 /admin/set-min-version으로 올림.
+DEFAULT_MIN_APP_VERSION = "1.6"
+LATEST_APP_VERSION = "1.6"
+APP_STORE_URL = "https://apps.apple.com/app/id6781296261"
+
+def _get_setting(db, key, default):
+    row = db.query(AppSetting).filter(AppSetting.key == key).first()
+    return row.value if row else default
+
+@app.get("/app-version")
+def app_version():
+    """앱이 실행 시 호출 — 설치버전이 min_required 미만이면 강제 업데이트."""
+    db = SessionLocal()
+    try:
+        return {
+            "min_required": _get_setting(db, "min_app_version", DEFAULT_MIN_APP_VERSION),
+            "latest": _get_setting(db, "latest_app_version", LATEST_APP_VERSION),
+            "ios_url": APP_STORE_URL,
+        }
+    finally:
+        db.close()
+
+class SetMinVersionRequest(BaseModel):
+    admin_phone: str
+    min_required: str
+
+@app.post("/admin/set-min-version")
+def set_min_version(req: SetMinVersionRequest):
+    """관리자 전용 — 강제 업데이트 최소버전 변경(앱 출시 없이 서버에서 즉시 적용)."""
+    if not is_admin_phone(req.admin_phone):
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    v = req.min_required.strip()
+    db = SessionLocal()
+    try:
+        row = db.query(AppSetting).filter(AppSetting.key == "min_app_version").first()
+        if row:
+            row.value = v
+        else:
+            db.add(AppSetting(key="min_app_version", value=v))
+        db.commit()
+        return {"ok": True, "min_required": v}
     finally:
         db.close()
 

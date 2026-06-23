@@ -317,6 +317,15 @@ class AndroidWaitlist(Base):
     notified   = Column(Integer, default=0)   # 0=대기, 1=알림 본 상태(중복 방지용)
     created_at = Column(DateTime, default=now_kst)
 
+class PaymentWaitlist(Base):
+    """결제(구독) 출시 알림 신청자 — 정식 오픈 시 이 회원들에게 메시지 발송용"""
+    __tablename__ = "payment_waitlist"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, unique=True, nullable=False, index=True)
+    notified   = Column(Integer, default=0)
+    created_at = Column(DateTime, default=now_kst)
+
+
 class FastUsage(Base):
     """빠른 번역(3.1) 사용량 — 회원당 1행, 5시간 롤링 윈도우(클로드 방식).
     첫 사용 시점에 윈도우 시작 → 5시간 뒤 카운트 리셋.
@@ -1928,6 +1937,39 @@ def android_interest_status(user_id: int):
     try:
         row = db.query(AndroidWaitlist).filter(AndroidWaitlist.user_id == user_id).first()
         return {"opted_in": bool(row), "notified": bool(row and row.notified)}
+    finally:
+        db.close()
+
+
+class PaymentInterestRequest(BaseModel):
+    user_id: int
+
+@app.post("/payment-interest")
+def payment_interest(req: PaymentInterestRequest):
+    """결제(구독) 출시 알림 신청 (로그인 회원만). 중복 신청은 무시."""
+    db = SessionLocal()
+    try:
+        if not db.query(User).filter(User.id == req.user_id).first():
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        exists = db.query(PaymentWaitlist).filter(PaymentWaitlist.user_id == req.user_id).first()
+        if exists:
+            return {"ok": True, "already": True}
+        db.add(PaymentWaitlist(user_id=req.user_id))
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+        return {"ok": True, "already": False}
+    finally:
+        db.close()
+
+@app.get("/payment-interest/{user_id}")
+def payment_interest_status(user_id: int):
+    """이 회원이 결제 출시 알림을 신청했는지."""
+    db = SessionLocal()
+    try:
+        row = db.query(PaymentWaitlist).filter(PaymentWaitlist.user_id == user_id).first()
+        return {"opted_in": bool(row)}
     finally:
         db.close()
 

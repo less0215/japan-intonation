@@ -6,6 +6,7 @@ import { loadTossPayments } from '@tosspayments/payment-sdk'
 
 const PRIMARY = '#5CA9CE'
 const BUS_FARE = 1500   // 시내버스 한 번 요금 — 가격 앵커링용
+const API_URL = 'https://japan-intonation-production.up.railway.app'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 // 토스 클라이언트키 — Vercel 환경변수 VITE_TOSS_CLIENT_KEY (없으면 교체 안내 더미)
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || 'test_ck_REPLACE_ME'
@@ -29,7 +30,23 @@ export default function SubscriptionPage() {
   const { user } = useUser()
   const [period, setPeriod] = useState('monthly')
   const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app' | 'soon'
+  const [waitlistDone, setWaitlistDone] = useState(false)   // 출시 알림 신청 완료
   const p = PLANS[period]
+
+  function closeNotice() { setNotice(null); setWaitlistDone(false) }
+
+  // 결제 출시 알림 신청 — 로그인 필요, 서버 저장(출시 시 메시지함으로 알림)
+  async function requestWaitlist() {
+    if (!user?.user_id) { setNotice('login'); return }
+    try {
+      await fetch(`${API_URL}/payment-interest`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.user_id }),
+      })
+      track('payment_waitlist', { plan: 'any' })
+    } catch {}
+    setWaitlistDone(true)   // 실패해도 사용자 경험상 완료 처리(중복 무시 서버 처리)
+  }
 
   async function choose(plan) {
     track('subscribe_cta', { plan, period })
@@ -128,18 +145,20 @@ export default function SubscriptionPage() {
       {/* 안내 모달 — 로그인 필요 / 앱(웹에서) / 오류 */}
       {notice && (() => {
         const N = {
-          soon:  { title: '결제 준비 중이에요', body: '곧 광고 없이 이용하실 수 있도록 결제 기능을 준비하고 있어요. 조금만 기다려 주세요!', primary: '확인', onPrimary: () => setNotice(null) },
+          soon:  waitlistDone
+            ? { title: '신청 완료!', body: '결제 기능이 준비되면 메시지함으로 알려드릴게요. 기다려 주셔서 감사해요 :)', primary: '확인', onPrimary: closeNotice }
+            : { title: '결제 준비 중이에요', body: '곧 광고 없이 이용하실 수 있도록 결제 기능을 준비하고 있어요. 준비되면 가장 먼저 알려드릴까요?', primary: '출시 알림 받기', onPrimary: requestWaitlist },
           login: { title: '로그인이 필요해요', body: '구독은 로그인 후 이용할 수 있어요.', primary: '로그인하러 가기', onPrimary: () => navigate('/profile') },
-          app:   { title: '구독은 웹에서', body: 'tickjapan.com 에서 구독하면 앱에서도 광고 없이 그대로 이용할 수 있어요.', primary: '확인', onPrimary: () => setNotice(null) },
-          error: { title: '문제가 발생했어요', body: '잠시 후 다시 시도해 주세요.', primary: '확인', onPrimary: () => setNotice(null) },
-        }[notice] || { title: '안내', body: '', primary: '확인', onPrimary: () => setNotice(null) }
+          app:   { title: '구독은 웹에서', body: 'tickjapan.com 에서 구독하면 앱에서도 광고 없이 그대로 이용할 수 있어요.', primary: '확인', onPrimary: closeNotice },
+          error: { title: '문제가 발생했어요', body: '잠시 후 다시 시도해 주세요.', primary: '확인', onPrimary: closeNotice },
+        }[notice] || { title: '안내', body: '', primary: '확인', onPrimary: closeNotice }
         return (
-          <div onClick={() => setNotice(null)} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div onClick={closeNotice} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: 300, maxWidth: '90vw', background: 'var(--surface)', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 16px 48px rgba(0,0,0,0.28)' }}>
               <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)' }}>{N.title}</p>
               <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{N.body}</p>
               <button onClick={N.onPrimary} style={{ width: '100%', height: 46, border: 'none', borderRadius: 12, background: PRIMARY, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{N.primary}</button>
-              <button onClick={() => setNotice(null)} style={{ width: '100%', height: 36, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>닫기</button>
+              <button onClick={closeNotice} style={{ width: '100%', height: 36, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>닫기</button>
             </div>
           </div>
         )

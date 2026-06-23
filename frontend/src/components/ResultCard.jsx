@@ -278,7 +278,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
                   <span style={{ fontSize: 11.5, color: PRIMARY, fontWeight: 600 }}>{n.label}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 500, color: 'var(--text-strong)', flex: 1, minWidth: 0 }}>{n.japanese}</span>
-                    <CopyButton getText={() => n.japanese} />
+                    <CopyButton getText={() => n.japanese} onCopy={() => track('nuance_copy', { label: n.label, index: i, count: nuances.length })} />
                   </div>
                   {n.reading && <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{n.reading}</span>}
                 </div>

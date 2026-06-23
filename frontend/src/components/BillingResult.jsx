@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import PageSEO from './PageSEO'
+import { track } from '../App'
+import { PLANS } from './SubscriptionPage'   // 가격 단일 출처(SSOT) — 매출 전환 value 계산에 재사용
 
 const PRIMARY = '#5CA9CE'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
@@ -31,8 +33,15 @@ export function BillingSuccess() {
         if (!r.ok) { let d = '결제 처리에 실패했어요.'; try { const j = await r.json(); if (j?.detail) d = j.detail } catch {} ; throw new Error(d) }
         return r.json()
       })
-      .then(() => { setState('done'); try { window.gtag?.('event', 'subscribe_success', { plan, period }) } catch {} })
-      .catch((e) => { setState('error'); setMsg(e.message || '결제 처리에 실패했어요.') })
+      .then(() => {
+        setState('done')
+        const value = PLANS[period]?.[plan]?.total
+        track('subscribe_success', { plan, period, value, currency: 'KRW' })   // GA4 + AppsFlyer(af_subscribe) + Pixel(Purchase)
+      })
+      .catch((e) => {
+        setState('error'); setMsg(e.message || '결제 처리에 실패했어요.')
+        track('subscribe_fail', { plan, period, reason: (e.message || '').slice(0, 80), stage: 'confirm' })
+      })
   }, [])
 
   return (
@@ -73,6 +82,12 @@ export function BillingFail() {
   const navigate = useNavigate()
   const [sp] = useSearchParams()
   const message = sp.get('message') || '결제가 취소되었어요.'
+  const firedRef = useRef(false)
+  useEffect(() => {
+    if (firedRef.current) return
+    firedRef.current = true
+    track('subscribe_fail', { plan: sp.get('plan') || '', period: sp.get('period') || '', reason: message.slice(0, 80), stage: 'gateway' })
+  }, [])
   return (
     <>
       <PageSEO title="결제 실패 - 틱재팬" description="구독 결제 실패" path="/billing/fail" />

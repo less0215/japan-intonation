@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import { useUser } from '../context/UserContext'
 import { loadTossPayments } from '@tosspayments/payment-sdk'
+import { track } from '../App'   // GA4 + AppsFlyer/Pixel 매핑 일원화(subscribe_waitlist→af_subscribe_waitlist 등)
 
 const PRIMARY = '#5CA9CE'
 const BUS_FARE = 1500   // 시내버스 한 번 요금 — 가격 앵커링용
@@ -12,11 +13,10 @@ const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || 'test_ck_REPLACE_ME'
 // 결제 정식 오픈 스위치 — 실키(라이브) 적용 후 true 로. false면 '준비 중' 안내만(테스트 결제창 차단)
 const PAYMENTS_ENABLED = false
-// App 순환 참조 방지 — 가벼운 자체 트래킹
-const track = (name, params = {}) => { try { window.gtag?.('event', name, params); window.__afLog?.(name, params) } catch {} }
 
-/* 플랜 업그레이드 (/plans) — 무료/플러스/프로. 미니멀 */
-const PLANS = {
+/* 플랜 업그레이드 (/plans) — 무료/플러스/프로. 미니멀
+ * 가격 단일 출처(SSOT) — BillingResult가 매출 전환 value 계산에 재사용하므로 export */
+export const PLANS = {
   monthly: { label: '월간', plus: { total: 8900,  per: 297, unit: '월' }, pro: { total: 19900, per: 663, unit: '월' } },
   yearly:  { label: '연간', plus: { total: 89000, per: 244, unit: '년', save: '2개월 무료' }, pro: { total: 199000, per: 545, unit: '년', save: '2개월 무료' } },
 }
@@ -31,12 +31,23 @@ function SoonBadge() {
 export default function SubscriptionPage() {
   const navigate = useNavigate()
   const { user } = useUser()
+  const [sp] = useSearchParams()
   const [period, setPeriod] = useState('monthly')
   const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app' | 'soon'
   const [waitlistDone, setWaitlistDone] = useState(false)   // 출시 알림 신청 완료
+  const lastChoice = useRef({ plan: null, period: 'monthly' })   // 직전 선택(plan/period) — waitlist·abandon에서 재사용
   const p = PLANS[period]
 
-  function closeNotice() { setNotice(null); setWaitlistDone(false) }
+  // 플랜 화면 노출 — 구독 퍼널 시작점. source는 진입 경로(?from=profile|fast_limit|review|web_fast)
+  useEffect(() => {
+    track('plans_view', { source: sp.get('from') || 'direct', period, is_logged_in: !!user, is_app: isApp })
+  }, [])   // 마운트 1회
+
+  function closeNotice() {
+    // 플랜 선택 후 뜬 안내/준비중 모달을 신청·결제 없이 닫음 = 이탈
+    if (notice && !waitlistDone) track('subscribe_abandon', { plan: lastChoice.current.plan, period: lastChoice.current.period, notice_type: notice })
+    setNotice(null); setWaitlistDone(false)
+  }
 
   // 결제 출시 알림 신청 — 로그인 필요, 서버 저장(출시 시 메시지함으로 알림)
   async function requestWaitlist() {
@@ -46,13 +57,14 @@ export default function SubscriptionPage() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.user_id }),
       })
-      track('payment_waitlist', { plan: 'any' })
+      track('subscribe_waitlist', { plan: lastChoice.current.plan || 'unknown', period: lastChoice.current.period || period, is_logged_in: !!user })
     } catch {}
     setWaitlistDone(true)   // 실패해도 사용자 경험상 완료 처리(중복 무시 서버 처리)
   }
 
   async function choose(plan) {
-    track('subscribe_cta', { plan, period })
+    lastChoice.current = { plan, period }
+    track('subscribe_cta', { plan, period, is_logged_in: !!user, is_app: isApp })
     // 결제 정식 오픈 전 — 웹/앱 모두 '준비 중' 안내만(테스트 결제창 차단)
     if (!PAYMENTS_ENABLED) { setNotice('soon'); return }
     // iOS 안티스티어링: 앱 안에서 외부 결제 유도 금지 → 안내만

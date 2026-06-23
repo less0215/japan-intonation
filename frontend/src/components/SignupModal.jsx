@@ -34,7 +34,9 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save', title, 
         throw new Error(body.detail || '요청에 실패했습니다.')
       }
       const data = await res.json()
-      track('signup_complete', { trigger: mode })
+      // 신규 가입만 signup_complete(AF/Pixel 매핑) — 기존 회원 재로그인은 login_complete로 분리(어트리뷰션 오염 방지)
+      if (data.is_new) track('signup_complete', { trigger: mode, is_new: true })
+      else track('login_complete', { trigger: mode, is_returning: true })
       onSuccess({ user_id: data.user_id, name: data.name, fast_unlimited: !!data.fast_unlimited, is_admin: !!data.is_admin })
     } catch (err) {
       setError(err.message)

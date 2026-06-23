@@ -51,19 +51,23 @@ const PRIMARY   = '#5CA9CE'
 
 /* 내부 이벤트명 → AppsFlyer 인앱 이벤트명 매핑 (핵심 전환만) */
 const AF_EVENTS = {
-  analyze:          'af_translate',              // 번역 시도
-  signup_complete:  'af_complete_registration',  // 가입 완료
-  result_save:      'af_save_translation',       // 번역 저장
-  example_save:     'af_save_example',           // 예문 저장
-  word_save:        'af_save_word',              // 단어 저장
-  word_detail_view: 'af_content_view',           // 콘텐츠(단어/문법) 조회
+  analyze:            'af_translate',              // 번역 시도
+  signup_complete:    'af_complete_registration',  // 가입 완료(신규만)
+  result_save:        'af_save_translation',       // 번역 저장
+  example_save:       'af_save_example',           // 예문 저장
+  word_save:          'af_save_word',              // 단어 저장
+  word_detail_view:   'af_content_view',           // 콘텐츠(단어/문법) 조회
+  subscribe_success:  'af_subscribe',              // 구독 결제 완료(매출 핵심전환, value/currency)
+  subscribe_waitlist: 'af_subscribe_waitlist',     // 결제 미오픈 대기 수요
+  review_prompt_cta:  'af_review_cta',             // 리뷰 보상 루프 CTA(ASO/리텐션)
 }
 
 /* 내부 이벤트명 → Meta Pixel 표준 이벤트명 매핑 (웹 전용 핵심 전환) */
 const META_EVENTS = {
-  signup_complete:    'CompleteRegistration',  // 가입 완료
+  signup_complete:    'CompleteRegistration',  // 가입 완료(신규만)
   download_page_view: 'ViewContent',           // 다운로드 페이지 도달 (퍼널 중간)
   download_click:     'Lead',                  // 실제 App Store 다운로드 클릭
+  subscribe_success:  'Purchase',              // 웹 결제 전환 (value+currency:'KRW' → ROAS 입찰)
 }
 
 /* 이벤트 전송 헬퍼 — GA4 + (앱) AppsFlyer + (웹) Meta Pixel */
@@ -74,12 +78,20 @@ export function track(eventName, params = {}) {
   // AppsFlyer 인앱 이벤트 (앱 환경에서만, 핵심 전환에 한해)
   const afName = AF_EVENTS[eventName]
   if (afName && typeof window.__afLog === 'function') {
-    window.__afLog(afName, params)
+    // 금액성 이벤트는 AppsFlyer 표준 매출 키(af_revenue/af_currency)로 변환 → ROAS 집계
+    if (params && params.value != null) {
+      const { value, currency, ...rest } = params
+      window.__afLog(afName, { ...rest, af_revenue: value, af_currency: currency || 'KRW' })
+    } else {
+      window.__afLog(afName, params)
+    }
   }
   // Meta Pixel 표준 이벤트 (fbq는 웹에서만 로드됨 → 앱에선 자동 skip)
   const metaName = META_EVENTS[eventName]
   if (metaName && typeof window.fbq === 'function') {
-    window.fbq('track', metaName)
+    // Purchase 등 금액성 이벤트는 value/currency를 함께 전달 (ROAS 측정용)
+    if (params && params.value != null) window.fbq('track', metaName, { value: params.value, currency: params.currency || 'KRW' })
+    else window.fbq('track', metaName)
   }
 }
 
@@ -377,6 +389,7 @@ export default function App() {
   // 보상형 광고 시청 → 빠른 번역 켜기 (앱 전용)
   async function watchAdEnable() {
     const ok = await showRewardedAd()
+    track('rewarded_ad_result', { placement: 'fast_enable', result: ok ? 'rewarded' : 'no_fill_or_dismiss', guest: !user })
     if (!ok) return
     setSessionFastUnlocked(true)
     setAdPopup(null)
@@ -387,6 +400,7 @@ export default function App() {
   // 보상형 광고 시청 → 5시간 한도 즉시 해제 후 빠른 번역 켜기 (앱 전용)
   async function watchAdUnlock5h() {
     const ok = await showRewardedAd()
+    track('rewarded_ad_result', { placement: 'unlock5h', result: ok ? 'rewarded' : 'no_fill_or_dismiss', guest: !user })
     if (!ok) return
     try {
       if (user?.user_id) await fetch(`${API_URL}/fast-usage/${user.user_id}/reset`, { method: 'POST' })
@@ -593,7 +607,7 @@ export default function App() {
           }
           if (trigger) {
             localStorage.setItem('tickjapan_review_prompt_done', '1')
-            setTimeout(() => setShowReviewPrompt(true), 900)   // 결과를 잠깐 본 뒤 자연스럽게
+            setTimeout(() => setShowReviewPrompt(trigger), 900)   // 결과를 잠깐 본 뒤 자연스럽게(값=트리거)
             track('review_prompt_shown', { trigger, total: tot })
           }
         } catch {}
@@ -759,7 +773,7 @@ export default function App() {
   return (
     <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
       <UpdateGate />
-      {showReviewPrompt && <ReviewEventPopup onClose={() => setShowReviewPrompt(false)} />}
+      {showReviewPrompt && <ReviewEventPopup trigger={showReviewPrompt} onClose={() => setShowReviewPrompt(false)} />}
       <div className="container">
 
         {/* 앱 헤더 */}
@@ -1156,7 +1170,7 @@ export default function App() {
           <div style={{ width: 300, maxWidth: '90vw', background: '#fff', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <p style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: '#1f2937' }}>잠시 광고가 표시돼요</p>
             <p style={{ margin: '0 0 16px', fontSize: 13, color: '#666', lineHeight: 1.6 }}>틱재팬을 계속 <b>무료</b>로 운영하기 위해<br />짧은 광고를 보여드려요. 양해 부탁드려요.</p>
-            <button onClick={async () => { setAdNotice(false); await showInterstitialAd() }} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>확인</button>
+            <button onClick={async () => { setAdNotice(false); const n = parseInt(localStorage.getItem('tickjapan_basic_count') || '0', 10) || 0; const ok = await showInterstitialAd(); track('interstitial_result', { count: n, result: ok ? 'shown' : 'no_fill_or_fail' }) }} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>확인</button>
           </div>
         </div>
       )}

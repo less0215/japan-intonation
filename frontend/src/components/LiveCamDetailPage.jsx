@@ -5,6 +5,7 @@ import JapanMiniMap from './JapanMiniMap'
 import AdConsentPopup from './AdConsentPopup'
 import { LIVECAMS } from '../data/livecams'
 import { showRewardedAd, isAdFreeMember } from '../ads'
+import { track } from '../App'
 
 const PRIMARY = '#5CA9CE'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
@@ -36,7 +37,8 @@ export default function LiveCamDetailPage() {
   // '광고 보고 날씨 확인' — 광고 시청 시도 후 이동(노필 등 실패해도 콘텐츠는 막지 않음)
   async function watchAdAndGo() {
     const target = pendingCity
-    await showRewardedAd()
+    const ok = await showRewardedAd()
+    track('rewarded_ad_result', { placement: 'livecam', result: ok ? 'rewarded' : 'no_fill_or_dismiss' })
     setPendingCity(null)
     if (target) {
       try { window.gtag?.('event', 'livecam_hop', { via: 'ad', to: target }) } catch {}

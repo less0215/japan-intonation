@@ -1437,6 +1437,22 @@ def learning_summary(key: str = "", event_type: str = "", limit: int = 30):
     finally:
         db.close()
 
+@app.post("/admin/learning-purge")
+def learning_purge(key: str = "", anonymous_ids: str = ""):
+    """관리자 — 테스트/오염 데이터 정리. anonymous_ids(콤마 구분)에 해당하는 행만 삭제(실데이터 보존)."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    ids = [s.strip() for s in (anonymous_ids or "").split(",") if s.strip()]
+    if not ids:
+        raise HTTPException(status_code=400, detail="anonymous_ids(콤마 구분)가 필요합니다.")
+    db = SessionLocal()
+    try:
+        n = db.query(LearningEvent).filter(LearningEvent.anonymous_id.in_(ids)).delete(synchronize_session=False)
+        db.commit()
+        return {"ok": True, "deleted": n}
+    finally:
+        db.close()
+
 
 # ──────────────────────────────────────────────
 # 마이리얼트립(MyRealTrip) 마케팅파트너 API — 여행 상품 제휴 (Phase 1)

@@ -27,7 +27,7 @@ export function ConjugationPanel({ steps }) {
       {steps.map((s, i) => (
         <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {i > 0 && (
-            <div style={{ paddingLeft: 20, color: '#ccc', fontSize: 14, lineHeight: 1, margin: '3px 0' }}>↓</div>
+            <div style={{ paddingLeft: 20, color: 'var(--text-3)', fontSize: 14, lineHeight: 1, margin: '3px 0' }}>↓</div>
           )}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span style={{
@@ -37,7 +37,7 @@ export function ConjugationPanel({ steps }) {
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}>{s.step}</span>
-            <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 600, color: '#111' }}>
+            <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 600, color: 'var(--text-strong)' }}>
               {s.form}
             </span>
             <span style={{ fontSize: 12, color: 'var(--text-2)', background: 'var(--surface-2)', borderRadius: 6, padding: '1px 7px' }}>

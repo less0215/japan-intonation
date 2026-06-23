@@ -79,8 +79,6 @@ const TONES = [
 ]
 
 export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading, onRequestBreakdown, onBreakdownExpanded }) {
-  const hasBreakdown = data.breakdown && data.breakdown.length > 0
-
   // 톤 전환 — 'natural'은 원본 data, 그 외는 /translate-tone 로 받아 교체(칩 누를 때 생성)
   const [tone, setTone]         = useState('natural')
   const [toneData, setToneData] = useState({})   // { business: {...}, literal: {...} }
@@ -88,10 +86,31 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
 
   const view = tone === 'natural' ? data : (toneData[tone] || data)
   const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = view
+  // 분해 표시 여부는 '현재 보고 있는 톤'의 breakdown 기준 (톤별로 따로 보관) — 톤 전환 시 undefined 크래시 방지
+  const hasBreakdown = breakdown && breakdown.length > 0
+
+  // 현재 보이는 문장(톤 적용본)에 대한 분해를 별도로 받아 해당 톤에 병합 (natural은 부모가 처리)
+  async function fetchToneBreakdown(t, jp) {
+    if (!jp) return
+    try {
+      const res = await fetch(`${API_URL}/breakdown`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ japanese: jp }),
+      })
+      if (!res.ok) throw new Error()
+      const { breakdown: bd } = await res.json()
+      setToneData(prev => ({ ...prev, [t]: { ...(prev[t] || {}), breakdown: bd } }))
+    } catch {}
+  }
 
   async function handleTone(t) {
     if (t === tone) return
-    if (t === 'natural' || toneData[t]) { setTone(t); track('tone_switch', { tone: t, cached: true }); return }
+    if (t === 'natural' || toneData[t]) {
+      setTone(t); track('tone_switch', { tone: t, cached: true })
+      // 이미 분해를 펼친 상태에서 톤을 바꿨는데 그 톤에 분해가 아직 없으면 받아온다
+      if (expanded && t !== 'natural' && !(toneData[t]?.breakdown?.length)) fetchToneBreakdown(t, toneData[t]?.japanese)
+      return
+    }
     if (!inputText) return
     setTone(t)
     setToneLoading(true)
@@ -104,6 +123,8 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
       if (!res.ok) throw new Error()
       const d = await res.json()
       setToneData(prev => ({ ...prev, [t]: d }))
+      // 분해가 펼쳐진 상태였다면 이 톤 문장에 대한 분해도 이어서 받아온다
+      if (expanded && d?.japanese) fetchToneBreakdown(t, d.japanese)
     } catch {
       setTone('natural')   // 실패 시 기본으로 복귀
     } finally {
@@ -122,7 +143,11 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
   function handleExpandBreakdown() {
     track('breakdown_expand', { text_length: japanese.length })
     setExpanded(true)
-    if (!hasBreakdown) onRequestBreakdown?.()   // 아직 없으면 이때 1회 호출
+    if (!hasBreakdown) {
+      // natural은 부모가 결과에 병합, 그 외 톤은 현재 문장 기준으로 직접 받아온다
+      if (tone === 'natural') onRequestBreakdown?.()
+      else fetchToneBreakdown(tone, japanese)
+    }
     onBreakdownExpanded?.()   // 여행 추천 팝업 트리거 armed
   }
 
@@ -136,6 +161,22 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
 
   // 새 번역(다른 문장)이 오면 분해 접기 + 톤 기본(자연스럽게)으로 초기화
   useEffect(() => { setExpanded(false); setShowDetail(false); setTone('natural'); setToneData({}) }, [data.japanese])
+
+  // 맥락 기반 '이런 뜻일 수도' 제안 — 입력이 중의적일 때만 채워짐(아니면 빈 배열 → 카드 숨김)
+  const [nuances, setNuances] = useState([])
+  useEffect(() => {
+    setNuances([])
+    if (!inputText) return
+    let alive = true
+    fetch(`${API_URL}/nuances`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: inputText }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (alive && d?.alternatives?.length) { setNuances(d.alternatives); track('nuance_shown', { count: d.alternatives.length }) } })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [inputText, data.japanese])
   const audioRef = useRef(null)
 
   const segments = parseFurigana(furigana_html)
@@ -222,6 +263,27 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
             {(() => { const h = TONES.find(t => t.key === tone)?.hint; return h ? (
               <p style={{ margin: '6px 2px 0', fontSize: 10.5, color: '#9aa0a6' }}>{h}</p>
             ) : null })()}
+          </div>
+        )}
+
+        {/* 맥락 기반 제안 — 입력이 중의적일 때만 노출 */}
+        {nuances.length > 0 && (
+          <div style={{ marginTop: 12, padding: '12px 14px', background: 'var(--surface-2)', border: '1px solid var(--bd)', borderRadius: 12 }}>
+            <p style={{ margin: '0 0 9px', fontSize: 12, fontWeight: 700, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ fontSize: 13 }}>💡</span> 이런 뜻일 수도 있어요
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {nuances.map((n, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: i ? 10 : 0, borderTop: i ? '1px solid var(--bd)' : 'none' }}>
+                  <span style={{ fontSize: 11.5, color: PRIMARY, fontWeight: 600 }}>{n.label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 500, color: 'var(--text-strong)', flex: 1, minWidth: 0 }}>{n.japanese}</span>
+                    <CopyButton getText={() => n.japanese} />
+                  </div>
+                  {n.reading && <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{n.reading}</span>}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

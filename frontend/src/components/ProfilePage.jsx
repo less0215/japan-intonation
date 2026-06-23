@@ -15,7 +15,7 @@ function Row({ icon, label, color, onClick }) {
   )
 }
 
-export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAccount, onLogin, isApp }) {
+export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, onDeleteAccount, onLogin, isApp }) {
   const navigate = useNavigate()
   return (
     <>
@@ -28,10 +28,10 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
           <div>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
               {user.name}
-              {fastUnlimited && <span style={{ fontSize: 10, background: '#fff5e0', color: '#c98a00', borderRadius: 5, padding: '1px 5px', marginLeft: 6 }}>⚡무제한</span>}
+              {fastUnlimited && <span style={{ fontSize: 10, background: 'rgba(92,169,206,0.16)', color: PRIMARY, fontWeight: 700, borderRadius: 5, padding: '1px 6px', marginLeft: 6 }}>플러스</span>}
             </p>
             <p style={{ margin: '1px 0 0', fontSize: 11, color: fastUnlimited ? PRIMARY : 'var(--text-3)' }}>
-              {fastUnlimited ? (user?.is_admin ? '⚡ 무제한 이용 중' : '⚡ 무제한 · 2026.10.1까지') : '로그인됨'}
+              {fastUnlimited ? (planLabel || '플러스 이용 중') : '로그인됨'}
             </p>
           </div>
         </div>

@@ -30,6 +30,7 @@ import SubscriptionPage from './components/SubscriptionPage'
 import { BillingSuccess, BillingFail } from './components/BillingResult'
 import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbox'
 import UpdateGate from './components/UpdateGate'
+import ReviewEventPopup from './components/ReviewEventPopup'
 import { showRewardedAd, showInterstitialAd } from './ads'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
@@ -263,8 +264,10 @@ export default function App() {
   // 앱 보상형 광고: 팝업 상태({mode}) + 이번 세션 광고 시청 완료 여부(앱 재시작 시 초기화)
   const [adPopup, setAdPopup] = useState(null)
   const [adNotice, setAdNotice] = useState(false)   // 일반 번역 30회마다 전면 광고 사전 팝업
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false)   // 리뷰 이벤트 팝업(앱·로그인·누적 8회쯤 1회)
   const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
   const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(또는 관리자/무제한) → 광고 제거
+  const [subInfo, setSubInfo] = useState(null)                // /subscription 응답 { plan, expires_at, fast_unlimited, ad_free }
   const [msgUnread, setMsgUnread] = useState(0)               // 메시지함 안 읽은 개수(헤더 빨간 점)
   // 정착(settled) 번역 세션 — 디바운스 중간 호출을 한 번역으로 묶어 한도·광고 카운트
   const editSessionRef = useRef({ text: '', time: 0, sid: '' })
@@ -283,7 +286,18 @@ export default function App() {
   const [fastUsedPct, setFastUsedPct] = useState(0)
   const [fastLocked, setFastLocked] = useState(false)        // 현재 윈도우 한도 소진
   const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
-  const fastUnlimited = !!user?.fast_unlimited
+  // 화이트리스트(전 무제한) 회원 OR 유효 구독(플러스/프로·지급분 포함) → 플러스 혜택
+  const fastUnlimited = !!user?.fast_unlimited || !!subInfo?.fast_unlimited
+  // 프로필/사용량에 보여줄 플러스 만료 문구 — 구독 만료일 우선, 없으면 화이트리스트(8.1)
+  const plusPlanLabel = (() => {
+    if (!fastUnlimited) return null
+    if (user?.is_admin) return '플러스 이용 중'
+    if (subInfo?.expires_at) {
+      const d = new Date(subInfo.expires_at)
+      if (!isNaN(d)) return `플러스 · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}까지`
+    }
+    return '플러스 · 2026.8.1까지'   // 전 무제한 화이트리스트 일괄 만료일
+  })()
 
   // 빠른 번역(비싼 모델)은 보상형 광고가 가능한 '앱 전용'.
   // 웹은 자동 ON 하지 않음 — 무제한 회원도 웹에서는 일반 번역(비용 누수 방지).
@@ -310,10 +324,10 @@ export default function App() {
 
   // 구독/관리자/무제한 → 광고 제거 여부 조회
   useEffect(() => {
-    if (!user?.user_id) { setSubAdFree(false); return }
+    if (!user?.user_id) { setSubAdFree(false); setSubInfo(null); return }
     fetch(`${API_URL}/subscription/${user.user_id}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setSubAdFree(!!d.ad_free) })
+      .then(d => { if (d) { setSubAdFree(!!d.ad_free); setSubInfo(d) } })
       .catch(() => {})
   }, [user?.user_id])
 
@@ -551,6 +565,27 @@ export default function App() {
         } catch {}
       }
 
+      // 리뷰 이벤트 팝업 — 앱+로그인+(아직 플러스 아님) 무료 회원에게 1회만 노출.
+      // 트리거 ① 누적 번역 8회쯤  OR  ② 빠른 번역(잠금 해제 후 실제 빠른 번역) 3회
+      if (isApp && user?.user_id && !fastUnlimited && !localStorage.getItem('tickjapan_review_prompt_done')) {
+        try {
+          let trigger = ''
+          const tot = (parseInt(localStorage.getItem('tickjapan_total_translations') || '0', 10) || 0) + 1
+          localStorage.setItem('tickjapan_total_translations', String(tot))
+          if (tot >= 8) trigger = 'total8'
+          if (data.model_used === 'fast') {   // 실제로 빠른 번역이 수행된 경우만(폴백 제외)
+            const fu = (parseInt(localStorage.getItem('tickjapan_fast_uses') || '0', 10) || 0) + 1
+            localStorage.setItem('tickjapan_fast_uses', String(fu))
+            if (fu >= 3) trigger = 'fast3'
+          }
+          if (trigger) {
+            localStorage.setItem('tickjapan_review_prompt_done', '1')
+            setTimeout(() => setShowReviewPrompt(true), 900)   // 결과를 잠깐 본 뒤 자연스럽게
+            track('review_prompt_shown', { trigger, total: tot })
+          }
+        } catch {}
+      }
+
       // 빠른 번역 사용량 갱신 (서버 판정 결과 반영)
       if (selectedModel === 'fast' && user) {
         if (typeof data.fast_used_pct === 'number') setFastUsedPct(data.fast_unlimited ? 0 : data.fast_used_pct)
@@ -711,6 +746,7 @@ export default function App() {
   return (
     <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
       <UpdateGate />
+      {showReviewPrompt && <ReviewEventPopup onClose={() => setShowReviewPrompt(false)} />}
       <div className="container">
 
         {/* 앱 헤더 */}
@@ -842,6 +878,7 @@ export default function App() {
             <ProfilePage
               user={user}
               fastUnlimited={fastUnlimited}
+              planLabel={plusPlanLabel}
               isApp={isApp}
               onLogout={handleLogout}
               onDeleteAccount={() => setShowDeleteAccount(true)}
@@ -894,7 +931,7 @@ export default function App() {
                   resetSec: fastResetSec,
                   onToggle: handleFastToggle,
                   onUnlock: isApp ? handleUnlockFast : null,
-                  unlimitedLabel: fastUnlimited ? (user?.is_admin ? '무제한 이용 중' : '무제한 · 2026.10.1까지') : null,
+                  unlimitedLabel: plusPlanLabel,
                 }}
               />
 

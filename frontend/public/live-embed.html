@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <title>TickJapan Live</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #11161b; overflow: hidden; }
+    iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+  </style>
+</head>
+<body>
+  <!-- 앱(Capacitor) WebView에서 유튜브 임베드 오류 153 회피용 프록시 페이지.
+       앱은 youtube를 직접 부르지 않고 이 https://tickjapan.com 페이지를 iframe으로 부른다.
+       그러면 유튜브 입장에서 요청 출처가 tickjapan.com(정상 웹사이트)이 되어 재생이 허용된다. -->
+  <script>
+    (function () {
+      var v = new URLSearchParams(location.search).get('v') || '';
+      if (!/^[A-Za-z0-9_-]{6,20}$/.test(v)) return;   // 유튜브 영상 ID 형식만 허용
+      var f = document.createElement('iframe');
+      f.src = 'https://www.youtube-nocookie.com/embed/' + v +
+        '?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1';
+      f.allow = 'autoplay; encrypted-media; picture-in-picture';
+      f.setAttribute('allowfullscreen', '');
+      document.body.appendChild(f);
+    })();
+  </script>
+</body>
+</html>

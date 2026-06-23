@@ -586,8 +586,15 @@ def _norm_phone(phone: str) -> str:
     """휴대폰 번호에서 숫자만 추출 (하이픈/공백 표기 차이 무시)."""
     return "".join(c for c in (phone or "") if c.isdigit())
 
+# 기존 '빠른 번역 무제한 이벤트' 회원(화이트리스트) → '플러스'로 전환됨.
+# 이 명단의 플러스 혜택은 2026-08-01(KST) 자정까지 유효 → 이후 자동으로 무료 전환.
+# (신규 리뷰 이벤트 회원은 /admin/grant-sub 로 적용 시점부터 1개월짜리 구독을 따로 받음 → 이 만료와 무관)
+WHITELIST_PLUS_EXPIRES = datetime.datetime(2026, 8, 1)   # now_kst()와 같은 KST naive 기준
+
 def is_fast_unlimited(phone: str) -> bool:
-    return _norm_phone(phone) in FAST_UNLIMITED_PHONES
+    if _norm_phone(phone) not in FAST_UNLIMITED_PHONES:
+        return False
+    return now_kst() < WHITELIST_PLUS_EXPIRES
 
 # 관리자 계정(휴대폰 번호) — 수익 대시보드 등 관리 기능 접근 권한
 ADMIN_PHONES = {"01033530215"}
@@ -782,8 +789,12 @@ def _call_gemini_json(prompt: str, model: str = None) -> dict:
 # 번역 톤(스타일)별 추가 지시문. 'natural'이 기본.
 TONE_INSTRUCTIONS = {
     "natural": (
-        "\n\nTONE: Produce the most NATURAL, idiomatic Japanese a native speaker would "
-        "actually say in everyday conversation. Avoid stiff word-for-word renderings."
+        "\n\nTONE: Produce the most NATURAL, idiomatic SPOKEN Japanese a native speaker would "
+        "actually say in everyday conversation (会話体). Avoid stiff word-for-word renderings. "
+        "CRITICAL — mirror the Korean speech level EXACTLY, do NOT default to polite: "
+        "반말/해체 input → casual plain Japanese (タメ口・常体, e.g. 〜だよ/〜じゃない/行く), "
+        "존댓말/해요체·합니다체 input → polite Japanese (です・ます). "
+        "Casual input must stay casual — never upgrade 반말 to です・ます."
     ),
     "business": (
         "\n\nTONE: Translate in polite Japanese BUSINESS style (ビジネス敬語). Use 丁寧語 "
@@ -1105,6 +1116,67 @@ def translate_tone(req: ToneRequest, request: Request):
     return payload
 
 
+# ── 맥락 기반 '다른 뜻/뉘앙스' 제안 ──────────────────────────
+# 한국어 입력이 '의미상 중의적'일 때만 (정중도/직역 차이가 아니라 뜻 자체가 갈릴 때)
+# 다른 해석과 그 일본어 번역을 1~2개 제안한다. 아니면 빈 배열.
+NUANCE_PROMPT = """You are a Korean→Japanese translation assistant.
+The user typed a Korean sentence. Decide whether it is SEMANTICALLY AMBIGUOUS —
+i.e. it could mean genuinely DIFFERENT things (different meaning/intent), so that a
+Japanese translation would change depending on the intended meaning.
+
+IMPORTANT:
+- This is about MEANING ambiguity, NOT politeness or literal-vs-natural style.
+- Most everyday sentences are NOT ambiguous → return an empty list. Be conservative.
+- Only flag when there are real, distinct readings a learner could confuse.
+  e.g. "위치해 있습니다" → could mean "물리적으로 ~에 있다" vs "(어떤 상태/입장에) 놓여 있다".
+
+Respond with ONLY valid JSON, no extra text:
+{"alternatives": [
+  {"label": "<그 해석을 가리키는 짧은 한국어 설명, 12자 이내>",
+   "japanese": "<그 의미일 때의 자연스러운 일본어 번역, 한자 사용>",
+   "reading": "<일본어 전체를 히라가나만으로 연결>"}
+]}
+Return at most 2 alternatives. If not ambiguous, return {"alternatives": []}.
+"""
+
+_nuance_cache: dict[str, list] = {}
+
+
+class NuanceRequest(BaseModel):
+    text: str
+
+
+@app.post("/nuances")
+def nuances(req: NuanceRequest, request: Request):
+    """입력이 중의적일 때만 다른 해석+일본어를 제안 (결과 카드 '이런 뜻일 수도' 카드용).
+    basic 모델·서버 캐시 사용. 중의적이지 않으면 빈 배열."""
+    rate_guard(request)
+    text = (req.text or "").strip()
+    if not text or len(text) > 200:
+        return {"alternatives": []}
+    if text in _nuance_cache:
+        return {"alternatives": _nuance_cache[text]}
+
+    try:
+        result = _call_gemini_json(f"{NUANCE_PROMPT}\n\nKorean input: {text}",
+                                   model=resolve_model("basic"))
+    except HTTPException:
+        return {"alternatives": []}   # 제안 기능은 실패해도 조용히 숨김
+    raw = result.get("alternatives", [])
+    alts = []
+    if isinstance(raw, list):
+        for a in raw[:2]:
+            if isinstance(a, dict) and a.get("label") and a.get("japanese"):
+                alts.append({"label": str(a["label"])[:20],
+                             "japanese": str(a["japanese"]),
+                             "reading": str(a.get("reading", ""))})
+
+    if len(_nuance_cache) >= 2000:
+        del _nuance_cache[next(iter(_nuance_cache))]
+    _nuance_cache[text] = alts
+    return {"alternatives": alts}
+
+
 @app.get("/fast-usage/{user_id}")
 def fast_usage(user_id: int):
     """회원의 오늘 빠른 번역 사용량 (%, 무제한 여부) — 로그인/진입 시 표시용."""
@@ -1184,7 +1256,8 @@ def subscription_status(user_id: int):
                     "expires_at": s.expires_at.isoformat() if s.expires_at else None,
                     "ad_free": True, "fast_unlimited": True}
         if privileged:
-            return {"active": True, "plan": "comp", "period": None, "expires_at": None,
+            # 무제한 화이트리스트(리뷰 이벤트 등)·관리자 → '플러스'로 표기(광고 제거 + 빠른 번역 무제한)
+            return {"active": True, "plan": "plus", "period": None, "expires_at": None,
                     "ad_free": True, "fast_unlimited": True}
         return {"active": False, "ad_free": False, "fast_unlimited": False}
     finally:
@@ -1193,14 +1266,16 @@ def subscription_status(user_id: int):
 
 class GrantSubRequest(BaseModel):
     admin_phone: str
-    user_id: int
-    plan: str               # plus | pro
-    period: str = "monthly"  # monthly | yearly
+    user_id: int | None = None    # user_id 또는 phone 중 하나로 지정
+    phone: str | None = None      # 리뷰 이벤트: 번호로 바로 지급(가입자 자동 조회)
+    plan: str = "plus"            # plus | pro
+    period: str = "monthly"        # monthly | yearly  (리뷰 보상 = plus/monthly = 플러스 1개월)
 
 @app.post("/admin/grant-sub")
 def admin_grant_sub(req: GrantSubRequest):
     """관리자 전용 — 특정 회원에게 무상으로 플러스/프로 구독을 지급(또는 테스트).
-    토스 결제 없이 Subscription 행을 직접 생성한다. billing_key 없음(자동갱신 X)."""
+    토스 결제 없이 Subscription 행을 직접 생성한다. billing_key 없음(자동갱신 X).
+    리뷰 이벤트: phone + plan=plus + period=monthly 로 '플러스 1개월' 지급."""
     if not is_admin_phone(req.admin_phone):
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     if req.plan not in ("plus", "pro"):
@@ -1211,17 +1286,25 @@ def admin_grant_sub(req: GrantSubRequest):
     days = price[1]
     db = SessionLocal()
     try:
-        if not db.query(User).filter(User.id == req.user_id).first():
-            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
-        db.query(Subscription).filter(Subscription.user_id == req.user_id,
+        # user_id 우선, 없으면 phone(숫자만 정규화)으로 가입자 조회
+        if req.user_id:
+            u = db.query(User).filter(User.id == req.user_id).first()
+        elif req.phone:
+            target = _norm_phone(req.phone)
+            u = next((x for x in db.query(User).all() if _norm_phone(x.phone) == target), None)
+        else:
+            raise HTTPException(status_code=400, detail="user_id 또는 phone이 필요해요.")
+        if not u:
+            raise HTTPException(status_code=404, detail="해당 회원을 찾을 수 없어요(아직 미가입일 수 있어요).")
+        db.query(Subscription).filter(Subscription.user_id == u.id,
                                       Subscription.status == 'active').update({"status": "expired"})
-        sub = Subscription(user_id=req.user_id, plan=req.plan, period=req.period, status='active',
-                           billing_key=None, customer_key=f"comp_{req.user_id}",
+        sub = Subscription(user_id=u.id, plan=req.plan, period=req.period, status='active',
+                           billing_key=None, customer_key=f"comp_{u.id}",
                            started_at=now_kst(), expires_at=now_kst() + datetime.timedelta(days=days),
                            last_paid_at=now_kst())
         db.add(sub)
         db.commit()
-        return {"ok": True, "user_id": req.user_id, "plan": req.plan, "period": req.period,
+        return {"ok": True, "user_id": u.id, "name": u.name, "plan": req.plan, "period": req.period,
                 "expires_at": sub.expires_at.isoformat()}
     finally:
         db.close()

@@ -45,7 +45,10 @@ export default function LiveCamDetailPage() {
   }
 
   // mute=1 + playsinline 으로 인앱 자동재생(소리는 사용자가 켬)
-  const embed = `https://www.youtube-nocookie.com/embed/${cam.videoId}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`
+  // 앱(Capacitor)에서는 capacitor:// 출처가 유튜브 임베드에 막혀(오류 153) 재생이 안 됨 →
+  // tickjapan.com의 영상 전용 프록시 페이지를 통해 https 출처로 로드한다(웹은 직접 임베드).
+  const ytEmbed = `https://www.youtube-nocookie.com/embed/${cam.videoId}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`
+  const embed = isApp ? `https://tickjapan.com/live-embed.html?v=${cam.videoId}` : ytEmbed
 
   return (
     <>

@@ -26,8 +26,8 @@ const TEST_INTERSTITIAL = {
 }
 // 실제 전면 광고 단위 ID (AdMob에서 '전면 광고' 단위 생성 후 채울 것)
 const REAL_INTERSTITIAL = {
-  ios: '',    // 미입력이면 테스트 ID 폴백
-  android: '',
+  ios: 'ca-app-pub-8958373483224358/7604183495',
+  android: '',    // 안드로이드 단위 미생성 — 미입력이면 테스트 ID 폴백
 }
 
 const USE_TEST = false

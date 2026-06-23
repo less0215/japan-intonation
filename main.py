@@ -1612,3 +1612,24 @@ def delete_user(user_id: int):
         db.close()
 
 
+@app.delete("/admin/user-by-phone")
+def admin_delete_user_by_phone(key: str = "", phone: str = ""):
+    """관리자 회원 탈퇴 처리 — 번호로 찾아 저장 번역 + 계정 삭제 (임시, 관리 토큰)."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    if not phone.strip():
+        raise HTTPException(status_code=400, detail="phone 이 필요합니다.")
+    db = SessionLocal()
+    try:
+        u = next((x for x in db.query(User).all() if _norm_phone(x.phone) == _norm_phone(phone)), None)
+        if not u:
+            raise HTTPException(status_code=404, detail="해당 번호의 회원을 찾을 수 없습니다.")
+        info = {"user_id": u.id, "name": u.name, "phone": u.phone}
+        db.query(SavedResult).filter(SavedResult.user_id == u.id).delete()
+        db.delete(u)
+        db.commit()
+        return {"ok": True, "deleted": info}
+    finally:
+        db.close()
+
+

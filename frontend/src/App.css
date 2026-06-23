@@ -49,15 +49,16 @@ body {
   margin: 0 auto;
   background: #ffffff;
   border-top: 1px solid #eef1f3;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -3px 16px rgba(20, 40, 55, 0.05);
+  padding: 6px 8px env(safe-area-inset-bottom, 0px);
 }
 .bottom-nav-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 9px 0 10px;
+  gap: 5px;
+  padding: 12px 0 14px;
   background: none;
   border: none;
   font-size: 11px;
@@ -73,7 +74,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 32px 20px 92px;
+  padding: 34px 22px 116px;
 }
 
 /* 네이티브 앱(iOS/Android) — 상태바 아래로 콘텐츠 내림.
@@ -96,7 +97,7 @@ body {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 /* ── 앱 헤더 (타이틀 + 저장목록 버튼) */
@@ -395,10 +396,10 @@ body {
 }
 
 .section {
-  padding: 18px 20px;
+  padding: 22px 22px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .divider {
@@ -1311,3 +1312,61 @@ body {
 
 /* AdSense — 광고가 안 채워진 슬롯은 빈 여백 남기지 않게 접기 */
 ins.adsbygoogle[data-ad-status="unfilled"] { display: none !important; }
+
+/* ───────────────────────────────────────────────
+ * 다크모드 — html[data-theme="dark"] 상위 특이도 오버라이드
+ * (인라인 스타일 컴포넌트는 var(--card-bg) 등으로 별도 대응)
+ * ─────────────────────────────────────────────── */
+/* 시맨틱 색 변수 — 인라인 컴포넌트도 이 변수로 통일(다크모드 일관성) */
+:root {
+  --bg:        #f8f9fa;
+  --surface:   #ffffff;   /* 카드·입력창·네비 등 표면 */
+  --surface-2: #f4f6f8;   /* 칩·아이콘칸 등 내부 옅은 면 */
+  --bd:        #eef1f3;   /* 일반 테두리 */
+  --bd-2:      #e2e8f0;   /* 강조 테두리 */
+  --text-strong: #1a1f26; /* 제목·일본어 */
+  --text-1:    #3a4250;   /* 본문 */
+  --text-2:    #5f6b73;   /* 부가 본문 */
+  --text-3:    #9aa0a6;   /* 약한 보조 */
+  --accent-soft: #eef6fb; /* 프라이머리 옅은 배경(오늘의 학습 등) */
+  --card-bg: var(--surface);
+  --card-bd: var(--bd);
+}
+html[data-theme="dark"] {
+  --bg:        #14161b;
+  --surface:   #1f232b;
+  --surface-2: #272c35;
+  --bd:        #30353f;
+  --bd-2:      #3a404b;
+  --text-strong: #f3f5f7;
+  --text-1:    #dfe3e8;
+  --text-2:    #aab2bc;
+  --text-3:    #7f8893;
+  --accent-soft: #1b2730;
+  color-scheme: dark;
+}
+html[data-theme="dark"] body { background: var(--bg); color: var(--text-1); }
+html[data-theme="dark"] .bottom-nav { background: var(--surface); border-top-color: var(--bd); box-shadow: 0 -3px 16px rgba(0,0,0,0.3); }
+html[data-theme="dark"] .app-title { color: var(--text-strong); }
+html[data-theme="dark"] .history-btn,
+html[data-theme="dark"] .account-btn { background: var(--surface); color: var(--text-2); border-color: var(--bd); }
+html[data-theme="dark"] .search-box { background: var(--surface); border-color: var(--bd); }
+html[data-theme="dark"] .search-input { color: var(--text-strong); }
+html[data-theme="dark"] .search-input::placeholder { color: var(--text-3); }
+html[data-theme="dark"] .card { background: var(--surface); border-color: var(--bd); }
+html[data-theme="dark"] .divider { border-top-color: var(--bd); }
+html[data-theme="dark"] .japanese-text { color: var(--text-strong); }
+html[data-theme="dark"] .furigana-reading { color: var(--text-3); }
+html[data-theme="dark"] .pronunciation-text { color: var(--text-2); }
+html[data-theme="dark"] .section-label { color: var(--text-3); }
+html[data-theme="dark"] .cat-bar { background: var(--surface); border-color: var(--bd); }
+html[data-theme="dark"] .cat-bar-label { color: var(--text-1); }
+html[data-theme="dark"] .breakdown-header-cell { color: var(--text-3); }
+html[data-theme="dark"] .breakdown-row,
+html[data-theme="dark"] .breakdown-card-item { background: var(--surface); border-color: var(--bd); }
+html[data-theme="dark"] .breakdown-unit,
+html[data-theme="dark"] .breakdown-card-unit { color: var(--text-strong); }
+html[data-theme="dark"] .breakdown-cell { color: var(--text-2); }
+html[data-theme="dark"] .menu-dropdown { background: var(--surface); border-color: var(--bd); }
+html[data-theme="dark"] .menu-item { color: var(--text-1); }
+html[data-theme="dark"] .menu-item:hover { background: var(--surface-2); }

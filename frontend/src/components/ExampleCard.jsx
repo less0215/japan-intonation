@@ -45,12 +45,12 @@ export default function ExampleCard({ example, wordInfo, index }) {
   const graphActive = showGraph && example.accentData?.length > 0
 
   return (
-    <div style={{ border: '1px solid #f0f0f0', borderRadius: 10, padding: '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <span style={{ fontSize: 13, color: '#888' }}>{example.korean}</span>
+    <div style={{ border: '1px solid var(--bd)', borderRadius: 10, padding: '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{example.korean}</span>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <RubyText text={example.japanese} fontSize={15} fontWeight={500} />
-          <span style={{ fontSize: 12, color: '#aaa' }}>{example.reading}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{example.reading}</span>
         </div>
         <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
           {wordInfo && (
@@ -66,7 +66,7 @@ export default function ExampleCard({ example, wordInfo, index }) {
           )}
           {example.accentData?.length > 0 && (
             <button onClick={() => { if (!showGraph) track('pitch_graph_expand', { category: wordInfo?.category, word_id: wordInfo?.id }); setShowGraph(v => !v) }} title="억양 그래프" style={{
-              width: 26, height: 26, borderRadius: 6, border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+              width: 26, height: 26, borderRadius: 6, border: `1px solid ${graphActive ? PRIMARY : 'var(--bd)'}`,
               backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
@@ -78,12 +78,12 @@ export default function ExampleCard({ example, wordInfo, index }) {
           )}
           <button onClick={handlePlay} title="발음 듣기" style={{
             width: 26, height: 26, borderRadius: '50%', cursor: 'pointer',
-            border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+            border: `1px solid ${audioState === 'playing' ? PRIMARY : 'var(--bd)'}`,
             backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {audioState === 'loading' ? (
-              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: 'var(--bd)' }} />
             ) : audioState === 'playing' ? (
               <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             ) : (
@@ -103,9 +103,9 @@ export default function ExampleCard({ example, wordInfo, index }) {
             alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 4,
             height: 22, padding: '0 8px', borderRadius: 11, fontSize: 11, fontWeight: 700,
             fontFamily: 'inherit', cursor: 'pointer',
-            backgroundColor: showPattern ? `${PRIMARY}15` : '#f5f5f5',
+            backgroundColor: showPattern ? `${PRIMARY}15` : 'var(--surface-2)',
             color: showPattern ? PRIMARY : '#888',
-            border: `1px solid ${showPattern ? PRIMARY + '44' : '#e8e8e8'}`,
+            border: `1px solid ${showPattern ? PRIMARY + '44' : 'var(--bd)'}`,
             transition: 'all 0.15s',
           }}>
             <span style={{ fontSize: 10 }}>📌</span>
@@ -113,10 +113,10 @@ export default function ExampleCard({ example, wordInfo, index }) {
             <span style={{ fontSize: 9, opacity: 0.7 }}>{showPattern ? '▲' : '▼'}</span>
           </button>
           {showPattern && (
-            <div style={{ padding: '10px 12px', background: '#f8fbfe', border: `1px solid ${PRIMARY}22`, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#222' }}>{example.pattern.name}</span>
+            <div style={{ padding: '10px 12px', background: 'var(--surface-2)', border: `1px solid ${PRIMARY}22`, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-strong)' }}>{example.pattern.name}</span>
               <span style={{ fontSize: 13, color: PRIMARY, fontWeight: 600 }}>{example.pattern.meaning}</span>
-              <span style={{ fontSize: 12, color: '#777', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{example.pattern.note}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{example.pattern.note}</span>
             </div>
           )}
         </>

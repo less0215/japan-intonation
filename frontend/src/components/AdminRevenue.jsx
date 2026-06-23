@@ -37,8 +37,8 @@ export default function AdminRevenue() {
   if (!data) {
     return (
       <div style={wrap}>
-        <p style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 700, color: '#2a5a72' }}>제휴 수익 (관리자)</p>
-        <p style={{ margin: '0 0 10px', fontSize: 12, color: '#9aa0a6' }}>관리자 키를 입력하면 수익을 볼 수 있어요.</p>
+        <p style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>제휴 수익 (관리자)</p>
+        <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-3)' }}>관리자 키를 입력하면 수익을 볼 수 있어요.</p>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
             type="password" value={keyInput} onChange={(e) => setKeyInput(e.target.value)}
@@ -61,26 +61,26 @@ export default function AdminRevenue() {
   return (
     <div style={wrap}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#2a5a72' }}>제휴 수익 (관리자)</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>제휴 수익 (관리자)</span>
         <button onClick={() => load(adminKey)} style={{ background: 'none', border: '1px solid #d8e7f0', borderRadius: 8, padding: '4px 10px', fontSize: 11, color: PRIMARY, cursor: 'pointer', fontFamily: 'inherit' }}>새로고침</button>
       </div>
 
       <div style={{ background: 'linear-gradient(135deg,#eef7fc,#e2f0fa)', borderRadius: 12, padding: '14px 16px', marginBottom: 12 }}>
-        <p style={{ margin: 0, fontSize: 11.5, color: '#5a8499' }}>총 수수료</p>
-        <p style={{ margin: '2px 0 0', fontSize: 26, fontWeight: 700, color: '#1f4d63', letterSpacing: '-0.5px' }}>{won(data.total_commission)}</p>
-        <p style={{ margin: '4px 0 0', fontSize: 11, color: '#7a9cae' }}>예약 {data.total_reservations}건 · 판매액 {won(data.total_sales)}</p>
+        <p style={{ margin: 0, fontSize: 11.5, color: 'var(--text-2)' }}>총 수수료</p>
+        <p style={{ margin: '2px 0 0', fontSize: 26, fontWeight: 700, color: 'var(--text-2)', letterSpacing: '-0.5px' }}>{won(data.total_commission)}</p>
+        <p style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--text-2)' }}>예약 {data.total_reservations}건 · 판매액 {won(data.total_sales)}</p>
       </div>
 
-      <p style={{ margin: '0 0 6px', fontSize: 11.5, fontWeight: 600, color: '#8a9197' }}>배치별</p>
+      <p style={{ margin: '0 0 6px', fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)' }}>배치별</p>
       {places.length === 0 ? (
-        <p style={{ fontSize: 12, color: '#aab2b8', margin: '0 0 12px' }}>아직 데이터가 없어요. 예약이 생기면 채워집니다.</p>
+        <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '0 0 12px' }}>아직 데이터가 없어요. 예약이 생기면 채워집니다.</p>
       ) : (
         <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
           {places.map(([k, v]) => (
-            <div key={k} style={{ flex: '1 1 45%', minWidth: 120, border: '1px solid #eaecef', borderRadius: 10, padding: '10px 12px', background: '#fff' }}>
+            <div key={k} style={{ flex: '1 1 45%', minWidth: 120, border: '1px solid var(--bd)', borderRadius: 10, padding: '10px 12px', background: 'var(--surface)' }}>
               <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#4b5563' }}>{PLACE_LABEL[k] || k}</p>
               <p style={{ margin: '3px 0 0', fontSize: 16, fontWeight: 700, color: PRIMARY }}>{won(v.commission)}</p>
-              <p style={{ margin: '1px 0 0', fontSize: 10.5, color: '#9aa0a6' }}>예약 {v.reservations}건</p>
+              <p style={{ margin: '1px 0 0', fontSize: 10.5, color: 'var(--text-3)' }}>예약 {v.reservations}건</p>
             </div>
           ))}
         </div>
@@ -88,11 +88,11 @@ export default function AdminRevenue() {
 
       {data.top_products?.length > 0 && (
         <>
-          <p style={{ margin: '0 0 6px', fontSize: 11.5, fontWeight: 600, color: '#8a9197' }}>상품별 TOP</p>
+          <p style={{ margin: '0 0 6px', fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)' }}>상품별 TOP</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {data.top_products.slice(0, 8).map((p, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <span style={{ fontSize: 11.5, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
                 <span style={{ fontSize: 11.5, fontWeight: 600, color: PRIMARY, flexShrink: 0 }}>{won(p.commission)} · {p.reservations}건</span>
               </div>
             ))}

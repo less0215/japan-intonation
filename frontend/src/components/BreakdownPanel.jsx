@@ -14,7 +14,7 @@ export function ConjugationPanel({ steps }) {
     <div style={{
       margin: '10px 0 4px',
       padding: '12px 14px',
-      background: '#f8fbfe',
+      background: 'var(--surface-2)',
       border: `1px solid ${PRIMARY}33`,
       borderRadius: 10,
       display: 'flex',
@@ -40,11 +40,11 @@ export function ConjugationPanel({ steps }) {
             <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 600, color: '#111' }}>
               {s.form}
             </span>
-            <span style={{ fontSize: 12, color: '#666', background: '#f0f0f0', borderRadius: 6, padding: '1px 7px' }}>
+            <span style={{ fontSize: 12, color: 'var(--text-2)', background: 'var(--surface-2)', borderRadius: 6, padding: '1px 7px' }}>
               {s.label}
             </span>
           </div>
-          <p style={{ fontSize: 12, color: '#888', margin: '2px 0 0 26px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '2px 0 0 26px', lineHeight: 1.5 }}>
             {s.note}
           </p>
         </div>
@@ -59,7 +59,7 @@ export function DetailPanel({ row }) {
     <div style={{
       margin: '0 14px 10px',
       padding: '12px 14px',
-      background: '#f8fbfe',
+      background: 'var(--surface-2)',
       border: `1px solid ${PRIMARY}22`,
       borderRadius: 10,
     }}>
@@ -78,7 +78,7 @@ export function BreakdownTable({ breakdown, showDetail }) {
         ))}
       </div>
       {breakdown.map((row, i) => (
-        <div key={i} style={{ backgroundColor: i % 2 === 1 ? '#f9f9f9' : 'transparent', borderTop: '0.5px solid #eeeeee' }}>
+        <div key={i} style={{ backgroundColor: i % 2 === 1 ? 'var(--surface-2)' : 'transparent', borderTop: '0.5px solid var(--bd)' }}>
           <div className="breakdown-row">
             <span className="breakdown-unit">{row.unit}</span>
             <span className="breakdown-cell">{row.hiragana}</span>
@@ -157,7 +157,7 @@ export function ExampleAnalysis({ japaneseText }) {
 
   return (
     <div>
-      <div style={{ borderTop: '1px solid #f0f0f0', margin: '12px 0 10px' }} />
+      <div style={{ borderTop: '1px solid var(--bd)', margin: '12px 0 10px' }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {state === 'loading' ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -205,8 +205,8 @@ export function BreakdownPreview({ onExpand }) {
         <BreakdownCards breakdown={EXAMPLE_BREAKDOWN} showDetail={false} />
       </div>
       {/* 하단 페이드 + CTA (저장하기 파란 버튼과 구분되도록 골드 계열·풀폭) */}
-      <div style={{ position: 'relative', marginTop: -34, paddingTop: 34, padding: '34px 16px 0', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 62%)', textAlign: 'center' }}>
-        <p style={{ margin: '0 0 10px', fontSize: 12, color: '#888' }}>단어·문법·활용 원리까지 이렇게 분해해 드려요</p>
+      <div style={{ position: 'relative', marginTop: -34, paddingTop: 34, padding: '34px 16px 0', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, var(--surface) 62%)', textAlign: 'center' }}>
+        <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-3)' }}>단어·문법·활용 원리까지 이렇게 분해해 드려요</p>
         <button
           onClick={onExpand}
           style={{
@@ -244,7 +244,7 @@ export function DetailToggleButton({ showDetail, onToggle }) {
         fontWeight: 600,
         fontFamily: 'inherit',
         cursor: 'pointer',
-        border: `1.5px solid ${showDetail ? PRIMARY : '#e0e0e0'}`,
+        border: `1.5px solid ${showDetail ? PRIMARY : 'var(--bd)'}`,
         backgroundColor: showDetail ? `${PRIMARY}15` : 'transparent',
         color: showDetail ? PRIMARY : '#aaa',
         transition: 'all 0.15s',

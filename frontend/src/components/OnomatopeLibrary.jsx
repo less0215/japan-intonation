@@ -26,10 +26,10 @@ export default function OnomatopeLibrary() {
 
       <div style={{ margin: '4px 2px 14px' }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, lineHeight: 1.2 }}>의성어·의태어</h2>
-        <p style={{ margin: '3px 0 0', fontSize: 12.5, color: '#9aa0a6', lineHeight: 1.4 }}>
+        <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.4 }}>
           일본인이 자주 쓰는 의성어·의태어
         </p>
-        <p style={{ margin: '1px 0 0', fontSize: 10.5, color: '#c2c7cc', lineHeight: 1.4 }}>
+        <p style={{ margin: '1px 0 0', fontSize: 10.5, color: 'var(--text-3)', lineHeight: 1.4 }}>
           학습 빈도 참고 · JLPT 레벨은 Tanos(CC BY) 기준이며 일부는 근접 추정값입니다.
         </p>
       </div>
@@ -51,16 +51,16 @@ export default function OnomatopeLibrary() {
         {items.map(o => (
           <button key={o.id} onClick={() => navigate(`/onomatope/${o.id}`)} style={{
             display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
-            background: '#fff', border: '1px solid #eaecef', borderRadius: 14, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit',
+            background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit',
           }}>
             <OnomatopeIcon icon={o.icon} size={48} radius={13} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 18, fontWeight: 600, color: '#111' }}>{o.word}</span>
+                <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 18, fontWeight: 600, color: 'var(--text-strong)' }}>{o.word}</span>
                 <span style={{ fontSize: 12, color: PRIMARY, fontWeight: 600 }}>{o.reading}</span>
                 <JlptBadge level={o.jlpt} style={{ fontSize: 10, padding: '1px 6px' }} />
               </div>
-              <p style={{ margin: '3px 0 0', fontSize: 12.5, color: '#555' }}>{o.meaning} <span style={{ color: '#b6bcc1', fontSize: 11 }}>· {o.category}</span></p>
+              <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-2)' }}>{o.meaning} <span style={{ color: 'var(--text-3)', fontSize: 11 }}>· {o.category}</span></p>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c2c7cc" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
           </button>

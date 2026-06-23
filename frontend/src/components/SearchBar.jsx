@@ -14,11 +14,22 @@ function resetClock(sec) {
 }
 
 /* 빠른 번역 스위치 + 사용량 (입력창 내부 하단 한 줄) */
-function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onToggle }) {
+function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onToggle, onUnlock }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', width: '100%' }}>
-      {/* 좌측: 사용량 (활성 + 일반 회원일 때만) */}
-      {active && !unlimited && (
+      {/* 좌측: 사용량 소진 + 광고 해제 가능(앱) → '제한 풀기' 칩 버튼 (자동 팝업 X) */}
+      {active && !unlimited && locked && onUnlock && (
+        <button
+          type="button"
+          onClick={onUnlock}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0, background: '#fdf3e1', border: '1px solid #f0d8a8', borderRadius: 999, padding: '5px 11px 5px 9px', cursor: 'pointer', fontFamily: 'inherit' }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#c98a00"><polygon points="8 6 8 18 18 12" /></svg>
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: '#b9790a' }}>무료 사용량 제한 풀기</span>
+        </button>
+      )}
+      {/* 좌측: 사용량 표시 (활성 + 일반 회원, 제한 풀기 칩이 없을 때) */}
+      {active && !unlimited && !(locked && onUnlock) && (
         <>
           <span style={{ width: 48, height: 5, borderRadius: 3, background: '#eef1f3', overflow: 'hidden', flexShrink: 0 }}>
             <span style={{ display: 'block', height: '100%', width: `${usedPct}%`, background: locked ? '#e9a020' : PRIMARY, borderRadius: 3 }} />
@@ -36,12 +47,12 @@ function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onT
         type="button"
         onClick={onToggle}
         aria-pressed={active}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 500, color: active ? '#357694' : '#8a9197' }}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 500, color: active ? '#5CA9CE' : '#8a9197' }}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill={active ? PRIMARY : 'none'} stroke={active ? 'none' : '#a3a9af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
         빠른 번역
         <span style={{ width: 44, height: 26, borderRadius: 13, background: active ? PRIMARY : '#dfe3e7', position: 'relative', transition: 'background .15s' }}>
-          <span style={{ position: 'absolute', top: 3, left: active ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .15s' }} />
+          <span style={{ position: 'absolute', top: 3, left: active ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: 'var(--surface)', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .15s' }} />
         </span>
       </button>
     </div>
@@ -53,7 +64,7 @@ function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onT
  * - 디바운스 자동 번역: 입력을 멈추면 자동으로 번역 시작 (Papago 방식)
  * - Enter = 즉시 번역 / Shift+Enter = 줄바꿈
  */
-const DEBOUNCE_MS = 600
+const DEBOUNCE_MS = 850
 
 export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast }) {
   const [text, setText] = useState('')
@@ -123,7 +134,8 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast 
           onFocus={handleFocus}
           placeholder="번역할 내용을 입력하세요"
           className="search-input"
-          rows={3}
+          rows={6}
+          style={{ minHeight: '42vh', fontSize: 18 }}
         />
         {fast && (
           <div className="search-box-toolbar">
@@ -135,7 +147,7 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast 
         type="submit"
         disabled={disabled}
         className="search-btn"
-        style={{ opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}
+        style={{ opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 17, padding: '17px 0' }}
       >
         {loading ? <span className="spinner" /> : '번역'}
       </button>

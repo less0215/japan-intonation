@@ -6,6 +6,14 @@ import { UserProvider } from './context/UserContext'
 import App from './App'
 import './App.css'
 
+/* 테마 초기 적용 — 저장값 우선, 없으면 시스템 설정(prefers-color-scheme) */
+try {
+  const saved = localStorage.getItem('tickjapan_theme')
+  const dark = saved ? saved === 'dark'
+    : window.matchMedia?.('(prefers-color-scheme: dark)').matches
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+} catch {}
+
 /* 앱(Capacitor) 환경에서는 HashRouter, 웹에서는 BrowserRouter */
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 const Router = isApp ? HashRouter : BrowserRouter
@@ -26,6 +34,8 @@ if (isApp) {
       AppsFlyer.logEvent({ eventName, eventValue }).catch(() => {})
     }
   })
+  // AdMob 보상형 광고 초기화 (현재 테스트 광고)
+  import('./ads').then(({ initAds }) => initAds())
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

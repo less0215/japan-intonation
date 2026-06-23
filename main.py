@@ -427,6 +427,7 @@ class AnalyzeRequest(BaseModel):
     anonymous_id: str | None = None  # 비로그인 식별자 (선택)
     model: str = "basic"             # 'basic'(2.5) | 'fast'(3.1)
     platform: str | None = None      # 'app' | 'web' (요청 출처)
+    edit_session_id: str | None = None  # 정착 세션 — 같은 편집의 중간 호출은 한도 1회로 묶음
 
 class AccentEntry(BaseModel):
     phrase_id: str
@@ -543,7 +544,7 @@ def is_admin_phone(phone: str) -> bool:
     return _norm_phone(phone) in {_norm_phone(p) for p in ADMIN_PHONES}
 
 # 빠른 번역 한도 — 5시간 롤링 윈도우(클로드 방식)
-FAST_WINDOW_LIMIT = 20            # 윈도우당 횟수
+FAST_WINDOW_LIMIT = 15            # 윈도우당 횟수
 FAST_WINDOW_SEC   = 5 * 3600      # 윈도우 길이(초)
 
 def _is_unlimited_user(db, user_id: int) -> bool:
@@ -688,9 +689,29 @@ def _call_gemini_json(prompt: str, model: str = None) -> dict:
         )
 
 
-def translate_korean_to_japanese(korean_text: str, model: str = None) -> dict:
+# 번역 톤(스타일)별 추가 지시문. 'natural'이 기본.
+TONE_INSTRUCTIONS = {
+    "natural": (
+        "\n\nTONE: Produce the most NATURAL, idiomatic Japanese a native speaker would "
+        "actually say in everyday conversation. Avoid stiff word-for-word renderings."
+    ),
+    "business": (
+        "\n\nTONE: Translate in polite Japanese BUSINESS style (ビジネス敬語). Use 丁寧語 "
+        "(です・ます) and natural 尊敬語/謙譲語 where appropriate (e.g. 〜ております, いたします, "
+        "ご〜). Keep it natural for a work email or formal setting."
+    ),
+    "literal": (
+        "\n\nTONE: Translate as LITERALLY (직역) as possible — preserve the Korean sentence "
+        "structure and each element one-to-one so a learner can see the direct correspondence, "
+        "even if the result is slightly unnatural. Still keep it grammatically valid Japanese."
+    ),
+}
+
+
+def translate_korean_to_japanese(korean_text: str, model: str = None, tone: str = "natural") -> dict:
     """한국어 문장을 Gemini API로 번역해 번역문·발음·악센트를 반환한다 (문장 분해 제외)."""
-    result = _call_gemini_json(f"{TRANSLATION_PROMPT}\n\nKorean input: {korean_text}", model=model)
+    tone_instr = TONE_INSTRUCTIONS.get(tone, "")
+    result = _call_gemini_json(f"{TRANSLATION_PROMPT}{tone_instr}\n\nKorean input: {korean_text}", model=model)
 
     required_keys = {"japanese", "furigana", "korean_pronunciation", "furigana_html", "accent_data"}
     missing = required_keys - result.keys()
@@ -798,8 +819,66 @@ def health_check():
     return {"status": "ok"}
 
 
+# ──────────────────────────────────────────────
+# 레이트리밋 (남용·봇 차단) — 인메모리. 키: 회원=user_id / 비회원=IP
+#   · 분당/시간당 호출 상한(정상 사용자엔 무영향, 자동화 트래픽만 차단)
+#   · 비회원은 일일 번역 상한(초과 시 로그인/앱 유도) — /analyze 에서만 카운트
+# ──────────────────────────────────────────────
+from collections import deque as _deque
+
+RATE_PER_MIN  = 40     # 분당 LLM 호출 상한(번역+분해+톤+TTS 합산)
+RATE_PER_HOUR = 600    # 시간당 상한
+GUEST_PER_DAY = 300    # 비회원 IP당 일일 번역(analyze) 상한
+
+_rate_buckets: dict[str, "_deque"] = {}   # key → 최근 1시간 타임스탬프
+_guest_daily: dict[str, list] = {}        # ip → [date_kst, count]
+_fast_session_seen: dict[str, tuple] = {} # "user:edit_session" → (ts, usage결과) 정착 묶음
+
+
+def _client_ip(request: Request) -> str:
+    xff = request.headers.get("x-forwarded-for") if request else None
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if (request and request.client) else "unknown"
+
+
+def rate_guard(request: Request, user_id: int | None = None, count_daily: bool = False):
+    """분당/시간당 호출 상한 + (비회원·count_daily) 일일 상한. 초과 시 429."""
+    now = time.time()
+    is_guest = not user_id
+    key = f"u:{user_id}" if user_id else f"ip:{_client_ip(request)}"
+
+    dq = _rate_buckets.setdefault(key, _deque())
+    while dq and now - dq[0] > 3600:
+        dq.popleft()
+    if len(dq) >= RATE_PER_HOUR:
+        raise HTTPException(status_code=429, detail="요청이 너무 많아요. 잠시 후 다시 시도해 주세요.")
+    if sum(1 for t in dq if now - t <= 60) >= RATE_PER_MIN:
+        raise HTTPException(status_code=429, detail="잠깐만요, 너무 빠르게 요청했어요. 잠시 후 다시 시도해 주세요.")
+
+    # 비회원 일일 번역 상한 (KST 기준 자정 리셋)
+    if is_guest and count_daily:
+        today = time.strftime("%Y-%m-%d", time.gmtime(now + 9 * 3600))
+        d = _guest_daily.get(key)
+        if not d or d[0] != today:
+            d = [today, 0]
+            _guest_daily[key] = d
+        if d[1] >= GUEST_PER_DAY:
+            raise HTTPException(status_code=429,
+                detail="오늘 무료 번역을 많이 사용했어요. 로그인하거나 앱에서 이어서 이용해 주세요.")
+        d[1] += 1
+
+    dq.append(now)
+    # 메모리 방어 — 키가 과도하게 쌓이면 비움(드문 재시작 수준 영향)
+    if len(_rate_buckets) > 50000:
+        _rate_buckets.clear()
+    if len(_guest_daily) > 50000:
+        _guest_daily.clear()
+
+
 @app.post("/analyze", response_model=AnalyzeResponse)
-def analyze(req: AnalyzeRequest):
+def analyze(req: AnalyzeRequest, request: Request):
+    rate_guard(request, req.user_id, count_daily=True)
     """
     한국어 문장을 받아 일본어 번역 + 악센트 배열을 빠르게 반환한다 (문장 분해 제외).
 
@@ -815,11 +894,24 @@ def analyze(req: AnalyzeRequest):
 
     # ── 빠른 번역 한도 판정 (서버에서 차감·리셋) ──
     # 빠른 번역은 로그인 회원만. 한도 초과/비회원이면 기본 번역으로 폴백.
-    want_fast = (req.model == "fast")
+    # ⚠️ 비용 방어: 빠른 번역(비싼 모델)은 보상형 광고가 가능한 '앱'에서만 허용.
+    #    웹 등 그 외 요청은 무조건 basic으로 강제(빠른 모델 호출·한도차감 자체 차단).
+    want_fast = (req.model == "fast") and (req.platform == "app")
     usage_fields = {"model_used": "basic", "fast_limited": False,
                     "fast_used_pct": None, "fast_unlimited": False, "fast_reset_sec": None}
     if want_fast and req.user_id:
-        u = consume_fast_usage(req.user_id)
+        # 정착 세션 — 같은 편집(edit_session_id)의 중간 호출은 한도 1회로 묶음(20초 TTL).
+        # 디바운스 자동번역이 한 문장에서 여러 번 호출돼도 한도는 한 번만 차감.
+        skey = f"{req.user_id}:{req.edit_session_id}" if req.edit_session_id else None
+        cached = _fast_session_seen.get(skey) if skey else None
+        if cached and time.time() - cached[0] < 20:
+            u = cached[1]                    # 같은 세션 → 재차감 없이 이전 판정 재사용
+        else:
+            u = consume_fast_usage(req.user_id)
+            if skey:
+                _fast_session_seen[skey] = (time.time(), u)
+                if len(_fast_session_seen) > 50000:
+                    _fast_session_seen.clear()
         usage_fields["fast_unlimited"] = u.get("unlimited", False)
         usage_fields["fast_used_pct"] = u.get("pct")
         usage_fields["fast_reset_sec"] = u.get("reset_in_sec")
@@ -874,6 +966,50 @@ def analyze(req: AnalyzeRequest):
     log_translation(text, result.japanese, req.user_id, req.anonymous_id, req.platform)
 
     return _with_usage(result)
+
+
+class ToneRequest(BaseModel):
+    text: str
+    tone: str = "business"   # 'natural' | 'business' | 'literal'
+
+
+# 톤 번역 캐시 — 키: "tone:text"
+_tone_cache: dict[str, dict] = {}
+
+
+@app.post("/translate-tone")
+def translate_tone(req: ToneRequest, request: Request):
+    """칩(자연스럽게/비즈니스/직역) 탭 시 해당 톤으로 재번역 — 번역문·발음·악센트만 반환.
+    빠른 번역 한도와 무관하며 basic 모델 사용(저렴). 결과 카드 본문만 교체하는 용도."""
+    rate_guard(request)
+    text = req.text.strip()
+    tone = req.tone if req.tone in TONE_INSTRUCTIONS else "natural"
+    if not text:
+        raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
+
+    cache_key = f"{tone}:{text}"
+    if cache_key in _tone_cache:
+        return _tone_cache[cache_key]
+
+    translation = translate_korean_to_japanese(text, model=resolve_model("basic"), tone=tone)
+    raw_accent = translation.get("accent_data", [])
+    try:
+        accent_data = [AccentEntry(**e).model_dump() for e in raw_accent]
+    except Exception:
+        accent_data = []
+
+    payload = {
+        "japanese": translation["japanese"],
+        "furigana": translation["furigana"],
+        "korean_pronunciation": translation["korean_pronunciation"],
+        "furigana_html": translation["furigana_html"],
+        "accent_data": accent_data,
+        "tone": tone,
+    }
+    if len(_tone_cache) >= 2000:
+        del _tone_cache[next(iter(_tone_cache))]
+    _tone_cache[cache_key] = payload
+    return payload
 
 
 @app.get("/fast-usage/{user_id}")
@@ -1310,7 +1446,8 @@ class BreakdownResponse(BaseModel):
     breakdown: list[BreakdownEntry]
 
 @app.post("/breakdown", response_model=BreakdownResponse)
-def breakdown(req: BreakdownRequest):
+def breakdown(req: BreakdownRequest, request: Request):
+    rate_guard(request)
     """
     이미 번역된 일본어 문장을 받아 단어별 문장 분해를 반환한다.
 
@@ -1368,7 +1505,8 @@ def get_accent(req: AccentRequest):
 
 
 @app.post("/tts")
-def tts(req: TTSRequest):
+def tts(req: TTSRequest, request: Request):
+    rate_guard(request)
     """
     일본어 텍스트를 받아 Google Cloud TTS로 MP3 오디오를 반환한다.
     - female: ja-JP-Wavenet-A

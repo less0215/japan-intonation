@@ -66,10 +66,10 @@ export default function SavesPage({ onSelectHistory }) {
     const on = selected.includes(it.id)
     return (
       <button key={it.id} onClick={() => onItemClick(it)}
-        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: last ? 'none' : '1px solid #f1f3f5', padding: '12px 14px', cursor: 'pointer', fontFamily: 'inherit' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: last ? 'none' : '1px solid var(--bd)', padding: '12px 14px', cursor: 'pointer', fontFamily: 'inherit' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#1f2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{primary}</p>
-          <p style={{ margin: '2px 0 0', fontSize: 12, color: '#9aa0a6', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</p>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{primary}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</p>
         </div>
         {editMode
           ? <Checkbox on={on} />
@@ -79,9 +79,9 @@ export default function SavesPage({ onSelectHistory }) {
   }
 
   const empty = (t) => (
-    <div style={{ background: '#fff', border: '1px solid #eaecef', borderRadius: 14, padding: '48px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, padding: '48px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
       <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#d4dade" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" /></svg>
-      <p style={{ margin: 0, textAlign: 'center', color: '#9aa0a6', fontSize: 13 }}>{t}</p>
+      <p style={{ margin: 0, textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>{t}</p>
     </div>
   )
 
@@ -112,7 +112,7 @@ export default function SavesPage({ onSelectHistory }) {
       {/* 편집 액션 바 */}
       {editMode && list.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 2px 8px' }}>
-          <button onClick={toggleAll} style={{ background: 'none', border: 'none', fontSize: 12.5, color: '#666', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={toggleAll} style={{ background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'inherit' }}>
             {allSelected() ? '전체 해제' : '전체 선택'}
           </button>
           <div style={{ display: 'flex', gap: 14 }}>
@@ -126,7 +126,7 @@ export default function SavesPage({ onSelectHistory }) {
 
       {list.length === 0
         ? empty(seg === 'history' ? '저장된 번역 기록이 없어요.' : seg === 'words' ? '저장한 단어가 없어요.' : '저장한 예문이 없어요.')
-        : <div style={{ background: '#fff', border: '1px solid #eaecef', borderRadius: 14, overflow: 'hidden' }}>{rows}</div>}
+        : <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, overflow: 'hidden' }}>{rows}</div>}
     </>
   )
 }

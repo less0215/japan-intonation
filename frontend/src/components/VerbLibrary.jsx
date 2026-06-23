@@ -133,12 +133,12 @@ export default function VerbLibrary() {
         display: 'flex', alignItems: 'flex-start', gap: 8,
         padding: '11px 14px',
         background: '#f8f9fa',
-        border: '1px solid #e8e8e8',
+        border: '1px solid var(--bd)',
         borderRadius: 10,
       }}>
         <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>📖</span>
-        <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
-          일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 동사입니다. <span style={{ color: '#aaa' }}>(BCCWJ, 2011)</span>
+        <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>
+          일본어 단어 1억 개를 분석한 곳에서 발표한 사용 빈도 상위 100개 동사입니다. <span style={{ color: 'var(--text-3)' }}>(BCCWJ, 2011)</span>
         </p>
       </div>
 
@@ -154,7 +154,7 @@ export default function VerbLibrary() {
                 ...styles.tabBtn,
                 backgroundColor: active ? PRIMARY : '#ffffff',
                 color:           active ? '#ffffff' : '#555555',
-                border:          active ? 'none' : '1.5px solid #e8e8e8',
+                border:          active ? 'none' : '1.5px solid var(--bd)',
               }}
             >
               {tab.label}
@@ -165,7 +165,7 @@ export default function VerbLibrary() {
 
       {/* 정렬 */}
       <div style={styles.sortRow}>
-        <span style={{ fontSize: 12, color: '#aaa', marginRight: 4 }}>정렬</span>
+        <span style={{ fontSize: 12, color: 'var(--text-3)', marginRight: 4 }}>정렬</span>
         {SORT_OPTIONS.map(opt => (
           <button
             key={opt.id}
@@ -175,7 +175,7 @@ export default function VerbLibrary() {
               backgroundColor: sortBy === opt.id ? '#f0f9ff' : 'transparent',
               color:           sortBy === opt.id ? PRIMARY : '#888',
               fontWeight:      sortBy === opt.id ? 700 : 400,
-              border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid #e8e8e8',
+              border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid var(--bd)',
             }}
           >
             {opt.label}
@@ -186,7 +186,7 @@ export default function VerbLibrary() {
       {/* 동사 카드 목록 */}
       {filteredVerbs.length === 0 ? (
         <div style={styles.empty}>
-          <p style={{ fontSize: 15, color: '#aaaaaa' }}>아직 준비 중이에요 😊</p>
+          <p style={{ fontSize: 15, color: 'var(--text-3)' }}>아직 준비 중이에요 😊</p>
         </div>
       ) : (
         <div style={styles.verbGrid}>
@@ -236,8 +236,8 @@ const styles = {
     gap: 10,
   },
   verbCard: {
-    background: '#ffffff',
-    border: '1.5px solid #e8e8e8',
+    background: 'var(--surface)',
+    border: '1.5px solid var(--bd)',
     borderRadius: 12,
     padding: '14px 12px 10px',
     display: 'flex',
@@ -263,7 +263,7 @@ const styles = {
     fontSize: 22,
     fontWeight: 500,
     fontFamily: "'Noto Sans JP', sans-serif",
-    color: '#111111',
+    color: 'var(--text-strong)',
   },
   verbReading: {
     fontSize: 12,
@@ -272,7 +272,7 @@ const styles = {
   },
   verbMeaning: {
     fontSize: 13,
-    color: '#888888',
+    color: 'var(--text-3)',
     marginTop: 2,
   },
   empty: {
@@ -283,7 +283,7 @@ const styles = {
     marginTop: 6,
     width: 28, height: 28,
     borderRadius: '50%',
-    border: '1px solid #e8e8e8',
+    border: '1px solid var(--bd)',
     backgroundColor: 'transparent',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: 'pointer',

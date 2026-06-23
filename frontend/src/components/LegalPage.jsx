@@ -292,6 +292,14 @@ function TermsOfService() {
           문의 이메일: <strong>{CONTACT_EMAIL}</strong>
         </InfoBox>
       </Section>
+
+      <Section title="제13조 데이터 출처 및 오픈데이터 표기">
+        <p>본 서비스의 학습 데이터는 아래 공개 자료를 참고·활용합니다.</p>
+        <List items={[
+          '단어 빈도: 현대일본어 균형 코퍼스(BCCWJ, 국립국어연구소) 빈도 자료',
+          'JLPT 레벨(참고값): Tanos(tanos.co.uk) JLPT 어휘 데이터 — CC BY 4.0. 비공식 표준으로, 공식 시험 등급이 아닌 참고 정보입니다.',
+        ]} />
+      </Section>
     </article>
   )
 }

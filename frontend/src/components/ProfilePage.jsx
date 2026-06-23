@@ -31,7 +31,7 @@ export default function ProfilePage({ user, fastUnlimited, onLogout, onDeleteAcc
               {fastUnlimited && <span style={{ fontSize: 10, background: '#fff5e0', color: '#c98a00', borderRadius: 5, padding: '1px 5px', marginLeft: 6 }}>⚡무제한</span>}
             </p>
             <p style={{ margin: '1px 0 0', fontSize: 11, color: fastUnlimited ? PRIMARY : 'var(--text-3)' }}>
-              {fastUnlimited ? (user?.is_admin ? '⚡ 무제한 이용 중' : '⚡ 무제한 · 2027.1.1까지') : '로그인됨'}
+              {fastUnlimited ? (user?.is_admin ? '⚡ 무제한 이용 중' : '⚡ 무제한 · 2026.10.1까지') : '로그인됨'}
             </p>
           </div>
         </div>

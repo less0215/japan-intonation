@@ -239,7 +239,7 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
 
       {/* 인스타 강의 배너 */}
       <a
-        href="https://www.instagram.com/p/DZXBE3HttW_/"
+        href="https://www.instagram.com/p/DZ6U2LgTSXT/"
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => track('instagram_banner_click', { category: wordType, word_id: item.id, word: item.verb ?? item.word })}

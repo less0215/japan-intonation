@@ -464,7 +464,7 @@ export default function VerbDetail({ verb, onBack }) {
 
       {/* 인스타 강의 배너 */}
       <a
-        href="https://www.instagram.com/p/DZVF2naN7QW/"
+        href="https://www.instagram.com/p/DZ6TPrATN4l/"
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => track('instagram_banner_click', { category: 'verb', word_id: verb.id, word: verb.verb })}

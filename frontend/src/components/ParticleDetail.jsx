@@ -189,7 +189,7 @@ export default function ParticleDetail({ particle }) {
 
       {/* 인스타 강의 배너 */}
       <a
-        href="https://www.instagram.com/p/DZe9rFoNUJI/"
+        href="https://www.instagram.com/p/DZ6V1YZzvYk/"
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => track('instagram_banner_click', { category: 'particle', word_id: particle.id, word: particle.particle })}

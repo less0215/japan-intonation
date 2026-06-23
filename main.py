@@ -1277,31 +1277,6 @@ def admin_rename_user(key: str = "", phone: str = "", new_name: str = ""):
         db.close()
 
 
-@app.get("/admin/users-export")
-def admin_users_export(key: str = ""):
-    """회원 휴대폰 번호 추출 (관리 토큰). 정규화·중복제거. CSV 생성용 (임시)."""
-    if key != FAST_ADMIN_KEY:
-        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
-    db = SessionLocal()
-    try:
-        seen = {}
-        for u in db.query(User).order_by(User.created_at).all():
-            np = _norm_phone(u.phone)
-            if not np or np in seen:
-                continue   # 빈 번호 제외 + 중복 제거(첫 가입 유지)
-            seen[np] = {
-                "phone": np,
-                "name": u.name or "",
-                "platform": u.platform or "",
-                "unlimited": is_fast_unlimited(u.phone),
-                "created_at": u.created_at.isoformat() if u.created_at else "",
-            }
-        rows = list(seen.values())
-        return {"count": len(rows), "users": rows}
-    finally:
-        db.close()
-
-
 @app.on_event("startup")
 async def _mrt_revenue_scheduler():
     """매일 KST 07:30에 수익 자동 동기화 (정산 06시 이후). 키 없으면 미동작."""

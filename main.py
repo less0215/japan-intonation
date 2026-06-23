@@ -1162,6 +1162,42 @@ def subscription_status(user_id: int):
         db.close()
 
 
+class GrantSubRequest(BaseModel):
+    admin_phone: str
+    user_id: int
+    plan: str               # plus | pro
+    period: str = "monthly"  # monthly | yearly
+
+@app.post("/admin/grant-sub")
+def admin_grant_sub(req: GrantSubRequest):
+    """관리자 전용 — 특정 회원에게 무상으로 플러스/프로 구독을 지급(또는 테스트).
+    토스 결제 없이 Subscription 행을 직접 생성한다. billing_key 없음(자동갱신 X)."""
+    if not is_admin_phone(req.admin_phone):
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    if req.plan not in ("plus", "pro"):
+        raise HTTPException(status_code=400, detail="plan은 plus 또는 pro여야 해요.")
+    price = SUB_PRICES.get((req.plan, req.period))
+    if not price:
+        raise HTTPException(status_code=400, detail="잘못된 플랜/주기입니다.")
+    days = price[1]
+    db = SessionLocal()
+    try:
+        if not db.query(User).filter(User.id == req.user_id).first():
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        db.query(Subscription).filter(Subscription.user_id == req.user_id,
+                                      Subscription.status == 'active').update({"status": "expired"})
+        sub = Subscription(user_id=req.user_id, plan=req.plan, period=req.period, status='active',
+                           billing_key=None, customer_key=f"comp_{req.user_id}",
+                           started_at=now_kst(), expires_at=now_kst() + datetime.timedelta(days=days),
+                           last_paid_at=now_kst())
+        db.add(sub)
+        db.commit()
+        return {"ok": True, "user_id": req.user_id, "plan": req.plan, "period": req.period,
+                "expires_at": sub.expires_at.isoformat()}
+    finally:
+        db.close()
+
+
 # 무제한 회원 조회용 관리 토큰 (개인정보 노출 방지)
 FAST_ADMIN_KEY = "tickjapan-admin-9f3a2b"
 

@@ -9,6 +9,8 @@ const BUS_FARE = 1500   // 시내버스 한 번 요금 — 가격 앵커링용
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 // 토스 클라이언트키 — Vercel 환경변수 VITE_TOSS_CLIENT_KEY (없으면 교체 안내 더미)
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || 'test_ck_REPLACE_ME'
+// 결제 정식 오픈 스위치 — 실키(라이브) 적용 후 true 로. false면 '준비 중' 안내만(테스트 결제창 차단)
+const PAYMENTS_ENABLED = false
 // App 순환 참조 방지 — 가벼운 자체 트래킹
 const track = (name, params = {}) => { try { window.gtag?.('event', name, params); window.__afLog?.(name, params) } catch {} }
 
@@ -26,11 +28,13 @@ export default function SubscriptionPage() {
   const navigate = useNavigate()
   const { user } = useUser()
   const [period, setPeriod] = useState('monthly')
-  const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app'
+  const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app' | 'soon'
   const p = PLANS[period]
 
   async function choose(plan) {
     track('subscribe_cta', { plan, period })
+    // 결제 정식 오픈 전 — 웹/앱 모두 '준비 중' 안내만(테스트 결제창 차단)
+    if (!PAYMENTS_ENABLED) { setNotice('soon'); return }
     // iOS 안티스티어링: 앱 안에서 외부 결제 유도 금지 → 안내만
     if (isApp) { setNotice('app'); return }
     if (!user?.user_id) { setNotice('login'); return }
@@ -124,6 +128,7 @@ export default function SubscriptionPage() {
       {/* 안내 모달 — 로그인 필요 / 앱(웹에서) / 오류 */}
       {notice && (() => {
         const N = {
+          soon:  { title: '결제 준비 중이에요', body: '곧 광고 없이 이용하실 수 있도록 결제 기능을 준비하고 있어요. 조금만 기다려 주세요!', primary: '확인', onPrimary: () => setNotice(null) },
           login: { title: '로그인이 필요해요', body: '구독은 로그인 후 이용할 수 있어요.', primary: '로그인하러 가기', onPrimary: () => navigate('/profile') },
           app:   { title: '구독은 웹에서', body: 'tickjapan.com 에서 구독하면 앱에서도 광고 없이 그대로 이용할 수 있어요.', primary: '확인', onPrimary: () => setNotice(null) },
           error: { title: '문제가 발생했어요', body: '잠시 후 다시 시도해 주세요.', primary: '확인', onPrimary: () => setNotice(null) },

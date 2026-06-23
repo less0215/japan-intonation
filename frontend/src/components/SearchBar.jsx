@@ -14,7 +14,7 @@ function resetClock(sec) {
 }
 
 /* 빠른 번역 스위치 + 사용량 (입력창 내부 하단 한 줄) */
-function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onToggle, onUnlock }) {
+function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onToggle, onUnlock, unlimitedLabel }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', width: '100%' }}>
       {/* 좌측: 사용량 소진 + 광고 해제 가능(앱) → '제한 풀기' 칩 버튼 (자동 팝업 X) */}
@@ -40,7 +40,7 @@ function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onT
         </>
       )}
       {active && unlimited && (
-        <span style={{ fontSize: 10.5, color: PRIMARY, fontWeight: 600 }}>무제한 이용 중 !</span>
+        <span style={{ fontSize: 10.5, color: PRIMARY, fontWeight: 600 }}>{unlimitedLabel || '무제한 이용 중'}</span>
       )}
       {/* 우측: ⚡ 빠른 번역 + 스위치 */}
       <button

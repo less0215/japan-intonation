@@ -851,6 +851,7 @@ export default function App() {
                   resetSec: fastResetSec,
                   onToggle: handleFastToggle,
                   onUnlock: isApp ? handleUnlockFast : null,
+                  unlimitedLabel: fastUnlimited ? (user?.is_admin ? '무제한 이용 중' : '무제한 · 2027.1.1까지') : null,
                 }}
               />
 

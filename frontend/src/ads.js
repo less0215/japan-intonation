@@ -7,6 +7,12 @@
 
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 
+// 광고 제거 회원 여부 — App.jsx가 /subscription 응답(ad_free)을 localStorage에 기록.
+// 구독 상태에 직접 접근 못 하는 컴포넌트(라이브캠 등)에서 광고를 건너뛰는 데 사용.
+export function isAdFreeMember() {
+  try { return localStorage.getItem('tickjapan_ad_free') === '1' } catch { return false }
+}
+
 // Google 공식 테스트 보상형 광고 단위 ID (수익 없음 · 정책 위반 아님)
 const TEST_REWARDED = {
   ios: 'ca-app-pub-3940256099942544/1712485313',

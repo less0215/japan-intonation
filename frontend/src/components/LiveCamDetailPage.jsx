@@ -4,7 +4,7 @@ import PageSEO from './PageSEO'
 import JapanMiniMap from './JapanMiniMap'
 import AdConsentPopup from './AdConsentPopup'
 import { LIVECAMS } from '../data/livecams'
-import { showRewardedAd } from '../ads'
+import { showRewardedAd, isAdFreeMember } from '../ads'
 
 const PRIMARY = '#5CA9CE'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
@@ -23,13 +23,14 @@ export default function LiveCamDetailPage() {
 
   const others = LIVECAMS.filter(c => c.id !== city)
 
-  // 다른 도시 탭 — 앱은 보상형 광고 후 이동, 웹은 바로 이동
+  // 다른 도시 탭 — 앱은 보상형 광고 후 이동, 웹·광고제거 회원은 바로 이동
   function handleHop(targetId) {
-    if (isApp) {
+    if (isApp && !isAdFreeMember()) {
       setPendingCity(targetId)
       try { window.gtag?.('event', 'livecam_ad_prompt', { from: city, to: targetId }) } catch {}
     } else {
       navigate(`/live/${targetId}`)
+      window.scrollTo(0, 0)
     }
   }
   // '광고 보고 날씨 확인' — 광고 시청 시도 후 이동(노필 등 실패해도 콘텐츠는 막지 않음)

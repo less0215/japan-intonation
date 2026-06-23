@@ -324,10 +324,16 @@ export default function App() {
 
   // 구독/관리자/무제한 → 광고 제거 여부 조회
   useEffect(() => {
-    if (!user?.user_id) { setSubAdFree(false); setSubInfo(null); return }
+    if (!user?.user_id) { setSubAdFree(false); setSubInfo(null); try { localStorage.removeItem('tickjapan_ad_free') } catch {}; return }
     fetch(`${API_URL}/subscription/${user.user_id}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) { setSubAdFree(!!d.ad_free); setSubInfo(d) } })
+      .then(d => {
+        if (d) {
+          setSubAdFree(!!d.ad_free); setSubInfo(d)
+          // 구독 미접근 컴포넌트(라이브캠 등)에서 광고 차단에 쓰도록 공유
+          try { localStorage.setItem('tickjapan_ad_free', d.ad_free ? '1' : '') } catch {}
+        }
+      })
       .catch(() => {})
   }, [user?.user_id])
 
@@ -397,10 +403,11 @@ export default function App() {
 
   // 사용량 소진 상태에서 사용자가 직접 '제한 풀기'를 눌렀을 때만 광고 팝업 (자동 X)
   function handleUnlockFast() {
-    if (isApp) {
-      setAdPopup({ mode: 'unlock5h' })
-      track('fast_ad_prompt', { mode: 'unlock5h', guest: !user })
-    }
+    if (!isApp) return
+    // 광고 제거 회원은 광고 없이 바로 켜짐(한도 자체가 없지만 방어)
+    if (fastUnlimited || subAdFree) { setSelectedModel('fast'); return }
+    setAdPopup({ mode: 'unlock5h' })
+    track('fast_ad_prompt', { mode: 'unlock5h', guest: !user })
   }
 
   // 비회원 빠른 번역 사용량 — user_id가 없어 localStorage 5시간 윈도우로 추적 (회원과 동일 20회)

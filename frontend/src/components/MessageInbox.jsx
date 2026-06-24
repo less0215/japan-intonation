@@ -69,16 +69,22 @@ export default function MessageInbox() {
         const fresh = new Set(visible.filter(m => !read.has(m.id)).map(m => m.id))
         setMsgs(visible)
         setNewIds(fresh)
-        setExpanded(fresh)            // 새 메시지는 펼친 상태, 읽은 메시지는 접힘
-        markRead(visible.map(m => m.id))   // 방문 시 읽음 처리(헤더 빨간 점 해제)
+        setExpanded(new Set())       // 모두 접힌 채 시작 — 탭해서 펼치면(또는 편집모드에서 선택) 읽음 처리(이메일식)
       })
       .catch(() => setMsgs([]))
   }, [user?.user_id])
 
+  // 읽음 처리(localStorage 영구) + NEW 배지·점 즉시 해제
+  function markReadLive(ids) {
+    if (!ids.length) return
+    markRead(ids)
+    setNewIds(prev => { const n = new Set(prev); ids.forEach(i => n.delete(i)); return n })
+  }
   function toggleExpand(id) {
     setExpanded(prev => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) next.delete(id)
+      else { next.add(id); markReadLive([id]) }   // 펼쳐서 읽으면 읽음 처리
       return next
     })
   }
@@ -91,6 +97,16 @@ export default function MessageInbox() {
   }
   function expandAll() { setExpanded(new Set(msgs.map(m => m.id))) }
   function collapseAll() { setExpanded(new Set()) }
+  // 선택(단일/다중) 읽음 처리 — 편집 모드 유지(이어서 더 처리 가능)
+  function readSelected() {
+    if (selected.size === 0) return
+    markReadLive([...selected])
+    setSelected(new Set())
+  }
+  function toggleSelectAll() {
+    const all = msgs && msgs.length > 0 && selected.size >= msgs.length
+    setSelected(all ? new Set() : new Set((msgs || []).map(m => m.id)))
+  }
   function deleteSelected() {
     if (selected.size === 0) return
     hideIds([...selected])
@@ -106,6 +122,7 @@ export default function MessageInbox() {
 
   const hasMsgs = user?.user_id && msgs && msgs.length > 0
   const allExpanded = hasMsgs && expanded.size >= msgs.length
+  const allSelected = hasMsgs && selected.size >= msgs.length
 
   return (
     <>
@@ -132,15 +149,25 @@ export default function MessageInbox() {
         )}
       </div>
 
-      {/* 편집 모드 툴바 */}
+      {/* 편집 모드 툴바 — 선택(단일/다중) → 읽음 처리 / 삭제 */}
       {hasMsgs && editMode && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-          <button onClick={deleteSelected} disabled={selected.size === 0} style={{ flex: 1, height: 40, borderRadius: 11, border: '1px solid var(--bd)', background: 'var(--surface)', color: selected.size ? 'var(--danger)' : 'var(--text-3)', fontSize: 13, fontWeight: 600, cursor: selected.size ? 'pointer' : 'default', fontFamily: 'inherit' }}>
-            선택 삭제{selected.size ? ` (${selected.size})` : ''}
-          </button>
-          <button onClick={deleteAll} style={{ flex: 1, height: 40, borderRadius: 11, border: '1px solid var(--bd)', background: 'var(--surface)', color: 'var(--danger)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            전체 삭제
-          </button>
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={readSelected} disabled={selected.size === 0} style={{ flex: 1, height: 40, borderRadius: 11, border: `1px solid ${selected.size ? PRIMARY : 'var(--bd)'}`, background: selected.size ? PRIMARY : 'var(--surface)', color: selected.size ? '#fff' : 'var(--text-3)', fontSize: 13, fontWeight: 600, cursor: selected.size ? 'pointer' : 'default', fontFamily: 'inherit' }}>
+              읽음 처리{selected.size ? ` (${selected.size})` : ''}
+            </button>
+            <button onClick={deleteSelected} disabled={selected.size === 0} style={{ flex: 1, height: 40, borderRadius: 11, border: '1px solid var(--bd)', background: 'var(--surface)', color: selected.size ? 'var(--danger)' : 'var(--text-3)', fontSize: 13, fontWeight: 600, cursor: selected.size ? 'pointer' : 'default', fontFamily: 'inherit' }}>
+              선택 삭제{selected.size ? ` (${selected.size})` : ''}
+            </button>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 9, padding: '0 4px' }}>
+            <button onClick={toggleSelectAll} style={{ background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-2)', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+              {allSelected ? '선택 해제' : '전체 선택'}
+            </button>
+            <button onClick={deleteAll} style={{ background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+              전체 삭제
+            </button>
+          </div>
         </div>
       )}
 

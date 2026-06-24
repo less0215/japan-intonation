@@ -241,7 +241,10 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
             </span>
           )}
           <div className="header-actions">
-            <CopyButton getText={() => furigana_html} />
+            <CopyButton options={[
+              { label: '후리가나 포함', hint: '日本語(にほんご)', getText: () => furigana_html, onCopy: () => track('copy', { kind: 'furigana' }) },
+              { label: '원문만', hint: '日本語', getText: () => japanese, onCopy: () => track('copy', { kind: 'plain' }) },
+            ]} />
             <GenderToggle gender={gender} onChange={handleGenderChange} />
             <PlayButton audioState={audioState} onToggle={handlePlayToggle} />
           </div>

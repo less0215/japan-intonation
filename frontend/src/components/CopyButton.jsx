@@ -1,33 +1,80 @@
 import { useState } from 'react'
 
-/* 복사 버튼: 클릭 시 체크 아이콘으로 전환, 1.5초 후 복구 */
-export default function CopyButton({ getText, onCopy }) {
+/* 복사 버튼
+ * - getText만 주면: 한 번 탭으로 즉시 복사 (기존 동작)
+ * - options(=[{ label, hint, getText, onCopy }])를 주면: 탭 시 선택 팝오버 (후리가나 포함 / 원문만 등)
+ * 복사 후 1.5초간 체크 아이콘으로 전환 */
+export default function CopyButton({ getText, onCopy, options }) {
   const [copied, setCopied] = useState(false)
+  const [open, setOpen] = useState(false)
 
-  async function handleCopy() {
-    if (copied) return
+  async function copy(text, cb) {
     try {
-      await navigator.clipboard.writeText(getText())
+      await navigator.clipboard.writeText(text || '')
       setCopied(true)
+      setOpen(false)
+      cb?.()
       onCopy?.()
       setTimeout(() => setCopied(false), 1500)
     } catch {
-      // 클립보드 API 미지원 환경 무시
+      setOpen(false)   // 클립보드 API 미지원 환경 무시
     }
   }
 
+  function handleClick() {
+    if (copied) return
+    if (options?.length) { setOpen(o => !o); return }   // 선택지가 있으면 팝오버
+    copy(getText())                                      // 단일이면 바로 복사
+  }
+
   return (
-    <button
-      onClick={handleCopy}
-      title="복사"
-      className="copy-btn"
-      style={{
-        borderColor: copied ? '#5CA9CE' : '#e2e8f0',
-        color: copied ? '#5CA9CE' : '#aaaaaa',
-      }}
-    >
-      {copied ? <IconCheck /> : <IconCopy />}
-    </button>
+    <div style={{ position: 'relative', display: 'inline-flex' }}>
+      <button
+        onClick={handleClick}
+        title="복사"
+        aria-haspopup={options?.length ? 'menu' : undefined}
+        className="copy-btn"
+        style={{
+          borderColor: copied || open ? '#5CA9CE' : '#e2e8f0',
+          color: copied || open ? '#5CA9CE' : '#aaaaaa',
+        }}
+      >
+        {copied ? <IconCheck /> : <IconCopy />}
+      </button>
+
+      {open && options?.length > 0 && (
+        <>
+          {/* 바깥 탭하면 닫힘 */}
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 60 }} />
+          <div
+            role="menu"
+            style={{
+              position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 61,
+              minWidth: 184, background: 'var(--surface)', border: '1px solid var(--bd)',
+              borderRadius: 12, boxShadow: '0 10px 28px rgba(0,0,0,0.14)', padding: 5,
+              display: 'flex', flexDirection: 'column',
+            }}
+          >
+            {options.map((opt, i) => (
+              <button
+                key={i}
+                role="menuitem"
+                onClick={() => copy(opt.getText(), opt.onCopy)}
+                className="copy-menu-item"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                  textAlign: 'left', width: '100%', padding: '10px 11px', border: 'none',
+                  background: 'transparent', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap' }}>{opt.label}</span>
+                {opt.hint && <span style={{ fontSize: 11.5, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{opt.hint}</span>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 

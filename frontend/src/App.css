@@ -510,6 +510,10 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 복사 선택 팝오버 메뉴 아이템 */
+.copy-menu-item { transition: background-color 0.12s; -webkit-tap-highlight-color: transparent; }
+.copy-menu-item:hover, .copy-menu-item:active { background: var(--surface-2) !important; }
+
 /* ── 피치 그래프 */
 .pitch-graph-wrap {
   /* overflow은 외부 wrapper div가 담당 */

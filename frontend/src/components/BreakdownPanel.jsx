@@ -53,8 +53,9 @@ export function ConjugationPanel({ steps }) {
   )
 }
 
-/* ── 행 단위 활용 원리 패널 (뜻은 항상 표시되므로 여기선 원리만) */
+/* ── 행 단위 풀이 패널 — 어휘 풀이(note) + 활용 원리(conjugation_steps) */
 export function DetailPanel({ row }) {
+  const hasSteps = row.conjugation_steps && row.conjugation_steps.length > 0
   return (
     <div style={{
       margin: '0 14px 10px',
@@ -63,7 +64,14 @@ export function DetailPanel({ row }) {
       border: `1px solid ${PRIMARY}22`,
       borderRadius: 10,
     }}>
-      <ConjugationPanel steps={row.conjugation_steps} />
+      {/* 초심자용 어휘·표현 풀이 (고풍/관용/특수 읽기 등) */}
+      {row.note && (
+        <div style={{ marginBottom: hasSteps ? 12 : 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: PRIMARY, letterSpacing: '0.3px', marginBottom: 5 }}>단어 풀이</p>
+          <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, margin: 0 }}>{row.note}</p>
+        </div>
+      )}
+      {hasSteps && <ConjugationPanel steps={row.conjugation_steps} />}
     </div>
   )
 }
@@ -89,7 +97,7 @@ export function BreakdownTable({ breakdown, showDetail }) {
           {row.korean_meaning && (
             <div className="breakdown-meaning-cell">{row.korean_meaning}</div>
           )}
-          {showDetail && row.conjugation_steps && row.conjugation_steps.length > 0 && (
+          {showDetail && (row.note || (row.conjugation_steps && row.conjugation_steps.length > 0)) && (
             <DetailPanel row={row} />
           )}
         </div>
@@ -117,7 +125,7 @@ export function BreakdownCards({ breakdown, showDetail }) {
           {row.korean_meaning && (
             <div className="breakdown-card-meaning">{row.korean_meaning}</div>
           )}
-          {showDetail && row.conjugation_steps && row.conjugation_steps.length > 0 && (
+          {showDetail && (row.note || (row.conjugation_steps && row.conjugation_steps.length > 0)) && (
             <DetailPanel row={row} />
           )}
         </div>

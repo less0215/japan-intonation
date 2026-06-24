@@ -227,10 +227,14 @@ Example — 日本語を話すことができますか？:
         {"step": 1, "form": "できる", "label": "기본형", "note": "가능·잠재를 나타내는 이단 동사"},
         {"step": 2, "form": "できます", "label": "ます형 (정중체)", "note": "できる → できます"},
         {"step": 3, "form": "できますか", "label": "의문형", "note": "か를 붙여 정중한 의문문 형성"}
-      ]
+      ],
+      "note": null
     }
   ]
 }
+
+Vocabulary note example — 吾輩は (archaic word a beginner won't know):
+{"unit": "吾輩は", "hiragana": "わがはいは", "korean_pronunciation": "와가하이와", "korean_meaning": "나는", "part_of_speech": "대명사+조사", "conjugation_steps": null, "note": "吾輩(わがはい)는 고풍스럽고 점잔 빼는 1인칭 '나'. 현대 회화에선 거의 안 쓰고, 보통 '나'는 私(わたし)를 씀."}
 
 Fields:
 - "unit": surface form as it appears in the sentence (kanji where used)
@@ -240,6 +244,7 @@ Fields:
 - "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
 - "conjugation_steps": null for uninflected chunks; array for conjugated/pattern chunks
   Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
+- "note": a SHORT, beginner-friendly Korean explanation of this chunk — ONLY when it is NOT obvious to a beginner: archaic/literary words (吾輩, 候 등), idioms, special/irregular readings, set phrases, or nuanced particles (は vs が 등). Mention the common everyday alternative when helpful (e.g. 吾輩 → 보통은 私). 1-2 short, natural Korean sentences. For ordinary everyday words, set note to null.
 """
 
 # (악센트는 Gemini가 /analyze에서 직접 생성 — 구 OJAD 스크래핑은 타임아웃 잦아 폐기)
@@ -640,6 +645,7 @@ class BreakdownEntry(BaseModel):
     korean_meaning: str = ""
     part_of_speech: str
     conjugation_steps: list[ConjugationStep] | None = None
+    note: str | None = None   # 초심자용 어휘·표현 풀이(고풍/관용/특수 읽기·조사 뉘앙스 등 비자명할 때만)
 
 class TTSRequest(BaseModel):
     text: str
@@ -1015,7 +1021,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v3-natural-cleanjp"
+BUILD_VERSION = "2026-06-24-photo-v4-furigana-vocabnote"
 
 @app.get("/version")
 def version():
@@ -1256,6 +1262,7 @@ Respond with ONLY a valid JSON object, no extra text:
       "korean_meaning": "fluent, natural Korean translation of THIS chunk (meaning first)",
       "furigana": "full reading of this chunk in hiragana only, no spaces",
       "korean_pronunciation": "how this chunk SOUNDS in Korean Hangul, mora by mora",
+      "furigana_html": "japanese with each kanji word followed by its hiragana reading in (parentheses)",
       "accent_data": [{"phrase_id":"0","mora_count":4,"accent":[0,1,1,1]}]
     }
   ]
@@ -1265,6 +1272,7 @@ If NO Japanese text is found, return {"doc_type":"none","summary":"","chunks":[]
 
 Field rules (per chunk, follow EXACTLY):
 - japanese: the text EXACTLY as printed in the image. Do NOT add furigana, spaces, or parentheses here.
+- furigana_html: copy "japanese", but after each KANJI word add its reading in half-width (parentheses). The reading inside ( ) MUST be hiragana only — never kanji, never katakana. If you remove every "(...)" the result MUST equal "japanese" exactly. Example: "吾輩は猫である。" -> "吾輩(わがはい)は猫(ねこ)である。" ; "名前はまだ無い。" -> "名前(なまえ)はまだ無(な)い。"
 - korean_meaning AND summary: write FLUENT, NATURAL Korean the way a Korean speaker actually talks. Prioritize MEANING and readability over literal word order. Avoid stiff translationese (번역투) and awkward direct translations. Make it sound natural in Korean.
 - korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이.
 - accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of mora_count == total morae of that chunk's furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
@@ -1289,6 +1297,23 @@ class AnalyzeImageResponse(BaseModel):
     doc_type: str = "general"       # 자동 인식된 인쇄물 유형
     summary: str = ""               # 정보성 글(도서 등)일 때 전체 내용 한국어 요약
     chunks: list[PhotoChunk] = []   # 의미 단위로 미리 묶은 구간(읽기 순서)
+
+_HIRA_READING = re.compile(r'^[ぁ-んー]+$')
+
+def _clean_furigana_html(fh: str, jp: str) -> str:
+    """furigana_html이 '한자(히라가나)' 형식으로 올바른지 검증.
+    전각 괄호는 반각으로 정규화(프론트 parseFurigana가 반각만 인식).
+    괄호 안 읽기가 히라가나가 아니거나, 괄호를 모두 떼면 원문과 다르면 폐기→원문 평문 반환.
+    → 정상이면 후리가나 루비, 깨질 것 같으면 한자 그대로(깨진 루비·엉뚱한 괄호가 화면에 안 뜸)."""
+    if not fh:
+        return jp
+    fh = fh.replace('（', '(').replace('）', ')')
+    readings = re.findall(r'\(([^)]*)\)', fh)
+    if not readings or any(not _HIRA_READING.match(r or '') for r in readings):
+        return jp
+    if re.sub(r'\([^)]*\)', '', fh).replace(' ', '') != (jp or '').replace(' ', ''):
+        return jp
+    return fh
 
 @app.post("/analyze-image", response_model=AnalyzeImageResponse)
 def analyze_image(req: AnalyzeImageRequest, request: Request):
@@ -1344,7 +1369,7 @@ def analyze_image(req: AnalyzeImageRequest, request: Request):
             korean_meaning=c.get("korean_meaning", ""),
             furigana=c.get("furigana", ""),
             korean_pronunciation=c.get("korean_pronunciation", ""),
-            furigana_html=jp,  # 깨진 루비 방지 — 원문 한자 그대로(읽기는 한글발음·피치·문장분해에서)
+            furigana_html=_clean_furigana_html(c.get("furigana_html") or "", jp),  # 검증 통과 시 루비, 아니면 원문
             accent_data=acc,
         ))
     if not out_chunks:

@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
 import PhotoStudy from './components/PhotoStudy'
-import SkeletonCard from './components/SkeletonCard'
+import TranslatingCard from './components/TranslatingCard'
 import CategoryBars from './components/CategoryBars'
 import SignupModal from './components/SignupModal'
 import AttPrePrompt from './components/AttPrePrompt'
@@ -1052,7 +1052,7 @@ export default function App() {
                   <span /><span /><span />
                 </div>
               )}
-              {loading && <SkeletonCard inputText={inputText} />}
+              {loading && <TranslatingCard inputText={inputText} />}
               {result && (
                 <ResultCard
                   data={result}

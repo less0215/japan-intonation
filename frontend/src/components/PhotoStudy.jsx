@@ -22,6 +22,17 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
   const [open, setOpen] = useState(0)          // 펼친 구간 index (-1=모두 접힘)
   const [bdLoading, setBdLoading] = useState(-1)
   const [savedSet, setSavedSet] = useState(() => new Set())
+  // 원본 사진 표시 on/off (세로로 긴 사진은 매번 스크롤이 번거로워서). 선호 기억.
+  const [showImage, setShowImage] = useState(() => {
+    try { return localStorage.getItem('tickjapan_photostudy_img') !== '0' } catch { return true }
+  })
+  function toggleImage() {
+    setShowImage(v => {
+      const nv = !v
+      try { localStorage.setItem('tickjapan_photostudy_img', nv ? '1' : '0') } catch {}
+      return nv
+    })
+  }
 
   async function requestBreakdown(i) {
     const jp = chunks[i]?.japanese
@@ -107,8 +118,8 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
               </button>
               {isOpen && (
                 <div style={{ marginTop: 8 }}>
-                  {/* 원본 사진 — 항상 표시. 메뉴·간판은 위치 박스까지 강조, 책·만화는 사진만(헤더 문장과 직접 대조) */}
-                  {imageUrl && (() => {
+                  {/* 원본 사진 — 토글 ON일 때만. 메뉴·간판은 위치 박스까지 강조, 책·만화는 사진만(헤더 문장과 직접 대조) */}
+                  {imageUrl && showImage && (() => {
                     const showBox = c.bbox && BOX_TYPES.has(result?.doc_type)
                     return (
                       <div style={{ marginBottom: 12 }}>
@@ -145,6 +156,32 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
           )
         })}
       </div>
+
+      {/* 원본 사진 on/off — 좌하단 떠 있는 토글 (세로로 긴 사진 스크롤 번거로움 해소) */}
+      {imageUrl && (
+        <button
+          type="button"
+          onClick={toggleImage}
+          aria-label={showImage ? '원본 사진 숨기기' : '원본 사진 보기'}
+          style={{
+            position: 'fixed', left: 16, bottom: 'calc(18px + env(safe-area-inset-bottom, 0px))', zIndex: 5,
+            display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+            fontSize: 13, fontWeight: 600,
+            border: `1.5px solid ${showImage ? PRIMARY : 'var(--bd-2)'}`,
+            background: showImage ? 'var(--primary-tint)' : 'var(--surface)',
+            color: showImage ? 'var(--primary-strong)' : 'var(--text-2)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
+          }}
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2.5" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+            {!showImage && <line x1="3" y1="3" x2="21" y2="21" />}
+          </svg>
+          {showImage ? '사진 표시' : '사진 숨김'}
+        </button>
+      )}
     </div>
   )
 }

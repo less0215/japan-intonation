@@ -148,7 +148,7 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast,
         {/* 사진 번역 버튼 — 관리자(베타) + 입력칸이 비어 있을 때만 노출. 타이핑하면 자연스럽게 사라짐 */}
         {showCamera && !text.trim() && !loading && (
           <>
-            <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
+            <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
             <button
               type="button"
               onClick={() => fileRef.current?.click()}

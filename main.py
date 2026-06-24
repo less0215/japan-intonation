@@ -897,11 +897,27 @@ _GEN_CONFIG = genai.types.GenerateContentConfig(
     temperature=0,   # 출력 일관성 ↑ (한글 독음 등 간헐 오류 완화)
 )
 
+# 사진(OCR) 전용 설정 — media_resolution HIGH로 이미지 해상도를 올려
+# 작고 빽빽한 글자 인식 정확도 + bounding box 정밀도를 높인다.
+# SDK 버전에 따라 media_resolution 미지원일 수 있어 방어적으로 생성(미지원 시 기본 설정 폴백).
+try:
+    _IMG_GEN_CONFIG = genai.types.GenerateContentConfig(
+        thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
+        response_mime_type="application/json",
+        temperature=0,
+        media_resolution=genai.types.MediaResolution.MEDIA_RESOLUTION_HIGH,
+    )
+except Exception as _e:
+    print("[img-config] media_resolution 미지원 — 기본 설정 사용:", _e)
+    _IMG_GEN_CONFIG = _GEN_CONFIG
+
 
 def _call_gemini_json(prompt: str, model: str = None,
-                      image_bytes: bytes = None, mime_type: str = "image/jpeg") -> dict:
+                      image_bytes: bytes = None, mime_type: str = "image/jpeg",
+                      config=None) -> dict:
     """Gemini에 프롬프트(+선택적 이미지)를 보내고 JSON 응답을 파싱해 dict로 반환한다 (공통 호출 로직).
-    image_bytes가 있으면 멀티모달(텍스트+이미지) 입력, 없으면 기존처럼 텍스트만."""
+    image_bytes가 있으면 멀티모달(텍스트+이미지) 입력, 없으면 기존처럼 텍스트만.
+    config 미지정 시 기본 _GEN_CONFIG 사용(이미지는 고해상도 _IMG_GEN_CONFIG 전달)."""
     client = get_gemini_client()
     model = model or GEMINI_MODEL
     contents = ([prompt, genai.types.Part.from_bytes(data=image_bytes, mime_type=mime_type)]
@@ -913,7 +929,7 @@ def _call_gemini_json(prompt: str, model: str = None,
             response = client.models.generate_content(
                 model=model,
                 contents=contents,
-                config=_GEN_CONFIG,
+                config=config or _GEN_CONFIG,
             )
             print(f"[Gemini {model}] {(time.perf_counter() - _t0) * 1000:.0f}ms")
             break
@@ -1026,7 +1042,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v7-bbox-locate"
+BUILD_VERSION = "2026-06-24-photo-v8-hires-ocr"
 
 @app.get("/version")
 def version():
@@ -1252,7 +1268,7 @@ A Korean learner photographed real-world Japanese. Do ALL of the following in on
    - "sign": signboard, notice, label, or package → natural order (usually left to right).
    - "general": plain horizontal text → left to right, top to bottom.
 {HINT}
-2) Read ALL the Japanese text visible in the image — EVERY line/column, completely, in the correct reading order. Do NOT stop after the first few lines, do NOT pick only the prominent ones, and do NOT summarize the body. Then split everything you read into reading CHUNKS: each chunk is ONE natural meaning unit (a sentence or a clause), kept in reading order. A full page commonly has 10-25 chunks — include them ALL (up to 30). Do NOT split one sentence into tiny fragments, and do NOT merge unrelated sentences.
+2) Read ALL the Japanese text visible in the image — EVERY line/column, completely, in the correct reading order. Read each character CAREFULLY and faithfully — do NOT guess or auto-correct an unclear character into a more common word; transcribe what is ACTUALLY printed (watch easily-confused kana/kanji). Do NOT stop after the first few lines, do NOT pick only the prominent ones, and do NOT summarize the body. Then split everything you read into reading CHUNKS: each chunk is ONE natural meaning unit (a sentence or a clause), kept in reading order. A full page commonly has 10-25 chunks — include them ALL (up to 30). Do NOT split one sentence into tiny fragments, and do NOT merge unrelated sentences.
 
 3) For INFORMATION-type material ("book", prose "general", long "sign" notices), write a SHORT, NATURAL Korean summary (1-2 sentences) of the WHOLE content so the reader grasps the gist at a glance. For "menu", "manga", or short signs where a summary is not meaningful, set summary to "".
 
@@ -1368,7 +1384,8 @@ def analyze_image(req: AnalyzeImageRequest, request: Request):
 
     # OCR 품질 우선 → FAST_MODEL(3.1-flash-lite). 비용은 장당 ~$0.0001로 미미.
     data = _call_gemini_json(prompt, model=FAST_MODEL,
-                             image_bytes=img_bytes, mime_type=req.mime_type or "image/jpeg")
+                             image_bytes=img_bytes, mime_type=req.mime_type or "image/jpeg",
+                             config=_IMG_GEN_CONFIG)
 
     if data.get("doc_type") == "none" or not data.get("chunks"):
         raise HTTPException(status_code=422,

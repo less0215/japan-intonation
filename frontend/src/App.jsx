@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
+import PhotoStudy from './components/PhotoStudy'
 import SkeletonCard from './components/SkeletonCard'
 import CategoryBars from './components/CategoryBars'
 import SignupModal from './components/SignupModal'
@@ -323,6 +324,7 @@ export default function App() {
   const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
   const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(또는 관리자/무제한) → 광고 제거
   const [subInfo, setSubInfo] = useState(null)                // /subscription 응답 { plan, expires_at, fast_unlimited, ad_free }
+  const [photoStudy, setPhotoStudy] = useState(null)          // 사진 학습 전체화면 { result, imageUrl } (관리자 베타)
   const [msgUnread, setMsgUnread] = useState(0)               // 메시지함 안 읽은 개수(헤더 빨간 점)
   // 정착(settled) 번역 세션 — 디바운스 중간 호출을 한 번역으로 묶어 한도·광고 카운트
   const editSessionRef = useRef({ text: '', time: 0, sid: '' })
@@ -704,8 +706,6 @@ export default function App() {
     setLoading(true)
     setError(null)
     setResult(null)
-    setBreakdownExpanded(false)
-    setSaved(false)
     setInputText('')
     track('photo_translate_start')
     try {
@@ -725,10 +725,8 @@ export default function App() {
         throw new Error(msg)
       }
       const data = await res.json()
-      setResult(data)
-      setInputText(data.korean_meaning || '')   // 결과 카드에 한국어 뜻 표시(이미지엔 한국어 입력이 없으므로)
-      addToHistory(data.korean_meaning || '(사진)', data)
-      track('photo_translate', { doc_type: data.doc_type, japanese: data.japanese })
+      setPhotoStudy({ result: data, imageUrl: dataUrl })   // 전체화면 '사진 학습' 열기
+      track('photo_translate', { doc_type: data.doc_type, chunks: data.chunks?.length })
     } catch (err) {
       setError(err.message || '사진 번역 중 오류가 발생했어요.')
       track('photo_translate_error')
@@ -1055,14 +1053,6 @@ export default function App() {
                 </div>
               )}
               {loading && <SkeletonCard inputText={inputText} />}
-              {/* 사진 번역 결과일 때 — 인식된 인쇄물 유형 표시 (관리자 베타) */}
-              {result?.doc_type && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 2px 8px', fontSize: 12, color: 'var(--text-3)' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3.2" /></svg>
-                  사진 인식: <b style={{ fontWeight: 600, color: 'var(--text-2)' }}>{({ book: '도서(세로쓰기)', manga: '웹툰·만화', menu: '메뉴판', sign: '간판·표지', general: '일반' })[result.doc_type] || result.doc_type}</b>
-                  <span style={{ fontSize: 10.5, background: 'var(--warning-tint)', color: 'var(--warning)', padding: '1px 6px', borderRadius: 5, fontWeight: 600 }}>베타</span>
-                </div>
-              )}
               {result && (
                 <ResultCard
                   data={result}
@@ -1237,6 +1227,15 @@ export default function App() {
         />
       )}
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}
+      {/* 사진 학습 전체화면 (관리자 베타) — 구간을 펼치면 ResultCard 그대로 재사용 */}
+      {photoStudy && (
+        <PhotoStudy
+          result={photoStudy.result}
+          imageUrl={photoStudy.imageUrl}
+          onSaveChunk={(chunk) => { if (user) doSave(user, chunk.korean_meaning || '(사진)', chunk) }}
+          onClose={() => setPhotoStudy(null)}
+        />
+      )}
       {/* 보상형 광고 양해 팝업 (앱 전용) */}
       {adPopup && (
         <AdConsentPopup

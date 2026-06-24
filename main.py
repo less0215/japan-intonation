@@ -1223,35 +1223,43 @@ def translate_tone(req: ToneRequest, request: Request):
 # 유형에 맞는 읽기 순서로 OCR한 뒤, 기존 번역 결과(ResultCard)와 동일한 형태로 반환한다.
 # ──────────────────────────────────────────────
 
-IMAGE_PROMPT = """You are an expert at reading Japanese text from photographs and translating it for Korean learners. You know Tokyo pitch accent.
+IMAGE_PROMPT = """You are an expert at reading Japanese from photographs and explaining it to Korean learners. You know Tokyo pitch accent.
 
-A Korean learner photographed real-world Japanese. First DETECT the material type, then read the text in the CORRECT reading order for that type, then translate.
+A Korean learner photographed real-world Japanese. Do ALL of the following in one pass:
 
-Material types and their reading order:
-- "book": vertical-writing (縦書き) novel or book page. Columns run RIGHT to LEFT; within each column, TOP to BOTTOM.
-- "manga": 漫画 / webtoon. Panels and speech balloons run RIGHT to LEFT, TOP to BOTTOM; text inside balloons is usually vertical.
-- "menu": restaurant or cafe menu. Items read TOP to BOTTOM.
-- "sign": signboard, notice, label, or product package. Read naturally (usually horizontal, left to right).
-- "general": plain horizontal text. Left to right, top to bottom.
+1) DETECT the material type and read in its CORRECT reading order:
+   - "book": vertical (縦書き) book/novel page → columns RIGHT to LEFT, top to bottom.
+   - "manga": 漫画 / webtoon → panels and balloons RIGHT to LEFT, top to bottom; vertical text in balloons.
+   - "menu": restaurant/cafe menu → items top to bottom.
+   - "sign": signboard, notice, label, or package → natural order (usually left to right).
+   - "general": plain horizontal text → left to right, top to bottom.
 {HINT}
-Recognize the SINGLE most prominent text block (one sentence, title, menu item, or one speech balloon). Do NOT merge unrelated lines. Respect the type's reading order so columns and balloons come out in the right sequence.
+2) SPLIT the recognized text into reading CHUNKS sized for a phone. Each chunk is ONE natural meaning unit (a sentence or a clause), kept in reading order. Use AT MOST 8 chunks; if there is more text, cover the most prominent 8. Do NOT split one sentence into tiny fragments, and do NOT merge unrelated sentences.
+
+3) For INFORMATION-type material ("book", prose "general", long "sign" notices), write a SHORT Korean summary (1-2 sentences) of the WHOLE content so the reader grasps the gist at a glance. For "menu", "manga", or short signs where a summary is not meaningful, set summary to "".
 
 Respond with ONLY a valid JSON object, no extra text:
 {
   "doc_type": "book|manga|menu|sign|general",
-  "japanese": "recognized Japanese in correct reading order, kanji as written",
-  "korean_meaning": "natural Korean translation of that Japanese",
-  "furigana": "full reading in hiragana only, no spaces, all morae in order",
-  "korean_pronunciation": "how the Japanese SOUNDS, written in Korean Hangul, mora by mora",
-  "furigana_html": "annotate only kanji with (reading); leave kana as-is",
-  "accent_data": [{"phrase_id":"0","mora_count":4,"accent":[0,1,1,1]}]
+  "summary": "한국어 요약(정보성 글이면 1-2문장), 아니면 빈 문자열",
+  "chunks": [
+    {
+      "order": 0,
+      "japanese": "this chunk's Japanese, kanji as written",
+      "korean_meaning": "natural Korean translation of THIS chunk",
+      "furigana": "full reading of this chunk in hiragana only, no spaces",
+      "korean_pronunciation": "how this chunk SOUNDS in Korean Hangul, mora by mora",
+      "furigana_html": "annotate only kanji with (reading); leave kana as-is",
+      "accent_data": [{"phrase_id":"0","mora_count":4,"accent":[0,1,1,1]}]
+    }
+  ]
 }
 
-If NO Japanese text is found, return doc_type "none" with empty strings and [] for accent_data.
+If NO Japanese text is found, return {"doc_type":"none","summary":"","chunks":[]}.
 
-Field rules (follow EXACTLY):
-- korean_pronunciation: convert the furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이.
-- accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of all mora_count == total morae of furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
+Field rules (per chunk, follow EXACTLY):
+- korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이.
+- accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of mora_count == total morae of that chunk's furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
 """
 
 class AnalyzeImageRequest(BaseModel):
@@ -1260,13 +1268,23 @@ class AnalyzeImageRequest(BaseModel):
     doc_type: str = "auto"          # auto | book | manga | menu | sign | general
     mime_type: str = "image/jpeg"
 
-class AnalyzeImageResponse(AnalyzeResponse):
+class PhotoChunk(BaseModel):
+    order: int = 0
+    japanese: str
+    korean_meaning: str = ""
+    furigana: str = ""
+    korean_pronunciation: str = ""
+    furigana_html: str = ""
+    accent_data: list[AccentEntry] = []
+
+class AnalyzeImageResponse(BaseModel):
     doc_type: str = "general"       # 자동 인식된 인쇄물 유형
-    korean_meaning: str = ""        # 인식된 일본어의 한국어 번역(ResultCard 표시용)
+    summary: str = ""               # 정보성 글(도서 등)일 때 전체 내용 한국어 요약
+    chunks: list[PhotoChunk] = []   # 의미 단위로 미리 묶은 구간(읽기 순서)
 
 @app.post("/analyze-image", response_model=AnalyzeImageResponse)
 def analyze_image(req: AnalyzeImageRequest, request: Request):
-    """사진에서 일본어 인식 + 번역. 인쇄물 유형 자동 분류 + 유형별 읽기 순서.
+    """사진에서 일본어 인식 + 번역. 유형 자동 분류 + 유형별 읽기 순서 + 의미 단위 청크 + (정보성 글) 요약.
     현재 관리자(정봉준) 전용 베타 — 비관리자는 403."""
     rate_guard(request)
 
@@ -1299,25 +1317,36 @@ def analyze_image(req: AnalyzeImageRequest, request: Request):
     data = _call_gemini_json(prompt, model=FAST_MODEL,
                              image_bytes=img_bytes, mime_type=req.mime_type or "image/jpeg")
 
-    if data.get("doc_type") == "none" or not (data.get("japanese") or "").strip():
+    if data.get("doc_type") == "none" or not data.get("chunks"):
         raise HTTPException(status_code=422,
                             detail="사진에서 일본어를 찾지 못했어요. 글자가 또렷하게 나오도록 다시 찍어주세요.")
 
-    raw_accent = data.get("accent_data", [])
-    try:
-        accent_data = [AccentEntry(**e) for e in raw_accent]
-    except Exception:
-        accent_data = []
+    out_chunks: list[PhotoChunk] = []
+    for i, c in enumerate((data.get("chunks") or [])[:8]):
+        jp = (c.get("japanese") or "").strip()
+        if not jp:
+            continue
+        try:
+            acc = [AccentEntry(**e) for e in (c.get("accent_data") or [])]
+        except Exception:
+            acc = []
+        out_chunks.append(PhotoChunk(
+            order=c.get("order", i),
+            japanese=jp,
+            korean_meaning=c.get("korean_meaning", ""),
+            furigana=c.get("furigana", ""),
+            korean_pronunciation=c.get("korean_pronunciation", ""),
+            furigana_html=(c.get("furigana_html") or jp),
+            accent_data=acc,
+        ))
+    if not out_chunks:
+        raise HTTPException(status_code=422,
+                            detail="사진에서 일본어를 찾지 못했어요. 글자가 또렷하게 나오도록 다시 찍어주세요.")
 
     return AnalyzeImageResponse(
-        japanese=data.get("japanese", ""),
-        furigana=data.get("furigana", ""),
-        korean_pronunciation=data.get("korean_pronunciation", ""),
-        furigana_html=data.get("furigana_html", "") or data.get("japanese", ""),
-        accent_data=accent_data,
-        breakdown=[],  # 분해는 /breakdown 온디맨드(기존과 동일)
         doc_type=data.get("doc_type", "general"),
-        korean_meaning=data.get("korean_meaning", ""),
+        summary=(data.get("summary") or ""),
+        chunks=out_chunks,
     )
 
 

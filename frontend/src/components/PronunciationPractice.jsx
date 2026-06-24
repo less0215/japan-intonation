@@ -249,7 +249,7 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
     return (
       <div style={{ margin: compact ? '8px 0 2px' : '2px 20px 6px' }}>
         <button onClick={open} style={chip}>
-          <Mic /> 발음 연습 <span style={{ fontSize: 9.5, color: 'var(--warning)', background: 'var(--warning-tint)', borderRadius: 5, padding: '1px 5px' }}>베타</span>
+          <Mic /> 발음 연습
         </button>
       </div>
     )

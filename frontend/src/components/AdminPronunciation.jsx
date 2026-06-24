@@ -39,7 +39,7 @@ export default function AdminPronunciation() {
   return (
     <div style={wrap}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>🎤 발음 연습 (베타)</p>
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>🎤 발음 연습 통계</p>
         <button onClick={load} disabled={loading} style={{ fontSize: 11.5, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{loading ? '불러오는 중…' : '새로고침'}</button>
       </div>
       {err && <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--danger)' }}>불러오지 못했어요.</p>}

@@ -23,6 +23,19 @@ function parseFurigana(str) {
   return segments
 }
 
+// 단어 1개(고립 한자)는 TTS가 음독으로 잘못 읽음(卵→「らん」, 雨→「う」). 짧은 단독 단어면 후리가나(정확한 히라가나 읽기)를 보냄.
+// 문장은 한자 원문 그대로 보냄 — 문맥 발음·억양 유지 + 조사 は/を/へ 오독 방지(기존 정상 동작 보존).
+export function ttsTextFor(japanese, reading) {
+  const jp = (japanese || '').trim()
+  const r  = (reading || '').trim()
+  const isSingleWord =
+    jp && r &&
+    !/[\s、。，．・…!?！？「」『』（）(),.]/.test(jp) &&  // 공백·문장부호 없음(= 문장이 아님)
+    [...jp].length <= 4 &&                                 // 짧음(고립 단어)
+    /[々一-龯]/.test(jp)                        // 한자 포함(가나/카나만이면 그대로도 정상)
+  return isSingleWord ? r : jp
+}
+
 function GenderToggle({ gender, onChange }) {
   return (
     <div className="gender-toggle">
@@ -199,7 +212,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
     try {
       const res = await fetch(`${API_URL}/tts`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: japanese, gender }),
+        body: JSON.stringify({ text: ttsTextFor(japanese, furigana), gender }),
       })
       if (!res.ok) throw new Error()
       const blob = await res.blob()

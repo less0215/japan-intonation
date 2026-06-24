@@ -68,7 +68,6 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
         <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-strong)' }}>사진 학습</span>
-        <span style={{ fontSize: 9.5, background: 'var(--warning-tint)', color: 'var(--warning)', padding: '1px 6px', borderRadius: 5, fontWeight: 600 }}>베타</span>
       </div>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '14px 16px 90px' }}>

@@ -43,6 +43,15 @@ function toHiragana(text) {
              .replace(/[^぀-ゟ゠-ヿ]/g, '')
 }
 
+// 단어 1개(고립 한자)는 TTS가 음독으로 잘못 읽음(卵→「らん」). 짧은 단독 단어면 읽기(히라가나)를 대신 보냄.
+function ttsTextFor(japanese, reading) {
+  const jp = (japanese || '').trim()
+  const r  = (reading || '').trim()
+  const isSingleWord = jp && r &&
+    !/[\s、。，．・…!?！？「」『』（）(),.]/.test(jp) && [...jp].length <= 4 && /[々一-龯]/.test(jp)
+  return isSingleWord ? r : jp
+}
+
 
 /* 활용형 행 — TTS + 억양 그래프 */
 function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {
@@ -64,7 +73,7 @@ function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {
     try {
       const res = await fetch(`${API_URL}/tts`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: plainText, gender }),
+        body: JSON.stringify({ text: ttsTextFor(plainText, furigana), gender }),
       })
       if (!res.ok) throw new Error()
       const blob = await res.blob()

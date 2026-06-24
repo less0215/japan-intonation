@@ -154,7 +154,7 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast,
           rows={6}
           style={{ minHeight: '42vh', fontSize: 18 }}
         />
-        {/* 사진 번역 버튼 — 관리자(베타) + 입력칸이 비어 있을 때만 노출. 타이핑하면 자연스럽게 사라짐 */}
+        {/* 사진 번역 버튼 — 입력칸이 비어 있을 때만 노출. 타이핑하면 자연스럽게 사라짐 */}
         {showCamera && !text.trim() && !loading && (
           <>
             <input ref={galleryRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
@@ -162,15 +162,13 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast,
             <button
               type="button"
               onClick={openPhoto}
-              aria-label="사진으로 번역 (베타)"
-              style={{ position: 'absolute', top: 12, right: 12, width: 40, height: 40, borderRadius: 12, border: `1.5px solid ${PRIMARY}`, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, overflow: 'visible' }}
+              aria-label="사진으로 번역"
+              style={{ position: 'absolute', top: 11, right: 11, width: 48, height: 48, borderRadius: 14, border: `1.5px solid ${PRIMARY}`, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, overflow: 'visible' }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
                 <circle cx="12" cy="13" r="3.2" />
               </svg>
-              {/* 사진 번역은 베타 — 코너 딱지 */}
-              <span style={{ position: 'absolute', top: -8, right: -9, fontSize: 8.5, fontWeight: 700, background: 'var(--warning)', color: '#fff', padding: '1px 4px', borderRadius: 5, lineHeight: 1.3, whiteSpace: 'nowrap' }}>베타</span>
             </button>
           </>
         )}

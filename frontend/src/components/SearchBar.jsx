@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { track } from '../App'
+import { sttSupported, sttStart, sttStop, sttCancel } from '../stt'
 
 const PRIMARY = '#5CA9CE'
 
@@ -74,6 +75,46 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast,
   const cameraRef = useRef(null)
   const [showPicker, setShowPicker] = useState(false)
   const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+
+  // 음성 입력(STT) — 지원될 때만 마이크 버튼 노출(웹: Web Speech API / 앱: 네이티브 음성인식)
+  const [listening, setListening]       = useState(false)   // 듣는 중(녹음/실시간 인식)
+  const [transcribing, setTranscribing] = useState(false)   // 앱: 녹음 종료 후 백엔드 변환 중
+  const [voiceText, setVoiceText]       = useState('')       // 웹: 실시간 받아쓰기 미리보기
+  const [voiceOk, setVoiceOk]           = useState(false)
+  const [voiceErr, setVoiceErr]         = useState('')
+  useEffect(() => { let alive = true; sttSupported().then(ok => { if (alive) setVoiceOk(ok) }); return () => { alive = false } }, [])
+
+  // 받아쓰기 확정 → 입력창에 채우고 바로 번역(수정 가능)
+  function finishVoice(finalText) {
+    setListening(false); setTranscribing(false)
+    const v = (finalText || '').trim()
+    setVoiceText('')
+    if (v) {
+      setText(v)
+      lastSubmittedRef.current = ''
+      onTyping?.(false)
+      onAnalyze(v)
+      track('voice_input_done', { len: v.length })
+    }
+  }
+  async function startVoice() {
+    if (listening) return
+    setVoiceErr(''); setVoiceText(''); setTranscribing(false); setListening(true)
+    track('voice_input_start')
+    await sttStart({
+      onPartial: (t) => setVoiceText(t),
+      onTranscribing: () => { setListening(false); setTranscribing(true) },
+      onFinal: (t) => finishVoice(t),
+      onError: (code) => {
+        setListening(false); setTranscribing(false); setVoiceText('')
+        setVoiceErr(code === 'denied' ? '마이크 권한을 허용해 주세요.' : '음성 인식에 실패했어요. 다시 시도해 주세요.')
+        track('voice_input_error', { code })
+      },
+      onEnd: () => { setListening(false) },
+    })
+  }
+  function stopVoice() { sttStop() }      // '완료' → (웹)즉시 확정 / (앱)변환 시작
+  function cancelVoice() { sttCancel(); setListening(false); setTranscribing(false); setVoiceText('') }
 
   // 사진 선택 → 부모(handlePhoto)로 전달. 같은 파일 재선택도 되도록 value 초기화
   function handleFile(e) {
@@ -172,12 +213,63 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast,
             </button>
           </>
         )}
+        {/* 음성 입력 버튼 — 입력칸이 비어 있고 지원될 때만(사진 버튼 왼쪽). 탭하면 받아쓰기 시작 */}
+        {voiceOk && !text.trim() && !loading && !listening && !transcribing && (
+          <button
+            type="button"
+            onClick={startVoice}
+            aria-label="음성으로 입력"
+            style={{ position: 'absolute', top: 11, right: showCamera ? 67 : 11, width: 48, height: 48, borderRadius: 14, border: `1.5px solid ${PRIMARY}`, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+            </svg>
+          </button>
+        )}
+        {/* 음성 입력 오버레이 — 듣는 중(펄스 마이크 + 실시간/안내 + 취소/완료) / 받아쓰는 중(스피너) */}
+        {(listening || transcribing) && (
+          <div style={{ position: 'absolute', inset: 0, background: 'var(--surface)', borderRadius: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, zIndex: 5 }}>
+            {transcribing ? (
+              <>
+                <span className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
+                <p style={{ margin: 0, fontSize: 15.5, fontWeight: 600, color: 'var(--text-2)' }}>받아쓰는 중…</p>
+              </>
+            ) : (
+              <>
+                <div style={{ position: 'relative', width: 96, height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="tj-voice-ring" />
+                  <span className="tj-voice-ring d2" />
+                  <span className="tj-voice-ring d3" />
+                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: PRIMARY, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(92,169,206,0.45)' }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                    </svg>
+                  </div>
+                </div>
+                <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: voiceText ? 'var(--text-strong)' : 'var(--text-2)', textAlign: 'center', minHeight: 24, lineHeight: 1.5, maxWidth: 420 }}>
+                  {voiceText || '듣고 있어요…'}
+                </p>
+                <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                  <button type="button" onClick={cancelVoice} style={{ padding: '11px 20px', borderRadius: 12, border: '1px solid var(--bd)', background: 'var(--surface-2)', color: 'var(--text-2)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>취소</button>
+                  <button type="button" onClick={stopVoice} style={{ padding: '11px 24px', borderRadius: 12, border: 'none', background: PRIMARY, color: '#fff', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>완료</button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
         {fast && (
           <div className="search-box-toolbar">
             <FastToolbar {...fast} />
           </div>
         )}
       </div>
+      {voiceErr && (
+        <p style={{ margin: '8px 2px 0', fontSize: 12.5, color: 'var(--warning)', textAlign: 'center' }}>{voiceErr}</p>
+      )}
       <button
         type="submit"
         disabled={disabled}

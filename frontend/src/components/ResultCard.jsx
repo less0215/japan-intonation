@@ -301,7 +301,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
 
       {/* 발음 연습(베타) — 관리자 계정에만 노출. 마이크 녹음→온디바이스 음높이 비교 */}
       {IS_ADMIN && accent_data?.length > 0 && (
-        <PronunciationPractice accentData={accent_data} furigana={furigana} japanese={japanese} inputText={inputText} />
+        <PronunciationPractice accentData={accent_data} furigana={furigana} japanese={japanese} korean_pronunciation={korean_pronunciation} inputText={inputText} />
       )}
 
       <hr className="divider" />

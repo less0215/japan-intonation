@@ -17,6 +17,14 @@ function whoami() {
 const PRIMARY = '#5CA9CE'
 const MINE = '#F0A046'
 
+/* 발화 종료 감지(endpointing) — 0.8초는 너무 짧아 멈춤(촉음·단어 사이·생각)에 중간에 끊김.
+ * 업계 권장(미완성 발화 ~1.5초)에 맞춰 무음 종료를 1.5초로, hangover 효과로 어미가 안 잘리게.
+ * 최소 유성음 프레임을 요구해 짧은 블립으로 끝나지 않게 하고, 최대 길이를 12초로 확장. */
+const SPEAK_RMS = 0.012     // 발화 감지 에너지 임계
+const SILENCE_END = 1.5     // 말 끝나고 이만큼 무음이면 자동 종료(초)
+const MIN_VOICED = 8        // 자동 종료 전 최소 유성음 프레임(짧은 블립 방지)
+const MAX_DUR = 12          // 최대 녹음 길이(초)
+
 function splitMora(furigana) {
   const SMALL = 'ゃゅょゎ'
   const chars = [...(furigana || '')]
@@ -142,11 +150,12 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
         const prog = Math.min(1, o.voicedCount / Math.max(6, N * 9))   // 발화 진행도 ≈ x축
         o.livePitch.push({ prog, semi: o.smoothSemi })
       }
-      const speaking = rms > 0.012
+      const speaking = rms > SPEAK_RMS
       if (speaking) { o.started = o.started || now; o.silence = 0 }
       else if (o.started) o.silence += 0.03
-      if (o.started && o.silence > 0.8) return finish()     // 말 끝나고 0.8초 무음 → 자동
-      if (now - o.t0 > 7) return finish()                   // 최대 7초
+      // 시작했고 + 충분히 말했고 + 무음 1.5초 → 자동 종료 (자연스러운 멈춤엔 안 끊김)
+      if (o.started && o.silence > SILENCE_END && o.voicedCount >= Math.max(MIN_VOICED, N)) return finish()
+      if (now - o.t0 > MAX_DUR) return finish()              // 안전 상한
     }
     drawPitch()
     o.raf = requestAnimationFrame(loop)

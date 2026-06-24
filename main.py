@@ -1041,7 +1041,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v9-public-build19"
+BUILD_VERSION = "2026-06-24-photo-v10-tier-limits"
 
 @app.get("/version")
 def version():
@@ -1105,26 +1105,35 @@ def rate_guard(request: Request, user_id: int | None = None, count_daily: bool =
         _guest_daily.clear()
 
 
-# 사진 번역 — 공개(베타). 무료 일일 한도(비용·악용 방지). 권한자(관리자·구독·화이트리스트)는 무제한.
-PHOTO_FREE_DAILY = 10
-_photo_daily: dict[str, list] = {}   # key → [date_kst, count] (인메모리 소프트캡)
+# 사진 번역 — 공개(베타). 플랜별 일일 한도(비용·악용 방지).
+# 비용 근거: 사진(고해상도+페이지 출력) ≈ 빠른번역의 5배 → 빠른번역 한도를 ÷5로 비례 축소.
+# (빠른 번역: 무료 15/5h, Plus 200/일, Pro 무제한 → 사진: 무료 5, Plus 40, Pro 100/일)
+PHOTO_LIMITS = {"free": 5, "plus": 40, "pro": 100}
+_photo_daily: dict[str, list] = {}   # key → [date_kst, count] (인메모리 소프트캡, KST 자정 리셋)
 
 def consume_photo_quota(db, user_id, anon_id, request):
-    """사진 번역 일일 한도 차감. 권한자는 무제한, 그 외(무료·익명)는 PHOTO_FREE_DAILY/일. 초과 시 429."""
+    """사진 번역 일일 한도 차감. 관리자 무제한, 그 외는 플랜별(free/plus/pro). 초과 시 429."""
     u = db.query(User).filter(User.id == user_id).first() if user_id else None
-    privileged = bool(u and (is_admin_phone(u.phone) or is_fast_unlimited(u.phone))) \
-        or bool(user_id and get_active_subscription(db, user_id))
-    if privileged:
-        return
+    if u and is_admin_phone(u.phone):
+        return  # 관리자 무제한
+    # 플랜 판정: 활성 구독 → 그 플랜, 화이트리스트(comp plus) → plus, 그 외 → free
+    plan = "free"
+    sub = get_active_subscription(db, user_id) if user_id else None
+    if sub and sub.plan in ("plus", "pro"):
+        plan = sub.plan
+    elif u and is_fast_unlimited(u.phone):
+        plan = "plus"
+    limit = PHOTO_LIMITS.get(plan, PHOTO_LIMITS["free"])
     key = f"u:{user_id}" if user_id else (f"a:{anon_id}" if anon_id else f"ip:{_client_ip(request)}")
-    today = time.strftime("%Y-%m-%d", time.gmtime(time.time() + 9 * 3600))   # KST 자정 리셋
+    today = time.strftime("%Y-%m-%d", time.gmtime(time.time() + 9 * 3600))
     d = _photo_daily.get(key)
     if not d or d[0] != today:
         d = [today, 0]
         _photo_daily[key] = d
-    if d[1] >= PHOTO_FREE_DAILY:
+    if d[1] >= limit:
+        hint = " 플러스·프로에서 더 많이 이용할 수 있어요." if plan == "free" else ""
         raise HTTPException(status_code=429,
-            detail=f"오늘 사진 번역을 모두 사용했어요. (무료 하루 {PHOTO_FREE_DAILY}회) 내일 다시 이용해 주세요.")
+            detail=f"오늘 사진 번역 {limit}회를 모두 사용했어요.{hint} 내일 다시 이용해 주세요.")
     d[1] += 1
     if len(_photo_daily) > 50000:
         _photo_daily.clear()
@@ -2629,8 +2638,8 @@ def android_interest_status(user_id: int):
 # ── 강제 업데이트 게이트 ──
 # DEFAULT_MIN_APP_VERSION 이상이 아니면 앱에서 '업데이트' 강제 팝업.
 # 평소엔 현재 출시버전과 같게 둬서 아무도 안 막힘. 새 버전 필수 반영 시 /admin/set-min-version으로 올림.
-DEFAULT_MIN_APP_VERSION = "1.6"
-LATEST_APP_VERSION = "1.6"
+DEFAULT_MIN_APP_VERSION = "1.6"   # ★ 1.7 출시 승인 후 /admin/set-min-version으로 "1.7" 올리면 전원 강제 업데이트
+LATEST_APP_VERSION = "1.7"
 APP_STORE_URL = "https://apps.apple.com/app/id6781296261"
 
 def _get_setting(db, key, default):

@@ -56,6 +56,10 @@
 	<string>앱 개선을 위해 익명의 사용 통계를 수집합니다. 개인을 식별하는 정보는 수집되지 않습니다.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>발음 연습에서 내 발음을 듣고 일본어 악센트를 비교해 드리기 위해 마이크를 사용합니다. 녹음은 기기 안에서만 분석되고 서버로 전송되지 않습니다.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>사진 번역에서 메뉴·책·간판 등에 적힌 일본어를 촬영해 번역하기 위해 카메라를 사용합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>사진 번역에서 갤러리에 저장된 일본어 사진을 불러와 번역하기 위해 사진에 접근합니다.</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-8958373483224358~7325634868</string>
 	<key>SKAdNetworkItems</key>

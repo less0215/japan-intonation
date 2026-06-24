@@ -887,17 +887,21 @@ _GEN_CONFIG = genai.types.GenerateContentConfig(
 )
 
 
-def _call_gemini_json(prompt: str, model: str = None) -> dict:
-    """Gemini에 프롬프트를 보내고 JSON 응답을 파싱해 dict로 반환한다 (공통 호출 로직)."""
+def _call_gemini_json(prompt: str, model: str = None,
+                      image_bytes: bytes = None, mime_type: str = "image/jpeg") -> dict:
+    """Gemini에 프롬프트(+선택적 이미지)를 보내고 JSON 응답을 파싱해 dict로 반환한다 (공통 호출 로직).
+    image_bytes가 있으면 멀티모달(텍스트+이미지) 입력, 없으면 기존처럼 텍스트만."""
     client = get_gemini_client()
     model = model or GEMINI_MODEL
+    contents = ([prompt, genai.types.Part.from_bytes(data=image_bytes, mime_type=mime_type)]
+                if image_bytes is not None else prompt)
 
     for attempt in range(2):  # 최대 1회 재시도 (서버 부하 방지)
         try:
             _t0 = time.perf_counter()
             response = client.models.generate_content(
                 model=model,
-                contents=prompt,
+                contents=contents,
                 config=_GEN_CONFIG,
             )
             print(f"[Gemini {model}] {(time.perf_counter() - _t0) * 1000:.0f}ms")
@@ -1213,6 +1217,110 @@ def translate_tone(req: ToneRequest, request: Request):
     return payload
 
 
+# ──────────────────────────────────────────────
+# 사진 번역 (관리자 정봉준 전용 베타)
+# 인쇄물 유형(도서=세로쓰기 우→좌·상→하, 만화/웹툰, 메뉴판, 간판, 일반)을 자동 분류해
+# 유형에 맞는 읽기 순서로 OCR한 뒤, 기존 번역 결과(ResultCard)와 동일한 형태로 반환한다.
+# ──────────────────────────────────────────────
+
+IMAGE_PROMPT = """You are an expert at reading Japanese text from photographs and translating it for Korean learners. You know Tokyo pitch accent.
+
+A Korean learner photographed real-world Japanese. First DETECT the material type, then read the text in the CORRECT reading order for that type, then translate.
+
+Material types and their reading order:
+- "book": vertical-writing (縦書き) novel or book page. Columns run RIGHT to LEFT; within each column, TOP to BOTTOM.
+- "manga": 漫画 / webtoon. Panels and speech balloons run RIGHT to LEFT, TOP to BOTTOM; text inside balloons is usually vertical.
+- "menu": restaurant or cafe menu. Items read TOP to BOTTOM.
+- "sign": signboard, notice, label, or product package. Read naturally (usually horizontal, left to right).
+- "general": plain horizontal text. Left to right, top to bottom.
+{HINT}
+Recognize the SINGLE most prominent text block (one sentence, title, menu item, or one speech balloon). Do NOT merge unrelated lines. Respect the type's reading order so columns and balloons come out in the right sequence.
+
+Respond with ONLY a valid JSON object, no extra text:
+{
+  "doc_type": "book|manga|menu|sign|general",
+  "japanese": "recognized Japanese in correct reading order, kanji as written",
+  "korean_meaning": "natural Korean translation of that Japanese",
+  "furigana": "full reading in hiragana only, no spaces, all morae in order",
+  "korean_pronunciation": "how the Japanese SOUNDS, written in Korean Hangul, mora by mora",
+  "furigana_html": "annotate only kanji with (reading); leave kana as-is",
+  "accent_data": [{"phrase_id":"0","mora_count":4,"accent":[0,1,1,1]}]
+}
+
+If NO Japanese text is found, return doc_type "none" with empty strings and [] for accent_data.
+
+Field rules (follow EXACTLY):
+- korean_pronunciation: convert the furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이.
+- accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of all mora_count == total morae of furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
+"""
+
+class AnalyzeImageRequest(BaseModel):
+    image_b64: str
+    user_id: int | None = None
+    doc_type: str = "auto"          # auto | book | manga | menu | sign | general
+    mime_type: str = "image/jpeg"
+
+class AnalyzeImageResponse(AnalyzeResponse):
+    doc_type: str = "general"       # 자동 인식된 인쇄물 유형
+    korean_meaning: str = ""        # 인식된 일본어의 한국어 번역(ResultCard 표시용)
+
+@app.post("/analyze-image", response_model=AnalyzeImageResponse)
+def analyze_image(req: AnalyzeImageRequest, request: Request):
+    """사진에서 일본어 인식 + 번역. 인쇄물 유형 자동 분류 + 유형별 읽기 순서.
+    현재 관리자(정봉준) 전용 베타 — 비관리자는 403."""
+    rate_guard(request)
+
+    # 관리자 전용 게이트 (공개 전 베타)
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.id == req.user_id).first() if req.user_id else None
+    finally:
+        db.close()
+    if not (u and is_admin_phone(u.phone)):
+        raise HTTPException(status_code=403, detail="사진 번역은 현재 관리자 전용 베타입니다.")
+
+    # 이미지 디코드 (data URL 접두어 허용)
+    try:
+        b64 = req.image_b64.split(",", 1)[-1]
+        img_bytes = base64.b64decode(b64)
+    except Exception:
+        raise HTTPException(status_code=400, detail="이미지를 읽을 수 없습니다.")
+    if not img_bytes:
+        raise HTTPException(status_code=400, detail="이미지가 비어 있습니다.")
+    if len(img_bytes) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="이미지가 너무 큽니다. 8MB 이하로 보내주세요.")
+
+    hint = req.doc_type if req.doc_type in ("book", "manga", "menu", "sign", "general") else "auto"
+    hint_line = ("" if hint == "auto"
+                 else f"\nThe user indicates this is a '{hint}'. Prefer that type unless the image clearly shows otherwise.\n")
+    prompt = IMAGE_PROMPT.replace("{HINT}", hint_line)
+
+    # OCR 품질 우선 → FAST_MODEL(3.1-flash-lite). 비용은 장당 ~$0.0001로 미미.
+    data = _call_gemini_json(prompt, model=FAST_MODEL,
+                             image_bytes=img_bytes, mime_type=req.mime_type or "image/jpeg")
+
+    if data.get("doc_type") == "none" or not (data.get("japanese") or "").strip():
+        raise HTTPException(status_code=422,
+                            detail="사진에서 일본어를 찾지 못했어요. 글자가 또렷하게 나오도록 다시 찍어주세요.")
+
+    raw_accent = data.get("accent_data", [])
+    try:
+        accent_data = [AccentEntry(**e) for e in raw_accent]
+    except Exception:
+        accent_data = []
+
+    return AnalyzeImageResponse(
+        japanese=data.get("japanese", ""),
+        furigana=data.get("furigana", ""),
+        korean_pronunciation=data.get("korean_pronunciation", ""),
+        furigana_html=data.get("furigana_html", "") or data.get("japanese", ""),
+        accent_data=accent_data,
+        breakdown=[],  # 분해는 /breakdown 온디맨드(기존과 동일)
+        doc_type=data.get("doc_type", "general"),
+        korean_meaning=data.get("korean_meaning", ""),
+    )
+
+
 # ── 맥락 기반 '다른 뜻/뉘앙스' 제안 ──────────────────────────
 # 한국어 입력이 '의미상 중의적'일 때만 (정중도/직역 차이가 아니라 뜻 자체가 갈릴 때)
 # 다른 해석과 그 일본어 번역을 1~2개 제안한다. 아니면 빈 배열.
@@ -1346,17 +1454,18 @@ def subscription_status(user_id: int):
     db = SessionLocal()
     try:
         u = db.query(User).filter(User.id == user_id).first()
-        privileged = bool(u and (is_fast_unlimited(u.phone) or is_admin_phone(u.phone)))
+        admin = bool(u and is_admin_phone(u.phone))   # 정봉준 관리자 여부(베타 기능 노출용)
+        privileged = bool(u and (is_fast_unlimited(u.phone) or admin))
         s = get_active_subscription(db, user_id)
         if s:
             return {"active": True, "plan": s.plan, "period": s.period,
                     "expires_at": s.expires_at.isoformat() if s.expires_at else None,
-                    "ad_free": True, "fast_unlimited": True}
+                    "ad_free": True, "fast_unlimited": True, "is_admin": admin}
         if privileged:
             # 무제한 화이트리스트(리뷰 이벤트 등)·관리자 → '플러스'로 표기(광고 제거 + 빠른 번역 무제한)
             return {"active": True, "plan": "plus", "period": None, "expires_at": None,
-                    "ad_free": True, "fast_unlimited": True}
-        return {"active": False, "ad_free": False, "fast_unlimited": False}
+                    "ad_free": True, "fast_unlimited": True, "is_admin": admin}
+        return {"active": False, "ad_free": False, "fast_unlimited": False, "is_admin": admin}
     finally:
         db.close()
 

@@ -115,6 +115,29 @@ export function logLearning(eventType, key, value) {
   } catch {}
 }
 
+/* 사진 번역 — 업로드 전 클라이언트에서 리사이즈(긴 변 maxPx) + JPEG 압축.
+ * 비용·전송량을 줄이고(토큰↓) OCR 정확도는 유지(1280px·q0.8 권장). data URL 반환. */
+function resizeImage(file, maxPx = 1280, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      let { width, height } = img
+      const scale = Math.min(1, maxPx / Math.max(width, height))
+      width = Math.round(width * scale)
+      height = Math.round(height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+      resolve(canvas.toDataURL('image/jpeg', quality))
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 불러올 수 없어요.')) }
+    img.src = url
+  })
+}
+
 /* ── 날짜 기반 시드 — 하루 동안 같은 항목 유지 */
 function dateSeed() {
   const d = new Date()
@@ -320,6 +343,7 @@ export default function App() {
   const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
   // 화이트리스트(전 무제한) 회원 OR 유효 구독(플러스/프로·지급분 포함) → 플러스 혜택
   const fastUnlimited = !!user?.fast_unlimited || !!subInfo?.fast_unlimited
+  const isAdmin = !!subInfo?.is_admin   // 정봉준 관리자 — 사진 번역(베타) 노출 판정
   // 프로필/사용량에 보여줄 플러스 만료 문구 — 구독 만료일 우선, 없으면 화이트리스트(8.1)
   const plusPlanLabel = (() => {
     if (!fastUnlimited) return null
@@ -674,6 +698,45 @@ export default function App() {
     }
   }
 
+  // 사진 번역 (관리자 베타) — 사진 → 클라 리사이즈 → /analyze-image → 기존 결과 카드 그대로 표시.
+  // 인쇄물 유형(도서 세로쓰기·만화·메뉴판 등)은 서버가 자동 분류해 유형별 읽기 순서로 인식.
+  async function handlePhoto(file) {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    setBreakdownExpanded(false)
+    setSaved(false)
+    setInputText('')
+    track('photo_translate_start')
+    try {
+      const dataUrl = await resizeImage(file, 1280, 0.8)
+      const res = await fetch(`${API_URL}/analyze-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_b64: dataUrl,
+          user_id: user?.user_id ?? null,
+          doc_type: 'auto',
+        }),
+      })
+      if (!res.ok) {
+        let msg = '사진을 번역할 수 없어요. 다시 시도해 주세요.'
+        try { const j = await res.json(); if (j?.detail) msg = j.detail } catch {}
+        throw new Error(msg)
+      }
+      const data = await res.json()
+      setResult(data)
+      setInputText(data.korean_meaning || '')   // 결과 카드에 한국어 뜻 표시(이미지엔 한국어 입력이 없으므로)
+      addToHistory(data.korean_meaning || '(사진)', data)
+      track('photo_translate', { doc_type: data.doc_type, japanese: data.japanese })
+    } catch (err) {
+      setError(err.message || '사진 번역 중 오류가 발생했어요.')
+      track('photo_translate_error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // 문장 분해를 별도 호출로 가져와 결과에 병합한다. 실패해도 번역 결과는 유지.
   // skipSave: 저장된 항목 불러오기 시 재저장 방지
   async function fetchBreakdown(translationData, text, skipSave = false) {
@@ -970,6 +1033,8 @@ export default function App() {
                 loading={loading}
                 onTyping={setTyping}
                 onClear={handleClear}
+                showCamera={isAdmin}
+                onCamera={handlePhoto}
                 fast={{
                   active: selectedModel === 'fast',
                   locked: fastLocked,
@@ -990,6 +1055,14 @@ export default function App() {
                 </div>
               )}
               {loading && <SkeletonCard inputText={inputText} />}
+              {/* 사진 번역 결과일 때 — 인식된 인쇄물 유형 표시 (관리자 베타) */}
+              {result?.doc_type && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 2px 8px', fontSize: 12, color: 'var(--text-3)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3.2" /></svg>
+                  사진 인식: <b style={{ fontWeight: 600, color: 'var(--text-2)' }}>{({ book: '도서(세로쓰기)', manga: '웹툰·만화', menu: '메뉴판', sign: '간판·표지', general: '일반' })[result.doc_type] || result.doc_type}</b>
+                  <span style={{ fontSize: 10.5, background: 'var(--warning-tint)', color: 'var(--warning)', padding: '1px 6px', borderRadius: 5, fontWeight: 600 }}>베타</span>
+                </div>
+              )}
               {result && (
                 <ResultCard
                   data={result}

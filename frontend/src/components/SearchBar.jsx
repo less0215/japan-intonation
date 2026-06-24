@@ -66,10 +66,18 @@ function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onT
  */
 const DEBOUNCE_MS = 850
 
-export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast }) {
+export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast, showCamera, onCamera }) {
   const [text, setText] = useState('')
   const timerRef = useRef(null)
   const lastSubmittedRef = useRef('')
+  const fileRef = useRef(null)
+
+  // 사진 선택 → 부모(handlePhoto)로 전달. 같은 파일 재선택도 되도록 value 초기화
+  function handleFile(e) {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (f) onCamera?.(f)
+  }
 
   // 언마운트 시 타이머 정리
   useEffect(() => () => clearTimeout(timerRef.current), [])
@@ -126,7 +134,7 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast 
   return (
     <form onSubmit={handleSubmit} className="search-form">
       {/* 입력창 + 하단 툴바(빠른 번역 칩)를 한 박스로 */}
-      <div className="search-box">
+      <div className="search-box" style={{ position: 'relative' }}>
         <textarea
           value={text}
           onChange={handleChange}
@@ -137,6 +145,23 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast 
           rows={6}
           style={{ minHeight: '42vh', fontSize: 18 }}
         />
+        {/* 사진 번역 버튼 — 관리자(베타) + 입력칸이 비어 있을 때만 노출. 타이핑하면 자연스럽게 사라짐 */}
+        {showCamera && !text.trim() && !loading && (
+          <>
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              aria-label="사진으로 번역"
+              style={{ position: 'absolute', top: 12, right: 12, width: 40, height: 40, borderRadius: 12, border: `1.5px solid ${PRIMARY}`, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                <circle cx="12" cy="13" r="3.2" />
+              </svg>
+            </button>
+          </>
+        )}
         {fast && (
           <div className="search-box-toolbar">
             <FastToolbar {...fast} />

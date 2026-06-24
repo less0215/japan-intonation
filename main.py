@@ -1041,7 +1041,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v12-auto-force"
+BUILD_VERSION = "2026-06-25-transcribe-v1"
 
 @app.get("/version")
 def version():
@@ -2373,6 +2373,63 @@ def breakdown(req: BreakdownRequest, request: Request):
 
 
 # (구 /accent 엔드포인트 제거 — OJAD 기반이었고 프론트 미사용. 악센트는 /analyze의 Gemini 출력 사용)
+
+
+# ── 음성 입력(받아쓰기) ───────────────────────────────────────
+# 앱(iOS WKWebView)은 브라우저 음성인식(Web Speech API)을 지원하지 않아, 마이크 녹음을 보내
+# 여기서 Gemini로 한국어 텍스트화한다. (웹은 브라우저 STT를 직접 써서 이 엔드포인트를 거치지 않음)
+class TranscribeRequest(BaseModel):
+    audio_b64: str
+    mime_type: str = "audio/mp4"
+    lang: str = "ko"
+
+# Gemini가 받는 오디오 MIME (그 외 컨테이너는 mp4로 best-effort)
+_AUDIO_MIME_OK = {"audio/mp4", "audio/aac", "audio/mpeg", "audio/mp3", "audio/wav",
+                  "audio/x-wav", "audio/ogg", "audio/flac", "audio/aiff", "audio/x-aiff"}
+
+@app.post("/transcribe")
+def transcribe(req: TranscribeRequest, request: Request):
+    """음성(오디오) → 한국어 텍스트 받아쓰기. 결과는 번역 입력값으로만 쓰이고 저장하지 않는다."""
+    rate_guard(request)
+    b64 = req.audio_b64 or ""
+    if "," in b64[:80] and "base64" in b64[:80]:
+        b64 = b64.split(",", 1)[1]   # data URL 접두 제거(방어)
+    try:
+        audio = base64.b64decode(b64)
+    except Exception:
+        raise HTTPException(status_code=400, detail="오디오를 읽을 수 없어요.")
+    if not audio:
+        raise HTTPException(status_code=400, detail="빈 오디오예요.")
+    if len(audio) > 6 * 1024 * 1024:   # ~6MB(수십 초) 가드 — 비용·악용 방지
+        raise HTTPException(status_code=413, detail="녹음이 너무 길어요. 짧게 다시 말씀해 주세요.")
+
+    mime = (req.mime_type or "audio/mp4").split(";")[0].strip().lower()
+    if mime not in _AUDIO_MIME_OK:
+        mime = "audio/mp4"   # 미지원 컨테이너면 iOS 기본(mp4)으로 시도
+
+    prompt = (
+        "You are a Korean speech-to-text transcriber. Transcribe the spoken Korean in the audio "
+        "into natural written Korean text. Output ONLY the transcription as plain text — no quotes, "
+        "no labels, no commentary, no translation. If the audio is silent or unintelligible, output nothing."
+    )
+    client = get_gemini_client()
+    for attempt in range(3):
+        try:
+            resp = client.models.generate_content(
+                model=BASIC_MODEL,
+                contents=[prompt, genai.types.Part.from_bytes(data=audio, mime_type=mime)],
+            )
+            text = (resp.text or "").strip().strip('"').strip("'").strip()
+            return {"text": text}
+        except Exception as e:
+            es = str(e)
+            if any(k in es for k in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED")) or "overloaded" in es.lower():
+                print(f"[transcribe 재시도 {attempt + 1}/3] {es[:80]}")
+                time.sleep(attempt + 1)
+                continue
+            print(f"[transcribe 오류] {es[:160]}")
+            raise HTTPException(status_code=502, detail="받아쓰기에 실패했어요. 다시 시도해 주세요.")
+    raise HTTPException(status_code=503, detail="서버가 혼잡해요. 잠시 후 다시 시도해 주세요.")
 
 
 @app.post("/tts")

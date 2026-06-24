@@ -38,7 +38,7 @@ export default function DeleteAccountModal({ user, onDeleted, onClose }) {
             </div>
             <h2 style={styles.title}>탈퇴가 완료되었습니다</h2>
             <p style={styles.desc}>그동안 틱재팬을 이용해 주셔서 감사합니다.</p>
-            <button style={{ ...styles.btnPrimary, background: '#1D9E75' }} onClick={onDeleted}>
+            <button style={{ ...styles.btnPrimary, background: 'var(--success)' }} onClick={onDeleted}>
               확인
             </button>
           </>
@@ -47,7 +47,7 @@ export default function DeleteAccountModal({ user, onDeleted, onClose }) {
           <>
             {/* 닫기 버튼 */}
             <button style={styles.closeBtn} onClick={onClose}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2.2" strokeLinecap="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.2" strokeLinecap="round">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
@@ -67,7 +67,7 @@ export default function DeleteAccountModal({ user, onDeleted, onClose }) {
             </p>
 
             <div style={styles.infoBox}>
-              <p style={{ margin: 0, fontSize: 12.5, color: '#888', lineHeight: 1.7 }}>
+              <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.7 }}>
                 • 저장 단어·예문은 기기에 남아 있습니다<br />
                 • 동일한 전화번호로 재가입할 수 있습니다
               </p>
@@ -120,15 +120,15 @@ const styles = {
     marginBottom: 4,
   },
   title: {
-    fontSize: 18, fontWeight: 700, color: '#111',
+    fontSize: 18, fontWeight: 700, color: 'var(--text-strong)',
     margin: 0, textAlign: 'center',
   },
   desc: {
-    fontSize: 14, color: '#555', lineHeight: 1.7,
+    fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7,
     textAlign: 'center', margin: 0,
   },
   infoBox: {
-    background: '#f8f9fa',
+    background: 'var(--surface-2)',
     border: '1px solid #e8e8e8',
     borderRadius: 10,
     padding: '12px 14px',
@@ -137,20 +137,20 @@ const styles = {
     marginTop: 4,
   },
   error: {
-    fontSize: 13, color: '#e05a5a', margin: 0, textAlign: 'center',
+    fontSize: 13, color: 'var(--danger)', margin: 0, textAlign: 'center',
   },
   btnRow: {
     display: 'flex', gap: 10, width: '100%', marginTop: 8,
   },
   btnGhost: {
     flex: 1, height: 48,
-    background: '#f5f5f5', border: 'none',
+    background: 'var(--bd)', border: 'none',
     borderRadius: 12, fontSize: 15, fontWeight: 600,
-    color: '#555', cursor: 'pointer', fontFamily: 'inherit',
+    color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'inherit',
   },
   btnDanger: {
     flex: 1, height: 48,
-    background: '#e05a5a', border: 'none',
+    background: 'var(--danger)', border: 'none',
     borderRadius: 12, fontSize: 15, fontWeight: 600,
     color: '#fff', cursor: 'pointer', fontFamily: 'inherit',
   },

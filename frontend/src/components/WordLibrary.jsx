@@ -51,7 +51,7 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
       <div style={{
         display: 'flex', alignItems: 'flex-start', gap: 8,
         padding: '11px 14px',
-        background: '#f8f9fa',
+        background: 'var(--surface-2)',
         border: '1px solid var(--bd)',
         borderRadius: 10,
       }}>
@@ -72,7 +72,7 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
               style={{
                 ...styles.tabBtn,
                 backgroundColor: active ? PRIMARY : '#ffffff',
-                color:           active ? '#ffffff' : '#555555',
+                color:           active ? '#ffffff' : 'var(--text-2)',
                 border:          active ? 'none' : '1.5px solid var(--bd)',
               }}
             >
@@ -105,7 +105,7 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
                 style={{
                   ...styles.sortBtn,
                   backgroundColor: sortBy === opt.id ? '#f0f9ff' : 'transparent',
-                  color:           sortBy === opt.id ? PRIMARY : '#888',
+                  color:           sortBy === opt.id ? PRIMARY : 'var(--text-2)',
                   fontWeight:      sortBy === opt.id ? 700 : 400,
                   border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid var(--bd)',
                 }}
@@ -219,7 +219,7 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     padding: '60px 20px',
-    background: '#fafafa',
+    background: 'var(--surface-2)',
     borderRadius: 14,
     border: '1.5px dashed #e0e0e0',
   },

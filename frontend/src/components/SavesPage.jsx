@@ -51,7 +51,7 @@ export default function SavesPage({ onSelectHistory }) {
   const segStyle = (on) => ({
     flex: 1, textAlign: 'center', borderRadius: 9, padding: '8px 0', fontSize: 12.5,
     fontWeight: on ? 600 : 400, cursor: 'pointer', border: 'none', fontFamily: 'inherit',
-    background: on ? PRIMARY : '#f3f5f7', color: on ? '#fff' : '#888',
+    background: on ? PRIMARY : '#f3f5f7', color: on ? '#fff' : 'var(--text-2)',
   })
 
   function Checkbox({ on }) {

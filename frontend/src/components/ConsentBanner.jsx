@@ -59,11 +59,11 @@ export default function ConsentBanner() {
       padding: '16px 20px 24px',
       boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
     }}>
-      <p style={{ margin: '0 0 10px', fontSize: 13, color: '#333', lineHeight: 1.7 }}>
+      <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--text-strong)', lineHeight: 1.7 }}>
         틱재팬은 서비스 개선을 위해 앱 사용 통계를 수집합니다.
         개인을 식별하는 정보는 수집하지 않습니다.
       </p>
-      <p style={{ margin: '0 0 14px', fontSize: 12, color: '#888', lineHeight: 1.6 }}>
+      <p style={{ margin: '0 0 14px', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>
         자세한 내용은{' '}
         <button
           onClick={() => navigate('/privacy')}
@@ -99,7 +99,7 @@ export default function ConsentBanner() {
             borderRadius: 10,
             border: '1.5px solid #e0e0e0',
             background: '#fff',
-            color: '#888',
+            color: 'var(--text-2)',
             fontSize: 14,
             fontWeight: 500,
             cursor: 'pointer',

@@ -122,7 +122,7 @@ function FormRow({ row, index, gender, accentType, borderStyle }) {
           >
             <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
               <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
-                stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                stroke={graphActive ? PRIMARY : 'var(--text-3)'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
             </svg>
           </button>
           {/* TTS 스피커 버튼 */}
@@ -138,7 +138,7 @@ function FormRow({ row, index, gender, accentType, borderStyle }) {
             ) : audioState === 'playing' ? (
               <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             ) : (
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="var(--text-3)"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"/></svg>
             )}
           </button>
         </div>
@@ -196,11 +196,11 @@ function SaveExampleButton({ example, onNeedSignup }) {
     <button onClick={handleSave} style={{
       ...styles.saveBtn,
       backgroundColor: state === 'saved' ? '#e6f7ee' : 'var(--surface-2)',
-      color:           state === 'saved' ? '#38a169' : '#666',
+      color:           state === 'saved' ? '#38a169' : 'var(--text-2)',
       border:          state === 'saved' ? '1.5px solid #9ae6b4' : '1.5px solid var(--bd)',
     }}>
       {state === 'saving' ? (
-        <span className="spinner" style={{ width: 11, height: 11, borderTopColor: '#666', borderColor: 'rgba(0,0,0,0.15)' }} />
+        <span className="spinner" style={{ width: 11, height: 11, borderTopColor: 'var(--text-2)', borderColor: 'rgba(0,0,0,0.15)' }} />
       ) : state === 'saved' ? '✓ 저장됨' : '저장하기'}
     </button>
   )
@@ -380,7 +380,7 @@ function PatternBadge({ pattern }) {
           fontSize: 11, fontWeight: 700,
           fontFamily: 'inherit', cursor: 'pointer',
           backgroundColor: open ? `${PRIMARY}15` : 'var(--surface-2)',
-          color: open ? PRIMARY : '#888',
+          color: open ? PRIMARY : 'var(--text-2)',
           border: `1px solid ${open ? PRIMARY + '44' : 'var(--bd)'}`,
           transition: 'all 0.15s',
         }}

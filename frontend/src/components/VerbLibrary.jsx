@@ -79,8 +79,8 @@ function VerbCard({ verb, onNavigate }) {
             <svg width="10" height="10" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
           ) : (
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#aaa"/>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#aaa" strokeWidth="2" strokeLinecap="round"/>
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="var(--text-3)"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           )}
         </button>
@@ -132,7 +132,7 @@ export default function VerbLibrary() {
       <div style={{
         display: 'flex', alignItems: 'flex-start', gap: 8,
         padding: '11px 14px',
-        background: '#f8f9fa',
+        background: 'var(--surface-2)',
         border: '1px solid var(--bd)',
         borderRadius: 10,
       }}>
@@ -153,7 +153,7 @@ export default function VerbLibrary() {
               style={{
                 ...styles.tabBtn,
                 backgroundColor: active ? PRIMARY : '#ffffff',
-                color:           active ? '#ffffff' : '#555555',
+                color:           active ? '#ffffff' : 'var(--text-2)',
                 border:          active ? 'none' : '1.5px solid var(--bd)',
               }}
             >
@@ -173,7 +173,7 @@ export default function VerbLibrary() {
             style={{
               ...styles.sortBtn,
               backgroundColor: sortBy === opt.id ? '#f0f9ff' : 'transparent',
-              color:           sortBy === opt.id ? PRIMARY : '#888',
+              color:           sortBy === opt.id ? PRIMARY : 'var(--text-2)',
               fontWeight:      sortBy === opt.id ? 700 : 400,
               border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid var(--bd)',
             }}

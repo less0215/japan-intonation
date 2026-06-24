@@ -9,7 +9,7 @@ const PRIMARY = '#5CA9CE'
 
 const Header = () => (
   <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 2px 8px' }}>
-    <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197' }}>일본 여행 준비</span>
+    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>일본 여행 준비</span>
     <span style={{ fontSize: 11, color: '#b6bcc1' }}>· 더 싸고 편하게</span>
   </div>
 )

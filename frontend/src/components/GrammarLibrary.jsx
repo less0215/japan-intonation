@@ -36,12 +36,12 @@ export default function GrammarLibrary() {
       <div style={{
         display: 'flex', alignItems: 'flex-start', gap: 8,
         padding: '11px 14px',
-        background: '#f8f9fa',
+        background: 'var(--surface-2)',
         border: '1px solid #e8e8e8',
         borderRadius: 10,
       }}>
         <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>📌</span>
-        <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, margin: 0 }}>
           일본어 핵심 문법 패턴을 접속 규칙·예문·피치 악센트와 함께 정리했습니다. 카드를 눌러 상세 설명을 확인하세요.
         </p>
       </div>
@@ -59,9 +59,9 @@ export default function GrammarLibrary() {
                 style={{
                   padding: '6px 14px',
                   borderRadius: 20,
-                  border: `1.5px solid ${active ? PRIMARY : '#e0e0e0'}`,
+                  border: `1.5px solid ${active ? PRIMARY : 'var(--bd)'}`,
                   background: active ? PRIMARY : '#fff',
-                  color: active ? '#fff' : '#666',
+                  color: active ? '#fff' : 'var(--text-2)',
                   fontSize: 12.5,
                   fontWeight: active ? 700 : 400,
                   cursor: 'pointer',
@@ -71,7 +71,7 @@ export default function GrammarLibrary() {
                 }}
               >
                 {tab.label}
-                <span style={{ marginLeft: 5, fontSize: 11, color: active ? 'rgba(255,255,255,0.8)' : '#bbb' }}>
+                <span style={{ marginLeft: 5, fontSize: 11, color: active ? 'rgba(255,255,255,0.8)' : 'var(--text-3)' }}>
                   {count}
                 </span>
               </button>
@@ -82,7 +82,7 @@ export default function GrammarLibrary() {
 
       {/* 선택된 탭 설명 */}
       {activeTabInfo?.sub && (
-        <p style={{ margin: '-4px 0 0', fontSize: 12, color: '#aaa' }}>
+        <p style={{ margin: '-4px 0 0', fontSize: 12, color: 'var(--text-3)' }}>
           {activeTabInfo.sub}
         </p>
       )}
@@ -103,7 +103,7 @@ export default function GrammarLibrary() {
             }}>
               {item.pattern}
             </span>
-            <span style={{ fontSize: 11, color: '#bbb' }}>({item.reading})</span>
+            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>({item.reading})</span>
           </div>
 
           {/* 가운데: 의미 태그 */}
@@ -120,7 +120,7 @@ export default function GrammarLibrary() {
               size="small"
             />
             <svg width="16" height="16" viewBox="0 0 24 24"
-              fill="none" stroke="#ccc" strokeWidth="2.2"
+              fill="none" stroke="var(--text-3)" strokeWidth="2.2"
               strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
@@ -129,7 +129,7 @@ export default function GrammarLibrary() {
       ))}
 
       {filtered.length === 0 && (
-        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '40px 0' }}>
+        <p style={{ textAlign: 'center', color: 'var(--text-3)', fontSize: 13, padding: '40px 0' }}>
           해당 카테고리의 패턴이 없습니다.
         </p>
       )}

@@ -135,10 +135,10 @@ export default function MessageInbox() {
       {/* 편집 모드 툴바 */}
       {hasMsgs && editMode && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-          <button onClick={deleteSelected} disabled={selected.size === 0} style={{ flex: 1, height: 40, borderRadius: 11, border: '1px solid var(--bd)', background: 'var(--surface)', color: selected.size ? '#d05050' : 'var(--text-3)', fontSize: 13, fontWeight: 600, cursor: selected.size ? 'pointer' : 'default', fontFamily: 'inherit' }}>
+          <button onClick={deleteSelected} disabled={selected.size === 0} style={{ flex: 1, height: 40, borderRadius: 11, border: '1px solid var(--bd)', background: 'var(--surface)', color: selected.size ? 'var(--danger)' : 'var(--text-3)', fontSize: 13, fontWeight: 600, cursor: selected.size ? 'pointer' : 'default', fontFamily: 'inherit' }}>
             선택 삭제{selected.size ? ` (${selected.size})` : ''}
           </button>
-          <button onClick={deleteAll} style={{ flex: 1, height: 40, borderRadius: 11, border: '1px solid var(--bd)', background: 'var(--surface)', color: '#d05050', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={deleteAll} style={{ flex: 1, height: 40, borderRadius: 11, border: '1px solid var(--bd)', background: 'var(--surface)', color: 'var(--danger)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
             전체 삭제
           </button>
         </div>

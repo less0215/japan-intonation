@@ -59,7 +59,7 @@ export default function AndroidLaunchPopup() {
         <button
           onClick={dismiss}
           aria-label="닫기"
-          style={{ position: 'absolute', top: 12, right: 14, width: 26, height: 26, background: 'none', border: 'none', fontSize: 17, color: '#ccc', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+          style={{ position: 'absolute', top: 12, right: 14, width: 26, height: 26, background: 'none', border: 'none', fontSize: 17, color: 'var(--text-3)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
         >✕</button>
 
         {/* 아이콘 */}
@@ -70,11 +70,11 @@ export default function AndroidLaunchPopup() {
         </div>
 
         {/* 카피 */}
-        <p style={{ fontSize: 18, fontWeight: 700, color: '#111', margin: '0 0 6px', lineHeight: 1.4 }}>
+        <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', margin: '0 0 6px', lineHeight: 1.4 }}>
           기다려주셔서 고마워요!
         </p>
-        <p style={{ fontSize: 13.5, color: '#888', margin: '0 0 20px', lineHeight: 1.6 }}>
-          신청하신 <b style={{ fontWeight: 700, color: '#111' }}>틱재팬 Android 앱</b>이<br />드디어 출시됐어요. 지금 바로 설치해요!
+        <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: '0 0 20px', lineHeight: 1.6 }}>
+          신청하신 <b style={{ fontWeight: 700, color: 'var(--text-strong)' }}>틱재팬 Android 앱</b>이<br />드디어 출시됐어요. 지금 바로 설치해요!
         </p>
 
         {/* 설치 버튼 (안드로이드 그린 그라데이션) */}
@@ -97,7 +97,7 @@ export default function AndroidLaunchPopup() {
         </button>
         <button
           onClick={dismiss}
-          style={{ width: '100%', height: 38, marginTop: 2, background: 'none', border: 'none', fontSize: 12.5, color: '#aaa', cursor: 'pointer', fontFamily: 'inherit' }}
+          style={{ width: '100%', height: 38, marginTop: 2, background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}
         >
           다음에 할게요
         </button>

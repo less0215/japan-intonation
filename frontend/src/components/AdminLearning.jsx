@@ -68,7 +68,7 @@ export default function AdminLearning() {
         한국인이 일본어에서 무엇을 자주 막히는지 — 누적 <b style={{ color: 'var(--text-2)' }}>{(data?.total_events || 0).toLocaleString()}</b>건
       </p>
 
-      {err && <p style={{ margin: '0 0 10px', fontSize: 12, color: '#e24b4a' }}>불러오지 못했어요. 새로고침을 눌러보세요.</p>}
+      {err && <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--danger)' }}>불러오지 못했어요. 새로고침을 눌러보세요.</p>}
 
       {/* 종류별 요약 칩 */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>

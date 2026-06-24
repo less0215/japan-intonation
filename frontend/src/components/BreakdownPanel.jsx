@@ -162,13 +162,13 @@ export function ExampleAnalysis({ japaneseText }) {
         {state === 'loading' ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span className="spinner" style={{ width: 12, height: 12, borderTopColor: PRIMARY, borderColor: `${PRIMARY}33` }} />
-            <span style={{ fontSize: 11, color: '#aaa' }}>분석 중...</span>
+            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>분석 중...</span>
           </div>
         ) : state === 'error' ? (
           <button onClick={handleToggle} style={{
             height: 26, padding: '0 10px', borderRadius: 13, fontSize: 11, fontWeight: 600,
             fontFamily: 'inherit', cursor: 'pointer',
-            border: '1.5px solid #fed7d7', backgroundColor: '#fff5f5', color: '#e53e3e',
+            border: '1.5px solid var(--danger)', backgroundColor: 'var(--danger-tint)', color: 'var(--danger)',
           }}>
             다시 시도
           </button>
@@ -246,7 +246,7 @@ export function DetailToggleButton({ showDetail, onToggle }) {
         cursor: 'pointer',
         border: `1.5px solid ${showDetail ? PRIMARY : 'var(--bd)'}`,
         backgroundColor: showDetail ? `${PRIMARY}15` : 'transparent',
-        color: showDetail ? PRIMARY : '#aaa',
+        color: showDetail ? PRIMARY : 'var(--text-3)',
         transition: 'all 0.15s',
         whiteSpace: 'nowrap',
       }}

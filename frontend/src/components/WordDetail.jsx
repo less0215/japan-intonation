@@ -94,7 +94,7 @@ function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {
           }}>
             <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
               <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
-                stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                stroke={graphActive ? PRIMARY : 'var(--text-3)'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
             </svg>
           </button>
           <button onClick={handlePlay} title={audioState === 'playing' ? '정지' : '발음 듣기'} style={{
@@ -108,7 +108,7 @@ function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {
             ) : audioState === 'playing' ? (
               <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             ) : (
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="var(--text-3)"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"/></svg>
             )}
           </button>
         </div>

@@ -25,7 +25,7 @@ function Check({ color }) {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="20 6 9 17 4 12" /></svg>
 }
 function SoonBadge() {
-  return <span style={{ fontSize: 10, fontWeight: 600, color: '#e0892a', background: '#fff5e8', borderRadius: 5, padding: '1px 5px', flexShrink: 0 }}>개발 예정</span>
+  return <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--warning)', background: 'var(--warning-tint)', borderRadius: 5, padding: '1px 5px', flexShrink: 0 }}>개발 예정</span>
 }
 
 export default function SubscriptionPage() {
@@ -100,7 +100,7 @@ export default function SubscriptionPage() {
             background: period === k ? 'var(--surface)' : 'transparent', color: period === k ? PRIMARY : 'var(--text-3)',
             boxShadow: period === k ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
           }}>
-            {PLANS[k].label}{k === 'yearly' && <span style={{ fontSize: 10, color: '#e0892a', marginLeft: 5 }}>2개월 무료</span>}
+            {PLANS[k].label}{k === 'yearly' && <span style={{ fontSize: 10, color: 'var(--warning)', marginLeft: 5 }}>2개월 무료</span>}
           </button>
         ))}
       </div>
@@ -125,7 +125,7 @@ export default function SubscriptionPage() {
           하루 {p.plus.per}원
           <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-3)', marginLeft: 7, letterSpacing: 0, whiteSpace: 'nowrap' }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원</span>
         </p>
-        {p.plus.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0892a', fontWeight: 500 }}>{p.plus.save}</p>}
+        {p.plus.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>{p.plus.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />광고 완전 제거</li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />빠른 번역 하루 200회 <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>· 사실상 무제한</span></li>
@@ -145,10 +145,10 @@ export default function SubscriptionPage() {
           하루 {p.pro.per}원
           <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-3)', marginLeft: 7, letterSpacing: 0, whiteSpace: 'nowrap' }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원</span>
         </p>
-        {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0892a', fontWeight: 500 }}>{p.pro.save}</p>}
+        {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {['광고 완전 제거', '빠른 번역 무제한', '사진 번역', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (
-            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-1)' }}><Check color="#1d9e75" />{f} {f === '사진 번역' && <SoonBadge />}</li>
+            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-1)' }}><Check color="var(--success)" />{f} {f === '사진 번역' && <SoonBadge />}</li>
           ))}
         </ul>
         <button onClick={() => choose('pro')} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-1)', border: '1px solid var(--bd)', borderRadius: 13, padding: '13px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>프로 선택</button>

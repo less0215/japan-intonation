@@ -105,7 +105,7 @@ export default function DownloadPage() {
             background: iosPrimary
               ? 'linear-gradient(145deg, #3a3a3c 0%, #1c1c1e 55%, #000 100%)'
               : '#fff',
-            color: iosPrimary ? '#fff' : '#111',
+            color: iosPrimary ? '#fff' : 'var(--text-strong)',
             border: iosPrimary ? '1px solid rgba(255,255,255,0.08)' : '1.5px solid #e2e2e2',
             boxShadow: iosPrimary
               ? '0 8px 22px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.14)'
@@ -125,9 +125,9 @@ export default function DownloadPage() {
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             height: 56, borderRadius: 14, width: '100%', fontFamily: 'inherit',
-            background: androidDone ? '#eaf7f1' : '#f5f5f5',
-            color: androidDone ? '#1d9e75' : '#999',
-            border: `1.5px solid ${androidDone ? '#bfe8d6' : '#eee'}`,
+            background: androidDone ? '#eaf7f1' : 'var(--bd)',
+            color: androidDone ? 'var(--success)' : 'var(--text-3)',
+            border: `1.5px solid ${androidDone ? '#bfe8d6' : 'var(--bd)'}`,
             fontSize: 15.5, fontWeight: 600, cursor: androidDone ? 'default' : 'pointer',
           }}
         >

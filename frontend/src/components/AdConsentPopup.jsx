@@ -102,7 +102,7 @@ const head = {
   fontSize: 19, fontWeight: 600, color: '#1f2937', margin: '0 0 14px', letterSpacing: '-0.3px',
   fontFamily: "'Noto Sans KR', 'Apple Color Emoji', sans-serif",
 }
-const body = { fontSize: 13, color: '#666', lineHeight: 1.7, margin: '0 0 18px' }
+const body = { fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, margin: '0 0 18px' }
 // 버튼은 기본적으로 body 폰트를 상속하지 않으므로 font-family: inherit 필수 (한글 깨짐 방지)
 const primaryBtn = {
   width: '100%', height: 50, border: '1px solid rgba(255,255,255,0.14)', borderRadius: 14,
@@ -113,5 +113,5 @@ const primaryBtn = {
 }
 const secondaryBtn = {
   width: '100%', height: 38, marginTop: 2, background: 'none', border: 'none',
-  fontSize: 12.5, color: '#bbb', cursor: 'pointer', fontFamily: 'inherit',
+  fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit',
 }

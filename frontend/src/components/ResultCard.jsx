@@ -28,7 +28,7 @@ function GenderToggle({ gender, onChange }) {
     <div className="gender-toggle">
       {[{ value: 'female', label: '여성' }, { value: 'male', label: '남성' }].map(({ value, label }) => (
         <button key={value} onClick={() => onChange(value)} className="gender-btn"
-          style={{ backgroundColor: gender === value ? PRIMARY : 'transparent', color: gender === value ? '#fff' : '#888888' }}>
+          style={{ backgroundColor: gender === value ? PRIMARY : 'transparent', color: gender === value ? '#fff' : 'var(--text-2)' }}>
           {label}
         </button>
       ))}
@@ -315,7 +315,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
               <DetailToggleButton showDetail={showDetail} onToggle={() => setShowDetail(v => !v)} />
               <button
                 onClick={() => setExpanded(false)}
-                style={{ height: 26, padding: '0 8px', borderRadius: 13, fontSize: 11, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', border: '1.5px solid #e0e0e0', background: 'transparent', color: '#aaa' }}
+                style={{ height: 26, padding: '0 8px', borderRadius: 13, fontSize: 11, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', border: '1.5px solid #e0e0e0', background: 'transparent', color: 'var(--text-3)' }}
               >
                 접기
               </button>
@@ -330,7 +330,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
             <BreakdownCards breakdown={breakdown} showDetail={showDetail} />
           </>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 4px', color: '#aaa' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 4px', color: 'var(--text-3)' }}>
             <span className="spinner" style={{ width: 14, height: 14 }} />
             <span style={{ fontSize: 13 }}>문장 분해 분석 중...</span>
           </div>

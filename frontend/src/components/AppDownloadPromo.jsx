@@ -63,7 +63,7 @@ export default function AppDownloadPromo({ onDownload }) {
           style={{
             position: 'absolute', top: 12, right: 14, width: 26, height: 26,
             background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 17, color: '#ccc', lineHeight: 1, padding: 0,
+            fontSize: 17, color: 'var(--text-3)', lineHeight: 1, padding: 0,
           }}
         >✕</button>
 
@@ -76,10 +76,10 @@ export default function AppDownloadPromo({ onDownload }) {
         />
 
         {/* 카피 */}
-        <p style={{ fontSize: 17, fontWeight: 700, color: '#111', margin: '0 0 6px', lineHeight: 1.35 }}>
+        <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', margin: '0 0 6px', lineHeight: 1.35 }}>
           앱으로 더 쾌적하게 공부해요
         </p>
-        <p style={{ fontSize: 13, color: '#888', margin: '0 0 18px', lineHeight: 1.55 }}>
+        <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '0 0 18px', lineHeight: 1.55 }}>
           틱재팬 앱을 설치하면 더 빠르고 편하게<br />일본어를 번역하고 학습할 수 있어요.
         </p>
 
@@ -101,7 +101,7 @@ export default function AppDownloadPromo({ onDownload }) {
           style={{
             width: '100%', height: 36, marginTop: 2,
             background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 12.5, color: '#aaa', fontFamily: 'inherit',
+            fontSize: 12.5, color: 'var(--text-3)', fontFamily: 'inherit',
           }}
         >
           이미 앱이 있어요 · 다시 보지 않기

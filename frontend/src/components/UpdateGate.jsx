@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
  * - 서버(/app-version)의 min_required 보다 설치버전이 낮으면 닫기 불가 팝업 → App Store로.
  * - 웹은 동작 안 함. 서버 호출 실패 시엔 막지 않음(fail-open).
  * ★ 새 버전 빌드할 때마다 APP_VERSION 을 그 버전(=project.pbxproj MARKETING_VERSION)으로 올릴 것! */
-const APP_VERSION = '1.6'
+const APP_VERSION = '1.7'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false

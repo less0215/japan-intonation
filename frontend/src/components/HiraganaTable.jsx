@@ -21,9 +21,10 @@ export default function HiraganaTable({ defaultOpen = true }) {
 
   return (
     <div style={{
-      border: '1px solid #e8e8e8',
-      borderRadius: 12,
+      border: '1px solid var(--bd)',
+      borderRadius: 14,
       overflow: 'hidden',
+      background: 'var(--surface)',
     }}>
       {/* 헤더 토글 */}
       <button
@@ -32,16 +33,16 @@ export default function HiraganaTable({ defaultOpen = true }) {
           width: '100%', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between',
           padding: '12px 16px',
-          background: '#f8f9fa', border: 'none', cursor: 'pointer',
+          background: 'var(--surface-2)', border: 'none', cursor: 'pointer',
           fontFamily: 'inherit',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#aaa', letterSpacing: 0.3 }}>참고</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>히라가나 오십음도 (あいうえお 표)</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: 0.3 }}>참고</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-strong)' }}>히라가나 오십음도 (あいうえお 표)</span>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-          stroke="#aaa" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+          stroke="var(--text-3)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
           style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
           <polyline points="6 9 12 15 18 9" />
         </svg>
@@ -53,14 +54,14 @@ export default function HiraganaTable({ defaultOpen = true }) {
             {/* 열 헤더 */}
             <div />
             {['あ단','い단','う단','え단','お단'].map(h => (
-              <div key={h} style={{ textAlign: 'center', fontSize: 11, color: '#aaa', fontWeight: 600, paddingBottom: 4 }}>{h}</div>
+              <div key={h} style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3)', fontWeight: 600, paddingBottom: 4 }}>{h}</div>
             ))}
 
             {HIRAGANA_ROWS.map(({ row, chars, reads }) => (
               <>
                 <div key={row + '_label'} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, color: '#aaa', fontWeight: 600,
+                  fontSize: 10, color: 'var(--text-3)', fontWeight: 600,
                 }}>
                   {row}
                 </div>
@@ -68,14 +69,14 @@ export default function HiraganaTable({ defaultOpen = true }) {
                   <div key={row + ci} style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
                     padding: '6px 4px',
-                    background: ch ? '#f0f8fc' : 'transparent',
+                    background: ch ? 'var(--primary-tint)' : 'transparent',
                     borderRadius: 8,
-                    border: ch ? '1px solid #d0eaf5' : 'none',
+                    border: ch ? '1px solid var(--primary-tint-bd)' : 'none',
                   }}>
                     {ch ? (
                       <>
-                        <span style={{ fontSize: 18, fontFamily: "'Noto Sans JP', sans-serif", color: '#333', lineHeight: 1.2 }}>{ch}</span>
-                        <span style={{ fontSize: 9.5, color: '#888', marginTop: 2 }}>{reads[ci]}</span>
+                        <span style={{ fontSize: 18, fontFamily: "'Noto Sans JP', sans-serif", color: 'var(--text-strong)', lineHeight: 1.2 }}>{ch}</span>
+                        <span style={{ fontSize: 9.5, color: 'var(--text-2)', marginTop: 2 }}>{reads[ci]}</span>
                       </>
                     ) : null}
                   </div>
@@ -84,7 +85,7 @@ export default function HiraganaTable({ defaultOpen = true }) {
             ))}
           </div>
 
-          <p style={{ margin: '12px 0 0', fontSize: 11, color: '#aaa', lineHeight: 1.6 }}>
+          <p style={{ margin: '12px 0 0', fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6 }}>
             * し(시)·ち(치)·つ(츠)·ふ(후)는 예외적인 발음입니다.
           </p>
         </div>

@@ -94,14 +94,14 @@ function ExampleBox({ example, exampleInfo }) {
               style={{
                 width: 28, height: 28, borderRadius: 6,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+                border: `1px solid ${graphActive ? PRIMARY : 'var(--bd)'}`,
                 backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent',
                 cursor: 'pointer',
               }}
             >
               <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
                 <path d="M1 5 Q2 1 3 5 Q4 9 5 5 Q6 1 7 5 Q8 9 9 5 Q10 1 11 5 Q12 9 13 5"
-                  stroke={graphActive ? PRIMARY : '#bbb'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                  stroke={graphActive ? PRIMARY : 'var(--text-3)'} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
               </svg>
             </button>
           )}
@@ -111,19 +111,19 @@ function ExampleBox({ example, exampleInfo }) {
             style={{
               width: 28, height: 28, borderRadius: '50%',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+              border: `1px solid ${audioState === 'playing' ? PRIMARY : 'var(--bd)'}`,
               backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent',
               cursor: 'pointer',
             }}
           >
             {audioState === 'loading' ? (
-              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: 'var(--bd)' }} />
             ) : audioState === 'playing' ? (
               <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             ) : (
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#bbb"/>
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#bbb" strokeWidth="2" strokeLinecap="round"/>
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="var(--text-3)"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             )}
           </button>
@@ -132,7 +132,7 @@ function ExampleBox({ example, exampleInfo }) {
 
       {/* 한국어 발음 */}
       {example.pronunciation && (
-        <p style={{ margin: '4px 0 0', fontSize: 12, color: '#aaa', fontStyle: 'italic', lineHeight: 1.4 }}>
+        <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic', lineHeight: 1.4 }}>
           {example.pronunciation}
         </p>
       )}
@@ -164,7 +164,7 @@ export default function GrammarDetail({ pattern }) {
             <span style={{ fontSize: 34, fontWeight: 800, color: '#5CA9CE', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.1 }}>
               {pattern.pattern}
             </span>
-            <span style={{ fontSize: 16, color: '#aaa' }}>({pattern.reading})</span>
+            <span style={{ fontSize: 16, color: 'var(--text-3)' }}>({pattern.reading})</span>
           </div>
           <WordBookmarkButton wordInfo={{ id: pattern.id, category: 'grammar', word: pattern.pattern, reading: pattern.reading, meaning: pattern.meanings[0] ?? '' }} saveLabel="이 문법 저장" savedLabel="문법 저장됨" />
         </div>
@@ -180,12 +180,12 @@ export default function GrammarDetail({ pattern }) {
         <div className="section">
           <div>
             <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: PRIMARY, letterSpacing: 0.3 }}>접속</p>
-            <p style={{ margin: '6px 0 0', fontSize: 15, fontWeight: 600, color: '#333', fontFamily: "'Noto Sans JP', sans-serif" }}>
+            <p style={{ margin: '6px 0 0', fontSize: 15, fontWeight: 600, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP', sans-serif" }}>
               {pattern.connection}
             </p>
           </div>
           {pattern.explanation && (
-            <p style={{ margin: '14px 0 0', fontSize: 13.5, color: '#555', lineHeight: 1.7 }}>
+            <p style={{ margin: '14px 0 0', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.7 }}>
               {pattern.explanation}
             </p>
           )}
@@ -200,7 +200,7 @@ export default function GrammarDetail({ pattern }) {
               <span className={`particle-section-badge particle-section-badge--${usage.type}`}>
                 {usage.type === 'basic' ? '기본' : '응용'}
               </span>
-              <span style={{ fontSize: 14, color: '#444', fontWeight: 500, lineHeight: 1.5 }}>
+              <span style={{ fontSize: 14, color: 'var(--text-1)', fontWeight: 500, lineHeight: 1.5 }}>
                 {usage.meaning}
               </span>
             </div>

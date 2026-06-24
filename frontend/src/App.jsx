@@ -28,6 +28,7 @@ import LiveCamLibrary from './components/LiveCamLibrary'
 import LiveCamDetailPage from './components/LiveCamDetailPage'
 import { LIVECAMS } from './data/livecams'
 import AdConsentPopup from './components/AdConsentPopup'
+import FastUpsellPopup from './components/FastUpsellPopup'
 import SubscriptionPage from './components/SubscriptionPage'
 import { BillingSuccess, BillingFail } from './components/BillingResult'
 import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbox'
@@ -342,6 +343,7 @@ export default function App() {
   // 서버에서 받은 사용량 상태
   const [fastUsedPct, setFastUsedPct] = useState(0)
   const [fastLocked, setFastLocked] = useState(false)        // 현재 윈도우 한도 소진
+  const [fastUpsell, setFastUpsell] = useState(false)        // 빠른 번역 한도 도달 → 플러스 업셀 팝업
   const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
   // 화이트리스트(전 무제한) 회원 OR 유효 구독(플러스/프로·지급분 포함) → 플러스 혜택
   const fastUnlimited = !!user?.fast_unlimited || !!subInfo?.fast_unlimited
@@ -461,13 +463,12 @@ export default function App() {
     track('fast_5h_unlocked', { via: 'ad' })
   }
 
-  // 사용량 소진 상태에서 사용자가 직접 '제한 풀기'를 눌렀을 때만 광고 팝업 (자동 X)
+  // 사용량 소진 상태에서 사용자가 직접 '제한 풀기'를 눌렀을 때 → 플러스 업셀(+광고) 팝업
   function handleUnlockFast() {
-    if (!isApp) return
     // 광고 제거 회원은 광고 없이 바로 켜짐(한도 자체가 없지만 방어)
     if (fastUnlimited || subAdFree) { setSelectedModel('fast'); return }
-    setAdPopup({ mode: 'unlock5h' })
-    track('fast_ad_prompt', { mode: 'unlock5h', guest: !user })
+    setFastUpsell(true)
+    track('fast_upsell_shown', { trigger: 'chip' })
   }
 
   // 비회원 빠른 번역 사용량 — user_id가 없어 localStorage 5시간 윈도우로 추적 (회원과 동일 20회)
@@ -671,6 +672,17 @@ export default function App() {
           setSelectedModel('basic')
           track('fast_limit_reached')
           scheduleFastResetNotification(data.fast_reset_sec)
+          // 플러스 업셀 — 무료 회원에게 하루 1회 자동(가장 전환 잘 되는 순간). 그 외엔 '제한 풀기' 칩으로 진입
+          if (!subAdFree && !fastUnlimited) {
+            try {
+              const today = new Date().toISOString().slice(0, 10)
+              if (localStorage.getItem('tickjapan_fast_upsell_date') !== today) {
+                localStorage.setItem('tickjapan_fast_upsell_date', today)
+                setFastUpsell(true)
+                track('fast_upsell_shown', { trigger: 'auto' })
+              }
+            } catch {}
+          }
         }
       }
       // GA4 커스텀 이벤트 전송
@@ -1259,6 +1271,14 @@ export default function App() {
           mode={adPopup.mode}
           onWatch={adPopup.mode === 'unlock5h' ? watchAdUnlock5h : watchAdEnable}
           onClose={() => { setAdPopup(null); track('fast_ad_dismissed', { mode: adPopup.mode }) }}
+        />
+      )}
+      {/* 빠른 번역 한도 도달 → 플러스 업셀(앱은 광고 옵션 포함, 웹은 플러스만) */}
+      {fastUpsell && (
+        <FastUpsellPopup
+          onPlus={() => { setFastUpsell(false); track('fast_upsell_cta', { target: 'plus' }); navigate('/plans?from=fast_limit') }}
+          onWatchAd={isApp ? () => { setFastUpsell(false); watchAdUnlock5h() } : null}
+          onClose={() => { setFastUpsell(false); track('fast_upsell_dismiss') }}
         />
       )}
       {/* 웹에서 빠른 번역 시도 → 앱 전용 안내 */}

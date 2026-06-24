@@ -17,8 +17,8 @@ const PAYMENTS_ENABLED = false
 /* 플랜 업그레이드 (/plans) — 무료/플러스/프로. 미니멀
  * 가격 단일 출처(SSOT) — BillingResult가 매출 전환 value 계산에 재사용하므로 export */
 export const PLANS = {
-  monthly: { label: '월간', plus: { total: 8900,  per: 297, unit: '월' }, pro: { total: 19900, per: 663, unit: '월' } },
-  yearly:  { label: '연간', plus: { total: 89000, per: 244, unit: '년', save: '2개월 무료' }, pro: { total: 199000, per: 545, unit: '년', save: '2개월 무료' } },
+  monthly: { label: '월간', plus: { total: 4900,  was: 8900,  per: 163, unit: '월' }, pro: { total: 19900, per: 663, unit: '월' } },
+  yearly:  { label: '연간', plus: { total: 49000, was: 89000, per: 134, unit: '년', save: '2개월 무료' }, pro: { total: 199000, per: 545, unit: '년', save: '2개월 무료' } },
 }
 
 function Check({ color }) {
@@ -119,13 +119,20 @@ export default function SubscriptionPage() {
         <span style={{ position: 'absolute', top: -11, left: 18, background: PRIMARY, color: '#fff', fontSize: 11.5, fontWeight: 600, padding: '3px 12px', borderRadius: 8 }}>추천</span>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 2 }}>
           <span style={{ fontSize: 16, fontWeight: 700, color: PRIMARY }}>플러스</span>
-          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{p.plus.unit} ₩{p.plus.total.toLocaleString()}</span>
+          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>
+            {p.plus.was && <span style={{ textDecoration: 'line-through', color: 'var(--text-3)', marginRight: 5 }}>₩{p.plus.was.toLocaleString()}</span>}
+            {p.plus.unit} ₩{p.plus.total.toLocaleString()}
+          </span>
         </div>
         <p style={{ margin: '8px 0 0', fontSize: 30, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
           하루 {p.plus.per}원
           <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-3)', marginLeft: 7, letterSpacing: 0, whiteSpace: 'nowrap' }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원</span>
         </p>
-        {p.plus.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>{p.plus.save}</p>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', margin: '8px 0 0' }}>
+          {p.plus.was && <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--warning)', background: 'var(--warning-tint)', borderRadius: 6, padding: '2px 8px' }}>출시 할인 {Math.round((1 - p.plus.total / p.plus.was) * 100)}%</span>}
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: PRIMARY }}>첫 7일 무료</span>
+          {p.plus.save && <span style={{ fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>· {p.plus.save}</span>}
+        </div>
         <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />광고 완전 제거</li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />빠른 번역 하루 200회 <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>· 사실상 무제한</span></li>

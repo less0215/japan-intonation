@@ -106,7 +106,8 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
       const analyser = ctx.createAnalyser(); analyser.fftSize = 2048
       ctx.createMediaStreamSource(stream).connect(analyser)
       const buf = new Float32Array(analyser.fftSize)
-      const o = { ctx, stream, analyser, buf, frames: [], started: 0, silence: 0, t0: ctx.currentTime, last: 0 }
+      const o = { ctx, stream, analyser, buf, frames: [], started: 0, silence: 0, t0: ctx.currentTime, last: 0,
+                  livePitch: [], semiMin: Infinity, semiMax: -Infinity, voicedCount: 0, smoothSemi: null }
       a.current = o
       loop()
     } catch (e) {
@@ -118,41 +119,69 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
     const o = a.current
     if (!o.analyser) return
     o.analyser.getFloatTimeDomainData(o.buf)
-    drawWave(o.buf)
     // 실시간 레벨(RMS) → 원 크기/광도
     let ss = 0; for (let i = 0; i < o.buf.length; i++) ss += o.buf[i] * o.buf[i]
     const rms = Math.sqrt(ss / o.buf.length)
     if (orbRef.current) {
-      const s = Math.min(1.7, 1 + rms * 6)
+      const s = Math.min(1.5, 1 + rms * 5)
       orbRef.current.style.transform = `scale(${s.toFixed(3)})`
-      orbRef.current.style.boxShadow = `0 0 ${20 + rms * 160}px ${6 + rms * 40}px rgba(92,169,206,${Math.min(0.5, 0.12 + rms * 2)})`
+      orbRef.current.style.boxShadow = `0 0 ${16 + rms * 120}px ${5 + rms * 30}px rgba(92,169,206,${Math.min(0.5, 0.12 + rms * 2)})`
     }
     const now = o.ctx.currentTime
     if (now - o.last >= 0.03) {
       o.last = now
       const f0 = detectPitch(o.buf, o.ctx.sampleRate)
       o.frames.push({ f0 })
+      if (f0 > 0) {
+        // 라이브 음높이 누적 — 반음 변환 + EMA 스무딩, 정규화는 그릴 때 전체 범위로
+        const semi = hzToSemi(f0)
+        o.smoothSemi = o.smoothSemi == null ? semi : o.smoothSemi * 0.4 + semi * 0.6
+        if (o.smoothSemi < o.semiMin) o.semiMin = o.smoothSemi
+        if (o.smoothSemi > o.semiMax) o.semiMax = o.smoothSemi
+        o.voicedCount++
+        const prog = Math.min(1, o.voicedCount / Math.max(6, N * 9))   // 발화 진행도 ≈ x축
+        o.livePitch.push({ prog, semi: o.smoothSemi })
+      }
       const speaking = rms > 0.012
       if (speaking) { o.started = o.started || now; o.silence = 0 }
       else if (o.started) o.silence += 0.03
       if (o.started && o.silence > 0.8) return finish()     // 말 끝나고 0.8초 무음 → 자동
       if (now - o.t0 > 7) return finish()                   // 최대 7초
     }
+    drawPitch()
     o.raf = requestAnimationFrame(loop)
   }
 
-  function drawWave(buf) {
+  // 정답 피치 곡선(파랑) 위에 내 음높이(주황)를 실시간으로 — '선 따라 말하기'
+  function drawPitch() {
     const c = canvasRef.current; if (!c) return
+    const o = a.current
     const ctx = c.getContext('2d'); const W = c.width, H = c.height
     ctx.clearRect(0, 0, W, H)
-    ctx.lineWidth = 2; ctx.strokeStyle = PRIMARY; ctx.beginPath()
-    const step = Math.floor(buf.length / W) || 1
-    for (let x = 0; x < W; x++) {
-      const v = buf[x * step] || 0
-      const y = H / 2 + v * H * 0.85
-      x ? ctx.lineTo(x, y) : ctx.moveTo(x, y)
-    }
+    const padX = 12, hy = 18, ly = H - 36
+    const xAt = (i) => padX + (N > 1 ? i * (W - 2 * padX) / (N - 1) : (W - 2 * padX) / 2)
+    // 高/低 기준선
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 0.5; ctx.setLineDash([2, 3])
+    ;[hy, ly].forEach((y) => { ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(W - padX, y); ctx.stroke() })
+    ctx.setLineDash([])
+    // 정답 곡선(파랑) — 기준
+    ctx.strokeStyle = PRIMARY; ctx.lineWidth = 2.6; ctx.lineJoin = 'round'; ctx.beginPath()
+    accent.forEach((v, i) => { const x = xAt(i), y = v ? hy : ly; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) })
     ctx.stroke()
+    // 모라 라벨
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = "12px 'Noto Sans JP', sans-serif"; ctx.textAlign = 'center'
+    moraList.forEach((m, i) => ctx.fillText(m, xAt(i), H - 9))
+    // 내 음높이(주황) — 실시간
+    const pts = o?.livePitch || []
+    const range = o ? o.semiMax - o.semiMin : 0
+    if (pts.length > 1 && range > 0.5) {
+      const yOf = (semi) => ly - Math.max(0, Math.min(1, (semi - o.semiMin) / range)) * (ly - hy)
+      ctx.strokeStyle = MINE; ctx.lineWidth = 2.4; ctx.lineJoin = 'round'; ctx.beginPath()
+      pts.forEach((p, i) => { const x = padX + p.prog * (W - 2 * padX), y = yOf(p.semi); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) })
+      ctx.stroke()
+      const lp = pts[pts.length - 1]
+      ctx.fillStyle = MINE; ctx.beginPath(); ctx.arc(padX + lp.prog * (W - 2 * padX), yOf(lp.semi), 4, 0, Math.PI * 2); ctx.fill()
+    }
   }
 
   function finish() {
@@ -230,13 +259,20 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
 
       {/* 중앙: 상태별 */}
       {(phase === 'listening' || phase === 'analyzing') && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26 }}>
-          <div style={{ position: 'relative', width: 150, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div ref={orbRef} style={{ width: 110, height: 110, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, #7cc4e6, ${PRIMARY})`, transition: 'transform 0.06s linear', willChange: 'transform' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+          <div style={{ position: 'relative', width: 92, height: 92, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div ref={orbRef} style={{ width: 64, height: 64, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, #7cc4e6, ${PRIMARY})`, transition: 'transform 0.06s linear', willChange: 'transform' }} />
           </div>
-          <canvas ref={canvasRef} width={300} height={64} style={{ width: 300, height: 64, opacity: phase === 'analyzing' ? 0.3 : 1 }} />
-          <p style={{ margin: 0, fontSize: 15, color: 'rgba(255,255,255,0.85)' }}>
-            {phase === 'analyzing' ? '발음 패턴 분석 중…' : '따라 말해보세요'}
+          {/* 정답 피치 곡선(파랑) 위에 내 음높이(주황)가 실시간으로 그려짐 */}
+          <div style={{ width: '100%', maxWidth: 360, overflowX: 'auto', padding: '0 6px' }}>
+            <canvas ref={canvasRef} width={W} height={GH + 16} style={{ display: 'block', margin: '0 auto', width: W, height: GH + 16, opacity: phase === 'analyzing' ? 0.35 : 1 }} />
+          </div>
+          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>
+            <span><span style={{ color: PRIMARY }}>━</span> 정답</span>
+            <span><span style={{ color: MINE }}>━</span> 내 음높이</span>
+          </div>
+          <p style={{ margin: 0, fontSize: 14.5, color: 'rgba(255,255,255,0.85)', textAlign: 'center', padding: '0 24px', lineHeight: 1.5 }}>
+            {phase === 'analyzing' ? '발음 패턴 분석 중…' : '파란 선을 따라 음을 올리고 내려보세요'}
           </p>
           {phase === 'listening' && <button onClick={finish} style={stopBtn}>멈추고 분석</button>}
         </div>

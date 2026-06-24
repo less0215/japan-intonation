@@ -12,6 +12,10 @@ const DOC_LABELS = {
   book: '도서 · 세로쓰기', manga: '웹툰 · 만화', menu: '메뉴판', sign: '간판 · 표지', general: '일반',
 }
 
+// '사진 속 위치' 박스는 글자가 듬성한 유형(메뉴·간판)에서만 정확 → 이 유형만 표시.
+// 빽빽한 세로쓰기(책·만화)는 박스가 어긋나므로 끔.
+const BOX_TYPES = new Set(['menu', 'sign'])
+
 export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
   // 구간별 분해(breakdown)는 펼친 뒤 온디맨드로 받아 해당 구간에 병합
   const [chunks, setChunks] = useState(() => (result?.chunks || []).map(c => ({ ...c, breakdown: c.breakdown || [] })))
@@ -103,8 +107,8 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
               </button>
               {isOpen && (
                 <div style={{ marginTop: 8 }}>
-                  {/* 사진 속 위치 — 이 문장이 어디에 있는지 스포트라이트로 강조(오 여기 있구나) */}
-                  {imageUrl && c.bbox && (
+                  {/* 사진 속 위치 — 듬성한 유형(메뉴·간판)에서만. 책·만화는 박스 어긋나 끔 */}
+                  {imageUrl && c.bbox && BOX_TYPES.has(result?.doc_type) && (
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 2px 5px' }}>사진 속 위치</div>
                       <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--bd)', lineHeight: 0 }}>

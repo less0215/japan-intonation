@@ -13,6 +13,7 @@ import AdSenseUnit from './components/AdSenseUnit'
 import TravelAffiliate from './components/TravelAffiliate'
 import TravelPopup from './components/TravelPopup'
 import BottomNav from './components/BottomNav'
+import SiteFooter from './components/SiteFooter'
 import SavesPage from './components/SavesPage'
 import ProfilePage from './components/ProfilePage'
 import VerbLibrary from './components/VerbLibrary'
@@ -48,6 +49,8 @@ import { GRAMMAR } from './data/grammar'
 
 const API_URL   = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY   = '#5CA9CE'
+// 웹 사업자정보 푸터 공개 스위치 — 통신판매업 신고번호+고객센터 전화 확정 후 true
+const FOOTER_LIVE = false
 
 /* 내부 이벤트명 → AppsFlyer 인앱 이벤트명 매핑 (핵심 전환만) */
 const AF_EVENTS = {
@@ -1138,9 +1141,11 @@ export default function App() {
           } />
         </Routes>
 
-      </div>
+        {/* 웹 전역 푸터 — 전자상거래법 사업자 정보(토스 심사 요건). 앱은 비노출.
+            ★ 통신판매업 신고번호 + 고객센터 전화번호 확정 후 FOOTER_LIVE=true 로 공개 */}
+        {FOOTER_LIVE && !isApp && <SiteFooter />}
 
-      {/* 개인정보처리방침·이용약관은 프로필 탭에만 표시 (전역 푸터 제거) */}
+      </div>
 
       {/* 하단 탭 네비게이션 (다운로드 페이지 제외) */}
       {!isDownload && <BottomNav onHome={handleHome} />}

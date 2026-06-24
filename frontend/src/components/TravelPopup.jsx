@@ -39,8 +39,8 @@ export default function TravelPopup({ input, japanese, armed }) {
             <button key={item.id} onClick={() => openTravelProduct(item, 'result_popup')} style={card}>
               <div style={{ ...cardImg, backgroundImage: `url('${item.image}')` }} />
               <div style={{ padding: '11px 13px 13px' }}>
-                <p style={{ margin: '0 0 3px', fontSize: 11, color: '#aeb4b9' }}>{item.city} · 일본</p>
-                <p style={{ margin: '0 0 7px', fontSize: 14, color: '#2b2f33', lineHeight: 1.35 }}>{item.title}</p>
+                <p style={{ margin: '0 0 3px', fontSize: 11, color: 'var(--text-3)' }}>{item.city} · 일본</p>
+                <p style={{ margin: '0 0 7px', fontSize: 14, color: 'var(--text-1)', lineHeight: 1.35 }}>{item.title}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   {item.price > 0
                     ? <span style={{ fontSize: 15, fontWeight: 700, color: PRIMARY }}>₩{item.price.toLocaleString()}~</span>
@@ -59,26 +59,26 @@ export default function TravelPopup({ input, japanese, armed }) {
 }
 
 const ov = {
-  position: 'fixed', inset: 0, zIndex: 5000, background: 'rgba(20,30,40,0.5)',
+  position: 'fixed', inset: 0, zIndex: 5000, background: 'var(--overlay)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
 }
 const sheet = {
-  position: 'relative', width: '100%', maxWidth: 400, background: '#fff',
-  borderRadius: 20, padding: '22px 18px 18px',
-  boxShadow: '0 12px 40px rgba(0,0,0,0.22)', maxHeight: '85vh', overflowY: 'auto',
+  position: 'relative', width: '100%', maxWidth: 400, background: 'var(--surface)',
+  borderRadius: 'var(--radius-sheet)', padding: '22px 18px 18px',
+  boxShadow: 'var(--shadow-strong)', maxHeight: '85vh', overflowY: 'auto',
 }
 const closeBtn = {
   position: 'absolute', top: 14, right: 14, width: 30, height: 30, borderRadius: '50%',
-  border: 'none', background: '#f1f3f5', color: '#888', fontSize: 14, cursor: 'pointer',
+  border: 'none', background: 'var(--surface-2)', color: 'var(--text-2)', fontSize: 14, cursor: 'pointer',
 }
-const head = { margin: '0 0 3px', fontSize: 18, fontWeight: 700, color: '#1f2937', letterSpacing: '-0.3px' }
-const sub = { margin: 0, fontSize: 12.5, color: '#9aa0a6' }
+const head = { margin: '0 0 3px', fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', letterSpacing: '-0.3px' }
+const sub = { margin: 0, fontSize: 12.5, color: 'var(--text-3)' }
 const card = {
   display: 'block', width: '100%', textAlign: 'left', padding: 0, cursor: 'pointer',
-  background: '#fff', border: '1px solid #e6ecf0', borderRadius: 14, overflow: 'hidden', fontFamily: 'inherit',
+  background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, overflow: 'hidden', fontFamily: 'inherit',
 }
 const cardImg = {
-  width: '100%', aspectRatio: '16 / 9', backgroundColor: '#e8edf0',
+  width: '100%', aspectRatio: '16 / 9', backgroundColor: 'var(--surface-2)',
   backgroundSize: 'cover', backgroundPosition: 'center',
 }
-const disclosure = { margin: '12px 0 0', fontSize: 10.5, color: '#b6bcc1', textAlign: 'center' }
+const disclosure = { margin: '12px 0 0', fontSize: 10.5, color: 'var(--text-3)', textAlign: 'center' }

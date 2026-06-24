@@ -11,8 +11,8 @@ html, body {
 
 body {
   font-family: 'Noto Sans KR', 'Noto Sans JP', sans-serif;
-  background: #f8f9fa;
-  color: #111111;
+  background: var(--bg);
+  color: var(--text-1);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -1323,29 +1323,59 @@ ins.adsbygoogle[data-ad-status="unfilled"] { display: none !important; }
 /* 시맨틱 색 변수 — 인라인 컴포넌트도 이 변수로 통일(다크모드 일관성) */
 :root {
   --bg:        #f8f9fa;
-  --surface:   #ffffff;   /* 카드·입력창·네비 등 표면 */
-  --surface-2: #f4f6f8;   /* 칩·아이콘칸 등 내부 옅은 면 */
+  --surface:   #ffffff;   /* 카드·입력창·네비 등 표면(elevated 1) */
+  --surface-2: #f4f6f8;   /* 칩·아이콘칸 등 내부 옅은 면(elevated 2) */
   --bd:        #eef1f3;   /* 일반 테두리 */
   --bd-2:      #e2e8f0;   /* 강조 테두리 */
-  --text-strong: #1a1f26; /* 제목·일본어 */
+  --text-strong: #1a1f26; /* 제목·일본어·큰 숫자 */
   --text-1:    #3a4250;   /* 본문 */
-  --text-2:    #5f6b73;   /* 부가 본문 */
-  --text-3:    #9aa0a6;   /* 약한 보조 */
-  --accent-soft: #eef6fb; /* 프라이머리 옅은 배경(오늘의 학습 등) */
+  --text-2:    #5f6b73;   /* 부가 본문·라벨 */
+  --text-3:    #9aa0a6;   /* 약한 보조·캡션·placeholder·단위 */
+  /* 프라이머리(브랜드) — 값 보존, 강조(CTA·링크·포커스·선택)에만 */
+  --primary:        #5ca9ce;
+  --primary-strong: #2b7aa0; /* 틴트 위 파랑 글씨 */
+  --primary-tint:   #eef6fb; /* 프라이머리 옅은 배경(칩·배지·오늘의학습) */
+  --primary-tint-bd:#cfe6f3; /* 틴트 박스 테두리 */
+  --on-primary:     #ffffff; /* 프라이머리 배경 위 글씨(정당한 흰색) */
+  /* 시맨틱 */
+  --danger:       #d64545;  --danger-tint:  #fff5f5;
+  --warning:      #c98a00;  --warning-tint: #fdf3e1;
+  --success:      #1d9e75;  --success-tint: #e8f7ef;
+  /* 입체/오버레이/라운드 */
+  --shadow:        0 2px 8px rgba(0,0,0,0.08);
+  --shadow-strong: 0 12px 40px rgba(0,0,0,0.18);
+  --overlay:       rgba(20,30,40,0.45);
+  --radius-card:   16px;
+  --radius-sheet:  20px;
+  /* 하위호환 별칭 */
+  --accent-soft: var(--primary-tint);
   --card-bg: var(--surface);
   --card-bd: var(--bd);
 }
 html[data-theme="dark"] {
   --bg:        #14161b;
-  --surface:   #1f232b;
-  --surface-2: #272c35;
+  --surface:   #1f232b;   /* base보다 한 단계 밝게(다크 elevation=색단계) */
+  --surface-2: #272c35;   /* 또 한 단계 밝게 */
   --bd:        #30353f;
   --bd-2:      #3a404b;
   --text-strong: #f3f5f7;
   --text-1:    #dfe3e8;
   --text-2:    #aab2bc;
   --text-3:    #7f8893;
-  --accent-soft: #1b2730;
+  /* 프라이머리 — 값 보존, 틴트/강조는 다크 보정 */
+  --primary:        #5ca9ce;
+  --primary-strong: #7cc4e6; /* 다크에선 밝게 */
+  --primary-tint:   #1b2730;
+  --primary-tint-bd:#2f4351;
+  --on-primary:     #ffffff;
+  /* 시맨틱 — 다크는 더 밝게(대비 확보) */
+  --danger:       #f08a8a;  --danger-tint:  #3a2526;
+  --warning:      #e6b450;  --warning-tint: #33291a;
+  --success:      #46c79a;  --success-tint: #1b322a;
+  /* 다크는 그림자보다 표면단계가 입체 주역 → 그림자 약하게 */
+  --shadow:        0 2px 8px rgba(0,0,0,0.4);
+  --shadow-strong: 0 12px 40px rgba(0,0,0,0.5);
+  --overlay:       rgba(0,0,0,0.6);
   color-scheme: dark;
 }
 html[data-theme="dark"] body { background: var(--bg); color: var(--text-1); }

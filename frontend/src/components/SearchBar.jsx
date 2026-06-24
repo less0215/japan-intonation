@@ -22,20 +22,20 @@ function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onT
         <button
           type="button"
           onClick={onUnlock}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0, background: '#fdf3e1', border: '1px solid #f0d8a8', borderRadius: 999, padding: '5px 11px 5px 9px', cursor: 'pointer', fontFamily: 'inherit' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0, background: 'var(--warning-tint)', border: '1px solid var(--warning)', borderRadius: 999, padding: '5px 11px 5px 9px', cursor: 'pointer', fontFamily: 'inherit' }}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="#c98a00"><polygon points="8 6 8 18 18 12" /></svg>
-          <span style={{ fontSize: 11.5, fontWeight: 600, color: '#b9790a' }}>무료 사용량 제한 풀기</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--warning)"><polygon points="8 6 8 18 18 12" /></svg>
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--warning)' }}>무료 사용량 제한 풀기</span>
         </button>
       )}
       {/* 좌측: 사용량 표시 (활성 + 일반 회원, 제한 풀기 칩이 없을 때) */}
       {active && !unlimited && !(locked && onUnlock) && (
         <>
-          <span style={{ width: 48, height: 5, borderRadius: 3, background: '#eef1f3', overflow: 'hidden', flexShrink: 0 }}>
-            <span style={{ display: 'block', height: '100%', width: `${usedPct}%`, background: locked ? '#e9a020' : PRIMARY, borderRadius: 3 }} />
+          <span style={{ width: 48, height: 5, borderRadius: 3, background: 'var(--surface-2)', overflow: 'hidden', flexShrink: 0 }}>
+            <span style={{ display: 'block', height: '100%', width: `${usedPct}%`, background: locked ? 'var(--warning)' : PRIMARY, borderRadius: 3 }} />
           </span>
-          <span style={{ fontSize: 10.5, color: locked ? '#c98a00' : '#9aa0a6' }}>
-            {resetClock(resetSec)} 초기화 · <b style={{ fontWeight: 600, color: locked ? '#c98a00' : PRIMARY }}>{usedPct}%</b>
+          <span style={{ fontSize: 10.5, color: locked ? 'var(--warning)' : 'var(--text-3)' }}>
+            {resetClock(resetSec)} 초기화 · <b style={{ fontWeight: 600, color: locked ? 'var(--warning)' : PRIMARY }}>{usedPct}%</b>
           </span>
         </>
       )}
@@ -47,11 +47,11 @@ function FastToolbar({ active, locked, usedPct = 0, unlimited, resetSec = 0, onT
         type="button"
         onClick={onToggle}
         aria-pressed={active}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 500, color: active ? '#5CA9CE' : '#8a9197' }}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 500, color: active ? PRIMARY : 'var(--text-2)' }}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill={active ? PRIMARY : 'none'} stroke={active ? 'none' : '#a3a9af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={active ? PRIMARY : 'none'} stroke={active ? 'none' : 'var(--text-3)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
         빠른 번역
-        <span style={{ width: 44, height: 26, borderRadius: 13, background: active ? PRIMARY : '#dfe3e7', position: 'relative', transition: 'background .15s' }}>
+        <span style={{ width: 44, height: 26, borderRadius: 13, background: active ? PRIMARY : 'var(--bd-2)', position: 'relative', transition: 'background .15s' }}>
           <span style={{ position: 'absolute', top: 3, left: active ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: 'var(--surface)', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .15s' }} />
         </span>
       </button>

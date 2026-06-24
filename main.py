@@ -1375,7 +1375,7 @@ def fast_unlimited_list(key: str = ""):
 
 
 # ── 집단 지성: 학습 행동 신호 적재 ──────────────────────────
-ALLOWED_LEARNING_EVENTS = {"tts_replay", "pitch_expand", "nuance_choice", "breakdown_expand", "pattern_expand"}
+ALLOWED_LEARNING_EVENTS = {"tts_replay", "pitch_expand", "nuance_choice", "breakdown_expand", "pattern_expand", "pitch_attempt"}
 
 class LearningEventRequest(BaseModel):
     event_type: str

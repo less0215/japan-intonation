@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import PitchGraph from './PitchGraph'
+import PronunciationPractice from './PronunciationPractice'
 import CopyButton from './CopyButton'
 import { BreakdownTable, BreakdownCards, DetailToggleButton, BreakdownPreview } from './BreakdownPanel'
 import { track, logLearning } from '../App'
@@ -79,6 +80,8 @@ const TONES = [
 ]
 
 export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading, onRequestBreakdown, onBreakdownExpanded }) {
+  // 발음 연습(베타)은 관리자 계정에만 노출 — 공개 배포 전 정봉준* 계정으로 먼저 검증
+  const IS_ADMIN = (() => { try { return !!JSON.parse(localStorage.getItem('tickjapan_user') || 'null')?.is_admin } catch { return false } })()
   // 톤 전환 — 'natural'은 원본 data, 그 외는 /translate-tone 로 받아 교체(칩 누를 때 생성)
   const [tone, setTone]         = useState('natural')
   const [toneData, setToneData] = useState({})   // { business: {...}, literal: {...} }
@@ -295,6 +298,11 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
       <div style={{ padding: '0 20px 4px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <PitchGraph accentData={accent_data} furigana={furigana} hideHeader />
       </div>
+
+      {/* 발음 연습(베타) — 관리자 계정에만 노출. 마이크 녹음→온디바이스 음높이 비교 */}
+      {IS_ADMIN && accent_data?.length > 0 && (
+        <PronunciationPractice accentData={accent_data} furigana={furigana} japanese={japanese} inputText={inputText} />
+      )}
 
       <hr className="divider" />
 

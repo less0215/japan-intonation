@@ -2285,6 +2285,32 @@ def admin_cache_stats(key: str = ""):
         db.close()
 
 
+@app.get("/admin/waitlist")
+def admin_waitlist(key: str = "", kind: str = "payment"):
+    """관리자 — 출시 알림 대기자 명단(이름·전화·신청일). kind=payment(결제/구독) | android."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    Tbl = AndroidWaitlist if kind == "android" else PaymentWaitlist
+    db = SessionLocal()
+    try:
+        rows = (db.query(Tbl, User)
+                  .outerjoin(User, User.id == Tbl.user_id)
+                  .order_by(Tbl.created_at.desc()).all())
+        return {
+            "kind": kind,
+            "count": len(rows),
+            "list": [{
+                "name": (u.name if u else None),
+                "phone": (u.phone if u else None),
+                "user_id": w.user_id,
+                "applied_at": w.created_at.isoformat() if w.created_at else None,
+                "notified": w.notified,
+            } for w, u in rows],
+        }
+    finally:
+        db.close()
+
+
 # ──────────────────────────────────────────────
 # 회원가입 / 로그인 (이름 + 휴대폰)
 # ──────────────────────────────────────────────

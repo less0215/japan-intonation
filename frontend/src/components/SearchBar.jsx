@@ -70,13 +70,22 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast,
   const [text, setText] = useState('')
   const timerRef = useRef(null)
   const lastSubmittedRef = useRef('')
-  const fileRef = useRef(null)
+  const galleryRef = useRef(null)
+  const cameraRef = useRef(null)
+  const [showPicker, setShowPicker] = useState(false)
+  const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 
   // 사진 선택 → 부모(handlePhoto)로 전달. 같은 파일 재선택도 되도록 value 초기화
   function handleFile(e) {
     const f = e.target.files?.[0]
     e.target.value = ''
+    setShowPicker(false)
     if (f) onCamera?.(f)
+  }
+  // 카메라 버튼: 모바일은 갤러리/카메라 선택 팝업, PC(카메라 없음)는 바로 파일창
+  function openPhoto() {
+    if (isMobile) setShowPicker(true)
+    else galleryRef.current?.click()
   }
 
   // 언마운트 시 타이머 정리
@@ -148,10 +157,11 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast,
         {/* 사진 번역 버튼 — 관리자(베타) + 입력칸이 비어 있을 때만 노출. 타이핑하면 자연스럽게 사라짐 */}
         {showCamera && !text.trim() && !loading && (
           <>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+            <input ref={galleryRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
             <button
               type="button"
-              onClick={() => fileRef.current?.click()}
+              onClick={openPhoto}
               aria-label="사진으로 번역 (베타)"
               style={{ position: 'absolute', top: 12, right: 12, width: 40, height: 40, borderRadius: 12, border: `1.5px solid ${PRIMARY}`, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, overflow: 'visible' }}
             >
@@ -178,6 +188,31 @@ export default function SearchBar({ onAnalyze, loading, onTyping, onClear, fast,
       >
         {loading ? <span className="spinner" /> : '번역'}
       </button>
+
+      {/* 모바일 사진 선택 — 갤러리/카메라 바텀시트 (PC는 안 뜸, 바로 파일창) */}
+      {showPicker && (
+        <div
+          onClick={() => setShowPicker(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--overlay)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: 'var(--surface)', borderRadius: '20px 20px 0 0', padding: '20px 16px calc(18px + env(safe-area-inset-bottom, 0px))', boxShadow: '0 -8px 30px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-strong)', textAlign: 'center', marginBottom: 16 }}>사진 가져오기</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button type="button" onClick={() => cameraRef.current?.click()} style={pickerBtn}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3.2" /></svg>
+                카메라로 촬영
+              </button>
+              <button type="button" onClick={() => galleryRef.current?.click()} style={pickerBtn}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
+                갤러리에서 선택
+              </button>
+            </div>
+            <button type="button" onClick={() => setShowPicker(false)} style={{ width: '100%', marginTop: 12, padding: '13px', borderRadius: 12, border: 'none', background: 'transparent', color: 'var(--text-3)', fontSize: 14, fontWeight: 500, fontFamily: 'inherit', cursor: 'pointer' }}>취소</button>
+          </div>
+        </div>
+      )}
     </form>
   )
 }
+
+const pickerBtn = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, width: '100%', padding: '15px', borderRadius: 14, border: '1.5px solid var(--bd)', background: 'var(--surface-2)', color: 'var(--text-strong)', fontSize: 15, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }

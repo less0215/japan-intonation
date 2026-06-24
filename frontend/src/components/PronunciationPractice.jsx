@@ -59,6 +59,7 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
   const N = accent.length
   const [phase, setPhase] = useState('closed')   // closed|listening|analyzing|result|denied|error
   const [result, setResult] = useState(null)
+  const [fb, setFb] = useState(null)             // 사용자 피드백: null|'up'|'down'|'done'
   const a = useRef({})
   const orbRef = useRef(null)
   const canvasRef = useRef(null)
@@ -74,8 +75,18 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
     a.current = {}
   }
 
+  // 사용자 피드백 적재 — '이 채점이 맞았나'를 정답 라벨로 수집(베타 정확도 개선용)
+  function sendFeedback(verdict, reason) {
+    try {
+      logLearning('pitch_feedback', japanese, {
+        verdict, reason: reason || null, score: result?.score,
+        target: accent, mine: result?.mine, down_target: result?.downT, input: inputText,
+      })
+    } catch {}
+  }
+
   async function open() {
-    setPhase('listening'); setResult(null)
+    setPhase('listening'); setResult(null); setFb(null)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
@@ -236,7 +247,34 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
               <span><span style={{ color: MINE }}>┅</span> 내 발음</span>
             </div>
           </div>
-          <p style={{ margin: '14px 0', fontSize: 13.5, color: 'rgba(255,255,255,0.9)', lineHeight: 1.55, textAlign: 'center' }}>{result.coach}</p>
+          <p style={{ margin: '14px 0 10px', fontSize: 13.5, color: 'rgba(255,255,255,0.9)', lineHeight: 1.55, textAlign: 'center' }}>{result.coach}</p>
+
+          {/* 피드백 — 채점이 맞았는지 사용자에게 묻기(베타 정확도 개선용 데이터) */}
+          <div style={{ marginBottom: 14, padding: '11px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 14, textAlign: 'center' }}>
+            {fb === null && (
+              <>
+                <p style={{ margin: '0 0 9px', fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>이 채점, 정확했나요?</p>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                  <button onClick={() => { setFb('up'); sendFeedback('up') }} style={fbBtn}>👍 좋아요</button>
+                  <button onClick={() => setFb('down')} style={fbBtn}>👎 아쉬워요</button>
+                </div>
+              </>
+            )}
+            {fb === 'down' && (
+              <>
+                <p style={{ margin: '0 0 9px', fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>어떤 점이 아쉬웠나요?</p>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {[['wrong_judge', '정답인데 틀렸대요'], ['not_heard', '내 발음 인식이 안 됨'], ['bad_coach', '코칭이 이상해요']].map(([r, label]) => (
+                    <button key={r} onClick={() => { sendFeedback('down', r); setFb('done') }} style={fbChip}>{label}</button>
+                  ))}
+                </div>
+              </>
+            )}
+            {(fb === 'up' || fb === 'done') && (
+              <p style={{ margin: 0, fontSize: 12.5, color: 'rgba(255,255,255,0.8)' }}>알려줘서 고마워요 🙌 베타를 같이 키워가요.</p>
+            )}
+          </div>
+
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={open} style={{ ...stopBtn, flex: 1, background: PRIMARY, color: '#fff', border: 'none' }}>다시 말하기</button>
             <button onClick={close} style={{ ...stopBtn, flex: 1 }}>닫기</button>
@@ -267,3 +305,5 @@ const chip = { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 1
 const overlay = { position: 'fixed', inset: 0, zIndex: 9500, background: 'radial-gradient(circle at 50% 35%, #1a2730 0%, #0b1116 70%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', padding: '64px 0 48px' }
 const closeBtn = { position: 'absolute', top: 18, right: 18, width: 38, height: 38, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }
 const stopBtn = { height: 46, padding: '0 22px', borderRadius: 14, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }
+const fbBtn = { height: 36, padding: '0 16px', borderRadius: 999, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.18)', color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }
+const fbChip = { height: 32, padding: '0 12px', borderRadius: 999, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }

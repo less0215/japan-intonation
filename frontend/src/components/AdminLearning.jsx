@@ -16,6 +16,7 @@ const TYPES = [
   { key: 'nuance_choice',    label: '뜻 선택',  icon: '💡' },
   { key: 'breakdown_expand', label: '문장분해', icon: '🔎' },
   { key: 'pattern_expand',   label: '문법',     icon: '📖' },
+  { key: 'pitch_feedback',   label: '발음피드백', icon: '🎤' },
 ]
 const TYPE_LABEL = {
   tts_replay: '🔊 자주 다시 듣는 발음',
@@ -23,6 +24,7 @@ const TYPE_LABEL = {
   nuance_choice: '💡 자주 고른 의미',
   breakdown_expand: '🔎 자주 분해한 문장',
   pattern_expand: '📖 자주 펼친 문법',
+  pitch_feedback: '🎤 발음 연습 피드백',
 }
 
 export default function AdminLearning() {

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ResultCard from './ResultCard'
+import { logLearning } from '../App'
 
 /* 사진 학습 — 전체화면 모드 (관리자 베타)
  * 올린 사진 + (정보성 글이면) 한눈에 요약 + 의미 단위 구간 아코디언.
@@ -54,6 +55,7 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
   function handleSave(i) {
     onSaveChunk?.(chunks[i])
     setSavedSet(prev => new Set(prev).add(i))
+    logLearning('photo_save', chunks[i]?.japanese)   // 집단지성: 무엇이 중요한가
   }
 
   const label = DOC_LABELS[result?.doc_type] || result?.doc_type || ''
@@ -102,7 +104,7 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
           return (
             <div key={i} style={{ marginBottom: 8 }}>
               <button
-                onClick={() => setOpen(isOpen ? -1 : i)}
+                onClick={() => { const opening = !isOpen; setOpen(opening ? i : -1); if (opening) logLearning('photo_expand', c.japanese) }}
                 aria-expanded={isOpen}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: 12, borderRadius: 12, cursor: 'pointer', textAlign: 'left', background: isOpen ? 'var(--primary-tint)' : 'var(--surface)', border: `1.5px solid ${isOpen ? PRIMARY : 'var(--bd)'}`, fontFamily: 'inherit' }}
               >

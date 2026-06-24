@@ -716,6 +716,7 @@ export default function App() {
         body: JSON.stringify({
           image_b64: dataUrl,
           user_id: user?.user_id ?? null,
+          anonymous_id: (() => { try { return localStorage.getItem('tickjapan_anon_id') } catch { return null } })(),
           doc_type: 'auto',
         }),
       })
@@ -727,6 +728,9 @@ export default function App() {
       const data = await res.json()
       setPhotoStudy({ result: data, imageUrl: dataUrl })   // 전체화면 '사진 학습' 열기
       track('photo_translate', { doc_type: data.doc_type, chunks: data.chunks?.length })
+      // 집단지성(서버 적재): 무엇을 찍나(유형) + 실세계로 마주친 일본어 텍스트
+      logLearning('photo_extract', data.doc_type, { chunks: data.chunks?.length || 0 })
+      ;(data.chunks || []).slice(0, 20).forEach(c => { if (c.japanese) logLearning('photo_chunk', c.japanese) })
     } catch (err) {
       setError(err.message || '사진 번역 중 오류가 발생했어요.')
       track('photo_translate_error')
@@ -1031,7 +1035,7 @@ export default function App() {
                 loading={loading}
                 onTyping={setTyping}
                 onClear={handleClear}
-                showCamera={isAdmin}
+                showCamera={true}
                 onCamera={handlePhoto}
                 fast={{
                   active: selectedModel === 'fast',

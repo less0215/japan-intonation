@@ -923,7 +923,7 @@ def _call_gemini_json(prompt: str, model: str = None,
     contents = ([prompt, genai.types.Part.from_bytes(data=image_bytes, mime_type=mime_type)]
                 if image_bytes is not None else prompt)
 
-    for attempt in range(2):  # 최대 1회 재시도 (서버 부하 방지)
+    for attempt in range(3):  # 최대 2회 재시도 (Gemini 일시 과부하/503 흡수)
         try:
             _t0 = time.perf_counter()
             response = client.models.generate_content(
@@ -935,12 +935,11 @@ def _call_gemini_json(prompt: str, model: str = None,
             break
         except Exception as e:
             err_str = str(e)
-            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                # 쿼터 초과 — 재시도 없이 즉시 안내
-                raise HTTPException(status_code=429, detail="번역 서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.")
-            elif "503" in err_str or "UNAVAILABLE" in err_str:
-                print(f"[Gemini 재시도 {attempt + 1}/2] {err_str[:80]}")
-                time.sleep(1)
+            if ("503" in err_str or "UNAVAILABLE" in err_str
+                    or "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "overloaded" in err_str.lower()):
+                # 일시 과부하·쿼터 → 백오프 후 재시도(마지막 시도면 아래 else 절에서 안내)
+                print(f"[Gemini 재시도 {attempt + 1}/3] {err_str[:80]}")
+                time.sleep(attempt + 1)
             else:
                 raise HTTPException(status_code=502, detail=f"Gemini API 오류: {err_str}")
     else:
@@ -1042,7 +1041,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v8-hires-ocr"
+BUILD_VERSION = "2026-06-24-photo-v9-public-build19"
 
 @app.get("/version")
 def version():
@@ -1104,6 +1103,31 @@ def rate_guard(request: Request, user_id: int | None = None, count_daily: bool =
         _rate_buckets.clear()
     if len(_guest_daily) > 50000:
         _guest_daily.clear()
+
+
+# 사진 번역 — 공개(베타). 무료 일일 한도(비용·악용 방지). 권한자(관리자·구독·화이트리스트)는 무제한.
+PHOTO_FREE_DAILY = 10
+_photo_daily: dict[str, list] = {}   # key → [date_kst, count] (인메모리 소프트캡)
+
+def consume_photo_quota(db, user_id, anon_id, request):
+    """사진 번역 일일 한도 차감. 권한자는 무제한, 그 외(무료·익명)는 PHOTO_FREE_DAILY/일. 초과 시 429."""
+    u = db.query(User).filter(User.id == user_id).first() if user_id else None
+    privileged = bool(u and (is_admin_phone(u.phone) or is_fast_unlimited(u.phone))) \
+        or bool(user_id and get_active_subscription(db, user_id))
+    if privileged:
+        return
+    key = f"u:{user_id}" if user_id else (f"a:{anon_id}" if anon_id else f"ip:{_client_ip(request)}")
+    today = time.strftime("%Y-%m-%d", time.gmtime(time.time() + 9 * 3600))   # KST 자정 리셋
+    d = _photo_daily.get(key)
+    if not d or d[0] != today:
+        d = [today, 0]
+        _photo_daily[key] = d
+    if d[1] >= PHOTO_FREE_DAILY:
+        raise HTTPException(status_code=429,
+            detail=f"오늘 사진 번역을 모두 사용했어요. (무료 하루 {PHOTO_FREE_DAILY}회) 내일 다시 이용해 주세요.")
+    d[1] += 1
+    if len(_photo_daily) > 50000:
+        _photo_daily.clear()
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)
@@ -1304,6 +1328,7 @@ Field rules (per chunk, follow EXACTLY):
 class AnalyzeImageRequest(BaseModel):
     image_b64: str
     user_id: int | None = None
+    anonymous_id: str | None = None
     doc_type: str = "auto"          # auto | book | manga | menu | sign | general
     mime_type: str = "image/jpeg"
 
@@ -1354,17 +1379,15 @@ def _clean_furigana_html(fh: str, jp: str) -> str:
 @app.post("/analyze-image", response_model=AnalyzeImageResponse)
 def analyze_image(req: AnalyzeImageRequest, request: Request):
     """사진에서 일본어 인식 + 번역. 유형 자동 분류 + 유형별 읽기 순서 + 의미 단위 청크 + (정보성 글) 요약.
-    현재 관리자(정봉준) 전용 베타 — 비관리자는 403."""
+    공개(베타) — 무료 하루 한도, 권한자(관리자·구독·화이트리스트) 무제한."""
     rate_guard(request)
 
-    # 관리자 전용 게이트 (공개 전 베타)
+    # 사진 일일 한도 (공개 베타) — 권한자는 무제한
     db = SessionLocal()
     try:
-        u = db.query(User).filter(User.id == req.user_id).first() if req.user_id else None
+        consume_photo_quota(db, req.user_id, req.anonymous_id, request)
     finally:
         db.close()
-    if not (u and is_admin_phone(u.phone)):
-        raise HTTPException(status_code=403, detail="사진 번역은 현재 관리자 전용 베타입니다.")
 
     # 이미지 디코드 (data URL 접두어 허용)
     try:
@@ -1732,7 +1755,8 @@ def fast_unlimited_list(key: str = ""):
 
 
 # ── 집단 지성: 학습 행동 신호 적재 ──────────────────────────
-ALLOWED_LEARNING_EVENTS = {"tts_replay", "pitch_expand", "nuance_choice", "breakdown_expand", "pattern_expand", "pitch_attempt", "pitch_feedback"}
+ALLOWED_LEARNING_EVENTS = {"tts_replay", "pitch_expand", "nuance_choice", "breakdown_expand", "pattern_expand", "pitch_attempt", "pitch_feedback",
+                           "photo_extract", "photo_chunk", "photo_expand", "photo_save"}
 
 class LearningEventRequest(BaseModel):
     event_type: str

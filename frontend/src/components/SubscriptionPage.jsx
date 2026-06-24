@@ -129,7 +129,7 @@ export default function SubscriptionPage() {
         <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />광고 완전 제거</li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />빠른 번역 하루 200회 <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>· 사실상 무제한</span></li>
-          <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />사진 번역 <SoonBadge /></li>
+          <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />사진 번역 무제한 <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>· 베타</span></li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />이벤트 우선 참여</li>
         </ul>
         <button onClick={() => choose('plus')} style={{ width: '100%', background: PRIMARY, color: '#fff', border: 'none', borderRadius: 13, padding: '14px', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>플러스 시작하기</button>
@@ -147,8 +147,8 @@ export default function SubscriptionPage() {
         </p>
         {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {['광고 완전 제거', '빠른 번역 무제한', '사진 번역', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (
-            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-1)' }}><Check color="var(--success)" />{f} {f === '사진 번역' && <SoonBadge />}</li>
+          {['광고 완전 제거', '빠른 번역 무제한', '사진 번역 무제한', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (
+            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-1)' }}><Check color="var(--success)" />{f}{f.startsWith('사진 번역') && <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 4 }}>· 베타</span>}</li>
           ))}
         </ul>
         <button onClick={() => choose('pro')} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-1)', border: '1px solid var(--bd)', borderRadius: 13, padding: '13px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>프로 선택</button>

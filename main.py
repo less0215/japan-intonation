@@ -1,5 +1,6 @@
 import base64
 import datetime
+import hashlib
 import io
 import json
 import os
@@ -16,7 +17,7 @@ from google import genai
 from google.api_core.client_options import ClientOptions
 from google.cloud import texttospeech
 from pydantic import BaseModel
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, create_engine, text as sa_text
+from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String, Text, create_engine, text as sa_text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -250,11 +251,12 @@ TTS_VOICE_MAP = {
 }
 
 
+# 아래 3개는 L1(인메모리) 캐시. 서버 재시작 시 비워지지만,
+# CacheEntry 테이블(L2 영구 캐시)이 뒤를 받쳐 재시작 후에도 결과가 복원된다.
 # TTS 메모리 캐시 — 키: "{text}_{gender}", 값: mp3 바이너리
-# 서버 재시작 시 초기화됨
 _tts_cache: dict[str, bytes] = {}
 
-# 번역 결과 캐시 — 키: 한국어 원문, 값: AnalyzeResponse dict
+# 번역 결과 캐시 — 키: "{model}:{한국어 원문}", 값: AnalyzeResponse dict
 _analyze_cache: dict[str, dict] = {}
 
 # 문장 분해 캐시 — 키: 일본어 원문, 값: breakdown list
@@ -439,11 +441,103 @@ class PronunciationAttempt(Base):
     platform     = Column(String(10), nullable=True)
 
 
+class CacheEntry(Base):
+    """영구 캐시(L2) — 번역/분해/TTS 결과를 DB에 저장해 서버 재시작 후에도 유지.
+    인메모리 캐시(L1)가 비어도 여기서 복원 → 같은 요청은 Gemini·TTS 재호출(=비용) 없이 응답.
+    k_hash: sha256(ns + key). v_text: JSON(번역·분해). v_blob: mp3 바이트(TTS)."""
+    __tablename__ = "cache_entries"
+    id         = Column(Integer, primary_key=True, index=True)
+    k_hash     = Column(String(64), unique=True, index=True)  # ns+key 해시(길이 무관)
+    ns         = Column(String(16), index=True)               # 'analyze' | 'breakdown' | 'tts'
+    v_text     = Column(Text, nullable=True)                  # JSON 페이로드
+    v_blob     = Column(LargeBinary, nullable=True)           # mp3 바이너리
+    created_at = Column(DateTime, default=now_kst)
+
+
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base.metadata.create_all(bind=engine)
+
+
+# ──────────────────────────────────────────────
+# 영구 캐시(L2) 헬퍼 — 인메모리(L1) 뒤에서 DB로 결과를 영속화한다.
+# 재배포/재시작 후에도 캐시가 살아남아 Gemini·TTS 재호출(=비용)을 줄인다.
+# L1 적중 시 DB 접근 없음. L1 미스일 때만 DB 조회/저장.
+# ──────────────────────────────────────────────
+
+def _pcache_hash(ns: str, key: str) -> str:
+    return hashlib.sha256(f"{ns}\x1f{key}".encode("utf-8")).hexdigest()
+
+def _l1_put(cache: dict, key, value, cap: int = 2000) -> None:
+    """인메모리 L1 캐시 저장 — cap 초과 시 가장 오래된 항목(FIFO) 제거."""
+    if key not in cache and len(cache) >= cap:
+        del cache[next(iter(cache))]
+    cache[key] = value
+
+def pcache_get_text(ns: str, key: str):
+    """영구 캐시에서 JSON(dict/list) 조회 — 없으면 None."""
+    db = SessionLocal()
+    try:
+        row = db.query(CacheEntry).filter(CacheEntry.k_hash == _pcache_hash(ns, key)).first()
+        if row is not None and row.v_text is not None:
+            try:
+                return json.loads(row.v_text)
+            except Exception:
+                return None
+        return None
+    except Exception as e:
+        print("[pcache get_text] skip:", e)
+        return None
+    finally:
+        db.close()
+
+def pcache_put_text(ns: str, key: str, value) -> None:
+    """영구 캐시에 JSON 저장 (이미 있으면 무시 — 결과는 불변)."""
+    db = SessionLocal()
+    try:
+        h = _pcache_hash(ns, key)
+        if db.query(CacheEntry.id).filter(CacheEntry.k_hash == h).first():
+            return
+        db.add(CacheEntry(k_hash=h, ns=ns, v_text=json.dumps(value, ensure_ascii=False)))
+        db.commit()
+    except IntegrityError:
+        db.rollback()  # 동시 삽입 경쟁 — 이미 저장됨
+    except Exception as e:
+        db.rollback()
+        print("[pcache put_text] skip:", e)
+    finally:
+        db.close()
+
+def pcache_get_blob(ns: str, key: str):
+    """영구 캐시에서 바이너리(mp3) 조회 — 없으면 None."""
+    db = SessionLocal()
+    try:
+        row = db.query(CacheEntry).filter(CacheEntry.k_hash == _pcache_hash(ns, key)).first()
+        return bytes(row.v_blob) if (row is not None and row.v_blob is not None) else None
+    except Exception as e:
+        print("[pcache get_blob] skip:", e)
+        return None
+    finally:
+        db.close()
+
+def pcache_put_blob(ns: str, key: str, value: bytes) -> None:
+    """영구 캐시에 바이너리(mp3) 저장 (이미 있으면 무시)."""
+    db = SessionLocal()
+    try:
+        h = _pcache_hash(ns, key)
+        if db.query(CacheEntry.id).filter(CacheEntry.k_hash == h).first():
+            return
+        db.add(CacheEntry(k_hash=h, ns=ns, v_blob=value))
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+    except Exception as e:
+        db.rollback()
+        print("[pcache put_blob] skip:", e)
+    finally:
+        db.close()
 
 
 def run_migrations():
@@ -486,6 +580,33 @@ def run_migrations():
             ))
     except Exception as e:
         print("[migration] view skipped:", e)
+    # 구독·결제대기·안드로이드대기 점검용 뷰 — user_id에 이름/전화 조인(테스트 계정 구분용)
+    try:
+        with engine.begin() as conn:
+            conn.execute(sa_text("DROP VIEW IF EXISTS subscription_glance"))
+            conn.execute(sa_text(
+                "CREATE VIEW subscription_glance AS "
+                "SELECT s.started_at, u.name, u.phone, s.plan, s.period, s.status, "
+                "s.expires_at, s.last_paid_at, s.customer_key, s.user_id, s.id "
+                "FROM subscription s LEFT JOIN users u ON u.id = s.user_id "
+                "ORDER BY s.started_at DESC"
+            ))
+            conn.execute(sa_text("DROP VIEW IF EXISTS payment_waitlist_glance"))
+            conn.execute(sa_text(
+                "CREATE VIEW payment_waitlist_glance AS "
+                "SELECT w.created_at, u.name, u.phone, w.notified, w.user_id, w.id "
+                "FROM payment_waitlist w LEFT JOIN users u ON u.id = w.user_id "
+                "ORDER BY w.created_at DESC"
+            ))
+            conn.execute(sa_text("DROP VIEW IF EXISTS android_waitlist_glance"))
+            conn.execute(sa_text(
+                "CREATE VIEW android_waitlist_glance AS "
+                "SELECT w.created_at, u.name, u.phone, w.notified, w.user_id, w.id "
+                "FROM android_waitlist w LEFT JOIN users u ON u.id = w.user_id "
+                "ORDER BY w.created_at DESC"
+            ))
+    except Exception as e:
+        print("[migration] member views skipped:", e)
 
 run_migrations()
 
@@ -1002,12 +1123,19 @@ def analyze(req: AnalyzeRequest, request: Request):
 
     cache_key = f"{model_key}:{text}"
 
-    # ── 캐시 조회 ──────────────────────────────
+    # ── 캐시 조회: L1(메모리) → L2(영구 DB) ───────
     if cache_key in _analyze_cache:
-        print(f"[Analyze 캐시 HIT] {cache_key[:46]!r}")
+        print(f"[Analyze L1 HIT] {cache_key[:46]!r}")
         cached = _analyze_cache[cache_key]
         log_translation(text, cached.get("japanese"), req.user_id, req.anonymous_id, req.platform)
         return _with_usage(AnalyzeResponse(**cached))
+
+    persisted = pcache_get_text("analyze", cache_key)
+    if persisted is not None:
+        print(f"[Analyze L2 HIT] {cache_key[:46]!r}")
+        _l1_put(_analyze_cache, cache_key, persisted)
+        log_translation(text, persisted.get("japanese"), req.user_id, req.anonymous_id, req.platform)
+        return _with_usage(AnalyzeResponse(**persisted))
     # ───────────────────────────────────────────
 
     # 한국어 → 일본어 번역 + 억양 데이터 (선택 모델)
@@ -1029,11 +1157,10 @@ def analyze(req: AnalyzeRequest, request: Request):
         breakdown=[],  # 분해는 /breakdown에서 별도 생성
     )
 
-    # 결과를 캐시에 저장 (최대 500개, 초과 시 오래된 항목 제거)
-    if len(_analyze_cache) >= 2000:
-        oldest_key = next(iter(_analyze_cache))
-        del _analyze_cache[oldest_key]
-    _analyze_cache[cache_key] = result.model_dump()
+    # 결과를 L1(메모리) + L2(영구 DB)에 저장
+    payload = result.model_dump()
+    _l1_put(_analyze_cache, cache_key, payload)
+    pcache_put_text("analyze", cache_key, payload)
     print(f"[Analyze 캐시 저장] {cache_key[:46]!r}")
 
     # 번역 시도 자동 기록 (웹·앱 공통, source='auto')
@@ -1973,10 +2100,16 @@ def breakdown(req: BreakdownRequest, request: Request):
     if not text:
         raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
 
-    # ── 캐시 조회 ──────────────────────────────
+    # ── 캐시 조회: L1(메모리) → L2(영구 DB) ───────
     if text in _breakdown_cache:
-        print(f"[Breakdown 캐시 HIT] {text[:40]!r}")
+        print(f"[Breakdown L1 HIT] {text[:40]!r}")
         return BreakdownResponse(breakdown=_breakdown_cache[text])
+
+    persisted = pcache_get_text("breakdown", text)
+    if persisted is not None:
+        print(f"[Breakdown L2 HIT] {text[:40]!r}")
+        _l1_put(_breakdown_cache, text, persisted)
+        return BreakdownResponse(breakdown=persisted)
     # ───────────────────────────────────────────
 
     raw_breakdown = generate_breakdown(text)
@@ -1987,10 +2120,10 @@ def breakdown(req: BreakdownRequest, request: Request):
 
     result = BreakdownResponse(breakdown=entries)
 
-    # 캐시에 저장 (최대 500개)
-    if len(_breakdown_cache) >= 2000:
-        del _breakdown_cache[next(iter(_breakdown_cache))]
-    _breakdown_cache[text] = [e.model_dump() for e in entries]
+    # L1(메모리) + L2(영구 DB)에 저장
+    payload = [e.model_dump() for e in entries]
+    _l1_put(_breakdown_cache, text, payload)
+    pcache_put_text("breakdown", text, payload)
     print(f"[Breakdown 캐시 저장] {text[:40]!r}")
 
     return result
@@ -2014,13 +2147,23 @@ def tts(req: TTSRequest, request: Request):
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="TTS 입력 텍스트가 비어 있습니다.")
 
-    # ── 캐시 조회 ──────────────────────────────
+    # ── 캐시 조회: L1(메모리) → L2(영구 DB) ───────
     cache_key = f"{req.text}_{req.gender}"
 
     if cache_key in _tts_cache:
-        print(f"[TTS 캐시 HIT] key={cache_key!r}")
+        print(f"[TTS L1 HIT] key={cache_key!r}")
         return StreamingResponse(
             io.BytesIO(_tts_cache[cache_key]),
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": "inline; filename=speech.mp3"},
+        )
+
+    persisted = pcache_get_blob("tts", cache_key)
+    if persisted is not None:
+        print(f"[TTS L2 HIT] key={cache_key!r}")
+        _l1_put(_tts_cache, cache_key, persisted, cap=1000)
+        return StreamingResponse(
+            io.BytesIO(persisted),
             media_type="audio/mpeg",
             headers={"Content-Disposition": "inline; filename=speech.mp3"},
         )
@@ -2055,8 +2198,9 @@ def tts(req: TTSRequest, request: Request):
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Google TTS 오류: {str(e)}")
 
-    # 결과를 캐시에 저장
-    _tts_cache[cache_key] = tts_response.audio_content
+    # 결과를 L1(메모리) + L2(영구 DB)에 저장
+    _l1_put(_tts_cache, cache_key, tts_response.audio_content, cap=1000)
+    pcache_put_blob("tts", cache_key, tts_response.audio_content)
     print(f"[TTS 캐시 저장] key={cache_key!r} ({len(tts_response.audio_content):,} bytes)")
 
     # MP3 바이트를 스트리밍 응답으로 반환
@@ -2065,6 +2209,80 @@ def tts(req: TTSRequest, request: Request):
         media_type="audio/mpeg",
         headers={"Content-Disposition": "inline; filename=speech.mp3"},
     )
+
+
+class WarmTTSRequest(BaseModel):
+    key: str = ""
+    gender: str = "female"
+    texts: list[str] = []
+
+@app.post("/admin/warm-tts")
+def admin_warm_tts(req: WarmTTSRequest):
+    """관리자 — 라이브러리 음성 사전 생성(워밍업).
+    주어진 일본어 문자열들을 TTS로 합성해 영구 캐시(CacheEntry)에 저장한다.
+    한 번 채워두면 이후 동일 문자열 재생은 전부 캐시 적중 → TTS 비용 0원.
+    rate_guard 없이 한 클라이언트로 배치 처리하고, 이미 캐시에 있으면 건너뛴다(멱등).
+    캐시 키는 /tts와 동일한 '{text}_{gender}' 형식이라 프론트 재생과 정확히 일치한다."""
+    if req.key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    api_key = os.environ.get("GOOGLE_TTS_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="GOOGLE_TTS_API_KEY 미설정")
+
+    gender = req.gender if req.gender in TTS_VOICE_MAP else "female"
+    voice = texttospeech.VoiceSelectionParams(language_code="ja-JP", name=TTS_VOICE_MAP[gender])
+    audio_config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
+    client = texttospeech.TextToSpeechClient(client_options=ClientOptions(api_key=api_key))
+
+    generated = already = errors = skipped = 0
+    seen: set[str] = set()
+    for raw in req.texts:
+        t = (raw or "").strip()
+        if not t or t in seen:
+            skipped += 1
+            continue
+        seen.add(t)
+        ck = f"{t}_{gender}"
+        if pcache_get_blob("tts", ck) is not None:
+            already += 1
+            continue
+        try:
+            r = client.synthesize_speech(
+                input=texttospeech.SynthesisInput(text=t), voice=voice, audio_config=audio_config)
+            pcache_put_blob("tts", ck, r.audio_content)
+            generated += 1
+        except Exception as e:
+            errors += 1
+            print("[warm-tts] err:", t[:30], str(e)[:80])
+    return {"ok": True, "gender": gender, "requested": len(req.texts),
+            "generated": generated, "already_cached": already,
+            "errors": errors, "skipped_dupe_empty": skipped}
+
+
+@app.get("/admin/cache-stats")
+def admin_cache_stats(key: str = ""):
+    """관리자 — 영구 캐시(L2) 현황: 네임스페이스별 행 수, TTS 저장 용량, L1 크기."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    from sqlalchemy import func
+    db = SessionLocal()
+    try:
+        by_ns = dict(db.query(CacheEntry.ns, func.count(CacheEntry.id))
+                       .group_by(CacheEntry.ns).all())
+        try:
+            tts_bytes = db.query(func.coalesce(func.sum(func.length(CacheEntry.v_blob)), 0)) \
+                          .filter(CacheEntry.ns == "tts").scalar() or 0
+        except Exception:
+            tts_bytes = None
+        return {
+            "rows_by_ns": {k: v for k, v in by_ns.items()},
+            "l1_sizes": {"analyze": len(_analyze_cache),
+                         "breakdown": len(_breakdown_cache),
+                         "tts": len(_tts_cache)},
+            "tts_blob_mb": round(tts_bytes / 1048576, 1) if tts_bytes else tts_bytes,
+        }
+    finally:
+        db.close()
 
 
 # ──────────────────────────────────────────────

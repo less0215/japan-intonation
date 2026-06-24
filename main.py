@@ -1258,6 +1258,8 @@ Respond with ONLY a valid JSON object, no extra text:
 If NO Japanese text is found, return {"doc_type":"none","summary":"","chunks":[]}.
 
 Field rules (per chunk, follow EXACTLY):
+- japanese: the text EXACTLY as printed in the image. Do NOT add furigana, spaces, or parentheses here.
+- furigana_html: copy "japanese" character-for-character, but after each KANJI word insert its reading in half-width parentheses. The reading inside ( ) MUST be hiragana only — NEVER kanji, NEVER katakana. If you remove every "(...)" the result MUST equal "japanese" exactly. Leave hiragana/katakana/punctuation untouched. Example: japanese "吾輩は猫である。" -> furigana_html "吾輩(わがはい)は猫(ねこ)である。" . Another: "名前はまだ無い。" -> "名前(なまえ)はまだ無(な)い。" .
 - korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이.
 - accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of mora_count == total morae of that chunk's furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
 """
@@ -1281,6 +1283,22 @@ class AnalyzeImageResponse(BaseModel):
     doc_type: str = "general"       # 자동 인식된 인쇄물 유형
     summary: str = ""               # 정보성 글(도서 등)일 때 전체 내용 한국어 요약
     chunks: list[PhotoChunk] = []   # 의미 단위로 미리 묶은 구간(읽기 순서)
+
+_HIRA_READING = re.compile(r'^[ぁ-んー]+$')
+
+def _clean_furigana_html(fh: str, jp: str) -> str:
+    """Gemini가 준 furigana_html이 '한자(히라가나)' 형식으로 올바른지 검증.
+    괄호 안 읽기가 히라가나가 아니거나, 괄호를 모두 떼었을 때 원문(jp)과 다르면
+    깨진 것으로 보고 폐기 → 원문 그대로 반환(루비 없이 평문). 화면에 한자 후리가나·엉뚱한 괄호가 안 뜨게."""
+    if not fh:
+        return jp
+    readings = re.findall(r'[(（]([^)）]*)[)）]', fh)
+    if not readings or any(not _HIRA_READING.match(r or '') for r in readings):
+        return jp
+    stripped = re.sub(r'[(（][^)）]*[)）]', '', fh)
+    if stripped.replace(' ', '') != (jp or '').replace(' ', ''):
+        return jp
+    return fh
 
 @app.post("/analyze-image", response_model=AnalyzeImageResponse)
 def analyze_image(req: AnalyzeImageRequest, request: Request):
@@ -1336,7 +1354,7 @@ def analyze_image(req: AnalyzeImageRequest, request: Request):
             korean_meaning=c.get("korean_meaning", ""),
             furigana=c.get("furigana", ""),
             korean_pronunciation=c.get("korean_pronunciation", ""),
-            furigana_html=(c.get("furigana_html") or jp),
+            furigana_html=_clean_furigana_html(c.get("furigana_html") or "", jp),
             accent_data=acc,
         ))
     if not out_chunks:

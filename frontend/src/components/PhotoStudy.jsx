@@ -91,9 +91,15 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
                 aria-expanded={isOpen}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: 12, borderRadius: 12, cursor: 'pointer', textAlign: 'left', background: isOpen ? 'var(--primary-tint)' : 'var(--surface)', border: `1.5px solid ${isOpen ? PRIMARY : 'var(--bd)'}`, fontFamily: 'inherit' }}
               >
-                <span style={{ width: 22, height: 22, borderRadius: '50%', background: isOpen ? PRIMARY : 'var(--surface-2)', color: isOpen ? '#fff' : 'var(--text-2)', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
-                <span style={{ flex: 1, fontSize: 16, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP','Noto Sans KR',sans-serif" }}>{c.japanese}</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s', flexShrink: 0 }}><path d="M6 9l6 6 6-6" /></svg>
+                <span style={{ width: 22, height: 22, borderRadius: '50%', background: isOpen ? PRIMARY : 'var(--surface-2)', color: isOpen ? '#fff' : 'var(--text-2)', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 16, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP','Noto Sans KR',sans-serif", lineHeight: 1.4 }}>{c.japanese}</span>
+                  {/* 접힌 상태에선 한국어 뜻을 바로 보여주고(스캔용), 펼치면 아래 ResultCard가 상세 표시 */}
+                  {!isOpen && c.korean_meaning && (
+                    <span style={{ display: 'block', fontSize: 12.5, color: 'var(--text-2)', marginTop: 3, lineHeight: 1.45 }}>{c.korean_meaning}</span>
+                  )}
+                </span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s', flexShrink: 0, marginTop: 1 }}><path d="M6 9l6 6 6-6" /></svg>
               </button>
               {isOpen && (
                 <div style={{ marginTop: 8 }}>

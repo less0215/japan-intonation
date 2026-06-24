@@ -67,7 +67,7 @@ export function DetailPanel({ row }) {
       {/* 초심자용 어휘·표현 풀이 (고풍/관용/특수 읽기 등) */}
       {row.note && (
         <div style={{ marginBottom: hasSteps ? 12 : 0 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: PRIMARY, letterSpacing: '0.3px', marginBottom: 5 }}>단어 풀이</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: PRIMARY, letterSpacing: '0.3px', marginBottom: 5 }}>쉬운 풀이</p>
           <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, margin: 0 }}>{row.note}</p>
         </div>
       )}

@@ -228,7 +228,7 @@ Example — 日本語を話すことができますか？:
         {"step": 2, "form": "できます", "label": "ます형 (정중체)", "note": "できる → できます"},
         {"step": 3, "form": "できますか", "label": "의문형", "note": "か를 붙여 정중한 의문문 형성"}
       ],
-      "note": null
+      "note": "〜ことができる: '~할 수 있다'(가능)를 나타내는 패턴. 만드는 법: 동사 기본형 + ことができる. 話す(말하다)→話すことができる(말할 수 있다). 여기에 ます·か를 붙이면 정중한 의문문이 됨."
     }
   ]
 }
@@ -244,7 +244,10 @@ Fields:
 - "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
 - "conjugation_steps": null for uninflected chunks; array for conjugated/pattern chunks
   Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
-- "note": a SHORT, beginner-friendly Korean explanation of this chunk — ONLY when it is NOT obvious to a beginner: archaic/literary words (吾輩, 候 등), idioms, special/irregular readings, set phrases, or nuanced particles (は vs が 등). Mention the common everyday alternative when helpful (e.g. 吾輩 → 보통은 私). 1-2 short, natural Korean sentences. For ordinary everyday words, set note to null.
+- "note": a SHORT, beginner-friendly Korean explanation. Assume the learner JUST started — can read hiragana but knows almost no grammar. The goal is not "the form changed" but "you can actually USE this." Fill note whenever the chunk is NOT self-evident:
+    • archaic/literary words or special readings (吾輩, 候, 가나 불규칙 등) → explain simply + the common modern word (吾輩 → 보통은 私를 씀).
+    • FREQUENT grammar patterns / set forms (〜ています, 〜たい, 〜たことがある, 〜なければならない, 〜ことができる, 〜てしまう, 〜ようにする, だ・です・である, 〜ている, 〜から·〜ので 등) → explain the MEANING and HOW TO MAKE/USE it in plain Korean, with a tiny worked example showing the transformation. e.g. 〜ています → "지금 진행 중이거나 상태가 이어짐(~하고 있습니다). 만드는 법: 동사를 て형으로 바꾸고 + います. 食べる(먹다)→食べて+います→食べています(먹고 있습니다)." e.g. である → "'~이다'의 딱딱한 문어체(글·설명문에 자주). 회화의 だ/です보다 격식 있음. 명사+である. 猫である(고양이다)."
+  For ordinary everyday words with no special point, set note to null. Keep it 1-3 short, natural Korean sentences a true beginner can follow.
 """
 
 # (악센트는 Gemini가 /analyze에서 직접 생성 — 구 OJAD 스크래핑은 타임아웃 잦아 폐기)
@@ -266,6 +269,8 @@ _analyze_cache: dict[str, dict] = {}
 
 # 문장 분해 캐시 — 키: 일본어 원문, 값: breakdown list
 _breakdown_cache: dict[str, list] = {}
+# 분해 캐시 버전 — BREAKDOWN_PROMPT(풀이 등) 바꾸면 올려서 옛 캐시 자동 무효화
+_BD_CACHE_VER = "v2"
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)
@@ -1021,7 +1026,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v4-furigana-vocabnote"
+BUILD_VERSION = "2026-06-24-photo-v5-usage-spacing-cachebust"
 
 @app.get("/version")
 def version():
@@ -1274,7 +1279,7 @@ Field rules (per chunk, follow EXACTLY):
 - japanese: the text EXACTLY as printed in the image. Do NOT add furigana, spaces, or parentheses here.
 - furigana_html: copy "japanese", but after each KANJI word add its reading in half-width (parentheses). The reading inside ( ) MUST be hiragana only — never kanji, never katakana. If you remove every "(...)" the result MUST equal "japanese" exactly. Example: "吾輩は猫である。" -> "吾輩(わがはい)は猫(ねこ)である。" ; "名前はまだ無い。" -> "名前(なまえ)はまだ無(な)い。"
 - korean_meaning AND summary: write FLUENT, NATURAL Korean the way a Korean speaker actually talks. Prioritize MEANING and readability over literal word order. Avoid stiff translationese (번역투) and awkward direct translations. Make it sound natural in Korean.
-- korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이.
+- korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이. IMPORTANT: do NOT run it all together — put SPACES between words/phrases so a Korean can read it easily, and reflect the original punctuation (。→ ".", 、→ ","). Example: 吾輩は猫である。名前はまだ無い。 → "와가하이와 네코데아루. 나마에와 마다 나이.".
 - accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of mora_count == total morae of that chunk's furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
 """
 
@@ -2271,15 +2276,16 @@ def breakdown(req: BreakdownRequest, request: Request):
     if not text:
         raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
 
+    bkey = f"{_BD_CACHE_VER}:{text}"
     # ── 캐시 조회: L1(메모리) → L2(영구 DB) ───────
-    if text in _breakdown_cache:
+    if bkey in _breakdown_cache:
         print(f"[Breakdown L1 HIT] {text[:40]!r}")
-        return BreakdownResponse(breakdown=_breakdown_cache[text])
+        return BreakdownResponse(breakdown=_breakdown_cache[bkey])
 
-    persisted = pcache_get_text("breakdown", text)
+    persisted = pcache_get_text("breakdown", bkey)
     if persisted is not None:
         print(f"[Breakdown L2 HIT] {text[:40]!r}")
-        _l1_put(_breakdown_cache, text, persisted)
+        _l1_put(_breakdown_cache, bkey, persisted)
         return BreakdownResponse(breakdown=persisted)
     # ───────────────────────────────────────────
 
@@ -2293,8 +2299,8 @@ def breakdown(req: BreakdownRequest, request: Request):
 
     # L1(메모리) + L2(영구 DB)에 저장
     payload = [e.model_dump() for e in entries]
-    _l1_put(_breakdown_cache, text, payload)
-    pcache_put_text("breakdown", text, payload)
+    _l1_put(_breakdown_cache, bkey, payload)
+    pcache_put_text("breakdown", bkey, payload)
     print(f"[Breakdown 캐시 저장] {text[:40]!r}")
 
     return result

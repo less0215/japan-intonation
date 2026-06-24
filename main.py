@@ -1041,7 +1041,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v11-forceupdate-url"
+BUILD_VERSION = "2026-06-24-photo-v12-auto-force"
 
 @app.get("/version")
 def version():
@@ -2646,13 +2646,54 @@ def _get_setting(db, key, default):
     row = db.query(AppSetting).filter(AppSetting.key == key).first()
     return row.value if row else default
 
+def _set_setting(db, key, value):
+    row = db.query(AppSetting).filter(AppSetting.key == key).first()
+    if row:
+        row.value = value
+    else:
+        db.add(AppSetting(key=key, value=value))
+    db.commit()
+
+def _cmp_version(a, b):
+    """버전 비교 — a>b:1, a<b:-1, 같음:0."""
+    pa = [int(x) for x in str(a).split(".") if x.strip().isdigit()]
+    pb = [int(x) for x in str(b).split(".") if x.strip().isdigit()]
+    n = max(len(pa), len(pb))
+    pa += [0] * (n - len(pa)); pb += [0] * (n - len(pb))
+    return (pa > pb) - (pa < pb)
+
+_appstore_ver = {"ver": None, "ts": 0.0}
+
+def _appstore_live_version():
+    """App Store 현재 출시 버전(캐시 15분). 실패 시 None → 강제 안 켜짐(fail-safe)."""
+    now = time.time()
+    if _appstore_ver["ver"] is not None and now - _appstore_ver["ts"] < 900:
+        return _appstore_ver["ver"]
+    try:
+        r = requests.get("https://itunes.apple.com/lookup?id=6781296261", timeout=4)
+        ver = (r.json().get("results") or [{}])[0].get("version")
+        _appstore_ver["ver"] = ver
+        _appstore_ver["ts"] = now
+        return ver
+    except Exception:
+        return None
+
 @app.get("/app-version")
 def app_version():
-    """앱이 실행 시 호출 — 설치버전이 min_required 미만이면 강제 업데이트."""
+    """앱 실행 시 호출 — 설치버전이 min_required 미만이면 강제 업데이트.
+    예약 강제(auto_force_version)가 걸려 있으면, App Store에 그 버전이 출시되는 즉시
+    자동으로 min을 올린다(자고 있어도 출시 즉시 강제 — '갭' 제거)."""
     db = SessionLocal()
     try:
+        min_req = _get_setting(db, "min_app_version", DEFAULT_MIN_APP_VERSION)
+        target = _get_setting(db, "auto_force_version", "")
+        if target and _cmp_version(min_req, target) < 0:
+            live = _appstore_live_version()
+            if live and _cmp_version(live, target) >= 0:
+                _set_setting(db, "min_app_version", target)   # 출시 확인 → 자동 강제 ON
+                min_req = target
         return {
-            "min_required": _get_setting(db, "min_app_version", DEFAULT_MIN_APP_VERSION),
+            "min_required": min_req,
             "latest": _get_setting(db, "latest_app_version", LATEST_APP_VERSION),
             "ios_url": APP_STORE_URL,
         }
@@ -2683,23 +2724,24 @@ def set_min_version(req: SetMinVersionRequest):
 
 
 @app.get("/admin/force-update")
-def force_update_get(key: str = "", v: str = "1.7"):
-    """브라우저 한 탭으로 강제 업데이트 켜기/끄기 (curl 없이).
-    켜기: /admin/force-update?key=관리키&v=1.7  ·  끄기(롤백): ...&v=1.6
-    승인·출시 후 켜면 v 미만 사용자 전원에게 강제 업데이트 팝업."""
+def force_update_get(key: str = "", v: str = "1.7", when_live: int = 0):
+    """브라우저 한 탭으로 강제 업데이트 제어 (curl 없이).
+    · 예약(추천): ?key=관리키&v=1.7&when_live=1 → App Store에 1.7 출시되는 즉시 자동 강제(자는 사이 갭 제거).
+    · 즉시:       ?key=관리키&v=1.7            → 지금 바로 강제(반드시 출시 확인 후).
+    · 끄기/롤백:  ?key=관리키&v=1.6            → 강제 해제 + 예약도 해제."""
     if key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다. ?key=... 를 붙여주세요.")
     v = (v or "1.7").strip()
     db = SessionLocal()
     try:
-        row = db.query(AppSetting).filter(AppSetting.key == "min_app_version").first()
-        if row:
-            row.value = v
-        else:
-            db.add(AppSetting(key="min_app_version", value=v))
-        db.commit()
+        if when_live:
+            _set_setting(db, "auto_force_version", v)
+            return {"ok": True, "armed": v,
+                    "message": f"예약 완료 — App Store에 {v}가 출시되는 즉시 자동으로 강제 업데이트가 켜집니다. 지금은 OFF(사용자 안 묶임)."}
+        _set_setting(db, "min_app_version", v)
+        _set_setting(db, "auto_force_version", "")   # 즉시 적용/롤백 시 예약 해제
         return {"ok": True, "min_required": v,
-                "message": f"강제 업데이트 최소버전 = {v} 적용됨. ({v} 미만 사용자에게 업데이트 팝업이 뜹니다)"}
+                "message": f"강제 업데이트 최소버전 = {v} 적용됨. ({v} 미만 사용자에게 업데이트 팝업)"}
     finally:
         db.close()
 

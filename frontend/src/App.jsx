@@ -1232,7 +1232,11 @@ export default function App() {
         <PhotoStudy
           result={photoStudy.result}
           imageUrl={photoStudy.imageUrl}
-          onSaveChunk={(chunk) => { if (user) doSave(user, chunk.korean_meaning || '(사진)', chunk) }}
+          onSaveChunk={(chunk) => {
+            const key = chunk.korean_meaning || chunk.japanese || '(사진)'
+            addToHistory(key, chunk)                                  // 저장 탭 '번역 기록'에 표시(탭하면 결과 카드로 열림)
+            if (user) saveResult(user, key, chunk).catch(() => {})    // 로그인 시 서버에도 보관(기기 간)
+          }}
           onClose={() => setPhotoStudy(null)}
         />
       )}

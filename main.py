@@ -1041,7 +1041,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v10-tier-limits"
+BUILD_VERSION = "2026-06-24-photo-v11-forceupdate-url"
 
 @app.get("/version")
 def version():
@@ -2678,6 +2678,28 @@ def set_min_version(req: SetMinVersionRequest):
             db.add(AppSetting(key="min_app_version", value=v))
         db.commit()
         return {"ok": True, "min_required": v}
+    finally:
+        db.close()
+
+
+@app.get("/admin/force-update")
+def force_update_get(key: str = "", v: str = "1.7"):
+    """브라우저 한 탭으로 강제 업데이트 켜기/끄기 (curl 없이).
+    켜기: /admin/force-update?key=관리키&v=1.7  ·  끄기(롤백): ...&v=1.6
+    승인·출시 후 켜면 v 미만 사용자 전원에게 강제 업데이트 팝업."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다. ?key=... 를 붙여주세요.")
+    v = (v or "1.7").strip()
+    db = SessionLocal()
+    try:
+        row = db.query(AppSetting).filter(AppSetting.key == "min_app_version").first()
+        if row:
+            row.value = v
+        else:
+            db.add(AppSetting(key="min_app_version", value=v))
+        db.commit()
+        return {"ok": True, "min_required": v,
+                "message": f"강제 업데이트 최소버전 = {v} 적용됨. ({v} 미만 사용자에게 업데이트 팝업이 뜹니다)"}
     finally:
         db.close()
 

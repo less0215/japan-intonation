@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
-import { logLearning } from '../App'
+
+const API_URL = 'https://japan-intonation-production.up.railway.app'
+const IS_APP = window.Capacitor?.isNativePlatform?.() ?? false
+function whoami() {
+  let user_id = null, anonymous_id = null
+  try { user_id = JSON.parse(localStorage.getItem('tickjapan_user') || 'null')?.user_id ?? null } catch {}
+  try { anonymous_id = localStorage.getItem('tickjapan_anon_id') } catch {}
+  return { user_id, anonymous_id }
+}
 
 /* 발음 연습 (관리자 전용 베타 · 온디바이스 · 전체화면 음성모드)
  * - 칩 탭 → 전체화면 음성모드 오버레이로 전환(미니멀, 대화하듯)
@@ -63,6 +71,7 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
   const a = useRef({})
   const orbRef = useRef(null)
   const canvasRef = useRef(null)
+  const attemptIdRef = useRef(null)   // 방금 적재한 발음 시도 행 id(피드백 연결용)
 
   useEffect(() => () => cleanup(), [])   // 언마운트 정리
   if (!moraList.length) return null
@@ -75,13 +84,15 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
     a.current = {}
   }
 
-  // 사용자 피드백 적재 — '이 채점이 맞았나'를 정답 라벨로 수집(베타 정확도 개선용)
+  // 사용자 피드백 적재 — 방금 시도(attemptId) 행에 verdict/reason 갱신(베타 정확도 개선용)
   function sendFeedback(verdict, reason) {
+    const id = attemptIdRef.current
+    if (!id) return
     try {
-      logLearning('pitch_feedback', japanese, {
-        verdict, reason: reason || null, score: result?.score,
-        target: accent, mine: result?.mine, down_target: result?.downT, input: inputText,
-      })
+      fetch(`${API_URL}/pronunciation/feedback`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+        body: JSON.stringify({ id, verdict, reason: reason || null }),
+      }).catch(() => {})
     } catch {}
   }
 
@@ -178,7 +189,15 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
     else coach = '핵심은 잡았어요. 다운스텝 위치만 한 번 더 맞춰볼까요?'
     setResult({ mine, score, downT, coach })
     setPhase('result')
-    try { logLearning('pitch_attempt', japanese, { input: inputText, target: accent, mine, down_target: downT, down_mine: downM, score, flat }) } catch {}
+    // 발음 시도 적재 → 전용 테이블(행 id 받아 피드백 연결)
+    attemptIdRef.current = null
+    try {
+      const who = whoami()
+      fetch(`${API_URL}/pronunciation/attempt`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+        body: JSON.stringify({ ...who, japanese, reading: korean_pronunciation, target: accent, mine, score, down_target: downT, down_mine: downM, flat, platform: IS_APP ? 'app' : 'web' }),
+      }).then(r => r.ok ? r.json() : null).then(d => { if (d?.id) attemptIdRef.current = d.id }).catch(() => {})
+    } catch {}
   }
 
   function close() { cleanup(); setPhase('closed') }
@@ -264,14 +283,19 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
               <>
                 <p style={{ margin: '0 0 9px', fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>어떤 점이 아쉬웠나요?</p>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  {[['wrong_judge', '정답인데 틀렸대요'], ['not_heard', '내 발음 인식이 안 됨'], ['bad_coach', '코칭이 이상해요']].map(([r, label]) => (
+                  {[
+                    ['false_negative', '정답대로 말했는데 틀렸대요'],
+                    ['not_heard', '내 발음을 잘 못 알아들어요'],
+                    ['too_harsh', '점수가 너무 짜요'],
+                    ['bad_coach', '설명이 안 맞아요'],
+                  ].map(([r, label]) => (
                     <button key={r} onClick={() => { sendFeedback('down', r); setFb('done') }} style={fbChip}>{label}</button>
                   ))}
                 </div>
               </>
             )}
             {(fb === 'up' || fb === 'done') && (
-              <p style={{ margin: 0, fontSize: 12.5, color: 'rgba(255,255,255,0.8)' }}>알려줘서 고마워요 🙌 베타를 같이 키워가요.</p>
+              <p style={{ margin: 0, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>알려줘서 감사합니다. 틱재팬은 사용자 분들과 함께 만드는 서비스입니다! 🙌</p>
             )}
           </div>
 

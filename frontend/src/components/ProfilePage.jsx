@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import AdminRevenue from './AdminRevenue'
 import AdminLearning from './AdminLearning'
+import AdminPronunciation from './AdminPronunciation'
 
 /* 프로필 탭 — 계정·문의·다운로드·로그아웃·회원탈퇴 */
 const PRIMARY = '#5CA9CE'
@@ -64,6 +65,7 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
       {/* 관리자 전용 — 제휴 수익 대시보드 */}
       {user?.is_admin && <AdminRevenue />}
       {user?.is_admin && <AdminLearning />}
+      {user?.is_admin && <AdminPronunciation />}
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Row icon="M4 4h16v16H4z M4 6l8 6 8-6" label="문의하기" onClick={() => { window.location.href = 'mailto:mgz.less@tickjapan.com?subject=[틱재팬] 문의' }} />

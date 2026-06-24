@@ -418,6 +418,27 @@ class LearningEvent(Base):
     platform     = Column(String(10), nullable=True)
 
 
+class PronunciationAttempt(Base):
+    """발음 연습 전용 적재 — 시도 1건 = 1행. 베타 채점 정확도 개선의 정답 라벨.
+    사용자 피드백(verdict/reason)이 나중에 같은 행에 갱신된다."""
+    __tablename__ = "pronunciation_attempt"
+    id           = Column(Integer, primary_key=True, index=True)
+    created_at   = Column(DateTime, default=now_kst, index=True)
+    user_id      = Column(Integer, nullable=True, index=True)
+    anonymous_id = Column(String(36), nullable=True, index=True)
+    japanese     = Column(String(300), nullable=True, index=True)   # 연습 문장/단어
+    reading      = Column(String(300), nullable=True)               # 한글 발음 표기
+    target_json  = Column(Text, nullable=True)                      # 정답 0/1 모라 패턴
+    mine_json    = Column(Text, nullable=True)                      # 추출된 내 발음 0/1 패턴
+    score        = Column(Integer, nullable=True, index=True)
+    down_target  = Column(Integer, nullable=True)                   # 정답 다운스텝 위치
+    down_mine    = Column(Integer, nullable=True)                   # 내 다운스텝 위치
+    flat         = Column(Boolean, nullable=True)                   # 내 발음이 평탄했나
+    fb_verdict   = Column(String(8), nullable=True, index=True)     # 'up' | 'down'
+    fb_reason    = Column(String(24), nullable=True, index=True)    # 아쉬운 이유 코드
+    platform     = Column(String(10), nullable=True)
+
+
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
@@ -1450,6 +1471,92 @@ def learning_purge(key: str = "", anonymous_ids: str = ""):
         n = db.query(LearningEvent).filter(LearningEvent.anonymous_id.in_(ids)).delete(synchronize_session=False)
         db.commit()
         return {"ok": True, "deleted": n}
+    finally:
+        db.close()
+
+
+# ── 발음 연습 전용 적재/피드백/통계 ──────────────────────────
+class PronAttemptReq(BaseModel):
+    user_id: int | None = None
+    anonymous_id: str | None = None
+    japanese: str | None = None
+    reading: str | None = None
+    target: list | None = None
+    mine: list | None = None
+    score: int | None = None
+    down_target: int | None = None
+    down_mine: int | None = None
+    flat: bool | None = None
+    platform: str | None = None
+
+@app.post("/pronunciation/attempt")
+def pronunciation_attempt(req: PronAttemptReq):
+    """발음 연습 시도 1건 적재 → 행 id 반환(이후 피드백이 이 id로 갱신). 실패해도 영향 없음."""
+    db = SessionLocal()
+    try:
+        row = PronunciationAttempt(
+            user_id=req.user_id, anonymous_id=(req.anonymous_id if not req.user_id else None),
+            japanese=(req.japanese or "")[:300] or None, reading=(req.reading or "")[:300] or None,
+            target_json=json.dumps(req.target, ensure_ascii=False)[:500] if req.target is not None else None,
+            mine_json=json.dumps(req.mine, ensure_ascii=False)[:500] if req.mine is not None else None,
+            score=req.score, down_target=req.down_target, down_mine=req.down_mine,
+            flat=req.flat, platform=req.platform,
+        )
+        db.add(row); db.commit()
+        return {"ok": True, "id": row.id}
+    except Exception as e:
+        print("[pron-attempt] 실패", str(e)[:120]); return {"ok": False}
+    finally:
+        db.close()
+
+class PronFeedbackReq(BaseModel):
+    id: int
+    verdict: str          # 'up' | 'down'
+    reason: str | None = None
+
+@app.post("/pronunciation/feedback")
+def pronunciation_feedback(req: PronFeedbackReq):
+    """발음 채점에 대한 사용자 피드백을 해당 시도 행에 갱신(베타 정확도 개선 라벨)."""
+    if req.verdict not in ("up", "down"):
+        return {"ok": False}
+    db = SessionLocal()
+    try:
+        row = db.query(PronunciationAttempt).filter(PronunciationAttempt.id == req.id).first()
+        if not row:
+            return {"ok": False}
+        row.fb_verdict = req.verdict
+        row.fb_reason = (req.reason or None) and req.reason[:24]
+        db.commit()
+        return {"ok": True}
+    except Exception as e:
+        print("[pron-feedback] 실패", str(e)[:120]); return {"ok": False}
+    finally:
+        db.close()
+
+@app.get("/admin/pronunciation-stats")
+def pronunciation_stats(key: str = "", limit: int = 20):
+    """관리자 — 발음 연습 통계(시도수·평균점수·피드백 분포·아쉬운 이유·어려운 단어)."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    from sqlalchemy import func
+    db = SessionLocal()
+    try:
+        P = PronunciationAttempt
+        total = db.query(func.count(P.id)).scalar() or 0
+        avg_score = db.query(func.avg(P.score)).scalar()
+        fb = dict(db.query(P.fb_verdict, func.count(P.id)).filter(P.fb_verdict.isnot(None)).group_by(P.fb_verdict).all())
+        reasons = dict(db.query(P.fb_reason, func.count(P.id)).filter(P.fb_reason.isnot(None)).group_by(P.fb_reason).all())
+        # 아쉬운(down) 피드백이 많은 단어/문장 상위
+        hard = (db.query(P.japanese, func.count(P.id).label("n"))
+                  .filter(P.fb_verdict == 'down', P.japanese.isnot(None))
+                  .group_by(P.japanese).order_by(func.count(P.id).desc()).limit(min(limit, 50)).all())
+        return {
+            "total_attempts": total,
+            "avg_score": round(float(avg_score), 1) if avg_score is not None else None,
+            "feedback": {k: v for k, v in fb.items()},
+            "down_reasons": {k: v for k, v in reasons.items()},
+            "hardest": [{"japanese": j, "down_count": n} for j, n in hard],
+        }
     finally:
         db.close()
 

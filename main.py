@@ -1026,7 +1026,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v5-usage-spacing-cachebust"
+BUILD_VERSION = "2026-06-24-photo-v6-full-page-read"
 
 @app.get("/version")
 def version():
@@ -1252,7 +1252,7 @@ A Korean learner photographed real-world Japanese. Do ALL of the following in on
    - "sign": signboard, notice, label, or package → natural order (usually left to right).
    - "general": plain horizontal text → left to right, top to bottom.
 {HINT}
-2) SPLIT the recognized text into reading CHUNKS sized for a phone. Each chunk is ONE natural meaning unit (a sentence or a clause), kept in reading order. Use AT MOST 8 chunks; if there is more text, cover the most prominent 8. Do NOT split one sentence into tiny fragments, and do NOT merge unrelated sentences.
+2) Read ALL the Japanese text visible in the image — EVERY line/column, completely, in the correct reading order. Do NOT stop after the first few lines, do NOT pick only the prominent ones, and do NOT summarize the body. Then split everything you read into reading CHUNKS: each chunk is ONE natural meaning unit (a sentence or a clause), kept in reading order. A full page commonly has 10-25 chunks — include them ALL (up to 30). Do NOT split one sentence into tiny fragments, and do NOT merge unrelated sentences.
 
 3) For INFORMATION-type material ("book", prose "general", long "sign" notices), write a SHORT, NATURAL Korean summary (1-2 sentences) of the WHOLE content so the reader grasps the gist at a glance. For "menu", "manga", or short signs where a summary is not meaningful, set summary to "".
 
@@ -1360,7 +1360,7 @@ def analyze_image(req: AnalyzeImageRequest, request: Request):
                             detail="사진에서 일본어를 찾지 못했어요. 글자가 또렷하게 나오도록 다시 찍어주세요.")
 
     out_chunks: list[PhotoChunk] = []
-    for i, c in enumerate((data.get("chunks") or [])[:8]):
+    for i, c in enumerate((data.get("chunks") or [])[:30]):
         jp = (c.get("japanese") or "").strip()
         if not jp:
             continue

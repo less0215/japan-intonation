@@ -62,7 +62,7 @@ function detectPitch(buf, sr) {
 }
 const hzToSemi = (hz) => 12 * Math.log2(hz)
 
-export default function PronunciationPractice({ accentData, furigana, japanese, korean_pronunciation, inputText }) {
+export default function PronunciationPractice({ accentData, furigana, japanese, korean_pronunciation, inputText, compact }) {
   const { moraList, accent } = flattenAccent(accentData, furigana)
   const N = accent.length
   const [phase, setPhase] = useState('closed')   // closed|listening|analyzing|result|denied|error
@@ -209,7 +209,7 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
 
   if (phase === 'closed') {
     return (
-      <div style={{ margin: '2px 20px 6px' }}>
+      <div style={{ margin: compact ? '8px 0 2px' : '2px 20px 6px' }}>
         <button onClick={open} style={chip}>
           <Mic /> 발음 연습 <span style={{ fontSize: 9.5, color: 'var(--warning)', background: 'var(--warning-tint)', borderRadius: 5, padding: '1px 5px' }}>베타</span>
         </button>

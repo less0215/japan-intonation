@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PARTICLES } from '../data/particles'
 import PitchGraph from './PitchGraph'
+import PronunciationPractice from './PronunciationPractice'
 import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
@@ -144,9 +145,12 @@ function ExampleBox({ example, exampleInfo }) {
 
       {/* 인토네이션 그래프 — 즉시 표시 */}
       {graphActive && (
-        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: 8 }}>
-          <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
-        </div>
+        <>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: 8 }}>
+            <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
+          </div>
+          <PronunciationPractice compact accentData={accentData} furigana={furigana} japanese={plainText} korean_pronunciation={example.pronunciation} inputText={example.kr} />
+        </>
       )}
 
       {/* 활용 원리 보기 */}

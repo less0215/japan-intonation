@@ -103,6 +103,22 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
               </button>
               {isOpen && (
                 <div style={{ marginTop: 8 }}>
+                  {/* 사진 속 위치 — 이 문장이 어디에 있는지 스포트라이트로 강조(오 여기 있구나) */}
+                  {imageUrl && c.bbox && (
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 2px 5px' }}>사진 속 위치</div>
+                      <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--bd)', lineHeight: 0 }}>
+                        <img src={imageUrl} alt="이 문장이 사진에서 인식된 위치" style={{ width: '100%', display: 'block' }} />
+                        <div style={{
+                          position: 'absolute',
+                          left: `${c.bbox[0] * 100}%`, top: `${c.bbox[1] * 100}%`,
+                          width: `${c.bbox[2] * 100}%`, height: `${c.bbox[3] * 100}%`,
+                          border: `2.5px solid ${PRIMARY}`, borderRadius: 3,
+                          boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)', transition: 'all .2s',
+                        }} />
+                      </div>
+                    </div>
+                  )}
                   <ResultCard
                     data={c}
                     inputText={c.korean_meaning}

@@ -1026,7 +1026,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-24-photo-v6-full-page-read"
+BUILD_VERSION = "2026-06-24-photo-v7-bbox-locate"
 
 @app.get("/version")
 def version():
@@ -1268,7 +1268,8 @@ Respond with ONLY a valid JSON object, no extra text:
       "furigana": "full reading of this chunk in hiragana only, no spaces",
       "korean_pronunciation": "how this chunk SOUNDS in Korean Hangul, mora by mora",
       "furigana_html": "japanese with each kanji word followed by its hiragana reading in (parentheses)",
-      "accent_data": [{"phrase_id":"0","mora_count":4,"accent":[0,1,1,1]}]
+      "accent_data": [{"phrase_id":"0","mora_count":4,"accent":[0,1,1,1]}],
+      "box": [120, 880, 360, 1000]
     }
   ]
 }
@@ -1281,6 +1282,7 @@ Field rules (per chunk, follow EXACTLY):
 - korean_meaning AND summary: write FLUENT, NATURAL Korean the way a Korean speaker actually talks. Prioritize MEANING and readability over literal word order. Avoid stiff translationese (번역투) and awkward direct translations. Make it sound natural in Korean.
 - korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이. IMPORTANT: do NOT run it all together — put SPACES between words/phrases so a Korean can read it easily, and reflect the original punctuation (。→ ".", 、→ ","). Example: 吾輩は猫である。名前はまだ無い。 → "와가하이와 네코데아루. 나마에와 마다 나이.".
 - accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of mora_count == total morae of that chunk's furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
+- box: the bounding box of WHERE this chunk's text appears in the image, as [ymin, xmin, ymax, xmax] integers normalized to 0-1000 (origin = top-left). For vertical text, the box wraps that column/region. Give your best estimate even if approximate. If you cannot locate it, omit box.
 """
 
 class AnalyzeImageRequest(BaseModel):
@@ -1297,11 +1299,24 @@ class PhotoChunk(BaseModel):
     korean_pronunciation: str = ""
     furigana_html: str = ""
     accent_data: list[AccentEntry] = []
+    bbox: list[float] | None = None   # 사진 속 위치 [x, y, w, h] (0~1 비율). 없으면 None
 
 class AnalyzeImageResponse(BaseModel):
     doc_type: str = "general"       # 자동 인식된 인쇄물 유형
     summary: str = ""               # 정보성 글(도서 등)일 때 전체 내용 한국어 요약
     chunks: list[PhotoChunk] = []   # 의미 단위로 미리 묶은 구간(읽기 순서)
+
+def _norm_box(b):
+    """Gemini box [ymin, xmin, ymax, xmax](0~1000) → 화면용 [x, y, w, h](0~1 비율). 잘못되면 None."""
+    try:
+        ymin, xmin, ymax, xmax = (max(0.0, min(1000.0, float(v))) for v in list(b)[:4])
+        x, y = xmin / 1000.0, ymin / 1000.0
+        w, h = (xmax - xmin) / 1000.0, (ymax - ymin) / 1000.0
+        if w <= 0 or h <= 0:
+            return None
+        return [round(x, 4), round(y, 4), round(w, 4), round(h, 4)]
+    except Exception:
+        return None
 
 _HIRA_READING = re.compile(r'^[ぁ-んー]+$')
 
@@ -1376,6 +1391,7 @@ def analyze_image(req: AnalyzeImageRequest, request: Request):
             korean_pronunciation=c.get("korean_pronunciation", ""),
             furigana_html=_clean_furigana_html(c.get("furigana_html") or "", jp),  # 검증 통과 시 루비, 아니면 원문
             accent_data=acc,
+            bbox=_norm_box(c.get("box")),
         ))
     if not out_chunks:
         raise HTTPException(status_code=422,

@@ -709,7 +709,7 @@ export default function App() {
     setInputText('')
     track('photo_translate_start')
     try {
-      const dataUrl = await resizeImage(file, 1280, 0.8)
+      const dataUrl = await resizeImage(file, 1600, 0.85)   // 빽빽한 책 글자 OCR 위해 해상도 상향
       const res = await fetch(`${API_URL}/analyze-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

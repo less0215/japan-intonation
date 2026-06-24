@@ -62,10 +62,11 @@ export async function initAds() {
     const mod = await import('@capacitor-community/admob')
     _admob = mod.AdMob
     await _admob.initialize({
-      initializeForTesting: true,        // 테스트 모드
+      initializeForTesting: USE_TEST,    // 프로덕션(USE_TEST=false)에서는 실제 광고
       testingDevices: [],
     })
     _ready = true
+    preloadInterstitial()   // 첫 전면 광고 미리 준비 → 표시 시 즉시·확실하게(no-fill/지연 최소화)
   } catch (e) {
     console.warn('[ads] init 실패', e)
   }
@@ -110,25 +111,57 @@ export async function showRewardedAd() {
   }
 }
 
-// 전면(interstitial) 광고 1회 표시. 일반 번역 N회마다 호출. 항상 닫힘 시 resolve.
-export async function showInterstitialAd() {
+// 전면 광고 상태 — 미리 로드(준비)해 두면 표시가 즉시·확실해진다(매번 즉석 load 시 no-fill/지연↑).
+let _interReady = false           // 다음 전면 광고가 로드 완료되어 바로 표시 가능한지
+let _interLoading = false         // 중복 prepare 방지
+let _lastInterAt = 0              // 마지막 전면 광고 표시 시각(ms) — 최소 간격 가드용
+const MIN_INTERSTITIAL_GAP_MS = 45 * 1000   // 전면 광고 최소 간격(연속 노출·정책 위반 방지)
+
+// 다음 전면 광고를 미리 로드. initAds 직후 + 매 표시 후 호출 → 항상 '장전' 상태 유지.
+export async function preloadInterstitial() {
+  if (!isApp || _interLoading || _interReady) return
+  _interLoading = true
+  try {
+    if (!_ready) await initAds()
+    if (!_admob) return
+    await _admob.prepareInterstitial({ adId: interstitialAdId(), isTesting: USE_TEST })
+    _interReady = true
+  } catch (e) {
+    _interReady = false
+    console.warn('[ads] interstitial preload 실패', e)
+  } finally {
+    _interLoading = false
+  }
+}
+
+// 전면(interstitial) 광고 1회 표시. 미리 로드된 광고를 즉시 표시하고, 끝나면 다음 광고를 다시 장전.
+// minGapMs: 직전 표시와의 최소 간격(중복 노출 방지). 닫힘/실패 시 항상 resolve.
+export async function showInterstitialAd({ minGapMs = MIN_INTERSTITIAL_GAP_MS } = {}) {
   if (!isApp) return false
+  if (minGapMs && _lastInterAt && Date.now() - _lastInterAt < minGapMs) return false   // 너무 이르면 건너뜀
   try {
     if (!_ready) await initAds()
     if (!_admob) return false
+    if (!_interReady) await preloadInterstitial()    // 아직 장전 안 됐으면 즉석 로드
+    if (!_interReady) return false                   // 로드 실패(no-fill) → 광고 없이 통과
     const { InterstitialAdPluginEvents } = await import('@capacitor-community/admob')
     return await new Promise((resolve) => {
       let done = false
       const handles = []
       const cleanup = () => handles.forEach(h => { try { h.remove() } catch {} })
-      const finish = (val) => { if (!done) { done = true; cleanup(); resolve(val) } }
+      const finish = (val) => {
+        if (done) return
+        done = true; cleanup()
+        _interReady = false
+        if (val) _lastInterAt = Date.now()
+        preloadInterstitial()      // 다음 광고 미리 장전
+        resolve(val)
+      }
       const add = async (evt, cb) => { handles.push(await _admob.addListener(evt, cb)) }
       ;(async () => {
         await add(InterstitialAdPluginEvents.Dismissed, () => finish(true))
         await add(InterstitialAdPluginEvents.FailedToShow, () => finish(false))
-        await add(InterstitialAdPluginEvents.FailedToLoad, () => finish(false))
         try {
-          await _admob.prepareInterstitial({ adId: interstitialAdId(), isTesting: USE_TEST })
           await _admob.showInterstitial()
         } catch (e) {
           console.warn('[ads] interstitial 표시 실패', e)

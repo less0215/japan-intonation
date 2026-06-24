@@ -319,7 +319,7 @@ export default function App() {
   const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
   // 앱 보상형 광고: 팝업 상태({mode}) + 이번 세션 광고 시청 완료 여부(앱 재시작 시 초기화)
   const [adPopup, setAdPopup] = useState(null)
-  const [adNotice, setAdNotice] = useState(false)   // 일반 번역 30회마다 전면 광고 사전 팝업
+  const [adNotice, setAdNotice] = useState(false)   // 일반 번역 일정 횟수마다 전면 광고 사전 팝업
   const [showReviewPrompt, setShowReviewPrompt] = useState(false)   // 리뷰 이벤트 팝업(앱·로그인·누적 8회쯤 1회)
   const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
   const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(또는 관리자/무제한) → 광고 제거
@@ -626,7 +626,9 @@ export default function App() {
       setResult(data)
       setLoading(false)
 
-      // 일반(basic) 번역 30회마다 전면 광고 — 회원 구분 없이(앱 전용). 광고 전 사전 팝업
+      // 일반(basic) 번역 전면 광고 — 무료 회원(앱 전용). 광고 전 사전 팝업.
+      // 빈도: 3번째에 첫 광고(짧게 쓰고 이탈하는 사용자도 1회는 노출) → 이후 5회마다.
+      //   (기존 30회는 너무 드물어 대부분 이탈 전까지 광고가 안 떠 비용만 나갔음)
       // 정착 기준: 같은 편집 세션의 중간 호출은 세지 않고, 새 번역(새 세션)일 때만 1 카운트
       const usedModel = data.model_used || useModel
       if (isApp && !subAdFree && !fastUnlimited && usedModel === 'basic' && editSid !== lastBasicSidRef.current) {
@@ -634,7 +636,7 @@ export default function App() {
         try {
           const n = (parseInt(localStorage.getItem('tickjapan_basic_count') || '0', 10) || 0) + 1
           localStorage.setItem('tickjapan_basic_count', String(n))
-          if (n % 30 === 0) { setAdNotice(true); track('interstitial_prompt', { count: n }) }
+          if (n === 3 || (n > 3 && (n - 3) % 5 === 0)) { setAdNotice(true); track('interstitial_prompt', { count: n }) }
         } catch {}
       }
 
@@ -1241,7 +1243,14 @@ export default function App() {
             addToHistory(key, chunk)                                  // 저장 탭 '번역 기록'에 표시(탭하면 결과 카드로 열림)
             if (user) saveResult(user, key, chunk).catch(() => {})    // 로그인 시 서버에도 보관(기기 간)
           }}
-          onClose={() => setPhotoStudy(null)}
+          onClose={() => {
+            setPhotoStudy(null)
+            // 사진 번역은 멀티모달이라 가장 비싼 기능 → 무료 회원은 학습을 닫을 때(가치 소비 후) 전면 광고 1회.
+            // 결과를 가리지 않도록 '닫기' 시점에만, 최소 간격 가드로 일반 광고와 연속 노출 방지.
+            if (isApp && !subAdFree && !fastUnlimited) {
+              showInterstitialAd().then(ok => track('interstitial_result', { from: 'photo_close', result: ok ? 'shown' : 'skip_or_fail' }))
+            }
+          }}
         />
       )}
       {/* 보상형 광고 양해 팝업 (앱 전용) */}
@@ -1266,7 +1275,7 @@ export default function App() {
           </div>
         </div>
       )}
-      {/* 일반 번역 30회마다 전면 광고 사전 팝업 (앱 전용) */}
+      {/* 일반 번역 일정 횟수마다 전면 광고 사전 팝업 (앱 전용) */}
       {adNotice && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ width: 300, maxWidth: '90vw', background: '#fff', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>

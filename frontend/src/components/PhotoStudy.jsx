@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import ResultCard from './ResultCard'
 import { logLearning } from '../App'
 
@@ -17,58 +17,22 @@ const DOC_LABELS = {
 // 빽빽한 세로쓰기(책·만화)는 박스가 어긋나므로 끔.
 const BOX_TYPES = new Set(['menu', 'sign'])
 
-// 관리자 베타 — bbox 영역을 넉넉히 패딩해 잘라 확대('내가 보는 문장이 여기').
-// 박스는 위치+범위 4개 값을 다 정확히 요구해 빗나가면 깨지지만, 크롭은 사방 패딩 덕에
-// bbox가 어긋나도 실제 문장이 조각 안에 들어와 오차가 치명적이지 않다.
-// imageUrl은 클라가 canvas로 만든 data URL이라 tainted 아님 → toDataURL 가능.
-function ChunkCrop({ imageUrl, bbox }) {
-  const [src, setSrc] = useState(null)   // null=계산중, ''=실패, 그 외=크롭 data URL
-  useEffect(() => {
-    if (!imageUrl || !Array.isArray(bbox) || bbox.length !== 4) { setSrc(''); return }
-    let cancelled = false
-    const img = new Image()
-    img.onload = () => {
-      if (cancelled) return
-      const [bx, by, bw, bh] = bbox
-      const clamp = (v) => Math.min(1, Math.max(0, v))
-      const padX = Math.max(bw * 0.6, 0.04), padY = Math.max(bh * 0.6, 0.04)   // 사방 넉넉히
-      const x0 = clamp(bx - padX), y0 = clamp(by - padY)
-      const x1 = clamp(bx + bw + padX), y1 = clamp(by + bh + padY)
-      const W = img.naturalWidth, H = img.naturalHeight
-      const sx = x0 * W, sy = y0 * H
-      const sw = Math.max(1, (x1 - x0) * W), sh = Math.max(1, (y1 - y0) * H)
-      try {
-        const cv = document.createElement('canvas')
-        cv.width = Math.round(sw); cv.height = Math.round(sh)
-        cv.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height)
-        setSrc(cv.toDataURL('image/jpeg', 0.92))
-      } catch { setSrc('') }
-    }
-    img.onerror = () => { if (!cancelled) setSrc('') }
-    img.src = imageUrl
-    return () => { cancelled = true }
-  }, [imageUrl, bbox])
-
-  if (src === '') return null   // 실패 시 조용히 숨김(전체 사진은 아래에 따로 보임)
-  return (
-    <div style={{ borderRadius: 10, overflow: 'hidden', border: `2px solid ${PRIMARY}`, background: 'var(--surface-2)', minHeight: src ? 0 : 60, lineHeight: 0 }}>
-      {src && <img src={src} alt="해당 구간 확대" style={{ width: '100%', display: 'block' }} />}
-    </div>
-  )
-}
-
-// 전체 사진 위 번호 핀 — bbox 중심에 찍는다. 범위를 주장하지 않아('점') 박스의 '범위 오차'가 원천적으로 없고,
-// 모서리보다 중심점이 안정적이다. 아코디언 구간 번호(①②③)와 1:1로 연결.
+// 전체 사진 위 번호 핀 — 글자를 가리지 않게 bbox '바깥 여백'에 둔다.
+// 기본은 강조 영역 위쪽(읽기 시작점) 여백으로 띄우고, 위 공간이 부족하면(상단 근접) 아래로 자동 전환.
+// 범위를 주장하지 않는 '점'이라 위치만 가리키며, 아코디언 구간 번호(①②③)와 1:1로 연결.
 function PinMarker({ bbox, n }) {
   if (!Array.isArray(bbox) || bbox.length !== 4) return null
   const [bx, by, bw, bh] = bbox
-  const cx = clamp01(bx + bw / 2) * 100, cy = clamp01(by + bh / 2) * 100
+  const cx = clamp01(bx + bw / 2) * 100
+  const above = by > 0.10                                   // 기본: 강조 영역 시작점(위) 바깥 여백 — 문서 상단 여백은 거의 항상 비어 있음
+  const top = clamp01(above ? by : by + bh) * 100
+  const ty = above ? '-135%' : '35%'                        // 영역 경계 바깥으로 충분히 밀어 글자와 안 겹치게
   return (
     <div style={{
-      position: 'absolute', left: `${cx}%`, top: `${cy}%`, transform: 'translate(-50%, -50%)',
-      width: 26, height: 26, borderRadius: '50%', background: PRIMARY, color: '#fff',
-      fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      border: '2px solid #fff', boxShadow: '0 1px 6px rgba(0,0,0,0.45)',
+      position: 'absolute', left: `${cx}%`, top: `${top}%`, transform: `translate(-50%, ${ty})`,
+      width: 24, height: 24, borderRadius: '50%', background: PRIMARY, color: '#fff',
+      fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      border: '2px solid #fff', boxShadow: '0 1px 5px rgba(0,0,0,0.5)',
     }}>{n}</div>
   )
 }
@@ -194,20 +158,15 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose, isA
               {isOpen && (
                 <div style={{ marginTop: 8 }}>
                   {/* 원본 사진 — 토글 ON일 때만.
-                      · 관리자 베타: bbox 영역을 잘라 확대('이 부분') + 전체 사진엔 번호 핀(맥락). 박스의 위치·범위 오차를 패딩 크롭으로 무력화.
-                      · 일반: 메뉴·간판만 위치 박스, 책·만화는 사진만(헤더 문장과 직접 대조) */}
+                      · 관리자 베타: 전체 사진에 소프트 스포트라이트로 위치 강조 + 글자 안 가리는 번호 핀.
+                      · 일반: 메뉴·간판만 위치 강조, 책·만화는 사진만(헤더 문장과 직접 대조) */}
                   {imageUrl && showImage && (() => {
                     const hasBox = Array.isArray(c.bbox) && c.bbox.length === 4
-                    // 관리자: 크롭 줌 + 번호 핀
+                    // 관리자: 전체에서 위치(스포트라이트 + 핀)
                     if (isAdmin && hasBox) {
                       return (
                         <div style={{ marginBottom: 12 }}>
-                          <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 2px 5px', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-                            사진 속 이 부분
-                          </div>
-                          <ChunkCrop imageUrl={imageUrl} bbox={c.bbox} />
-                          <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '10px 2px 5px' }}>전체에서 위치</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 2px 5px' }}>전체에서 위치</div>
                           <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--bd)', lineHeight: 0 }}>
                             <img src={imageUrl} alt="올린 사진 원본" style={{ width: '100%', display: 'block' }} />
                             <SoftSpotlight bbox={c.bbox} />

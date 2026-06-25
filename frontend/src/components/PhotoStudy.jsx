@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ResultCard from './ResultCard'
 import { logLearning } from '../App'
 
@@ -17,7 +17,81 @@ const DOC_LABELS = {
 // 빽빽한 세로쓰기(책·만화)는 박스가 어긋나므로 끔.
 const BOX_TYPES = new Set(['menu', 'sign'])
 
-export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
+// 관리자 베타 — bbox 영역을 넉넉히 패딩해 잘라 확대('내가 보는 문장이 여기').
+// 박스는 위치+범위 4개 값을 다 정확히 요구해 빗나가면 깨지지만, 크롭은 사방 패딩 덕에
+// bbox가 어긋나도 실제 문장이 조각 안에 들어와 오차가 치명적이지 않다.
+// imageUrl은 클라가 canvas로 만든 data URL이라 tainted 아님 → toDataURL 가능.
+function ChunkCrop({ imageUrl, bbox }) {
+  const [src, setSrc] = useState(null)   // null=계산중, ''=실패, 그 외=크롭 data URL
+  useEffect(() => {
+    if (!imageUrl || !Array.isArray(bbox) || bbox.length !== 4) { setSrc(''); return }
+    let cancelled = false
+    const img = new Image()
+    img.onload = () => {
+      if (cancelled) return
+      const [bx, by, bw, bh] = bbox
+      const clamp = (v) => Math.min(1, Math.max(0, v))
+      const padX = Math.max(bw * 0.6, 0.04), padY = Math.max(bh * 0.6, 0.04)   // 사방 넉넉히
+      const x0 = clamp(bx - padX), y0 = clamp(by - padY)
+      const x1 = clamp(bx + bw + padX), y1 = clamp(by + bh + padY)
+      const W = img.naturalWidth, H = img.naturalHeight
+      const sx = x0 * W, sy = y0 * H
+      const sw = Math.max(1, (x1 - x0) * W), sh = Math.max(1, (y1 - y0) * H)
+      try {
+        const cv = document.createElement('canvas')
+        cv.width = Math.round(sw); cv.height = Math.round(sh)
+        cv.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height)
+        setSrc(cv.toDataURL('image/jpeg', 0.92))
+      } catch { setSrc('') }
+    }
+    img.onerror = () => { if (!cancelled) setSrc('') }
+    img.src = imageUrl
+    return () => { cancelled = true }
+  }, [imageUrl, bbox])
+
+  if (src === '') return null   // 실패 시 조용히 숨김(전체 사진은 아래에 따로 보임)
+  return (
+    <div style={{ borderRadius: 10, overflow: 'hidden', border: `2px solid ${PRIMARY}`, background: 'var(--surface-2)', minHeight: src ? 0 : 60, lineHeight: 0 }}>
+      {src && <img src={src} alt="해당 구간 확대" style={{ width: '100%', display: 'block' }} />}
+    </div>
+  )
+}
+
+// 전체 사진 위 번호 핀 — bbox 중심에 찍는다. 범위를 주장하지 않아('점') 박스의 '범위 오차'가 원천적으로 없고,
+// 모서리보다 중심점이 안정적이다. 아코디언 구간 번호(①②③)와 1:1로 연결.
+function PinMarker({ bbox, n }) {
+  if (!Array.isArray(bbox) || bbox.length !== 4) return null
+  const [bx, by, bw, bh] = bbox
+  const cx = clamp01(bx + bw / 2) * 100, cy = clamp01(by + bh / 2) * 100
+  return (
+    <div style={{
+      position: 'absolute', left: `${cx}%`, top: `${cy}%`, transform: 'translate(-50%, -50%)',
+      width: 26, height: 26, borderRadius: '50%', background: PRIMARY, color: '#fff',
+      fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      border: '2px solid #fff', boxShadow: '0 1px 6px rgba(0,0,0,0.45)',
+    }}>{n}</div>
+  )
+}
+const clamp01 = (v) => Math.min(1, Math.max(0, v))
+
+// 소프트 스포트라이트 — 딱딱한 사각 테두리 대신 bbox 주변을 부드럽게 번지게(feather) 밝히고 나머지를 어둡게.
+// 날카로운 1px 경계가 주는 '여기서 정확히 끝난다'는 거짓 정밀감을 없애고, radial-gradient 깃털로
+// bbox의 위치·범위 오차를 시각적으로 흡수한다(filter:blur는 자식 이미지까지 흐리니 쓰지 않음).
+function SoftSpotlight({ bbox }) {
+  if (!Array.isArray(bbox) || bbox.length !== 4) return null
+  const [bx, by, bw, bh] = bbox
+  const cx = clamp01(bx + bw / 2) * 100, cy = clamp01(by + bh / 2) * 100
+  const rx = Math.max(bw * 50 + 11, 15)   // 타원 가로 반경(%) — bbox 절반 + 깃털 여유, 최소 15%
+  const ry = Math.max(bh * 50 + 9, 11)    // 타원 세로 반경(%)
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, pointerEvents: 'none', transition: 'background .2s',
+      background: `radial-gradient(ellipse ${rx}% ${ry}% at ${cx}% ${cy}%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 58%, rgba(0,0,0,0.55) 100%)`,
+    }} />
+  )
+}
+
+export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose, isAdmin = false }) {
   // 구간별 분해(breakdown)는 펼친 뒤 온디맨드로 받아 해당 구간에 병합
   const [chunks, setChunks] = useState(() => (result?.chunks || []).map(c => ({ ...c, breakdown: c.breakdown || [] })))
   const [open, setOpen] = useState(0)          // 펼친 구간 index (-1=모두 접힘)
@@ -119,9 +193,31 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
               </button>
               {isOpen && (
                 <div style={{ marginTop: 8 }}>
-                  {/* 원본 사진 — 토글 ON일 때만. 메뉴·간판은 위치 박스까지 강조, 책·만화는 사진만(헤더 문장과 직접 대조) */}
+                  {/* 원본 사진 — 토글 ON일 때만.
+                      · 관리자 베타: bbox 영역을 잘라 확대('이 부분') + 전체 사진엔 번호 핀(맥락). 박스의 위치·범위 오차를 패딩 크롭으로 무력화.
+                      · 일반: 메뉴·간판만 위치 박스, 책·만화는 사진만(헤더 문장과 직접 대조) */}
                   {imageUrl && showImage && (() => {
-                    const showBox = c.bbox && BOX_TYPES.has(result?.doc_type)
+                    const hasBox = Array.isArray(c.bbox) && c.bbox.length === 4
+                    // 관리자: 크롭 줌 + 번호 핀
+                    if (isAdmin && hasBox) {
+                      return (
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 2px 5px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+                            사진 속 이 부분
+                          </div>
+                          <ChunkCrop imageUrl={imageUrl} bbox={c.bbox} />
+                          <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '10px 2px 5px' }}>전체에서 위치</div>
+                          <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--bd)', lineHeight: 0 }}>
+                            <img src={imageUrl} alt="올린 사진 원본" style={{ width: '100%', display: 'block' }} />
+                            <SoftSpotlight bbox={c.bbox} />
+                            <PinMarker bbox={c.bbox} n={i + 1} />
+                          </div>
+                        </div>
+                      )
+                    }
+                    // 일반(비관리자) — 기존 동작 유지
+                    const showBox = hasBox && BOX_TYPES.has(result?.doc_type)
                     return (
                       <div style={{ marginBottom: 12 }}>
                         <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 2px 5px' }}>
@@ -129,15 +225,7 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
                         </div>
                         <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--bd)', lineHeight: 0 }}>
                           <img src={imageUrl} alt="올린 사진 원본" style={{ width: '100%', display: 'block' }} />
-                          {showBox && (
-                            <div style={{
-                              position: 'absolute',
-                              left: `${c.bbox[0] * 100}%`, top: `${c.bbox[1] * 100}%`,
-                              width: `${c.bbox[2] * 100}%`, height: `${c.bbox[3] * 100}%`,
-                              border: `2.5px solid ${PRIMARY}`, borderRadius: 3,
-                              boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)', transition: 'all .2s',
-                            }} />
-                          )}
+                          {showBox && <SoftSpotlight bbox={c.bbox} />}
                         </div>
                       </div>
                     )

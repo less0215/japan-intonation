@@ -76,7 +76,36 @@ const META_EVENTS = {
   subscribe_success:  'Purchase',              // 웹 결제 전환 (value+currency:'KRW' → ROAS 입찰)
 }
 
-/* 이벤트 전송 헬퍼 — GA4 + (앱) AppsFlyer + (웹) Meta Pixel */
+/* 자체 DB 적재 대상 — 결제·업셀 전환 퍼널 핵심 이벤트 (백엔드 ALLOWED_CONVERSION_EVENTS와 동기화) */
+const SERVER_CONVERSION_EVENTS = new Set([
+  'plans_view', 'subscribe_cta', 'subscribe_success', 'subscribe_cancel', 'subscribe_fail',
+  'subscribe_abandon', 'subscribe_restore', 'fast_upsell_shown', 'fast_upsell_cta',
+  'fast_upsell_dismiss', 'fast_limit_reached', 'review_prompt_shown', 'review_prompt_cta',
+  'review_prompt_dismiss', 'download_page_view', 'download_click', 'download_cta_click', 'signup_complete',
+])
+
+/* 전환 이벤트를 '우리 서버'(/track-event)에 적재 — fire-and-forget. user/anon은 localStorage에서 읽음.
+ * GA4로 휘발시키지 않고 유저 단위로 누적 → 업셀→결제·유입경로별 전환·매출 분석. */
+function trackServer(eventName, params = {}) {
+  try {
+    let user_id = null, anonymous_id = null
+    try { user_id = JSON.parse(localStorage.getItem('tickjapan_user') || 'null')?.user_id ?? null } catch {}
+    try { anonymous_id = localStorage.getItem('tickjapan_anon_id') } catch {}
+    const platform = (window.Capacitor?.isNativePlatform?.() ?? false) ? 'app' : 'web'
+    const { plan = null, period = null, currency = null } = params
+    const source = params.source ?? params.from ?? null
+    const value = (params.value != null && !Number.isNaN(Number(params.value))) ? Math.round(Number(params.value)) : null
+    const skip = new Set(['plan', 'period', 'value', 'currency', 'source', 'from', 'is_logged_in', 'is_app'])
+    const props = Object.fromEntries(Object.entries(params).filter(([k]) => !skip.has(k)))
+    fetch(`${API_URL}/track-event`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+      body: JSON.stringify({ event_name: eventName, user_id, anonymous_id, platform,
+        plan, period, source, value, currency, props: Object.keys(props).length ? props : null }),
+    }).catch(() => {})
+  } catch {}
+}
+
+/* 이벤트 전송 헬퍼 — GA4 + (앱) AppsFlyer + (웹) Meta Pixel + (핵심 전환) 자체 DB */
 export function track(eventName, params = {}) {
   if (typeof window.gtag === 'function') {
     window.gtag('event', eventName, params)
@@ -99,6 +128,8 @@ export function track(eventName, params = {}) {
     if (params && params.value != null) window.fbq('track', metaName, { value: params.value, currency: params.currency || 'KRW' })
     else window.fbq('track', metaName)
   }
+  // 자체 DB 적재 — 결제·업셀 전환 퍼널만 (유저 단위 누적 → 업셀→결제·유입경로·매출 분석)
+  if (SERVER_CONVERSION_EVENTS.has(eventName)) trackServer(eventName, params)
 }
 
 /* 집단 지성 — 학습 행동 신호를 '우리 서버'에 적재(GA4로 휘발시키지 않고 누적).
@@ -1272,6 +1303,7 @@ export default function App() {
         <PhotoStudy
           result={photoStudy.result}
           imageUrl={photoStudy.imageUrl}
+          isAdmin={isAdmin}
           onSaveChunk={(chunk) => {
             const key = chunk.korean_meaning || chunk.japanese || '(사진)'
             addToHistory(key, chunk)                                  // 저장 탭 '번역 기록'에 표시(탭하면 결과 카드로 열림)

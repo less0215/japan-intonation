@@ -159,7 +159,13 @@ Rules:
     • Casual/plain Korean (반말, 해체/한다체) → casual Japanese (常体 / タメ口, plain form)
   Do NOT default everything to polite form — mirror the input's register faithfully.
   If the input is a single word or its register is genuinely ambiguous, default to polite (です・ます).
-- "furigana": FULL reading in hiragana only (no kanji, no spaces) — concatenation of ALL morae in order
+- "furigana": the EXACT kana reading of "japanese", in hiragana only (no kanji, no spaces) — concatenation
+  of ALL morae in order. It MUST match "japanese" sound-for-sound; do NOT alter, shorten, or swap verb endings.
+  ⚠️ Volitional 〜ましょう reads 〜ましょう (NEVER 〜ました): 行きましょう→いきましょう, 食べましょう→たべましょう,
+     しましょう→しましょう. Past 〜ました reads 〜ました. These are DIFFERENT — read what is actually written.
+  CONSISTENCY (critical): "japanese", "furigana", "furigana_html", and "korean_pronunciation" MUST ALL denote
+  the SAME reading with the SAME verb ending — all volitional (ましょう / 마쇼-) OR all past (ました / 마시타),
+  NEVER mixed. Removing every "(...)" from "furigana_html" must equal "japanese"; "furigana" must be its full kana.
 - "korean_pronunciation": how the JAPANESE translation (the "japanese" field) SOUNDS,
   transcribed phonetically using KOREAN Hangul characters (한글).
   This is NOT katakana and NOT the original Korean input — it is the Japanese reading written in Hangul.

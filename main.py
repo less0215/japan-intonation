@@ -163,14 +163,30 @@ Rules:
 - "korean_pronunciation": how the JAPANESE translation (the "japanese" field) SOUNDS,
   transcribed phonetically using KOREAN Hangul characters (한글).
   This is NOT katakana and NOT the original Korean input — it is the Japanese reading written in Hangul.
-  CRITICAL: Convert the "furigana" (hiragana) mora-by-mora into Hangul, accurately and consistently.
-  Map each kana to its standard Hangul sound. Common correct mappings (follow EXACTLY):
+  CRITICAL: It MUST be a faithful sound-for-sound transcription of "furigana" — the SAME morae, in the
+  SAME order, with NOTHING added, dropped, or changed (especially verb endings). Convert mora-by-mora.
+  Base kana (follow EXACTLY):
     あ=아 い=이 う=우 え=에 お=오 / か=카 き=키 く=쿠 け=케 こ=코 /
     さ=사 し=시 す=스 せ=세 そ=소 / た=타 ち=치 つ=츠 て=테 と=토 /
     な=나 に=니 ぬ=누 ね=네 の=노 / は=하 ひ=히 ふ=후 へ=헤 ほ=호 /
     ま=마 み=미 む=무 め=메 も=모 / や=야 ゆ=유 よ=요 / ら=라 り=리 る=루 れ=레 ろ=로 / わ=와 を=오 ん=ㄴ받침
-  Examples (MUST match): いや→이야, 愛してる(あいしてる)→아이시테루, ありがとう→아리가토-, 日本語(にほんご)→니혼고.
-  Double-check: the first kana い ALWAYS starts with 이 (never 미). あ ALWAYS 아 (never 마).
+  VOICED: が=가 ぎ=기 ぐ=구 げ=게 ご=고 / ざ=자 じ=지 ず=즈 ぜ=제 ぞ=조 / だ=다 で=데 ど=도 /
+          ば=바 び=비 ぶ=부 べ=베 ぼ=보 / ぱ=파 ぴ=피 ぷ=푸 ぺ=페 ぽ=포
+  YŌON — a SMALL ゃ/ゅ/ょ MERGES with the preceding kana into ONE sound (NEVER read it separately):
+    きゃ=캬 きゅ=큐 きょ=쿄 / しゃ=샤 しゅ=슈 しょ=쇼 / ちゃ=차 ちゅ=추 ちょ=초 /
+    にゃ=냐 にゅ=뉴 にょ=뇨 / ひゃ=햐 ひゅ=휴 ひょ=효 / みゃ=먀 みゅ=뮤 みょ=묘 /
+    りゃ=랴 りゅ=류 りょ=료 / ぎゃ=갸 ぎゅ=규 ぎょ=교 / じゃ=자 じゅ=주 じょ=조 / びょ=뵤 ぴょ=표
+  LONG VOWEL — a う or ー after an お/う-row sound is a LONG vowel: write "-" (장음).
+    e.g., とうきょう→토-쿄- , おはよう→오하요- , がっこう→각코- .
+  SOKUON っ → a ㅅ받침 on the previous syllable. e.g., ちょっと→촛토 , きって→킷테 , いって→잇테 .
+  ⚠️ VERB ENDINGS — transcribe EXACTLY as written; NEVER swap volitional / past / negative:
+    ましょう = 마쇼-  (let's…, volitional)   ← NOT 마시타
+    ましょうか = 마쇼-카                      ← NOT 마시타카
+    ました = 마시타 (past) / ません = 마셍 / です = 데스 / ます = 마스 / でした = 데시타
+  Examples (MUST match): いや→이야, あいしてる→아이시테루, ありがとう→아리가토-, にほんご→니혼고,
+    食べに行きましょう(たべにいきましょう)→타베니 이키마쇼- .
+  SELF-CHECK before output: re-read korean_pronunciation against "furigana". If furigana ends in ましょう,
+  the Hangul MUST end in 마쇼- (never 마시타). The first kana い is ALWAYS 이 (never 미); あ is ALWAYS 아.
 - "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
 - "accent_data": Tokyo Japanese pitch accent per phrase/word group.
   Split the sentence into natural accent phrases (usually 2–5 morae each).
@@ -239,7 +255,9 @@ Vocabulary note example — 吾輩は (archaic word a beginner won't know):
 Fields:
 - "unit": surface form as it appears in the sentence (kanji where used)
 - "hiragana": reading in hiragana
-- "korean_pronunciation": Korean-character pronunciation
+- "korean_pronunciation": Korean-character (한글) pronunciation — a faithful mora-by-mora transcription of "hiragana"
+  (same morae; nothing added/dropped/changed). Yōon merges: しょ=쇼 ちょ=초 きょ=쿄 りょ=료 …; long vowel う/ー after お/う-row → "-"(장음);
+  っ → ㅅ받침; ん → ㄴ받침. Verb endings EXACT: ましょう=마쇼-(NOT 마시타), ました=마시타, ません=마셍, です=데스, ます=마스.
 - "korean_meaning": Korean meaning of this chunk
 - "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
 - "conjugation_steps": null for uninflected chunks; array for conjugated/pattern chunks

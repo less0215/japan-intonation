@@ -20,6 +20,14 @@ async function load() {
   return _P
 }
 
+// 프로미스 타임아웃 — 결제 시트/제품 조회가 끝내 응답 없을 때 '처리 중' 무한로딩을 막는다.
+// 성공 { ok:true, v } / 초과 { ok:false, timeout:true }. 원프로미스가 reject되면 그대로 throw(취소 등).
+function withTimeout(promise, ms) {
+  let t
+  const timeout = new Promise((res) => { t = setTimeout(() => res({ ok: false, timeout: true }), ms) })
+  return Promise.race([promise.then((v) => ({ ok: true, v })), timeout]).finally(() => clearTimeout(t))
+}
+
 // 앱 시작 1회 (main.jsx)
 export async function initIAP(appUserID) {
   if (!isApp() || _ready) return
@@ -55,15 +63,32 @@ export async function getEntitlements() {
 }
 
 // 구매. 성공 시 { success, plus, pro }, 취소 { cancelled }, 실패 { error }
+// 결제 SDK 미초기화·제품 조회 지연·결제 시트 무응답에도 '처리 중'에서 무한 대기하지 않도록 가드/타임아웃을 둔다.
 export async function purchase(productId) {
   if (!isApp()) return { success: false, error: 'web' }
   try {
     if (!_ready) await initIAP()
+    if (!_ready) return { success: false, error: 'not_ready' }   // configure 실패 → 무한로딩 대신 즉시 오류
     const P = await load()
-    const { products } = await P.getProducts({ productIdentifiers: [productId] })
+
+    // ① 제품 조회 — 20초 내 미응답 시 오류(결제 전이라 과금 위험 없음)
+    const pr = await withTimeout(P.getProducts({ productIdentifiers: [productId] }), 20000)
+    if (!pr.ok) return { success: false, error: 'product_timeout' }
+    const products = pr.v?.products
     if (!products?.length) return { success: false, error: 'no_product' }
-    const { customerInfo } = await P.purchaseStoreProduct({ product: products[0] })
-    const active = customerInfo?.entitlements?.active || {}
+
+    // ② 실제 결제 — 60초 last-resort 타임아웃. 시트가 끝내 무응답이면 권한을 재확인해
+    //    (혹시 백그라운드에서 완료·과금됐는지) 활성 권한 있으면 success, 없으면 오류로 정리(유령 과금 방지).
+    const buy = await withTimeout(P.purchaseStoreProduct({ product: products[0] }), 60000)
+    if (!buy.ok) {
+      try {
+        const { customerInfo } = await P.getCustomerInfo()
+        const a = customerInfo?.entitlements?.active || {}
+        if (a['plus'] || a['pro']) return { success: true, plus: !!a['plus'], pro: !!a['pro'] }
+      } catch {}
+      return { success: false, error: 'purchase_timeout' }
+    }
+    const active = buy.v?.customerInfo?.entitlements?.active || {}
     return { success: true, plus: !!active['plus'], pro: !!active['pro'] }
   } catch (e) {
     if (e?.userCancelled || e?.code === 'PURCHASE_CANCELLED' || e?.code === 1) return { success: false, cancelled: true }
@@ -77,9 +102,11 @@ export async function restore() {
   const none = { plus: false, pro: false, anyActive: false }
   if (!isApp()) return none
   try {
+    if (!_ready) await initIAP()
     const P = await load()
-    const { customerInfo } = await P.restorePurchases()
-    const active = customerInfo?.entitlements?.active || {}
+    const r = await withTimeout(P.restorePurchases(), 30000)   // 30초 내 미응답 시 '복원 중' 무한로딩 방지
+    if (!r.ok) return none
+    const active = r.v?.customerInfo?.entitlements?.active || {}
     const plus = !!active['plus'], pro = !!active['pro']
     return { plus, pro, anyActive: plus || pro }
   } catch { return none }

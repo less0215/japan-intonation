@@ -13,7 +13,6 @@ import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
 import TravelAffiliate from './components/TravelAffiliate'
 import TravelResultAffiliate from './components/TravelResultAffiliate'
-import TravelPopup from './components/TravelPopup'
 import BottomNav from './components/BottomNav'
 import SiteFooter from './components/SiteFooter'
 import SavesPage from './components/SavesPage'
@@ -1106,8 +1105,7 @@ export default function App() {
                   onBreakdownExpanded={() => setBreakdownExpanded(true)}
                 />
               )}
-              {/* 문장분해 팝업(여행 추천) — 분해 펼친 뒤 1회, 적합도 충족 시 (유지) */}
-              {result && <TravelPopup input={inputText} japanese={result.japanese} armed={breakdownExpanded} />}
+              {/* 문장분해 팝업 제거 — 번역 버튼 밑 인라인 카드가 이미 동일 적합도로 노출되므로 중복 방지 */}
               {/* 동사 감지 시 인스타 강의 CTA — 결과 카드 아래 */}
               {result?.breakdown && (() => {
                 const verbRow = result.breakdown.find(r => r.part_of_speech?.includes('동사'))

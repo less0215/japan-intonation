@@ -1041,7 +1041,7 @@ def health_check():
     return {"status": "ok"}
 
 # 배포 검증용 — 새 코드가 실제로 올라갔는지 확인(배포 때마다 갱신)
-BUILD_VERSION = "2026-06-25-transcribe-v1"
+BUILD_VERSION = "2026-06-25-iap-v1"
 
 @app.get("/version")
 def version():
@@ -1644,6 +1644,59 @@ def admin_grant_sub(req: GrantSubRequest):
         db.commit()
         return {"ok": True, "user_id": u.id, "name": u.name, "plan": req.plan, "period": req.period,
                 "expires_at": sub.expires_at.isoformat()}
+    finally:
+        db.close()
+
+
+# ── 인앱 결제(RevenueCat) 웹훅 ─────────────────────────────────
+# RevenueCat → 구매/갱신/취소/만료 이벤트 → Subscription 갱신(서버 enforcement: 광고제거·무제한·한도).
+# RevenueCat 대시보드 Integrations → Webhooks 에 URL + Authorization 헤더(아래 값) 등록.
+REVENUECAT_WEBHOOK_AUTH = "tickjapan-rc-wh-7c2e9a"
+
+@app.post("/revenuecat/webhook")
+async def revenuecat_webhook(request: Request):
+    if request.headers.get("authorization", "") != REVENUECAT_WEBHOOK_AUTH:
+        raise HTTPException(status_code=401, detail="unauthorized")
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="bad json")
+    ev = (body or {}).get("event") or {}
+    etype = ev.get("type") or ""
+    app_user_id = str(ev.get("app_user_id") or "")
+    if not app_user_id.isdigit():
+        return {"ok": True, "skipped": "anonymous"}   # 비로그인 구매 → 앱 클라이언트(RevenueCat)가 권한 처리
+    uid = int(app_user_id)
+    ent_ids = ev.get("entitlement_ids") or ([ev.get("entitlement_id")] if ev.get("entitlement_id") else [])
+    product_id = ev.get("product_id") or ""
+    plan = "pro" if ("pro" in ent_ids or ".pro." in product_id) else "plus"
+    period = "yearly" if ("yearly" in product_id) else "monthly"
+    days = 365 if period == "yearly" else 30
+    ACTIVE = {"INITIAL_PURCHASE", "RENEWAL", "PRODUCT_CHANGE", "UNCANCELLATION",
+              "NON_RENEWING_PURCHASE", "SUBSCRIPTION_EXTENDED"}
+    EXPIRE = {"EXPIRATION"}   # CANCELLATION은 자동갱신만 끈 것 → 만료 전까지 유지(여기선 무시)
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.id == uid).first()
+        if not u:
+            return {"ok": True, "skipped": "no user"}
+        if etype in ACTIVE:
+            db.query(Subscription).filter(Subscription.user_id == uid,
+                                          Subscription.status == 'active').update({"status": "expired"})
+            sub = Subscription(user_id=uid, plan=plan, period=period, status='active',
+                               billing_key=None, customer_key=f"rc_{uid}",
+                               started_at=now_kst(), expires_at=now_kst() + datetime.timedelta(days=days),
+                               last_paid_at=now_kst())
+            db.add(sub); db.commit()
+            print(f"[revenuecat] {etype} user={uid} {plan}/{period}")
+            return {"ok": True, "applied": etype, "user_id": uid, "plan": plan}
+        if etype in EXPIRE:
+            db.query(Subscription).filter(Subscription.user_id == uid,
+                                          Subscription.status == 'active').update({"status": "expired"})
+            db.commit()
+            print(f"[revenuecat] EXPIRATION user={uid}")
+            return {"ok": True, "expired": True}
+        return {"ok": True, "ignored": etype}
     finally:
         db.close()
 

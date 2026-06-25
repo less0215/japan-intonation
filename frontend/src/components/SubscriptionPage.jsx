@@ -4,6 +4,7 @@ import PageSEO from './PageSEO'
 import { useUser } from '../context/UserContext'
 import { loadTossPayments } from '@tosspayments/payment-sdk'
 import { track } from '../App'   // GA4 + AppsFlyer/Pixel 매핑 일원화(subscribe_waitlist→af_subscribe_waitlist 등)
+import { purchase as iapPurchase, restore as iapRestore, IAP_PRODUCTS } from '../iap'
 
 const PRIMARY = '#5CA9CE'
 const BUS_FARE = 1500   // 시내버스 한 번 요금 — 가격 앵커링용
@@ -33,8 +34,9 @@ export default function SubscriptionPage() {
   const { user } = useUser()
   const [sp] = useSearchParams()
   const [period, setPeriod] = useState('monthly')
-  const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app' | 'soon'
+  const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app' | 'soon' | 'done' | 'restored' | 'norestore'
   const [waitlistDone, setWaitlistDone] = useState(false)   // 출시 알림 신청 완료
+  const [purchasing, setPurchasing] = useState(null)        // 결제 진행 중인 플랜(앱 인앱결제)
   const lastChoice = useRef({ plan: null, period: 'monthly' })   // 직전 선택(plan/period) — waitlist·abandon에서 재사용
   const p = PLANS[period]
 
@@ -65,10 +67,26 @@ export default function SubscriptionPage() {
   async function choose(plan) {
     lastChoice.current = { plan, period }
     track('subscribe_cta', { plan, period, is_logged_in: !!user, is_app: isApp })
-    // 결제 정식 오픈 전 — 웹/앱 모두 '준비 중' 안내만(테스트 결제창 차단)
+    // 앱(iOS): RevenueCat 인앱 결제(StoreKit)
+    if (isApp) {
+      if (purchasing) return
+      setPurchasing(plan)
+      const r = await iapPurchase(IAP_PRODUCTS[`${plan}-${period}`])
+      setPurchasing(null)
+      if (r.success) {
+        try { localStorage.setItem('tickjapan_ad_free', '1') } catch {}
+        window.dispatchEvent(new CustomEvent('tickjapan:iap-updated'))   // App.jsx가 권한 재확인 → 광고제거·무제한 반영
+        track('subscribe_success', { plan, period, via: 'iap' })
+        setNotice('done')
+      } else if (r.cancelled) {
+        track('subscribe_cancel', { plan, period, via: 'iap' })
+      } else {
+        setNotice('error')
+      }
+      return
+    }
+    // 웹: 결제 미오픈이면 안내만 / 오픈 후 토스
     if (!PAYMENTS_ENABLED) { setNotice('soon'); return }
-    // iOS 안티스티어링: 앱 안에서 외부 결제 유도 금지 → 안내만
-    if (isApp) { setNotice('app'); return }
     if (!user?.user_id) { setNotice('login'); return }
     try {
       const toss = await loadTossPayments(TOSS_CLIENT_KEY)
@@ -78,6 +96,22 @@ export default function SubscriptionPage() {
         failUrl: `${window.location.origin}/billing/fail`,
       })
     } catch (e) { setNotice('error') }
+  }
+
+  // 구매 복원 (앱 — Apple 필수). 기기 변경/재설치 시 기존 구독 되살림
+  async function restoreSub() {
+    if (!isApp || purchasing) return
+    setPurchasing('restore')
+    const r = await iapRestore()
+    setPurchasing(null)
+    track('subscribe_restore', { result: r.anyActive ? 'ok' : 'none' })
+    if (r.anyActive) {
+      try { localStorage.setItem('tickjapan_ad_free', '1') } catch {}
+      window.dispatchEvent(new CustomEvent('tickjapan:iap-updated'))
+      setNotice('restored')
+    } else {
+      setNotice('norestore')
+    }
   }
 
   return (
@@ -139,7 +173,7 @@ export default function SubscriptionPage() {
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />사진 번역 하루 40회</li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />이벤트 우선 참여</li>
         </ul>
-        <button onClick={() => choose('plus')} style={{ width: '100%', background: PRIMARY, color: '#fff', border: 'none', borderRadius: 13, padding: '14px', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>플러스 시작하기</button>
+        <button onClick={() => choose('plus')} disabled={!!purchasing} style={{ width: '100%', background: PRIMARY, color: '#fff', border: 'none', borderRadius: 13, padding: '14px', fontSize: 14.5, fontWeight: 600, cursor: purchasing ? 'default' : 'pointer', opacity: purchasing && purchasing !== 'plus' ? 0.6 : 1, fontFamily: 'inherit' }}>{purchasing === 'plus' ? '처리 중…' : '플러스 시작하기'}</button>
       </div>
 
       {/* 프로 */}
@@ -158,12 +192,28 @@ export default function SubscriptionPage() {
             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-1)' }}><Check color="var(--success)" />{f}</li>
           ))}
         </ul>
-        <button onClick={() => choose('pro')} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-1)', border: '1px solid var(--bd)', borderRadius: 13, padding: '13px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>프로 선택</button>
+        <button onClick={() => choose('pro')} disabled={!!purchasing} style={{ width: '100%', background: 'var(--surface-2)', color: 'var(--text-1)', border: '1px solid var(--bd)', borderRadius: 13, padding: '13px', fontSize: 14, fontWeight: 600, cursor: purchasing ? 'default' : 'pointer', opacity: purchasing && purchasing !== 'pro' ? 0.6 : 1, fontFamily: 'inherit' }}>{purchasing === 'pro' ? '처리 중…' : '프로 선택'}</button>
       </div>
 
-      <p style={{ margin: '4px 2px 0', fontSize: 10.5, color: 'var(--text-3)', lineHeight: 1.6, textAlign: 'center' }}>
-        카드로 안전하게 결제되며(토스페이먼츠) 언제든 해지할 수 있어요.
-      </p>
+      {isApp ? (
+        <div style={{ margin: '8px 2px 0', textAlign: 'center' }}>
+          <button onClick={restoreSub} disabled={!!purchasing} style={{ background: 'none', border: 'none', color: PRIMARY, fontSize: 13, fontWeight: 600, cursor: purchasing ? 'default' : 'pointer', fontFamily: 'inherit', padding: '6px 0' }}>
+            {purchasing === 'restore' ? '복원 중…' : '구매 복원'}
+          </button>
+          <p style={{ margin: '6px 0 0', fontSize: 10.5, color: 'var(--text-3)', lineHeight: 1.6 }}>
+            구독은 자동 갱신되며, 기간 종료 24시간 전까지 해지하지 않으면 자동으로 갱신돼요. 결제는 Apple ID에 청구되고, 설정 → Apple ID → 구독에서 언제든 해지할 수 있어요.
+          </p>
+          <p style={{ margin: '5px 0 0', fontSize: 10.5 }}>
+            <button onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 10.5, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
+            <span style={{ color: 'var(--text-3)' }}> · </span>
+            <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 10.5, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>개인정보처리방침</button>
+          </p>
+        </div>
+      ) : (
+        <p style={{ margin: '4px 2px 0', fontSize: 10.5, color: 'var(--text-3)', lineHeight: 1.6, textAlign: 'center' }}>
+          카드로 안전하게 결제되며(토스페이먼츠) 언제든 해지할 수 있어요.
+        </p>
+      )}
 
       {/* 안내 모달 — 로그인 필요 / 앱(웹에서) / 오류 */}
       {notice && (() => {
@@ -173,6 +223,9 @@ export default function SubscriptionPage() {
             : { title: '결제 준비 중이에요', body: '곧 광고 없이 이용하실 수 있도록 결제 기능을 준비하고 있어요. 준비되면 가장 먼저 알려드릴까요?', primary: '출시 알림 받기', onPrimary: requestWaitlist },
           login: { title: '로그인이 필요해요', body: '구독은 로그인 후 이용할 수 있어요.', primary: '로그인하러 가기', onPrimary: () => navigate('/profile') },
           app:   { title: '구독은 웹에서', body: 'tickjapan.com 에서 구독하면 앱에서도 광고 없이 그대로 이용할 수 있어요.', primary: '확인', onPrimary: closeNotice },
+          done:  { title: '구독 완료!', body: '이제 광고 없이 빠르게 이용할 수 있어요. 감사해요 :)', primary: '확인', onPrimary: () => { closeNotice(); navigate('/') } },
+          restored: { title: '구매 복원 완료', body: '기존 구독을 되살렸어요. 혜택이 다시 적용됩니다.', primary: '확인', onPrimary: () => { closeNotice(); navigate('/') } },
+          norestore: { title: '복원할 구매가 없어요', body: '이 Apple ID로 구독한 내역을 찾지 못했어요.', primary: '확인', onPrimary: closeNotice },
           error: { title: '문제가 발생했어요', body: '잠시 후 다시 시도해 주세요.', primary: '확인', onPrimary: closeNotice },
         }[notice] || { title: '안내', body: '', primary: '확인', onPrimary: closeNotice }
         return (

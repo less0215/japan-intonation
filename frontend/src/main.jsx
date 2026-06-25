@@ -36,6 +36,8 @@ if (isApp) {
   })
   // AdMob 보상형 광고 초기화 (현재 테스트 광고)
   import('./ads').then(({ initAds }) => initAds())
+  // 인앱 결제(RevenueCat) 초기화 — 로그인 사용자 연결은 App.jsx에서 처리
+  import('./iap').then(({ initIAP }) => { try { const u = JSON.parse(localStorage.getItem('tickjapan_user') || 'null'); initIAP(u?.user_id) } catch { initIAP() } })
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

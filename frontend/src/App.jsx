@@ -35,6 +35,7 @@ import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbo
 import UpdateGate from './components/UpdateGate'
 import ReviewEventPopup from './components/ReviewEventPopup'
 import { showRewardedAd, showInterstitialAd } from './ads'
+import { iapLogin, iapLogout, getEntitlements } from './iap'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
 import GrammarLibrary from './components/GrammarLibrary'
@@ -323,8 +324,11 @@ export default function App() {
   const [adNotice, setAdNotice] = useState(false)   // 일반 번역 일정 횟수마다 전면 광고 사전 팝업
   const [showReviewPrompt, setShowReviewPrompt] = useState(false)   // 리뷰 이벤트 팝업(앱·로그인·누적 8회쯤 1회)
   const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
-  const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(또는 관리자/무제한) → 광고 제거
+  const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(백엔드) OR 인앱구매(RevenueCat) → 광고 제거
   const [subInfo, setSubInfo] = useState(null)                // /subscription 응답 { plan, expires_at, fast_unlimited, ad_free }
+  const [iapActive, setIapActive] = useState(false)           // 인앱 결제(RevenueCat) 활성 권한(plus/pro)
+  const iapActiveRef = useRef(false)                          // /subscription effect에서 현재값 참조용
+  function applyIap(active) { iapActiveRef.current = active; setIapActive(active); if (active) setSubAdFree(true) }
   const [photoStudy, setPhotoStudy] = useState(null)          // 사진 학습 전체화면 { result, imageUrl } (관리자 베타)
   const [msgUnread, setMsgUnread] = useState(0)               // 메시지함 안 읽은 개수(헤더 빨간 점)
   // 정착(settled) 번역 세션 — 디바운스 중간 호출을 한 번역으로 묶어 한도·광고 카운트
@@ -346,7 +350,7 @@ export default function App() {
   const [fastUpsell, setFastUpsell] = useState(false)        // 빠른 번역 한도 도달 → 플러스 업셀 팝업
   const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
   // 화이트리스트(전 무제한) 회원 OR 유효 구독(플러스/프로·지급분 포함) → 플러스 혜택
-  const fastUnlimited = !!user?.fast_unlimited || !!subInfo?.fast_unlimited
+  const fastUnlimited = !!user?.fast_unlimited || !!subInfo?.fast_unlimited || iapActive
   const isAdmin = !!subInfo?.is_admin   // 정봉준 관리자 — 사진 번역(베타) 노출 판정
   // 프로필/사용량에 보여줄 플러스 만료 문구 — 구독 만료일 우선, 없으면 화이트리스트(8.1)
   const plusPlanLabel = (() => {
@@ -382,19 +386,34 @@ export default function App() {
       .catch(() => {})
   }, [user?.user_id])
 
-  // 구독/관리자/무제한 → 광고 제거 여부 조회
+  // 구독/관리자/무제한 → 광고 제거 여부 조회 (백엔드. IAP 권한은 별도로 OR)
   useEffect(() => {
-    if (!user?.user_id) { setSubAdFree(false); setSubInfo(null); try { localStorage.removeItem('tickjapan_ad_free') } catch {}; return }
+    if (!user?.user_id) { setSubAdFree(iapActiveRef.current); setSubInfo(null); try { localStorage.setItem('tickjapan_ad_free', iapActiveRef.current ? '1' : '') } catch {}; return }
     fetch(`${API_URL}/subscription/${user.user_id}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d) {
-          setSubAdFree(!!d.ad_free); setSubInfo(d)
+          const adFree = !!d.ad_free || iapActiveRef.current   // 백엔드 구독 OR 인앱 결제
+          setSubAdFree(adFree); setSubInfo(d)
           // 구독 미접근 컴포넌트(라이브캠 등)에서 광고 차단에 쓰도록 공유
-          try { localStorage.setItem('tickjapan_ad_free', d.ad_free ? '1' : '') } catch {}
+          try { localStorage.setItem('tickjapan_ad_free', adFree ? '1' : '') } catch {}
         }
       })
       .catch(() => {})
+  }, [user?.user_id])
+
+  // 인앱 결제(RevenueCat) — 로그인 사용자 연결 + 활성 권한 조회 (앱 전용). 구매 후 이벤트로 재확인.
+  useEffect(() => {
+    if (!isApp) return
+    let alive = true
+    ;(async () => {
+      if (user?.user_id) await iapLogin(user.user_id); else await iapLogout()
+      const e = await getEntitlements()
+      if (alive) applyIap(e.anyActive)
+    })()
+    const onUpdated = async () => { const e = await getEntitlements(); applyIap(e.anyActive) }
+    window.addEventListener('tickjapan:iap-updated', onUpdated)
+    return () => { alive = false; window.removeEventListener('tickjapan:iap-updated', onUpdated) }
   }, [user?.user_id])
 
   // 메시지함 안 읽은 개수 조회 (로그인 시) — 헤더 빨간 점

@@ -17,8 +17,8 @@ const PAYMENTS_ENABLED = false
 /* 플랜 업그레이드 (/plans) — 무료/플러스/프로. 미니멀
  * 가격 단일 출처(SSOT) — BillingResult가 매출 전환 value 계산에 재사용하므로 export */
 export const PLANS = {
-  monthly: { label: '월간', plus: { total: 4900,  was: 8900,  per: 163, unit: '월' }, pro: { total: 19900, per: 663, unit: '월' } },
-  yearly:  { label: '연간', plus: { total: 49000, was: 89000, per: 134, unit: '년', save: '2개월 무료' }, pro: { total: 199000, per: 545, unit: '년', save: '2개월 무료' } },
+  monthly: { label: '월간', plus: { total: 4400,  was: 8900,  per: 147, unit: '월' }, pro: { total: 19000, per: 633, unit: '월' } },
+  yearly:  { label: '연간', plus: { total: 44000, was: 89000, per: 121, unit: '년', save: '2개월 무료' }, pro: { total: 190000, per: 521, unit: '년', save: '2개월 무료' } },
 }
 
 function Check({ color }) {
@@ -82,7 +82,7 @@ export default function SubscriptionPage() {
 
   return (
     <>
-      <PageSEO title="플랜 업그레이드 - 틱재팬" description="광고 없이, 빠른 번역. 하루 244원부터." path="/plans" />
+      <PageSEO title="플랜 업그레이드 - 틱재팬" description="광고 없이, 빠른 번역. 하루 121원부터." path="/plans" />
 
       <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', padding: '2px 0 14px' }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>

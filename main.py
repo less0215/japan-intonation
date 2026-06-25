@@ -294,7 +294,9 @@ _analyze_cache: dict[str, dict] = {}
 # 문장 분해 캐시 — 키: 일본어 원문, 값: breakdown list
 _breakdown_cache: dict[str, list] = {}
 # 분해 캐시 버전 — BREAKDOWN_PROMPT(풀이 등) 바꾸면 올려서 옛 캐시 자동 무효화
-_BD_CACHE_VER = "v2"
+_BD_CACHE_VER = "v3"
+# 번역/발음 캐시 버전 — TRANSLATION_PROMPT(후리가나·한글발음 규칙) 바꾸면 올려서 옛 캐시 자동 무효화
+_AN_CACHE_VER = "v2"
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)
@@ -1224,7 +1226,7 @@ def analyze(req: AnalyzeRequest, request: Request):
             setattr(resp, k, v)
         return resp
 
-    cache_key = f"{model_key}:{text}"
+    cache_key = f"{_AN_CACHE_VER}:{model_key}:{text}"
 
     # ── 캐시 조회: L1(메모리) → L2(영구 DB) ───────
     if cache_key in _analyze_cache:
@@ -1291,7 +1293,7 @@ def translate_tone(req: ToneRequest, request: Request):
     if not text:
         raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
 
-    cache_key = f"{tone}:{text}"
+    cache_key = f"{_AN_CACHE_VER}:{tone}:{text}"
     if cache_key in _tone_cache:
         return _tone_cache[cache_key]
 

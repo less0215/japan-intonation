@@ -92,7 +92,7 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
     a.current = {}
   }
 
-  // 사용자 피드백 적재 — 방금 시도(attemptId) 행에 verdict/reason 갱신(베타 정확도 개선용)
+  // 사용자 피드백 적재 — 방금 시도(attemptId) 행에 verdict 갱신(일반 만족도)
   function sendFeedback(verdict, reason) {
     const id = attemptIdRef.current
     if (!id) return
@@ -313,34 +313,19 @@ export default function PronunciationPractice({ accentData, furigana, japanese, 
           </div>
           <p style={{ margin: '14px 0 10px', fontSize: 13.5, color: 'rgba(255,255,255,0.9)', lineHeight: 1.55, textAlign: 'center' }}>{result.coach}</p>
 
-          {/* 피드백 — 채점이 맞았는지 사용자에게 묻기(베타 정확도 개선용 데이터) */}
+          {/* 피드백 — 일반 만족도(도움이 됐는지). 👍/👎 1회 기록 */}
           <div style={{ marginBottom: 14, padding: '11px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 14, textAlign: 'center' }}>
             {fb === null && (
               <>
-                <p style={{ margin: '0 0 9px', fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>이 채점, 정확했나요?</p>
+                <p style={{ margin: '0 0 9px', fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>도움이 됐나요?</p>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                   <button onClick={() => { setFb('up'); sendFeedback('up') }} style={fbBtn}>👍 좋아요</button>
-                  <button onClick={() => setFb('down')} style={fbBtn}>👎 아쉬워요</button>
-                </div>
-              </>
-            )}
-            {fb === 'down' && (
-              <>
-                <p style={{ margin: '0 0 9px', fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>어떤 점이 아쉬웠나요?</p>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  {[
-                    ['false_negative', '정답대로 말했는데 틀렸대요'],
-                    ['not_heard', '내 발음을 잘 못 알아들어요'],
-                    ['too_harsh', '점수가 너무 짜요'],
-                    ['bad_coach', '설명이 안 맞아요'],
-                  ].map(([r, label]) => (
-                    <button key={r} onClick={() => { sendFeedback('down', r); setFb('done') }} style={fbChip}>{label}</button>
-                  ))}
+                  <button onClick={() => { setFb('done'); sendFeedback('down') }} style={fbBtn}>👎 아쉬워요</button>
                 </div>
               </>
             )}
             {(fb === 'up' || fb === 'done') && (
-              <p style={{ margin: 0, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>알려줘서 감사합니다. 틱재팬은 사용자 분들과 함께 만드는 서비스입니다! 🙌</p>
+              <p style={{ margin: 0, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>피드백 감사합니다 🙌</p>
             )}
           </div>
 

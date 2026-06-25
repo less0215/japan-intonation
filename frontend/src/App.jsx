@@ -30,7 +30,6 @@ import { LIVECAMS } from './data/livecams'
 import AdConsentPopup from './components/AdConsentPopup'
 import FastUpsellPopup from './components/FastUpsellPopup'
 import SubscriptionPage from './components/SubscriptionPage'
-import { BillingSuccess, BillingFail } from './components/BillingResult'
 import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbox'
 import UpdateGate from './components/UpdateGate'
 import ReviewEventPopup from './components/ReviewEventPopup'
@@ -1053,8 +1052,6 @@ export default function App() {
           <Route path="/live"        element={<LiveCamLibrary />} />
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
           <Route path="/plans"       element={<SubscriptionPage />} />
-          <Route path="/billing/success" element={<BillingSuccess />} />
-          <Route path="/billing/fail"    element={<BillingFail />} />
           <Route path="/messages"    element={<MessageInbox />} />
           <Route path="*" element={
             <>
@@ -1241,7 +1238,7 @@ export default function App() {
           } />
         </Routes>
 
-        {/* 웹 전역 푸터 — 전자상거래법 사업자 정보(토스 심사 요건). 앱은 비노출.
+        {/* 웹 전역 푸터 — 전자상거래법 사업자 정보(웹 전용). 앱은 비노출(인앱결제는 Apple이 판매자).
             ★ 통신판매업 신고번호 + 고객센터 전화번호 확정 후 FOOTER_LIVE=true 로 공개 */}
         {FOOTER_LIVE && !isApp && <SiteFooter />}
 

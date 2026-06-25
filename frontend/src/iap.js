@@ -1,4 +1,4 @@
-// 인앱 결제(IAP) — RevenueCat. 앱 전용(웹은 no-op, 추후 토스).
+// 인앱 결제(IAP) — RevenueCat. 앱 전용(웹은 no-op, 웹은 앱 설치 유도).
 //   · configure(앱 시작) → login(로그인 시 user_id 연결) → purchase / restore / getEntitlements
 //   · 권한(entitlement) 'plus' | 'pro' 가 활성이면 광고제거·무제한.
 const isApp = () => window.Capacitor?.isNativePlatform?.() ?? false

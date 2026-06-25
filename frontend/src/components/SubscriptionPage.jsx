@@ -2,21 +2,15 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import { useUser } from '../context/UserContext'
-import { loadTossPayments } from '@tosspayments/payment-sdk'
-import { track } from '../App'   // GA4 + AppsFlyer/Pixel 매핑 일원화(subscribe_waitlist→af_subscribe_waitlist 등)
+import { track } from '../App'   // GA4 + AppsFlyer/Pixel 매핑 일원화
 import { purchase as iapPurchase, restore as iapRestore, IAP_PRODUCTS } from '../iap'
 
 const PRIMARY = '#5CA9CE'
 const BUS_FARE = 1500   // 시내버스 한 번 요금 — 가격 앵커링용
-const API_URL = 'https://japan-intonation-production.up.railway.app'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
-// 토스 클라이언트키 — Vercel 환경변수 VITE_TOSS_CLIENT_KEY (없으면 교체 안내 더미)
-const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || 'test_ck_REPLACE_ME'
-// 결제 정식 오픈 스위치 — 실키(라이브) 적용 후 true 로. false면 '준비 중' 안내만(테스트 결제창 차단)
-const PAYMENTS_ENABLED = false
 
 /* 플랜 업그레이드 (/plans) — 무료/플러스/프로. 미니멀
- * 가격 단일 출처(SSOT) — BillingResult가 매출 전환 value 계산에 재사용하므로 export */
+ * 가격 단일 출처(SSOT) */
 export const PLANS = {
   monthly: { label: '월간', plus: { total: 4400,  was: 8900,  per: 147, unit: '월' }, pro: { total: 19000, per: 633, unit: '월' } },
   yearly:  { label: '연간', plus: { total: 44000, was: 89000, per: 121, unit: '년', save: '2개월 무료' }, pro: { total: 190000, per: 521, unit: '년', save: '2개월 무료' } },
@@ -34,8 +28,7 @@ export default function SubscriptionPage() {
   const { user } = useUser()
   const [sp] = useSearchParams()
   const [period, setPeriod] = useState('monthly')
-  const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'app' | 'soon' | 'done' | 'restored' | 'norestore'
-  const [waitlistDone, setWaitlistDone] = useState(false)   // 출시 알림 신청 완료
+  const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'useapp' | 'done' | 'restored' | 'norestore'
   const [purchasing, setPurchasing] = useState(null)        // 결제 진행 중인 플랜(앱 인앱결제)
   const lastChoice = useRef({ plan: null, period: 'monthly' })   // 직전 선택(plan/period) — waitlist·abandon에서 재사용
   const p = PLANS[period]
@@ -46,22 +39,9 @@ export default function SubscriptionPage() {
   }, [])   // 마운트 1회
 
   function closeNotice() {
-    // 플랜 선택 후 뜬 안내/준비중 모달을 신청·결제 없이 닫음 = 이탈
-    if (notice && !waitlistDone) track('subscribe_abandon', { plan: lastChoice.current.plan, period: lastChoice.current.period, notice_type: notice })
-    setNotice(null); setWaitlistDone(false)
-  }
-
-  // 결제 출시 알림 신청 — 로그인 필요, 서버 저장(출시 시 메시지함으로 알림)
-  async function requestWaitlist() {
-    if (!user?.user_id) { setNotice('login'); return }
-    try {
-      await fetch(`${API_URL}/payment-interest`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.user_id }),
-      })
-      track('subscribe_waitlist', { plan: lastChoice.current.plan || 'unknown', period: lastChoice.current.period || period, is_logged_in: !!user })
-    } catch {}
-    setWaitlistDone(true)   // 실패해도 사용자 경험상 완료 처리(중복 무시 서버 처리)
+    // 플랜 선택 후 뜬 안내 모달을 결제 없이 닫음 = 이탈
+    if (notice) track('subscribe_abandon', { plan: lastChoice.current.plan, period: lastChoice.current.period, notice_type: notice })
+    setNotice(null)
   }
 
   async function choose(plan) {
@@ -85,17 +65,8 @@ export default function SubscriptionPage() {
       }
       return
     }
-    // 웹: 결제 미오픈이면 안내만 / 오픈 후 토스
-    if (!PAYMENTS_ENABLED) { setNotice('soon'); return }
-    if (!user?.user_id) { setNotice('login'); return }
-    try {
-      const toss = await loadTossPayments(TOSS_CLIENT_KEY)
-      await toss.requestBillingAuth('카드', {
-        customerKey: `tjuser_${user.user_id}`,
-        successUrl: `${window.location.origin}/billing/success?plan=${plan}&period=${period}`,
-        failUrl: `${window.location.origin}/billing/fail`,
-      })
-    } catch (e) { setNotice('error') }
+    // 웹: 구독은 앱(App Store 인앱결제)에서만 진행 — 앱 설치 안내
+    setNotice('useapp')
   }
 
   // 구매 복원 (앱 — Apple 필수). 기기 변경/재설치 시 기존 구독 되살림
@@ -201,7 +172,7 @@ export default function SubscriptionPage() {
             {purchasing === 'restore' ? '복원 중…' : '구매 복원'}
           </button>
           <p style={{ margin: '6px 0 0', fontSize: 10.5, color: 'var(--text-3)', lineHeight: 1.6 }}>
-            구독은 자동 갱신되며, 기간 종료 24시간 전까지 해지하지 않으면 자동으로 갱신돼요. 결제는 Apple ID에 청구되고, 설정 → Apple ID → 구독에서 언제든 해지할 수 있어요.
+            플러스는 첫 7일 무료 체험 후 자동으로 유료 구독으로 전환돼요(월 ₩4,400 · 연 ₩44,000). 무료 체험·구독 기간 종료 24시간 전까지 해지하지 않으면 자동 갱신·청구되며, 결제는 Apple ID에 청구돼요. 설정 → Apple ID → 구독에서 언제든 해지할 수 있어요.
           </p>
           <p style={{ margin: '5px 0 0', fontSize: 10.5 }}>
             <button onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 10.5, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>이용약관</button>
@@ -211,18 +182,15 @@ export default function SubscriptionPage() {
         </div>
       ) : (
         <p style={{ margin: '4px 2px 0', fontSize: 10.5, color: 'var(--text-3)', lineHeight: 1.6, textAlign: 'center' }}>
-          카드로 안전하게 결제되며(토스페이먼츠) 언제든 해지할 수 있어요.
+          구독은 앱에서 진행되며, 언제든 해지할 수 있어요.
         </p>
       )}
 
       {/* 안내 모달 — 로그인 필요 / 앱(웹에서) / 오류 */}
       {notice && (() => {
         const N = {
-          soon:  waitlistDone
-            ? { title: '신청 완료!', body: '결제 기능이 준비되면 메시지함으로 알려드릴게요. 기다려 주셔서 감사해요 :)', primary: '확인', onPrimary: closeNotice }
-            : { title: '결제 준비 중이에요', body: '곧 광고 없이 이용하실 수 있도록 결제 기능을 준비하고 있어요. 준비되면 가장 먼저 알려드릴까요?', primary: '출시 알림 받기', onPrimary: requestWaitlist },
           login: { title: '로그인이 필요해요', body: '구독은 로그인 후 이용할 수 있어요.', primary: '로그인하러 가기', onPrimary: () => navigate('/profile') },
-          app:   { title: '구독은 웹에서', body: 'tickjapan.com 에서 구독하면 앱에서도 광고 없이 그대로 이용할 수 있어요.', primary: '확인', onPrimary: closeNotice },
+          useapp: { title: '앱에서 구독할 수 있어요', body: '구독은 앱에서 진행돼요. 앱을 설치하면 광고 없이 더 빠르게 이용할 수 있어요.', primary: '앱 다운로드', onPrimary: () => { closeNotice(); navigate('/download') } },
           done:  { title: '구독 완료!', body: '이제 광고 없이 빠르게 이용할 수 있어요. 감사해요 :)', primary: '확인', onPrimary: () => { closeNotice(); navigate('/') } },
           restored: { title: '구매 복원 완료', body: '기존 구독을 되살렸어요. 혜택이 다시 적용됩니다.', primary: '확인', onPrimary: () => { closeNotice(); navigate('/') } },
           norestore: { title: '복원할 구매가 없어요', body: '이 Apple ID로 구독한 내역을 찾지 못했어요.', primary: '확인', onPrimary: closeNotice },

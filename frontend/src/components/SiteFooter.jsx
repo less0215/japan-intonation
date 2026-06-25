@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
-/* 웹 전역 푸터 — 전자상거래법 신원정보 표시 + 토스페이먼츠 심사 요건.
+/* 웹 전역 푸터 — 전자상거래법 신원정보 표시(웹 전용).
  * 앱(Capacitor)에서는 렌더 안 함(App.jsx에서 !isApp 조건). 다크모드 토큰 사용.
  * ⚠️ 사업자등록증 기준. 전화번호·통신판매업 신고번호는 확정 후 채울 것. */
 const BIZ = {

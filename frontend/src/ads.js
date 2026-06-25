@@ -5,6 +5,8 @@
 //    AdMob 계정 승인 + app-ads.txt 크롤 완료 후 아래 실제 광고 단위 ID로 교체할 것.
 //    (App ID는 iOS만 실제 등록됨. Android는 아직 미등록이라 테스트 App ID 사용)
 
+import { adsCfg } from './config'   // 전면광고 최소 간격(min_gap_sec) 백엔드 제어
+
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 
 // 광고 제거 회원 여부 — App.jsx가 /subscription 응답(ad_free)을 localStorage에 기록.
@@ -115,7 +117,7 @@ export async function showRewardedAd() {
 let _interReady = false           // 다음 전면 광고가 로드 완료되어 바로 표시 가능한지
 let _interLoading = false         // 중복 prepare 방지
 let _lastInterAt = 0              // 마지막 전면 광고 표시 시각(ms) — 최소 간격 가드용
-const MIN_INTERSTITIAL_GAP_MS = 45 * 1000   // 전면 광고 최소 간격(연속 노출·정책 위반 방지)
+// 전면 광고 최소 간격(초)은 백엔드 설정(min_gap_sec, 기본 45)에서 제어 — showInterstitialAd 참조
 
 // 다음 전면 광고를 미리 로드. initAds 직후 + 매 표시 후 호출 → 항상 '장전' 상태 유지.
 export async function preloadInterstitial() {
@@ -136,9 +138,10 @@ export async function preloadInterstitial() {
 
 // 전면(interstitial) 광고 1회 표시. 미리 로드된 광고를 즉시 표시하고, 끝나면 다음 광고를 다시 장전.
 // minGapMs: 직전 표시와의 최소 간격(중복 노출 방지). 닫힘/실패 시 항상 resolve.
-export async function showInterstitialAd({ minGapMs = MIN_INTERSTITIAL_GAP_MS } = {}) {
+export async function showInterstitialAd({ minGapMs } = {}) {
   if (!isApp) return false
-  if (minGapMs && _lastInterAt && Date.now() - _lastInterAt < minGapMs) return false   // 너무 이르면 건너뜀
+  const gap = minGapMs ?? (adsCfg().min_gap_sec || 45) * 1000   // 백엔드 제어(초)
+  if (gap && _lastInterAt && Date.now() - _lastInterAt < gap) return false   // 너무 이르면 건너뜀
   try {
     if (!_ready) await initAds()
     if (!_admob) return false

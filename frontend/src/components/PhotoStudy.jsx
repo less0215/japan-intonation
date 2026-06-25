@@ -2,7 +2,7 @@ import { useState } from 'react'
 import ResultCard from './ResultCard'
 import { logLearning } from '../App'
 
-/* 사진 학습 — 전체화면 모드 (관리자 베타)
+/* 사진 학습 — 전체화면 모드
  * 올린 사진 + (정보성 글이면) 한눈에 요약 + 의미 단위 구간 아코디언.
  * 구간을 펼치면 기존 ResultCard를 그대로 렌더 → 번역·후리가나·피치·TTS·문장분해·발음연습·저장 전부 재사용. */
 
@@ -12,10 +12,6 @@ const API_URL = 'https://japan-intonation-production.up.railway.app'
 const DOC_LABELS = {
   book: '도서 · 세로쓰기', manga: '웹툰 · 만화', menu: '메뉴판', sign: '간판 · 표지', general: '일반',
 }
-
-// '사진 속 위치' 박스는 글자가 듬성한 유형(메뉴·간판)에서만 정확 → 이 유형만 표시.
-// 빽빽한 세로쓰기(책·만화)는 박스가 어긋나므로 끔.
-const BOX_TYPES = new Set(['menu', 'sign'])
 
 // 전체 사진 위 번호 핀 — 글자를 가리지 않게 bbox '바깥 여백'에 둔다.
 // 기본은 강조 영역 위쪽(읽기 시작점) 여백으로 띄우고, 위 공간이 부족하면(상단 근접) 아래로 자동 전환.
@@ -55,7 +51,7 @@ function SoftSpotlight({ bbox }) {
   )
 }
 
-export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose, isAdmin = false }) {
+export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
   // 구간별 분해(breakdown)는 펼친 뒤 온디맨드로 받아 해당 구간에 병합
   const [chunks, setChunks] = useState(() => (result?.chunks || []).map(c => ({ ...c, breakdown: c.breakdown || [] })))
   const [open, setOpen] = useState(0)          // 펼친 구간 index (-1=모두 접힘)
@@ -157,34 +153,20 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose, isA
               </button>
               {isOpen && (
                 <div style={{ marginTop: 8 }}>
-                  {/* 원본 사진 — 토글 ON일 때만.
-                      · 관리자 베타: 전체 사진에 소프트 스포트라이트로 위치 강조 + 글자 안 가리는 번호 핀.
-                      · 일반: 메뉴·간판만 위치 강조, 책·만화는 사진만(헤더 문장과 직접 대조) */}
+                  {/* 원본 사진 — 토글 ON일 때만. 전 사용자·전 유형 동일.
+                      bbox가 있으면 소프트 스포트라이트로 위치 강조 + 글자 안 가리는 번호 핀,
+                      없으면(빽빽한 세로쓰기에서 Gemini가 box 생략 등) 원본만 보여주고 헤더 문장과 직접 대조. */}
                   {imageUrl && showImage && (() => {
                     const hasBox = Array.isArray(c.bbox) && c.bbox.length === 4
-                    // 관리자: 전체에서 위치(스포트라이트 + 핀)
-                    if (isAdmin && hasBox) {
-                      return (
-                        <div style={{ marginBottom: 12 }}>
-                          <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 2px 5px' }}>전체에서 위치</div>
-                          <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--bd)', lineHeight: 0 }}>
-                            <img src={imageUrl} alt="올린 사진 원본" style={{ width: '100%', display: 'block' }} />
-                            <SoftSpotlight bbox={c.bbox} />
-                            <PinMarker bbox={c.bbox} n={i + 1} />
-                          </div>
-                        </div>
-                      )
-                    }
-                    // 일반(비관리자) — 기존 동작 유지
-                    const showBox = hasBox && BOX_TYPES.has(result?.doc_type)
                     return (
                       <div style={{ marginBottom: 12 }}>
                         <div style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 2px 5px' }}>
-                          {showBox ? '사진 속 위치' : '원본 사진 — 위 문장을 사진에서 찾아보세요'}
+                          {hasBox ? '전체에서 위치' : '원본 사진 — 위 문장을 사진에서 찾아보세요'}
                         </div>
                         <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--bd)', lineHeight: 0 }}>
                           <img src={imageUrl} alt="올린 사진 원본" style={{ width: '100%', display: 'block' }} />
-                          {showBox && <SoftSpotlight bbox={c.bbox} />}
+                          {hasBox && <SoftSpotlight bbox={c.bbox} />}
+                          {hasBox && <PinMarker bbox={c.bbox} n={i + 1} />}
                         </div>
                       </div>
                     )

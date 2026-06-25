@@ -382,7 +382,6 @@ export default function App() {
   const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
   // 화이트리스트(전 무제한) 회원 OR 유효 구독(플러스/프로·지급분 포함) → 플러스 혜택
   const fastUnlimited = !!user?.fast_unlimited || !!subInfo?.fast_unlimited || iapActive
-  const isAdmin = !!subInfo?.is_admin   // 정봉준 관리자 — 사진 번역(베타) 노출 판정
   // 프로필/사용량에 보여줄 플러스 만료 문구 — 구독 만료일 우선, 없으면 화이트리스트(8.1)
   const plusPlanLabel = (() => {
     if (!fastUnlimited) return null
@@ -1303,7 +1302,6 @@ export default function App() {
         <PhotoStudy
           result={photoStudy.result}
           imageUrl={photoStudy.imageUrl}
-          isAdmin={isAdmin}
           onSaveChunk={(chunk) => {
             const key = chunk.korean_meaning || chunk.japanese || '(사진)'
             addToHistory(key, chunk)                                  // 저장 탭 '번역 기록'에 표시(탭하면 결과 카드로 열림)

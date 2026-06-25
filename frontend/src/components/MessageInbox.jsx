@@ -229,6 +229,14 @@ export default function MessageInbox() {
                 {open && !editMode && (
                   <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--bd)' }}>
                     <p style={{ margin: '13px 0 0', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{m.body}</p>
+                    {m.cta_label && m.cta_target && (
+                      <button
+                        onClick={() => navigate(m.cta_target)}
+                        style={{ width: '100%', marginTop: 14, height: 46, border: 'none', borderRadius: 12, background: PRIMARY, color: '#fff', fontSize: 14.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+                      >
+                        {m.cta_label}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

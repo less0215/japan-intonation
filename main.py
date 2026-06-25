@@ -368,6 +368,8 @@ class Message(Base):
     audience   = Column(String(32), default='all', index=True)  # 'all' | '<user_id>'
     title      = Column(String(120), nullable=False)
     body       = Column(Text, nullable=False)
+    cta_label  = Column(String(40), nullable=True)    # CTA 버튼 라벨(있으면 메시지함에 버튼 노출)
+    cta_target = Column(String(120), nullable=True)   # CTA 이동 경로(예: /plans?from=launch_event)
     active     = Column(Boolean, default=True, index=True)
     created_at = Column(DateTime, default=now_kst, index=True)
 
@@ -579,6 +581,13 @@ def run_migrations():
             conn.execute(sa_text("ALTER TABLE fast_usage ALTER COLUMN date_kst DROP NOT NULL"))
     except Exception as e:
         print("[migration] fast_usage window_start skipped:", e)
+    # message: CTA 버튼(라벨/이동경로) 열 추가 — 메시지함 전환 버튼용
+    try:
+        with engine.begin() as conn:
+            conn.execute(sa_text("ALTER TABLE message ADD COLUMN IF NOT EXISTS cta_label VARCHAR(40)"))
+            conn.execute(sa_text("ALTER TABLE message ADD COLUMN IF NOT EXISTS cta_target VARCHAR(120)"))
+    except Exception as e:
+        print("[migration] message cta columns skipped:", e)
     # 데일리 체크용 뷰 (우선순위 열 순서) — platform 추가 위해 재생성
     try:
         with engine.begin() as conn:
@@ -1654,6 +1663,7 @@ def get_messages(user_id: int):
                   .order_by(Message.created_at.desc())
                   .all())
         return [{"id": m.id, "title": m.title, "body": m.body,
+                 "cta_label": m.cta_label, "cta_target": m.cta_target,
                  "created_at": m.created_at.isoformat() if m.created_at else None}
                 for m in rows]
     finally:
@@ -1665,6 +1675,8 @@ class SendMessageRequest(BaseModel):
     title: str
     body: str
     audience: str = "all"   # 'all' 또는 특정 user_id
+    cta_label: str | None = None    # 선택: CTA 버튼 라벨(예: '플러스 무료 체험 시작')
+    cta_target: str | None = None   # 선택: CTA 이동 경로(예: '/plans?from=launch_event')
 
 @app.post("/admin/send-message")
 def admin_send_message(req: SendMessageRequest):
@@ -1676,7 +1688,10 @@ def admin_send_message(req: SendMessageRequest):
     db = SessionLocal()
     try:
         m = Message(audience=req.audience.strip() or "all",
-                    title=req.title.strip(), body=req.body.strip(), active=True)
+                    title=req.title.strip(), body=req.body.strip(),
+                    cta_label=(req.cta_label.strip() if req.cta_label else None),
+                    cta_target=(req.cta_target.strip() if req.cta_target else None),
+                    active=True)
         db.add(m)
         db.commit()
         db.refresh(m)

@@ -13,6 +13,7 @@ import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
 import TravelAffiliate from './components/TravelAffiliate'
 import TravelResultAffiliate from './components/TravelResultAffiliate'
+import TravelPopup from './components/TravelPopup'
 import BottomNav from './components/BottomNav'
 import SiteFooter from './components/SiteFooter'
 import SavesPage from './components/SavesPage'
@@ -1083,6 +1084,9 @@ export default function App() {
                 }}
               />
 
+              {/* 맥락 제휴 — 번역 버튼 바로 밑 인라인 (여행 맥락+적합도 충족 시, 웹·앱). 스크롤 흐름에 자연스럽게 노출 */}
+              {result && <TravelResultAffiliate input={inputText} japanese={result.japanese} />}
+
               {error && <div className="error-box">{error}</div>}
               {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
               {typing && !loading && !result && (
@@ -1102,8 +1106,8 @@ export default function App() {
                   onBreakdownExpanded={() => setBreakdownExpanded(true)}
                 />
               )}
-              {/* 맥락 제휴 — 번역문이 여행 맥락(적합도 충족)이면 결과 아래 인라인 추천(웹·앱, 매칭 없으면 비노출) */}
-              {result && <TravelResultAffiliate input={inputText} japanese={result.japanese} />}
+              {/* 문장분해 팝업(여행 추천) — 분해 펼친 뒤 1회, 적합도 충족 시 (유지) */}
+              {result && <TravelPopup input={inputText} japanese={result.japanese} armed={breakdownExpanded} />}
               {/* 동사 감지 시 인스타 강의 CTA — 결과 카드 아래 */}
               {result?.breakdown && (() => {
                 const verbRow = result.breakdown.find(r => r.part_of_speech?.includes('동사'))
@@ -1199,7 +1203,7 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                  <style>{`@keyframes lcflow{from{transform:translateX(0)}to{transform:translateX(-50%)}}.lc-marquee{animation:lcflow 36s linear infinite}.lc-marquee:hover{animation-play-state:paused}@media (prefers-reduced-motion:reduce){.lc-marquee{animation:none}}`}</style>
+                  <style>{`@keyframes lcflow{from{transform:translateX(0)}to{transform:translateX(-50%)}}.lc-marquee{animation:lcflow 56s linear infinite}.lc-marquee:hover{animation-play-state:paused}@media (prefers-reduced-motion:reduce){.lc-marquee{animation:none}}`}</style>
                   </div>
                   {/* 학습 콘텐츠 — 가로 스크롤 카드 (전체는 학습 탭) */}
                   <div>

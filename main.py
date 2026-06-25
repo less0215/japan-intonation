@@ -191,8 +191,15 @@ Rules:
     ました = 마시타 (past) / ません = 마셍 / です = 데스 / ます = 마스 / でした = 데시타
   Examples (MUST match): いや→이야, あいしてる→아이시테루, ありがとう→아리가토-, にほんご→니혼고,
     食べに行きましょう(たべにいきましょう)→타베니 이키마쇼- .
+  SPACING (REQUIRED for EVERY tone — including 비즈니스/business 敬語): NEVER run the whole reading together.
+    Put a SPACE at natural reading breaks — after particles (は/が/を/に/で/と/も/へ/の…), between content
+    words, and at clause boundaries — so a Korean can read it at a glance, and reflect punctuation (。→ "." 、→ ",").
+    e.g. 地下鉄に乗って家に帰っているところです → "치카테츠니 놋테 이에니 카엣테이루 토코로데스"
+    (NOT "치카테츠니놋테이에니카엣테이루토코로데스"). Business/丁寧 readings like 〜ております・〜いたします MUST be
+    spaced the SAME way (e.g. "…시테 오리마스", "…이타시마스"), never concatenated into one long string.
   SELF-CHECK before output: re-read korean_pronunciation against "furigana". If furigana ends in ましょう,
   the Hangul MUST end in 마쇼- (never 마시타). The first kana い is ALWAYS 이 (never 미); あ is ALWAYS 아.
+  korean_pronunciation MUST contain spaces at word/phrase breaks — NEVER one unbroken run of Hangul.
 - "furigana_html": annotate only kanji with (reading) in parentheses; leave hiragana/katakana as-is
 - "accent_data": Tokyo Japanese pitch accent per phrase/word group.
   Split the sentence into natural accent phrases (usually 2–5 morae each).
@@ -296,7 +303,8 @@ _breakdown_cache: dict[str, list] = {}
 # 분해 캐시 버전 — BREAKDOWN_PROMPT(풀이 등) 바꾸면 올려서 옛 캐시 자동 무효화
 _BD_CACHE_VER = "v4"
 # 번역/발음 캐시 버전 — TRANSLATION_PROMPT(후리가나·한글발음 규칙) 바꾸면 올려서 옛 캐시 자동 무효화
-_AN_CACHE_VER = "v3"
+# v4: 한글 독음 띄어쓰기 규칙을 모든 톤(특히 비즈니스 敬語)에 명시 → 붙어 나오던 옛 캐시 무효화
+_AN_CACHE_VER = "v4"
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)

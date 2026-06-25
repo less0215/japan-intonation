@@ -374,14 +374,6 @@ class Message(Base):
     created_at = Column(DateTime, default=now_kst, index=True)
 
 
-class AppSetting(Base):
-    """앱 동작 설정(키-값) — 광고 빈도 등. /admin/config 로 변경(앱 재빌드 없이 즉시 반영).
-    ⚠️ 부팅 시 DB 시드 금지 — /config 가 요청 시 조회하고 없으면 기본값(AD_CONFIG_DEFAULTS) 사용."""
-    __tablename__ = "app_setting"
-    setting_key   = Column(String(40), primary_key=True)
-    setting_value = Column(String(120), nullable=False)
-
-
 class MrtProduct(Base):
     """마이리얼트립 큐레이션 상품 카탈로그 — 배치가 주기적으로 갱신, 프론트는 이 캐시만 노출.
     User/SavedResult 스키마와 무관한 별도 테이블."""
@@ -1704,68 +1696,6 @@ def admin_send_message(req: SendMessageRequest):
         db.commit()
         db.refresh(m)
         return {"ok": True, "id": m.id, "audience": m.audience}
-    finally:
-        db.close()
-
-
-# 앱 동작 설정(광고 빈도 등) 기본값. /admin/config 로 바꾸면 즉시 모든 앱 반영(재빌드 불필요).
-# ⚠️ 부팅 시 DB 작업(시드) 금지 — /config 가 요청 시 조회하고 없으면 이 기본값 사용(크래시 방지).
-AD_CONFIG_DEFAULTS = {
-    "ads_enabled":    "1",    # 전체 광고 on/off (0/1)
-    "ad_first":       "3",    # 일반 번역 N번째 완료 시 첫 전면광고
-    "ad_every":       "5",    # 이후 N회마다
-    "ad_min_gap_sec": "45",   # 전면광고 최소 간격(초)
-    "photo_ad":       "1",    # 사진 번역 닫을 때 전면광고 (0/1)
-}
-
-@app.get("/config")
-def get_config():
-    """앱 동작 설정 — 앱이 시작 시 받아 광고 빈도 등에 사용. DB 미설정·실패 시 기본값."""
-    cfg = dict(AD_CONFIG_DEFAULTS)
-    try:
-        db = SessionLocal()
-        try:
-            for s in db.query(AppSetting).all():
-                cfg[s.setting_key] = s.setting_value
-        finally:
-            db.close()
-    except Exception:
-        pass
-    def gi(k):
-        try:
-            return int(cfg.get(k, AD_CONFIG_DEFAULTS[k]))
-        except Exception:
-            return int(AD_CONFIG_DEFAULTS[k])
-    return {"ads": {
-        "enabled":     cfg.get("ads_enabled", "1") == "1",
-        "first":       max(1, gi("ad_first")),
-        "every":       max(1, gi("ad_every")),
-        "min_gap_sec": max(0, gi("ad_min_gap_sec")),
-        "photo":       cfg.get("photo_ad", "1") == "1",
-    }}
-
-
-class ConfigUpdateRequest(BaseModel):
-    admin_phone: str
-    key: str
-    value: str
-
-@app.post("/admin/config")
-def update_config(req: ConfigUpdateRequest):
-    """관리자 전용 — 앱 설정값 변경(광고 빈도 등). 변경 즉시 모든 앱에 반영(재빌드 불필요)."""
-    if not is_admin_phone(req.admin_phone):
-        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
-    if req.key not in AD_CONFIG_DEFAULTS:
-        raise HTTPException(status_code=400, detail=f"허용되지 않은 키입니다. 가능: {list(AD_CONFIG_DEFAULTS)}")
-    db = SessionLocal()
-    try:
-        s = db.query(AppSetting).filter(AppSetting.setting_key == req.key).first()
-        if s:
-            s.setting_value = req.value
-        else:
-            db.add(AppSetting(setting_key=req.key, setting_value=req.value))
-        db.commit()
-        return {"ok": True, "key": req.key, "value": req.value}
     finally:
         db.close()
 

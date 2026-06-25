@@ -294,9 +294,9 @@ _analyze_cache: dict[str, dict] = {}
 # 문장 분해 캐시 — 키: 일본어 원문, 값: breakdown list
 _breakdown_cache: dict[str, list] = {}
 # 분해 캐시 버전 — BREAKDOWN_PROMPT(풀이 등) 바꾸면 올려서 옛 캐시 자동 무효화
-_BD_CACHE_VER = "v3"
+_BD_CACHE_VER = "v4"
 # 번역/발음 캐시 버전 — TRANSLATION_PROMPT(후리가나·한글발음 규칙) 바꾸면 올려서 옛 캐시 자동 무효화
-_AN_CACHE_VER = "v2"
+_AN_CACHE_VER = "v3"
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)
@@ -946,6 +946,30 @@ except Exception as _e:
     _IMG_GEN_CONFIG = _GEN_CONFIG
 
 
+_BYTE_ESC_RE = re.compile(r'(?:<0x[0-9A-Fa-f]{2}>)+')
+def _decode_byte_escapes(s: str) -> str:
+    """Gemini가 가나/한자를 글자 대신 원시 바이트(<0xE3><0x82><0xAB> …)로 뱉는 아티팩트 복구 — UTF-8 디코딩.
+    예: <0xE3><0x82><0xAB><0xE3><0x83><0xBC><0xE3><0x83><0x89> → カード"""
+    if not s or '<0x' not in s:
+        return s
+    def _repl(m):
+        hexes = re.findall(r'<0x([0-9A-Fa-f]{2})>', m.group(0))
+        try:
+            return bytes(int(h, 16) for h in hexes).decode('utf-8')
+        except Exception:
+            return m.group(0)   # 디코딩 실패 시 원문 유지(안전)
+    return _BYTE_ESC_RE.sub(_repl, s)
+
+def _sanitize_obj(obj):
+    """파싱된 Gemini JSON의 모든 문자열에서 <0xNN> 바이트 escape를 실제 글자로 복구(재귀). 그 외 텍스트는 불변."""
+    if isinstance(obj, str):
+        return _decode_byte_escapes(obj)
+    if isinstance(obj, list):
+        return [_sanitize_obj(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _sanitize_obj(v) for k, v in obj.items()}
+    return obj
+
 def _call_gemini_json(prompt: str, model: str = None,
                       image_bytes: bytes = None, mime_type: str = "image/jpeg",
                       config=None) -> dict:
@@ -989,7 +1013,7 @@ def _call_gemini_json(prompt: str, model: str = None,
         raw = re.sub(r"\n?```$", "", raw.strip())
 
     try:
-        return json.loads(raw)
+        return _sanitize_obj(json.loads(raw))   # <0xNN> 바이트 아티팩트 복구
     except json.JSONDecodeError:
         raise HTTPException(
             status_code=502,

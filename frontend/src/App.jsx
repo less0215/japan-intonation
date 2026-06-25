@@ -1201,7 +1201,7 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                  <style>{`@keyframes lcflow{from{transform:translateX(0)}to{transform:translateX(-50%)}}.lc-marquee{animation:lcflow 56s linear infinite}.lc-marquee:hover{animation-play-state:paused}@media (prefers-reduced-motion:reduce){.lc-marquee{animation:none}}`}</style>
+                  <style>{`@keyframes lcflow{from{transform:translateX(0)}to{transform:translateX(-50%)}}.lc-marquee{animation:lcflow 120s linear infinite}.lc-marquee:hover{animation-play-state:paused}@media (prefers-reduced-motion:reduce){.lc-marquee{animation:none}}`}</style>
                   </div>
                   {/* 학습 콘텐츠 — 가로 스크롤 카드 (전체는 학습 탭) */}
                   <div>

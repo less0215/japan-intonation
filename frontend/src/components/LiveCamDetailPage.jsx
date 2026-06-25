@@ -10,8 +10,8 @@ const PRIMARY = '#5CA9CE'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 
 /* /live/:city — 라이브캠 상세
- * 첫 도시 진입은 광고 없이 바로 영상. '다른 도시도 둘러보기'에서 다른 도시 탭 시에만
- * 앱에서 보상형 광고('광고 보고 날씨 확인') → 시청 후 해당 도시로 이동 */
+ * 첫 도시 진입은 바로 영상. '다른 도시도 둘러보기'에서 다른 도시 탭 시,
+ * 광고제거 회원이 아니면 '이동할 도시' 마이리얼트립 추천 팝업(웹·앱 공통, 애드몹 없음) 후 이동. */
 export default function LiveCamDetailPage() {
   const { city } = useParams()
   const navigate = useNavigate()
@@ -31,9 +31,10 @@ export default function LiveCamDetailPage() {
     navigate(`/live/${id}`)
     window.scrollTo(0, 0)
   }
-  // 다른 도시 탭 — 앱+무료는 '이동할 도시 관련 추천' 팝업 거쳐 이동(상품 없으면 바로), 웹·구독자는 바로 이동
+  // 다른 도시 탭 — 광고제거 회원이 아니면(웹·앱 공통) '이동할 도시 관련 추천' 팝업 거쳐 이동
+  // (매칭 상품 없으면 팝업이 알아서 바로 이동). 구독(광고제거) 회원은 모달 없이 바로 이동.
   function handleHop(targetId) {
-    if (isApp && !isAdFreeMember()) setPendingCity(targetId)
+    if (!isAdFreeMember()) setPendingCity(targetId)
     else goToCity(targetId)
   }
 

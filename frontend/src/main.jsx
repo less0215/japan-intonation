@@ -20,6 +20,8 @@ const Router = isApp ? HashRouter : BrowserRouter
 
 /* 앱 환경에서만 AppsFlyer 초기화 (ATT 요청은 번역 1회 후 사전 안내 시트에서 별도 처리) */
 if (isApp) {
+  // 앱 동작 설정(광고 빈도 등) 로드 — 백엔드에서 값만 바꾸면 재빌드 없이 반영
+  import('./config').then(({ loadConfig }) => loadConfig())
   import('appsflyer-capacitor-plugin').then(({ AppsFlyer }) => {
     AppsFlyer.initSDK({
       appID: '6781296261',   // App Store 숫자 ID (어트리뷰션용)

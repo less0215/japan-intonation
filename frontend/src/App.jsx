@@ -34,6 +34,7 @@ import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbo
 import UpdateGate from './components/UpdateGate'
 import ReviewEventPopup from './components/ReviewEventPopup'
 import { showRewardedAd, showInterstitialAd } from './ads'
+import { adsCfg } from './config'   // 광고 빈도(백엔드 제어)
 import { iapLogin, iapLogout, getEntitlements } from './iap'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
@@ -655,7 +656,10 @@ export default function App() {
         try {
           const n = (parseInt(localStorage.getItem('tickjapan_basic_count') || '0', 10) || 0) + 1
           localStorage.setItem('tickjapan_basic_count', String(n))
-          if (n === 3 || (n > 3 && (n - 3) % 5 === 0)) { setAdNotice(true); track('interstitial_prompt', { count: n }) }
+          const ac = adsCfg()   // first번째 → 이후 every회마다 (백엔드 제어)
+          if (ac.enabled && (n === ac.first || (n > ac.first && (n - ac.first) % ac.every === 0))) {
+            setAdNotice(true); track('interstitial_prompt', { count: n })
+          }
         } catch {}
       }
 
@@ -1275,7 +1279,8 @@ export default function App() {
             setPhotoStudy(null)
             // 사진 번역은 멀티모달이라 가장 비싼 기능 → 무료 회원은 학습을 닫을 때(가치 소비 후) 전면 광고 1회.
             // 결과를 가리지 않도록 '닫기' 시점에만, 최소 간격 가드로 일반 광고와 연속 노출 방지.
-            if (isApp && !subAdFree && !fastUnlimited) {
+            const ac = adsCfg()
+            if (isApp && !subAdFree && !fastUnlimited && ac.enabled && ac.photo) {
               showInterstitialAd().then(ok => track('interstitial_result', { from: 'photo_close', result: ok ? 'shown' : 'skip_or_fail' }))
             }
           }}

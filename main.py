@@ -2790,6 +2790,63 @@ def set_min_version(req: SetMinVersionRequest):
         db.close()
 
 
+# ── 앱 동작 설정(광고 빈도 등) — 기존 app_setting(key/value) 스토어 재사용 ──
+# /admin/config 로 바꾸면 즉시 모든 앱 반영(앱 재빌드 불필요). 새 모델·테이블 없음(중복 정의 금지).
+AD_CONFIG_DEFAULTS = {
+    "ads_enabled":    "1",    # 전체 광고 on/off (0/1)
+    "ad_first":       "3",    # 일반 번역 N번째 완료 시 첫 전면광고
+    "ad_every":       "5",    # 이후 N회마다
+    "ad_min_gap_sec": "45",   # 전면광고 최소 간격(초)
+    "photo_ad":       "1",    # 사진 번역 닫을 때 전면광고 (0/1)
+}
+
+@app.get("/config")
+def get_config():
+    """앱 동작 설정 — 앱이 시작 시 받아 광고 빈도 등에 사용. DB 미설정·실패 시 기본값."""
+    cfg = dict(AD_CONFIG_DEFAULTS)
+    try:
+        db = SessionLocal()
+        try:
+            for k in AD_CONFIG_DEFAULTS:
+                cfg[k] = _get_setting(db, k, AD_CONFIG_DEFAULTS[k])
+        finally:
+            db.close()
+    except Exception:
+        pass
+    def gi(k):
+        try:
+            return int(cfg.get(k, AD_CONFIG_DEFAULTS[k]))
+        except Exception:
+            return int(AD_CONFIG_DEFAULTS[k])
+    return {"ads": {
+        "enabled":     str(cfg.get("ads_enabled", "1")) == "1",
+        "first":       max(1, gi("ad_first")),
+        "every":       max(1, gi("ad_every")),
+        "min_gap_sec": max(0, gi("ad_min_gap_sec")),
+        "photo":       str(cfg.get("photo_ad", "1")) == "1",
+    }}
+
+
+class ConfigUpdateRequest(BaseModel):
+    admin_phone: str
+    key: str
+    value: str
+
+@app.post("/admin/config")
+def update_config(req: ConfigUpdateRequest):
+    """관리자 전용 — 앱 설정값 변경(광고 빈도 등). 변경 즉시 모든 앱에 반영(재빌드 불필요)."""
+    if not is_admin_phone(req.admin_phone):
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    if req.key not in AD_CONFIG_DEFAULTS:
+        raise HTTPException(status_code=400, detail=f"허용되지 않은 키입니다. 가능: {list(AD_CONFIG_DEFAULTS)}")
+    db = SessionLocal()
+    try:
+        _set_setting(db, req.key, req.value)
+        return {"ok": True, "key": req.key, "value": req.value}
+    finally:
+        db.close()
+
+
 @app.get("/admin/force-update")
 def force_update_get(key: str = "", v: str = "1.7", when_live: int = 0):
     """브라우저 한 탭으로 강제 업데이트 제어 (curl 없이).

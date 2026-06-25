@@ -4,6 +4,7 @@ import PageSEO from './PageSEO'
 import JapanMiniMap from './JapanMiniMap'
 import AdConsentPopup from './AdConsentPopup'
 import { LIVECAMS } from '../data/livecams'
+import LiveCamTravelPopup from './LiveCamTravelPopup'
 import { showRewardedAd, isAdFreeMember } from '../ads'
 import { track } from '../App'
 
@@ -159,6 +160,9 @@ export default function LiveCamDetailPage() {
           onClose={() => { setPendingCity(null); try { window.gtag?.('event', 'livecam_ad_dismissed') } catch {} }}
         />
       )}
+
+      {/* 맥락 제휴 — 지금 보는 도시에 맞춘 마이리얼트립 추천(매칭 상품 있을 때만, 세션당 도시별 1회) */}
+      <LiveCamTravelPopup city={cam.city} keywords={cam.matchKeywords} />
     </>
   )
 }

@@ -2,11 +2,9 @@ import { useState } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import JapanMiniMap from './JapanMiniMap'
-import AdConsentPopup from './AdConsentPopup'
 import { LIVECAMS } from '../data/livecams'
-import LiveCamTravelPopup from './LiveCamTravelPopup'
-import { showRewardedAd, isAdFreeMember } from '../ads'
-import { track } from '../App'
+import LiveCamHopPopup from './LiveCamHopPopup'
+import { isAdFreeMember } from '../ads'
 
 const PRIMARY = '#5CA9CE'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
@@ -25,27 +23,18 @@ export default function LiveCamDetailPage() {
 
   const others = LIVECAMS.filter(c => c.id !== city)
 
-  // 다른 도시 탭 — 앱은 보상형 광고 후 이동, 웹·광고제거 회원은 바로 이동
-  function handleHop(targetId) {
-    if (isApp && !isAdFreeMember()) {
-      setPendingCity(targetId)
-      try { window.gtag?.('event', 'livecam_ad_prompt', { from: city, to: targetId }) } catch {}
-    } else {
-      navigate(`/live/${targetId}`)
-      window.scrollTo(0, 0)
-    }
-  }
-  // '광고 보고 날씨 확인' — 광고 시청 시도 후 이동(노필 등 실패해도 콘텐츠는 막지 않음)
-  async function watchAdAndGo() {
-    const target = pendingCity
-    const ok = await showRewardedAd()
-    track('rewarded_ad_result', { placement: 'livecam', result: ok ? 'rewarded' : 'no_fill_or_dismiss' })
+  // 해당 도시로 이동 (애드몹 광고 없음)
+  function goToCity(id) {
+    if (!id) return
     setPendingCity(null)
-    if (target) {
-      try { window.gtag?.('event', 'livecam_hop', { via: 'ad', to: target }) } catch {}
-      navigate(`/live/${target}`)
-      window.scrollTo(0, 0)
-    }
+    try { window.gtag?.('event', 'livecam_hop', { to: id }) } catch {}
+    navigate(`/live/${id}`)
+    window.scrollTo(0, 0)
+  }
+  // 다른 도시 탭 — 앱+무료는 '이동할 도시 관련 추천' 팝업 거쳐 이동(상품 없으면 바로), 웹·구독자는 바로 이동
+  function handleHop(targetId) {
+    if (isApp && !isAdFreeMember()) setPendingCity(targetId)
+    else goToCity(targetId)
   }
 
   // mute=1 + playsinline 으로 인앱 자동재생(소리는 사용자가 켬)
@@ -152,17 +141,14 @@ export default function LiveCamDetailPage() {
         </div>
       )}
 
-      {/* 다른 도시 이동 — 보상형 광고 양해 팝업(앱 전용) */}
+      {/* 다른 도시 이동 — '이동할 도시' 맥락 여행 추천 팝업(애드몹 광고 없음). 매칭 없으면 바로 이동 */}
       {pendingCity && (
-        <AdConsentPopup
-          mode="livecam"
-          onWatch={watchAdAndGo}
-          onClose={() => { setPendingCity(null); try { window.gtag?.('event', 'livecam_ad_dismissed') } catch {} }}
+        <LiveCamHopPopup
+          cam={LIVECAMS.find(c => c.id === pendingCity)}
+          onGo={() => goToCity(pendingCity)}
+          onClose={() => { setPendingCity(null); try { window.gtag?.('event', 'livecam_hop_dismissed') } catch {} }}
         />
       )}
-
-      {/* 맥락 제휴 — 지금 보는 도시에 맞춘 마이리얼트립 추천(매칭 상품 있을 때만, 세션당 도시별 1회) */}
-      <LiveCamTravelPopup city={cam.city} keywords={cam.matchKeywords} />
     </>
   )
 }

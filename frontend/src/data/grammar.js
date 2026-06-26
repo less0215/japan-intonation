@@ -8,7 +8,6 @@ export const GRAMMAR = [
   {
     id: 'noun-da',
     category: 'noun',
-    beta: true,
     pattern: '〜だ',
     reading: '다',
     meanings: ['~(이)다'],
@@ -66,7 +65,6 @@ export const GRAMMAR = [
   {
     id: 'noun-desu',
     category: 'noun',
-    beta: true,
     pattern: '〜です',
     reading: '데스',
     meanings: ['~입니다'],
@@ -125,7 +123,6 @@ export const GRAMMAR = [
   {
     id: 'noun-nano',
     category: 'noun',
-    beta: true,
     pattern: '〜なの',
     reading: '나노',
     meanings: ['~야?', '~인 거야'],
@@ -184,7 +181,6 @@ export const GRAMMAR = [
   {
     id: 'noun-desuka',
     category: 'noun',
-    beta: true,
     pattern: '〜ですか',
     reading: '데스카',
     meanings: ['~입니까?'],
@@ -245,7 +241,6 @@ export const GRAMMAR = [
   {
     id: 'noun-datta',
     category: 'noun',
-    beta: true,
     pattern: '〜だった',
     reading: '닷타',
     meanings: ['~였다', '~였어'],
@@ -304,7 +299,6 @@ export const GRAMMAR = [
   {
     id: 'noun-deshita',
     category: 'noun',
-    beta: true,
     pattern: '〜でした',
     reading: '데시타',
     meanings: ['~였습니다'],
@@ -365,7 +359,6 @@ export const GRAMMAR = [
   {
     id: 'noun-janai',
     category: 'noun',
-    beta: true,
     pattern: '〜じゃない',
     reading: '자나이',
     meanings: ['~가 아니다', '~가 아니야'],
@@ -424,7 +417,6 @@ export const GRAMMAR = [
   {
     id: 'noun-janaidesu',
     category: 'noun',
-    beta: true,
     pattern: '〜じゃないです',
     reading: '자나이데스',
     meanings: ['~가 아닙니다'],
@@ -485,7 +477,6 @@ export const GRAMMAR = [
   {
     id: 'noun-janakatta',
     category: 'noun',
-    beta: true,
     pattern: '〜じゃなかった',
     reading: '자나캇타',
     meanings: ['~가 아니었다', '~가 아니었어'],
@@ -546,7 +537,6 @@ export const GRAMMAR = [
   {
     id: 'noun-janakattadesu',
     category: 'noun',
-    beta: true,
     pattern: '〜じゃなかったです',
     reading: '자나캇타데스',
     meanings: ['~가 아니었습니다'],

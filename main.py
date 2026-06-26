@@ -182,8 +182,13 @@ Rules:
     きゃ=캬 きゅ=큐 きょ=쿄 / しゃ=샤 しゅ=슈 しょ=쇼 / ちゃ=차 ちゅ=추 ちょ=초 /
     にゃ=냐 にゅ=뉴 にょ=뇨 / ひゃ=햐 ひゅ=휴 ひょ=효 / みゃ=먀 みゅ=뮤 みょ=묘 /
     りゃ=랴 りゅ=류 りょ=료 / ぎゃ=갸 ぎゅ=규 ぎょ=교 / じゃ=자 じゅ=주 じょ=조 / びょ=뵤 ぴょ=표
-  LONG VOWEL — a う or ー after an お/う-row sound is a LONG vowel: write "-" (장음).
-    e.g., とうきょう→토-쿄- , おはよう→오하요- , がっこう→각코- .
+  LONG VOWEL (장음) — write the SPOKEN length with "-", reflecting how it is actually pronounced (NOT a literal kana spelling):
+    • お/う-row sound + う or ー → "-"   e.g., とうきょう→토-쿄- , おはよう→오하요- , がっこう→각코- , ビール→비-루
+    • え-row sound + い → "-"   e.g., 予定(よてい)→요테- , 先生(せんせい)→센세- , 時計(とけい)→토케- , 計算(けいさん)→케-산
+    • long ああ/おお within ONE word → "-"   e.g., おかあさん→오카-상 , 大きい(おおきい)→오-키-
+    ⚠️ NOT a long vowel across a word/morpheme boundary — keep the literal kana:
+      て-form + いる/います/いた … → 테이 STAYS: しています→시테이마스 , 待っている→맛테이루 .
+      (the お/う-row condition already excludes 買う(かう)→카우 and 言う(いう)→이우.)
   SOKUON っ → a ㅅ받침 on the previous syllable. e.g., ちょっと→촛토 , きって→킷테 , いって→잇테 .
   ⚠️ VERB ENDINGS — transcribe EXACTLY as written; NEVER swap volitional / past / negative:
     ましょう = 마쇼-  (let's…, volitional)   ← NOT 마시타
@@ -269,7 +274,8 @@ Fields:
 - "unit": surface form as it appears in the sentence (kanji where used)
 - "hiragana": reading in hiragana
 - "korean_pronunciation": Korean-character (한글) pronunciation — a faithful mora-by-mora transcription of "hiragana"
-  (same morae; nothing added/dropped/changed). Yōon merges: しょ=쇼 ちょ=초 きょ=쿄 りょ=료 …; long vowel う/ー after お/う-row → "-"(장음);
+  (same morae; nothing added/dropped/changed). Yōon merges: しょ=쇼 ちょ=초 きょ=쿄 りょ=료 …;
+  long vowels → "-"(장음): お/う-row+う/ー (とうきょう→토-쿄-) AND え-row+い (予定→요테-, 先生→센세-) — but NOT across a morpheme boundary (て-form+いる/います stays: しています→시테이마스);
   っ → ㅅ받침; ん → ㄴ받침. Verb endings EXACT: ましょう=마쇼-(NOT 마시타), ました=마시타, ません=마셍, です=데스, ます=마스.
 - "korean_meaning": Korean meaning of this chunk
 - "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
@@ -464,6 +470,30 @@ class LearningEvent(Base):
     user_id      = Column(Integer, nullable=True, index=True)
     anonymous_id = Column(String(36), nullable=True, index=True)
     platform     = Column(String(10), nullable=True)
+
+
+class ConversionEvent(Base):
+    """결제·업셀 전환 퍼널 — '이 유저가 어디서 들어와(source) 무엇을 거쳐 결제했나'를 유저 단위로
+    누적(GA4로 휘발시키지 않고 우리 DB에 보관 → user 테이블과 조인·귀인 분석). User/SavedResult 스키마와 무관한 별도 테이블.
+    · 프론트 이벤트: plans_view | subscribe_cta | subscribe_success | subscribe_cancel | subscribe_fail |
+      subscribe_abandon | subscribe_restore | fast_upsell_shown/cta/dismiss | fast_limit_reached |
+      review_prompt_shown/cta/dismiss | download_page_view/click/cta_click | signup_complete
+    · 서버검증 매출(웹훅): rc_trial_start | rc_initial_purchase | rc_trial_conversion | rc_renewal |
+      rc_cancellation | rc_expiration | rc_product_change
+    매출 집계는 'rc_*' 이벤트(서버검증) 기준으로, 프론트 subscribe_success(value)는 광고최적화/의도값."""
+    __tablename__ = "conversion_event"
+    id           = Column(Integer, primary_key=True, index=True)
+    created_at   = Column(DateTime, default=now_kst, index=True)
+    event_name   = Column(String(40), nullable=False, index=True)
+    user_id      = Column(Integer, nullable=True, index=True)
+    anonymous_id = Column(String(36), nullable=True, index=True)
+    platform     = Column(String(10), nullable=True)
+    plan         = Column(String(10), nullable=True, index=True)   # plus | pro
+    period       = Column(String(10), nullable=True)               # monthly | yearly
+    source       = Column(String(40), nullable=True, index=True)   # 유입 진입점(profile/fast_limit/review/home …)
+    value        = Column(Integer, nullable=True)                  # 매출 금액(원)
+    currency     = Column(String(8), nullable=True)                # 'KRW'
+    props_json   = Column(Text, nullable=True)                     # 기타 상세(JSON)
 
 
 class PronunciationAttempt(Base):
@@ -1395,7 +1425,7 @@ Field rules (per chunk, follow EXACTLY):
 - japanese: the text EXACTLY as printed in the image. Do NOT add furigana, spaces, or parentheses here.
 - furigana_html: copy "japanese", but after each KANJI word add its reading in half-width (parentheses). The reading inside ( ) MUST be hiragana only — never kanji, never katakana. If you remove every "(...)" the result MUST equal "japanese" exactly. Example: "吾輩は猫である。" -> "吾輩(わがはい)は猫(ねこ)である。" ; "名前はまだ無い。" -> "名前(なまえ)はまだ無(な)い。"
 - korean_meaning AND summary: write FLUENT, NATURAL Korean the way a Korean speaker actually talks. Prioritize MEANING and readability over literal word order. Avoid stiff translationese (번역투) and awkward direct translations. Make it sound natural in Korean.
-- korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). The first kana い always starts with 이. IMPORTANT: do NOT run it all together — put SPACES between words/phrases so a Korean can read it easily, and reflect the original punctuation (。→ ".", 、→ ","). Example: 吾輩は猫である。名前はまだ無い。 → "와가하이와 네코데아루. 나마에와 마다 나이.".
+- korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). LONG VOWEL → write "-"(장음): お/う-row+う/ー (とうきょう→토-쿄-) AND え-row+い (予定よてい→요테-, 先生→센세-), but NOT across a morpheme boundary (て-form+いる/います stays: しています→시테이마스). っ→ㅅ받침. The first kana い always starts with 이. IMPORTANT: do NOT run it all together — put SPACES between words/phrases so a Korean can read it easily, and reflect the original punctuation (。→ ".", 、→ ","). Example: 吾輩は猫である。名前はまだ無い。 → "와가하이와 네코데아루. 나마에와 마다 나이.".
 - accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of mora_count == total morae of that chunk's furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
 - box: the bounding box of WHERE this chunk's text appears in the image, as [ymin, xmin, ymax, xmax] integers normalized to 0-1000 (origin = top-left). For vertical text, the box wraps that column/region. Give your best estimate even if approximate. If you cannot locate it, omit box.
 """
@@ -1662,6 +1692,29 @@ def admin_grant_sub(req: GrantSubRequest):
 # RevenueCat 대시보드 Integrations → Webhooks 에 URL + Authorization 헤더(아래 값) 등록.
 REVENUECAT_WEBHOOK_AUTH = "tickjapan-rc-wh-7c2e9a"
 
+# ── 전환 퍼널 적재 헬퍼 ──────────────────────────
+# 플랜 가격(원) — 매출 집계 fallback (RevenueCat 웹훅에 price 없거나 0일 때)
+PLAN_PRICES = {("plus", "monthly"): 4400, ("plus", "yearly"): 44000,
+               ("pro", "monthly"): 19000, ("pro", "yearly"): 190000}
+
+def log_conversion(db, event_name, *, user_id=None, anonymous_id=None, platform=None,
+                   plan=None, period=None, source=None, value=None, currency=None, props=None):
+    """ConversionEvent 1건 적재(자체 commit, 실패해도 호출측 흐름 막지 않음)."""
+    try:
+        db.add(ConversionEvent(
+            event_name=(event_name or "")[:40],
+            user_id=user_id,
+            anonymous_id=(anonymous_id if not user_id else None),
+            platform=platform, plan=plan, period=period, source=(source or None),
+            value=value, currency=currency,
+            props_json=(json.dumps(props, ensure_ascii=False)[:2000] if props else None),
+        ))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print("[conversion] 적재 실패", str(e)[:120])
+
+
 @app.post("/revenuecat/webhook")
 async def revenuecat_webhook(request: Request):
     if request.headers.get("authorization", "") != REVENUECAT_WEBHOOK_AUTH:
@@ -1698,13 +1751,32 @@ async def revenuecat_webhook(request: Request):
                                last_paid_at=now_kst())
             db.add(sub); db.commit()
             print(f"[revenuecat] {etype} user={uid} {plan}/{period}")
+            # 서버검증 매출 적재 — 체험시작(0원)/체험전환/직접결제/갱신 구분
+            pt = (ev.get("period_type") or "").upper()
+            pr = ev.get("price")
+            val = int(round(pr)) if isinstance(pr, (int, float)) and pr else (PLAN_PRICES.get((plan, period)) or 0)
+            cur = ev.get("currency") or "KRW"
+            if etype == "INITIAL_PURCHASE" and pt == "TRIAL":
+                cname, val = "rc_trial_start", 0
+            elif etype == "INITIAL_PURCHASE":
+                cname = "rc_initial_purchase"
+            elif etype == "RENEWAL":
+                cname = "rc_trial_conversion" if ev.get("is_trial_conversion") else "rc_renewal"
+            elif etype == "PRODUCT_CHANGE":
+                cname = "rc_product_change"
+            else:
+                cname = "rc_" + etype.lower()
+            log_conversion(db, cname, user_id=uid, platform="app", plan=plan, period=period, value=val, currency=cur)
             return {"ok": True, "applied": etype, "user_id": uid, "plan": plan}
         if etype in EXPIRE:
             db.query(Subscription).filter(Subscription.user_id == uid,
                                           Subscription.status == 'active').update({"status": "expired"})
             db.commit()
             print(f"[revenuecat] EXPIRATION user={uid}")
+            log_conversion(db, "rc_expiration", user_id=uid, platform="app", plan=plan, period=period, value=0, currency="KRW")
             return {"ok": True, "expired": True}
+        if etype == "CANCELLATION":   # 자동갱신 해지(이탈 신호) — 구독상태는 만료까지 유지하되 분석엔 적재
+            log_conversion(db, "rc_cancellation", user_id=uid, platform="app", plan=plan, period=period, value=0, currency="KRW")
         return {"ok": True, "ignored": etype}
     finally:
         db.close()
@@ -1866,6 +1938,88 @@ def learning_event(req: LearningEventRequest):
     except Exception as e:
         print("[learning-event] 실패", str(e)[:120])
         return {"ok": False}
+    finally:
+        db.close()
+
+
+# ── 전환 퍼널: 결제·업셀 이벤트 적재 ──────────────────────────
+ALLOWED_CONVERSION_EVENTS = {
+    "plans_view", "subscribe_cta", "subscribe_success", "subscribe_cancel",
+    "subscribe_fail", "subscribe_abandon", "subscribe_restore",
+    "fast_upsell_shown", "fast_upsell_cta", "fast_upsell_dismiss", "fast_limit_reached",
+    "review_prompt_shown", "review_prompt_cta", "review_prompt_dismiss",
+    "download_page_view", "download_click", "download_cta_click", "signup_complete",
+}
+
+class ConversionEventRequest(BaseModel):
+    event_name: str
+    user_id: int | None = None
+    anonymous_id: str | None = None
+    platform: str | None = None
+    plan: str | None = None
+    period: str | None = None
+    source: str | None = None
+    value: int | None = None
+    currency: str | None = None
+    props: dict | None = None
+
+@app.post("/track-event")
+def track_event(req: ConversionEventRequest):
+    """결제·업셀 전환 퍼널을 자체 DB에 적재(fire-and-forget). GA4로 휘발시키지 않고 유저 단위로 누적
+    → '업셀→결제' '유입경로별 전환' 등을 우리 데이터로 분석. 스팸 방지를 위해 허용된 전환 이벤트만 저장."""
+    name = (req.event_name or "").strip()
+    if name not in ALLOWED_CONVERSION_EVENTS:
+        return {"ok": False}
+    db = SessionLocal()
+    try:
+        log_conversion(db, name, user_id=req.user_id, anonymous_id=req.anonymous_id,
+                       platform=req.platform, plan=req.plan, period=req.period,
+                       source=req.source, value=req.value, currency=req.currency, props=req.props)
+        return {"ok": True}
+    finally:
+        db.close()
+
+@app.get("/admin/conversion-summary")
+def conversion_summary(key: str = "", days: int = 30):
+    """관리자 — 결제·업셀 퍼널 한눈에(업셀→결제, 유입경로별 결제, 무료체험 전환, 매출). ?key=관리토큰."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다. ?key=... 를 붙여주세요.")
+    from sqlalchemy import func
+    db = SessionLocal()
+    try:
+        since = now_kst() - datetime.timedelta(days=max(1, days))
+        in_range = ConversionEvent.created_at >= since
+        def cnt(name):
+            return db.query(func.count(ConversionEvent.id)).filter(in_range, ConversionEvent.event_name == name).scalar() or 0
+        def rate(a, b):
+            return round(a / b * 100, 1) if b else None
+        by_name = dict(db.query(ConversionEvent.event_name, func.count(ConversionEvent.id))
+                         .filter(in_range).group_by(ConversionEvent.event_name).all())
+        shown, cta, success = cnt("fast_upsell_shown"), cnt("fast_upsell_cta"), cnt("subscribe_success")
+        # 유입경로(source)별 결제 성공
+        by_source = dict(db.query(func.coalesce(ConversionEvent.source, "(none)"), func.count(ConversionEvent.id))
+                           .filter(in_range, ConversionEvent.event_name == "subscribe_success")
+                           .group_by(ConversionEvent.source).all())
+        # 매출 — 서버검증(rc_*) 기준
+        REV = ["rc_initial_purchase", "rc_renewal", "rc_trial_conversion"]
+        rev_rows = (db.query(ConversionEvent.plan, ConversionEvent.period,
+                             func.coalesce(func.sum(ConversionEvent.value), 0))
+                      .filter(in_range, ConversionEvent.event_name.in_(REV))
+                      .group_by(ConversionEvent.plan, ConversionEvent.period).all())
+        revenue = [{"plan": r[0], "period": r[1], "krw": int(r[2] or 0)} for r in rev_rows]
+        trial_start, trial_conv = cnt("rc_trial_start"), cnt("rc_trial_conversion")
+        return {
+            "days": days,
+            "by_name": by_name,
+            "upsell_funnel": {
+                "shown": shown, "cta": cta, "subscribe_success": success,
+                "shown_to_cta_%": rate(cta, shown), "shown_to_purchase_%": rate(success, shown),
+            },
+            "subscribe_by_source": by_source,
+            "trial": {"started": trial_start, "converted": trial_conv, "conversion_%": rate(trial_conv, trial_start)},
+            "revenue_by_plan_krw": revenue,
+            "revenue_total_krw": sum(r["krw"] for r in revenue),
+        }
     finally:
         db.close()
 

@@ -29,8 +29,19 @@ export default function AdSenseUnit({ slot, style }) {
     try { (window.adsbygoogle = window.adsbygoogle || []).push({}) } catch {}
   }, [])
 
-  // 앱이거나 광고 비활성 → 슬롯 렌더 안 함 (자리 차지 X)
-  if (isApp || !ADSENSE_ENABLED) return null
+  // 앱은 AdSense 금지 → 항상 null
+  if (isApp) return null
+  // 광고 비활성(승인 전): 프로덕션은 자리 차지 X(null). 단 개발(npm run dev)에선 '광고 자리'를 시각 표시해 배치 확인.
+  if (!ADSENSE_ENABLED) {
+    if (import.meta.env.DEV) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 90, border: '1px dashed #c9ccd1', borderRadius: 8, background: '#f6f7f9', color: '#9aa0a6', fontSize: 12, fontWeight: 600, letterSpacing: '.3px', ...style }}>
+          광고 자리 · AdSense{slot ? ` (${slot})` : ''}
+        </div>
+      )
+    }
+    return null
+  }
   return (
     <ins
       className="adsbygoogle"

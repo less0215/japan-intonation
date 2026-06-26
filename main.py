@@ -403,6 +403,16 @@ class Subscription(Base):
     updated_at  = Column(DateTime, default=now_kst, onupdate=now_kst)
 
 
+class ReferralRedemption(Base):
+    """추천인 코드 사용 기록 — 인플루언서 협업 코드 입력 시 1회 플러스 1개월 지급.
+    User/SavedResult 스키마와 무관한 별도 테이블. user_id 유니크(1인 1회)."""
+    __tablename__ = "referral_redemption"
+    id          = Column(Integer, primary_key=True, autoincrement=True)
+    user_id     = Column(Integer, unique=True, index=True, nullable=False)  # 1인 1회
+    code        = Column(String(40), index=True, nullable=False)            # 사용한 코드(집계용)
+    redeemed_at = Column(DateTime, default=now_kst)
+
+
 class Message(Base):
     """운영자 → 회원 메시지(메시지함). User/SavedResult 스키마와 무관한 별도 테이블.
     audience: 'all'(전체 공지) 또는 특정 user_id 문자열. 읽음 여부는 클라이언트(localStorage)에서 관리."""
@@ -1777,6 +1787,55 @@ def admin_grant_sub(req: GrantSubRequest):
         db.add(sub)
         db.commit()
         return {"ok": True, "user_id": u.id, "name": u.name, "plan": req.plan, "period": req.period,
+                "expires_at": sub.expires_at.isoformat()}
+    finally:
+        db.close()
+
+
+# ── 추천인(인플루언서 협업) 코드 → 플러스 1개월 1회 무상 지급 ──────────────
+# 키=코드(대문자), 값=집계용 라벨(인플루언서/캠페인). 코드 추가·변경·삭제는 여기만 수정.
+# ⚠️ 아래 TICKJAPAN1MONTH 는 테스트용 샘플 — 실제 배포(인플루언서 전달) 전 실제 코드로 교체할 것.
+REFERRAL_CODES = {
+    "TICKJAPAN1MONTH": "샘플(테스트용)",
+}
+
+class ReferralRedeemRequest(BaseModel):
+    user_id: int
+    code: str
+
+@app.post("/referral/redeem")
+def referral_redeem(req: ReferralRedeemRequest):
+    """추천인 코드 입력 → 유효하면 플러스 1개월 무상 지급(1인 1회).
+    미가입·이미 사용·이미 구독 중이면 거절. 코드별 집계는 customer_key(ref:코드)·전환이벤트로."""
+    code = (req.code or "").strip().upper()
+    if not code:
+        raise HTTPException(status_code=400, detail="추천인 코드를 입력해 주세요.")
+    label = REFERRAL_CODES.get(code)
+    if label is None:
+        raise HTTPException(status_code=400, detail="유효하지 않은 추천인 코드예요.")
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.id == req.user_id).first()
+        if not u:
+            raise HTTPException(status_code=404, detail="회원 정보를 찾을 수 없어요. 로그인 후 다시 시도해 주세요.")
+        if db.query(ReferralRedemption).filter(ReferralRedemption.user_id == u.id).first():
+            raise HTTPException(status_code=409, detail="이미 추천인 코드를 사용하셨어요.")
+        if get_active_subscription(db, u.id):
+            raise HTTPException(status_code=409, detail="이미 구독을 이용 중이라 추천 혜택을 적용할 수 없어요.")
+        days = SUB_PRICES[("plus", "monthly")][1]   # 30일
+        sub = Subscription(user_id=u.id, plan="plus", period="monthly", status="active",
+                           billing_key=None, customer_key=f"ref:{code}",
+                           started_at=now_kst(), expires_at=now_kst() + datetime.timedelta(days=days),
+                           last_paid_at=now_kst())
+        db.add(sub)
+        db.add(ReferralRedemption(user_id=u.id, code=code, redeemed_at=now_kst()))
+        db.commit()
+        try:
+            log_conversion(db, "referral_redeem", user_id=u.id, plan="plus",
+                           period="monthly", source=code, props={"label": label})
+        except Exception:
+            pass
+        return {"ok": True, "plan": "plus", "period": "monthly",
                 "expires_at": sub.expires_at.isoformat()}
     finally:
         db.close()

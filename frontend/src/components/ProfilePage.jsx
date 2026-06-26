@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
+import ReferralCodeCard from './ReferralCodeCard'
 import AdminRevenue from './AdminRevenue'
 import AdminLearning from './AdminLearning'
 import AdminPronunciation from './AdminPronunciation'
@@ -17,7 +18,7 @@ function Row({ icon, label, color, onClick }) {
   )
 }
 
-export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, onDeleteAccount, onLogin, isApp }) {
+export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, onDeleteAccount, onLogin, onSubRefresh, isApp }) {
   const navigate = useNavigate()
   return (
     <>
@@ -60,6 +61,11 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
         </button>
+      )}
+
+      {/* 추천인 코드 — 인플루언서 협업(웹 전용: 앱은 IAP 안티스티어링 고려) */}
+      {!isApp && (
+        <ReferralCodeCard user={user} fastUnlimited={fastUnlimited} onLogin={onLogin} onApplied={onSubRefresh} />
       )}
 
       {/* 관리자 전용 — 제휴 수익 대시보드 */}

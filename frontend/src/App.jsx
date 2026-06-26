@@ -357,6 +357,7 @@ export default function App() {
   const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
   const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(백엔드) OR 인앱구매(RevenueCat) → 광고 제거
   const [subInfo, setSubInfo] = useState(null)                // /subscription 응답 { plan, expires_at, fast_unlimited, ad_free }
+  const [subTick, setSubTick] = useState(0)                   // 추천인 코드 적용 등 구독 변경 후 /subscription 재조회 트리거
   const [iapActive, setIapActive] = useState(false)           // 인앱 결제(RevenueCat) 활성 권한(plus/pro)
   const iapActiveRef = useRef(false)                          // /subscription effect에서 현재값 참조용
   function applyIap(active) { iapActiveRef.current = active; setIapActive(active); if (active) setSubAdFree(true) }
@@ -439,7 +440,7 @@ export default function App() {
         }
       })
       .catch(() => {})
-  }, [user?.user_id])
+  }, [user?.user_id, subTick])
 
   // 인앱 결제(RevenueCat) — 로그인 사용자 연결 + 활성 권한 조회 (앱 전용). 구매 후 이벤트로 재확인.
   useEffect(() => {
@@ -1082,6 +1083,7 @@ export default function App() {
               onLogout={handleLogout}
               onDeleteAccount={() => setShowDeleteAccount(true)}
               onLogin={handleLoginClick}
+              onSubRefresh={() => setSubTick(t => t + 1)}
             />
           } />
           <Route path="/grammar" element={<>

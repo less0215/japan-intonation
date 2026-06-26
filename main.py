@@ -182,9 +182,9 @@ Rules:
     きゃ=캬 きゅ=큐 きょ=쿄 / しゃ=샤 しゅ=슈 しょ=쇼 / ちゃ=차 ちゅ=추 ちょ=초 /
     にゃ=냐 にゅ=뉴 にょ=뇨 / ひゃ=햐 ひゅ=휴 ひょ=효 / みゃ=먀 みゅ=뮤 みょ=묘 /
     りゃ=랴 りゅ=류 りょ=료 / ぎゃ=갸 ぎゅ=규 ぎょ=교 / じゃ=자 じゅ=주 じょ=조 / びょ=뵤 ぴょ=표
-  LONG VOWEL (장음) — the SECOND mora of a long vowel becomes ONLY "-". It gets NO Hangul letter of its own: do NOT also write 이/우. (REPLACE, never append.)
-    • お/う-row + う or ー → "-"   とうきょう→토-쿄-(NOT 토우쿄우) , おはよう→오하요- , がっこう→각코- , ビール→비-루
-    • え-row + い → "-"   予定(よてい)→요테-(NOT 요테이, NOT 요테-이) , 先生(せんせい)→센세-(NOT 센세이) , 時計(とけい)→토케- , 計算(けいさん)→케-산
+  LONG VOWEL (장음) — MANDATORY for EVERY long vowel in the reading, not only the examples below. The SECOND mora of a long vowel becomes ONLY "-": it gets NO Hangul letter of its own — do NOT also write 이/우. (REPLACE, never append.)
+    • お/う-row + う or ー → "-"   とうきょう→토-쿄-(NOT 토우쿄우) , おはよう→오하요- , がっこう→각코- , 旅行(りょこう)→료코- , ビール→비-루
+    • え-row + い → "-"  (ALWAYS, for every word)   予定(よてい)→요테-(NOT 요테이/요테-이) , 学生(がくせい)→가쿠세-(NOT 가쿠세이) , 先生(せんせい)→센세- , 映画(えいが)→에-가 , 経済(けいざい)→케-자이 , 成績(せいせき)→세-세키 , 時計(とけい)→토케-
     • long ああ/おお within ONE word → "-"   おかあさん→오카-상 , 大きい(おおきい)→오-키-
     ⚠️ NOT a long vowel across a word/morpheme boundary — keep the literal kana:
       て-form + いる/います/いた … → 테이 STAYS: しています→시테이마스 , 待っている→맛테이루 .
@@ -275,7 +275,7 @@ Fields:
 - "hiragana": reading in hiragana
 - "korean_pronunciation": Korean-character (한글) pronunciation — a faithful mora-by-mora transcription of "hiragana"
   (same morae; nothing added/dropped/changed). Yōon merges: しょ=쇼 ちょ=초 きょ=쿄 りょ=료 …;
-  long vowels → "-"(장음), where the 2nd mora becomes ONLY "-" (REPLACE it; do NOT also write 이/우): お/う-row+う/ー (とうきょう→토-쿄-) AND え-row+い (予定→요테- NOT 요테-이/요테이, 先生→센세-) — but NOT across a morpheme boundary (て-form+いる/います stays: しています→시테이마스);
+  long vowels → "-"(장음), MANDATORY for EVERY long vowel; the 2nd mora becomes ONLY "-" (REPLACE it; do NOT also write 이/우): お/う-row+う/ー (とうきょう→토-쿄-) AND え-row+い (ALWAYS: 予定→요테-, 学生→가쿠세-, 先生→센세-, 映画→에-가; NOT 요테-이/요테이) — but NOT across a morpheme boundary (て-form+いる/います stays: しています→시테이마스);
   っ → ㅅ받침; ん → ㄴ받침. Verb endings EXACT: ましょう=마쇼-(NOT 마시타), ました=마시타, ません=마셍, です=데스, ます=마스.
 - "korean_meaning": Korean meaning of this chunk
 - "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
@@ -307,10 +307,12 @@ _analyze_cache: dict[str, dict] = {}
 # 문장 분해 캐시 — 키: 일본어 원문, 값: breakdown list
 _breakdown_cache: dict[str, list] = {}
 # 분해 캐시 버전 — BREAKDOWN_PROMPT(풀이 등) 바꾸면 올려서 옛 캐시 자동 무효화
-_BD_CACHE_VER = "v4"
+# v5: 장음 규칙 え단+い→테- 추가
+_BD_CACHE_VER = "v5"
 # 번역/발음 캐시 버전 — TRANSLATION_PROMPT(후리가나·한글발음 규칙) 바꾸면 올려서 옛 캐시 자동 무효화
 # v4: 한글 독음 띄어쓰기 규칙을 모든 톤(특히 비즈니스 敬語)에 명시 → 붙어 나오던 옛 캐시 무효화
-_AN_CACHE_VER = "v4"
+# v5: 장음 え단+い→'-' (予定→요테-, 学生→가쿠세-) + 둘째 모라는 '-'로만 대체(이/우 중복 제거)
+_AN_CACHE_VER = "v5"
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)

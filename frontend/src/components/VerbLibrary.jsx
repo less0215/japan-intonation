@@ -1,8 +1,10 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { VERBS, getRankTabs } from '../data/verbs'
 import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
+import AdSenseUnit from './AdSenseUnit'
+import { isAdFreeMember } from '../ads'
 import { track } from '../App'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
@@ -190,8 +192,14 @@ export default function VerbLibrary() {
         </div>
       ) : (
         <div style={styles.verbGrid}>
-          {filteredVerbs.map(verb => (
-            <VerbCard key={verb.id} verb={verb} onNavigate={navigate} />
+          {filteredVerbs.map((verb, index) => (
+            <Fragment key={verb.id}>
+              <VerbCard verb={verb} onNavigate={navigate} />
+              {index === 7 && !isAdFreeMember() && (
+                // TODO: 전용 in-feed 슬롯 생성 후 교체
+                <AdSenseUnit slot="2450758307" style={{ gridColumn: '1 / -1', margin: '4px 0' }} />
+              )}
+            </Fragment>
           ))}
         </div>
       )}

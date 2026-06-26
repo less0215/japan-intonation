@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import OnomatopeIcon from './OnomatopeIcon'
 import JlptBadge from './JlptBadge'
 import { ONOMATOPE } from '../data/onomatope'
+import AdSenseUnit from './AdSenseUnit'
+import { isAdFreeMember } from '../ads'
 
 const PRIMARY = '#5CA9CE'
 const LEVEL_ORDER = ['N5', 'N4', 'N3', 'N2', 'N1']
@@ -48,22 +50,26 @@ export default function OnomatopeLibrary() {
 
       {/* 목록 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {items.map(o => (
-          <button key={o.id} onClick={() => navigate(`/onomatope/${o.id}`)} style={{
-            display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
-            background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit',
-          }}>
-            <OnomatopeIcon icon={o.icon} size={48} radius={13} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 18, fontWeight: 600, color: 'var(--text-strong)' }}>{o.word}</span>
-                <span style={{ fontSize: 12, color: PRIMARY, fontWeight: 600 }}>{o.reading}</span>
-                <JlptBadge level={o.jlpt} style={{ fontSize: 10, padding: '1px 6px' }} />
+        {items.map((o, index) => (
+          <Fragment key={o.id}>
+            <button onClick={() => navigate(`/onomatope/${o.id}`)} style={{
+              display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
+              background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              <OnomatopeIcon icon={o.icon} size={48} radius={13} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 18, fontWeight: 600, color: 'var(--text-strong)' }}>{o.word}</span>
+                  <span style={{ fontSize: 12, color: PRIMARY, fontWeight: 600 }}>{o.reading}</span>
+                  <JlptBadge level={o.jlpt} style={{ fontSize: 10, padding: '1px 6px' }} />
+                </div>
+                <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-2)' }}>{o.meaning} <span style={{ color: 'var(--text-3)', fontSize: 11 }}>· {o.category}</span></p>
               </div>
-              <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-2)' }}>{o.meaning} <span style={{ color: 'var(--text-3)', fontSize: 11 }}>· {o.category}</span></p>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c2c7cc" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-          </button>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c2c7cc" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+            {/* TODO: 전용 in-feed 슬롯 생성 후 교체 */}
+            {index === 7 && !isAdFreeMember() && <AdSenseUnit slot="2450758307" style={{ margin: '12px 0' }} />}
+          </Fragment>
         ))}
       </div>
     </>

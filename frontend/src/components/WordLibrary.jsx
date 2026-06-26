@@ -1,7 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import WordBookmarkButton from './WordBookmarkButton'
 import { track } from '../App'
+import AdSenseUnit from './AdSenseUnit'
+import { isAdFreeMember } from '../ads'
 
 const PRIMARY = '#5CA9CE'
 
@@ -117,20 +119,26 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
 
           {/* 카드 목록 */}
           <div style={styles.verbGrid}>
-            {filteredItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => navigate(`/${wordType}/${item.id}`)}
-                style={styles.verbCard}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: 2 }}>
-                  <span style={styles.rankBadge}>#{item.rank}</span>
-                  <WordBookmarkButton wordInfo={{ id: item.id, category: wordType, word: item.verb, reading: item.reading, meaning: item.meaning }} size="small" />
-                </div>
-                <span style={styles.verbJapanese}>{item.verb}</span>
-                <span style={styles.verbReading}>{item.reading}</span>
-                <span style={styles.verbMeaning}>{item.meaning}</span>
-              </button>
+            {filteredItems.map((item, index) => (
+              <Fragment key={item.id}>
+                <button
+                  onClick={() => navigate(`/${wordType}/${item.id}`)}
+                  style={styles.verbCard}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: 2 }}>
+                    <span style={styles.rankBadge}>#{item.rank}</span>
+                    <WordBookmarkButton wordInfo={{ id: item.id, category: wordType, word: item.verb, reading: item.reading, meaning: item.meaning }} size="small" />
+                  </div>
+                  <span style={styles.verbJapanese}>{item.verb}</span>
+                  <span style={styles.verbReading}>{item.reading}</span>
+                  <span style={styles.verbMeaning}>{item.meaning}</span>
+                </button>
+                {/* 8번째 카드(index===7) 뒤 그리드 전체폭 인피드 광고 1개 */}
+                {index === 7 && !isAdFreeMember() && (
+                  // TODO: 전용 in-feed 슬롯 생성 후 교체
+                  <AdSenseUnit slot="2450758307" style={{ gridColumn: '1 / -1', margin: '12px 0' }} />
+                )}
+              </Fragment>
             ))}
           </div>
         </>

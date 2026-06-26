@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import ResultCard from './ResultCard'
+import AdSenseUnit from './AdSenseUnit'
+import { isAdFreeMember } from '../ads'
 import { logLearning } from '../App'
 
 /* 사진 학습 — 전체화면 모드
@@ -135,7 +137,13 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
         {chunks.map((c, i) => {
           const isOpen = open === i
           return (
-            <div key={i} style={{ marginBottom: 8 }}>
+            <Fragment key={i}>
+              {/* 4구간마다 접힌 헤더 사이에 인피드 광고 1개 (구간 블록 위) */}
+              {i > 0 && i % 4 === 0 && !isAdFreeMember() && (
+                // TODO: 전용 in-feed 슬롯 생성 후 교체
+                <AdSenseUnit slot="2450758307" style={{ margin: '12px 0' }} />
+              )}
+              <div style={{ marginBottom: 8 }}>
               <button
                 onClick={() => { const opening = !isOpen; setOpen(opening ? i : -1); if (opening) logLearning('photo_expand', c.japanese) }}
                 aria-expanded={isOpen}
@@ -182,7 +190,8 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
                   />
                 </div>
               )}
-            </div>
+              </div>
+            </Fragment>
           )
         })}
       </div>

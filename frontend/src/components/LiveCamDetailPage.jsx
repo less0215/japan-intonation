@@ -4,6 +4,7 @@ import PageSEO from './PageSEO'
 import JapanMiniMap from './JapanMiniMap'
 import { LIVECAMS } from '../data/livecams'
 import LiveCamHopPopup from './LiveCamHopPopup'
+import AdSenseUnit from './AdSenseUnit'
 import { isAdFreeMember } from '../ads'
 
 const PRIMARY = '#5CA9CE'
@@ -95,6 +96,10 @@ export default function LiveCamDetailPage() {
         <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{cam.spot}</p>
         <p style={{ margin: '5px 0 0', fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.5 }}>{cam.desc}</p>
       </div>
+
+      {/* 인피드 광고 — 설명 카드와 지도 사이 (영상 직하단 금지) */}
+      {/* TODO: 전용 in-feed 슬롯 생성 후 교체 */}
+      {!isAdFreeMember() && <AdSenseUnit slot="2450758307" style={{ margin: '12px 0' }} />}
 
       {/* ② 지도 (크게) — 영상과 같은 블록 구조로 반복 */}
       {cam.where && (

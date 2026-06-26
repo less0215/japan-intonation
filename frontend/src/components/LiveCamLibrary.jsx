@@ -1,6 +1,9 @@
+import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import { LIVECAMS, LIVECAM_REGIONS } from '../data/livecams'
+import AdSenseUnit from './AdSenseUnit'
+import { isAdFreeMember } from '../ads'
 
 const PRIMARY = '#5CA9CE'
 
@@ -28,8 +31,9 @@ export default function LiveCamLibrary() {
         </p>
       </div>
 
-      {regions.map(region => (
-        <div key={region} style={{ marginBottom: 18 }}>
+      {regions.map((region, index) => (
+        <Fragment key={region}>
+        <div style={{ marginBottom: 18 }}>
           <p style={{ margin: '0 2px 6px', fontSize: 12, fontWeight: 600, color: '#0F6E56' }}>{region}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {LIVECAMS.filter(c => c.region === region).map(c => (
@@ -55,6 +59,12 @@ export default function LiveCamLibrary() {
             ))}
           </div>
         </div>
+        {/* 첫 번째 지역 그룹 뒤에 인피드 광고 1개 */}
+        {index === 0 && !isAdFreeMember() && (
+          // TODO: 전용 in-feed 슬롯 생성 후 교체
+          <AdSenseUnit slot="2450758307" style={{ margin: '12px 0' }} />
+        )}
+        </Fragment>
       ))}
     </>
   )

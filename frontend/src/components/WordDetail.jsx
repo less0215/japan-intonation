@@ -7,6 +7,8 @@ import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
 import { ExampleAnalysis } from './BreakdownPanel'
 import ExampleCard from './ExampleCard'
+import AdSenseUnit from './AdSenseUnit'
+import { isAdFreeMember } from '../ads'
 import { track } from '../App'
 
 const PRIMARY  = '#5CA9CE'
@@ -347,6 +349,10 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
           </div>
         </div>
       )}
+
+      {/* 인피드 광고 (예문 섹션 직전) */}
+      {/* TODO: 전용 in-feed 슬롯 생성 후 교체 */}
+      {!isAdFreeMember() && <AdSenseUnit slot="2450758307" style={{ margin: '12px 0' }} />}
 
       {/* 예문 */}
       {item.examples?.length > 0 && (

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import SearchBar from './components/SearchBar'
 import ResultCard from './components/ResultCard'
@@ -11,6 +11,7 @@ import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
 import TravelAffiliate from './components/TravelAffiliate'
+import TravelPopup from './components/TravelPopup'
 import BottomNav from './components/BottomNav'
 import SavesPage from './components/SavesPage'
 import ProfilePage from './components/ProfilePage'
@@ -19,6 +20,17 @@ import VerbDetailPage from './components/VerbDetailPage'
 import WordLibrary from './components/WordLibrary'
 import WordDetailPage from './components/WordDetailPage'
 import ParticleLibrary from './components/ParticleLibrary'
+import OnomatopeLibrary from './components/OnomatopeLibrary'
+import OnomatopeDetailPage from './components/OnomatopeDetailPage'
+import LiveCamLibrary from './components/LiveCamLibrary'
+import LiveCamDetailPage from './components/LiveCamDetailPage'
+import { LIVECAMS } from './data/livecams'
+import AdConsentPopup from './components/AdConsentPopup'
+import SubscriptionPage from './components/SubscriptionPage'
+import { BillingSuccess, BillingFail } from './components/BillingResult'
+import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbox'
+import UpdateGate from './components/UpdateGate'
+import { showRewardedAd, showInterstitialAd } from './ads'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
 import GrammarLibrary from './components/GrammarLibrary'
@@ -93,8 +105,7 @@ function DailyGrammarCard({ grammar, onNavigate }) {
     <div
       onClick={() => onNavigate(`/grammar/${grammar.id}`)}
       style={{
-        background: 'linear-gradient(135deg, #f0faf500 0%, #e8f7f000 100%)',
-        background: `linear-gradient(135deg, ${'#5CA9CE'}10 0%, ${'#5CA9CE'}05 100%)`,
+        background: 'var(--accent-soft, #eef6fb)',
         border: `1.5px solid ${'#5CA9CE'}33`,
         borderRadius: 14,
         padding: '16px 18px',
@@ -117,7 +128,7 @@ function DailyGrammarCard({ grammar, onNavigate }) {
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
         <span style={{
           fontFamily: "'Noto Sans JP', sans-serif",
-          fontSize: 28, fontWeight: 700, color: '#111',
+          fontSize: 28, fontWeight: 700, color: 'var(--text-strong, #111)',
         }}>
           {grammar.pattern}
         </span>
@@ -126,7 +137,7 @@ function DailyGrammarCard({ grammar, onNavigate }) {
         </span>
       </div>
 
-      <p style={{ margin: '6px 0 0', fontSize: 12, color: '#666', lineHeight: 1.5 }}>
+      <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--text-2, #666)', lineHeight: 1.5 }}>
         {grammar.explanation.length > 60 ? grammar.explanation.slice(0, 60) + '…' : grammar.explanation}
       </p>
 
@@ -143,7 +154,7 @@ function DailyVerbCard({ verb, onNavigate }) {
     <div
       onClick={() => onNavigate(`/verbs/${verb.id}`)}
       style={{
-        background: `linear-gradient(135deg, ${PRIMARY}18 0%, ${PRIMARY}08 100%)`,
+        background: 'var(--accent-soft, #eef6fb)',
         border: `1.5px solid ${PRIMARY}33`,
         borderRadius: 14,
         padding: '16px 18px',
@@ -169,7 +180,7 @@ function DailyVerbCard({ verb, onNavigate }) {
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
         <span style={{
           fontFamily: "'Noto Sans JP', sans-serif",
-          fontSize: 32, fontWeight: 600, color: '#111',
+          fontSize: 32, fontWeight: 600, color: 'var(--text-strong, #111)',
           letterSpacing: '-0.5px',
         }}>
           {verb.verb}
@@ -177,7 +188,7 @@ function DailyVerbCard({ verb, onNavigate }) {
         <span style={{ fontSize: 14, color: PRIMARY, fontWeight: 600 }}>
           {verb.reading}
         </span>
-        <span style={{ fontSize: 14, color: '#666' }}>
+        <span style={{ fontSize: 14, color: 'var(--text-2, #666)' }}>
           {verb.meaning}
         </span>
       </div>
@@ -229,11 +240,14 @@ export default function App() {
             : location.pathname.startsWith('/adj-na')    ? 'adj-na'
             : location.pathname.startsWith('/noun')      ? 'noun'
             : location.pathname.startsWith('/particles') ? 'particles'
+            : location.pathname.startsWith('/onomatope') ? 'onomatope'
+            : location.pathname.startsWith('/live')      ? 'live'
             : 'translate'
 
   const [loading, setLoading]         = useState(false)
   const [result, setResult]           = useState(null)
   const [breakdownLoading, setBreakdownLoading] = useState(false)
+  const [breakdownExpanded, setBreakdownExpanded] = useState(false)   // 여행 팝업 트리거: 분해 펼침 여부
   const [typing, setTyping]           = useState(false)
   const [inputText, setInputText]     = useState('')
   const [error, setError]             = useState(null)
@@ -246,20 +260,43 @@ export default function App() {
   // 빠른 번역(3.1) 토글 — 사용량은 서버(DB)에서 관리, 5시간 롤링 윈도우 리셋
   const [selectedModel, setSelectedModel] = useState('basic')
   const [pendingFast, setPendingFast] = useState(false)   // 로그인 후 빠른 번역 자동 활성화
+  // 앱 보상형 광고: 팝업 상태({mode}) + 이번 세션 광고 시청 완료 여부(앱 재시작 시 초기화)
+  const [adPopup, setAdPopup] = useState(null)
+  const [adNotice, setAdNotice] = useState(false)   // 일반 번역 30회마다 전면 광고 사전 팝업
+  const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
+  const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(또는 관리자/무제한) → 광고 제거
+  const [msgUnread, setMsgUnread] = useState(0)               // 메시지함 안 읽은 개수(헤더 빨간 점)
+  // 정착(settled) 번역 세션 — 디바운스 중간 호출을 한 번역으로 묶어 한도·광고 카운트
+  const editSessionRef = useRef({ text: '', time: 0, sid: '' })
+  const lastBasicSidRef = useRef('')
+  // 다크모드 (헤더 우측 토글)
+  const [dark, setDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark')
+  function toggleTheme() {
+    const next = !dark
+    setDark(next)
+    document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light')
+    try { localStorage.setItem('tickjapan_theme', next ? 'dark' : 'light') } catch {}
+    track('theme_toggle', { mode: next ? 'dark' : 'light' })
+  }
+  const [sessionFastUnlocked, setSessionFastUnlocked] = useState(false)
   // 서버에서 받은 사용량 상태
   const [fastUsedPct, setFastUsedPct] = useState(0)
   const [fastLocked, setFastLocked] = useState(false)        // 현재 윈도우 한도 소진
   const [fastResetSec, setFastResetSec] = useState(0)        // 리셋까지 남은 초
   const fastUnlimited = !!user?.fast_unlimited
 
-  // 무제한 회원은 빠른 번역을 기본 ON
-  useEffect(() => {
-    if (user?.fast_unlimited) setSelectedModel('fast')
-  }, [user?.fast_unlimited])
+  // 빠른 번역(비싼 모델)은 보상형 광고가 가능한 '앱 전용'.
+  // 웹은 자동 ON 하지 않음 — 무제한 회원도 웹에서는 일반 번역(비용 누수 방지).
 
-  // 로그인 회원의 빠른 번역 사용량 조회 (진입·로그인 시)
+  // 빠른 번역 사용량 조회 (진입·로그인 시). 비회원은 로컬 5시간 윈도우로 추적
   useEffect(() => {
-    if (!user?.user_id) { setFastUsedPct(0); setFastLocked(false); setFastResetSec(0); return }
+    if (!user?.user_id) {
+      const g = readGuestFast()
+      setFastUsedPct(guestFastPct(g.count))
+      setFastLocked(g.count >= FAST_GUEST_LIMIT)
+      setFastResetSec(g.start ? guestFastResetSec(g.start) : 0)
+      return
+    }
     fetch(`${API_URL}/fast-usage/${user.user_id}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
@@ -271,18 +308,105 @@ export default function App() {
       .catch(() => {})
   }, [user?.user_id])
 
-  // '빠른 번역' 토글 — 로그인 회원만. 비회원이면 로그인 모달
+  // 구독/관리자/무제한 → 광고 제거 여부 조회
+  useEffect(() => {
+    if (!user?.user_id) { setSubAdFree(false); return }
+    fetch(`${API_URL}/subscription/${user.user_id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setSubAdFree(!!d.ad_free) })
+      .catch(() => {})
+  }, [user?.user_id])
+
+  // 메시지함 안 읽은 개수 조회 (로그인 시) — 헤더 빨간 점
+  useEffect(() => {
+    if (!user?.user_id) { setMsgUnread(0); return }
+    fetch(`${API_URL}/messages/${user.user_id}`)
+      .then(r => r.ok ? r.json() : [])
+      .then(list => {
+        const read = getReadIds(); const hidden = getHiddenIds()
+        setMsgUnread((Array.isArray(list) ? list : []).filter(m => !read.has(m.id) && !hidden.has(m.id)).length)
+      })
+      .catch(() => {})
+  }, [user?.user_id, location.pathname])
+
+  // '빠른 번역' 토글. 앱: 세션 첫 켜기 시 보상형 광고. 웹: 비회원이면 로그인 모달
   function handleFastToggle() {
     if (selectedModel === 'fast') { setSelectedModel('basic'); return }   // 끄기
-    if (!user) {
-      setPendingFast(true)
-      setSignupMode('fast')
-      setShowSignup(true)
-      track('fast_login_required')
+    // 앱: 로그인 여부·회원 등급과 무관하게 세션당 광고 1회 후 켜짐 (무제한 회원도 최초 토글 시 광고)
+    if (isApp) {
+      if (!sessionFastUnlocked) {
+        setAdPopup({ mode: 'enable' })
+        track('fast_ad_prompt', { mode: 'enable', guest: !user })
+        return
+      }
+      setSelectedModel('fast')
+      track('fast_enabled', { guest: !user })
       return
     }
+    // 웹: 빠른 번역은 앱 전용 — 비용 누수 방지. 앱 다운로드 안내
+    setWebFastNotice(true)
+    track('fast_web_blocked')
+  }
+
+  // 보상형 광고 시청 → 빠른 번역 켜기 (앱 전용)
+  async function watchAdEnable() {
+    const ok = await showRewardedAd()
+    if (!ok) return
+    setSessionFastUnlocked(true)
+    setAdPopup(null)
     setSelectedModel('fast')
-    track('fast_enabled')
+    track('fast_enabled', { via: 'ad' })
+  }
+
+  // 보상형 광고 시청 → 5시간 한도 즉시 해제 후 빠른 번역 켜기 (앱 전용)
+  async function watchAdUnlock5h() {
+    const ok = await showRewardedAd()
+    if (!ok) return
+    try {
+      if (user?.user_id) await fetch(`${API_URL}/fast-usage/${user.user_id}/reset`, { method: 'POST' })
+      else resetGuestFast()
+    } catch {}
+    setFastLocked(false)
+    setFastUsedPct(0)
+    setFastResetSec(0)
+    setSessionFastUnlocked(true)
+    setAdPopup(null)
+    setSelectedModel('fast')
+    track('fast_5h_unlocked', { via: 'ad' })
+  }
+
+  // 사용량 소진 상태에서 사용자가 직접 '제한 풀기'를 눌렀을 때만 광고 팝업 (자동 X)
+  function handleUnlockFast() {
+    if (isApp) {
+      setAdPopup({ mode: 'unlock5h' })
+      track('fast_ad_prompt', { mode: 'unlock5h', guest: !user })
+    }
+  }
+
+  // 비회원 빠른 번역 사용량 — user_id가 없어 localStorage 5시간 윈도우로 추적 (회원과 동일 20회)
+  const FAST_GUEST_LIMIT = 15
+  const FAST_GUEST_WINDOW_MS = 5 * 3600 * 1000
+  function readGuestFast() {
+    try {
+      const r = JSON.parse(localStorage.getItem('tickjapan_guest_fast') || '{}')
+      if (!r.start || Date.now() - r.start >= FAST_GUEST_WINDOW_MS) return { start: 0, count: 0 }
+      return { start: r.start, count: r.count || 0 }
+    } catch { return { start: 0, count: 0 } }
+  }
+  function guestFastResetSec(start) {
+    return Math.max(0, Math.round((start + FAST_GUEST_WINDOW_MS - Date.now()) / 1000))
+  }
+  function guestFastPct(count) { return Math.min(100, Math.round(count / FAST_GUEST_LIMIT * 100)) }
+  function consumeGuestFast() {
+    let { start, count } = readGuestFast()
+    if (!start) start = Date.now()
+    if (count >= FAST_GUEST_LIMIT) return { allowed: false, pct: 100, resetSec: guestFastResetSec(start) }
+    count += 1
+    try { localStorage.setItem('tickjapan_guest_fast', JSON.stringify({ start, count })) } catch {}
+    return { allowed: true, pct: guestFastPct(count), resetSec: guestFastResetSec(start) }
+  }
+  function resetGuestFast() {
+    try { localStorage.setItem('tickjapan_guest_fast', JSON.stringify({ start: Date.now(), count: 0 })) } catch {}
   }
 
   // 비로그인 번역 횟수 — localStorage 기반, 3회 초과 시 로그인 유도
@@ -339,11 +463,41 @@ export default function App() {
     setLoading(true)
     setError(null)
     setResult(null)
+    setBreakdownExpanded(false)
     setSaved(false)
     setInputText(text)
 
-    // 빠른 번역 여부만 서버에 전달 — 한도 차감·리셋·폴백은 서버가 판정
-    const useModel = (selectedModel === 'fast' && user) ? 'fast' : 'basic'
+    // 빠른 번역: 로그인 회원(서버 한도) OR 광고로 잠금해제한 비로그인 세션(로컬 한도)
+    const wantFast = selectedModel === 'fast' && (user || sessionFastUnlocked)
+    let guestFastBlocked = false
+    if (wantFast && !user) {
+      // 비회원: localStorage 5시간 윈도우로 사용량 차감
+      const g = consumeGuestFast()
+      setFastUsedPct(g.pct)
+      setFastResetSec(g.resetSec)
+      if (g.allowed) {
+        setFastLocked(false)
+      } else {
+        // 소진 → 기본 번역 폴백. 자동 팝업 없이 locked 표시만(사용자가 '제한 풀기' 누를 때 광고)
+        guestFastBlocked = true
+        setFastLocked(true)
+        setSelectedModel('basic')
+        track('fast_limit_reached', { guest: true })
+        scheduleFastResetNotification(g.resetSec)
+      }
+    }
+    // 빠른 번역 여부만 서버에 전달 — 회원 한도 차감·리셋·폴백은 서버가 판정
+    const useModel = (wantFast && !guestFastBlocked) ? 'fast' : 'basic'
+
+    // 정착 세션 판정 — 직전 번역의 연장/수정(prefix)이고 12초 이내면 같은 세션(한 번역으로 묶음)
+    const editSid = (() => {
+      const now = Date.now()
+      const p = editSessionRef.current
+      const cont = p.sid && (now - p.time < 12000) && (text.startsWith(p.text) || p.text.startsWith(text))
+      const sid = cont ? p.sid : (crypto.randomUUID?.() || `${now}-${Math.round(now % 1e6)}`)
+      editSessionRef.current = { text, time: now, sid }
+      return sid
+    })()
 
     const fetchAnalyze = () =>
       fetch(`${API_URL}/analyze`, {
@@ -355,6 +509,7 @@ export default function App() {
           platform: isApp ? 'app' : 'web',
           user_id: user?.user_id ?? null,
           anonymous_id: (() => { try { return localStorage.getItem('tickjapan_anon_id') } catch { return null } })(),
+          edit_session_id: editSid,
         }),
       })
 
@@ -367,7 +522,12 @@ export default function App() {
       }
 
       if (!res.ok) {
-        if (res.status === 503 || res.status === 429)
+        if (res.status === 429) {
+          // 레이트리밋·일일 한도 — 서버가 보낸 친절한 메시지 그대로 노출
+          let msg = '잠시 후 다시 시도해 주세요.'
+          try { const j = await res.json(); if (j?.detail) msg = j.detail } catch {}
+          throw new Error(msg)
+        } else if (res.status === 503)
           throw new Error('서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.')
         else if (res.status >= 500)
           throw new Error('일시적인 오류가 발생했습니다. 다시 시도해 주세요.')
@@ -378,6 +538,18 @@ export default function App() {
       // 1단계: 번역 + 그래프를 먼저 표시 (분해는 비어 있음)
       setResult(data)
       setLoading(false)
+
+      // 일반(basic) 번역 30회마다 전면 광고 — 회원 구분 없이(앱 전용). 광고 전 사전 팝업
+      // 정착 기준: 같은 편집 세션의 중간 호출은 세지 않고, 새 번역(새 세션)일 때만 1 카운트
+      const usedModel = data.model_used || useModel
+      if (isApp && !subAdFree && usedModel === 'basic' && editSid !== lastBasicSidRef.current) {
+        lastBasicSidRef.current = editSid
+        try {
+          const n = (parseInt(localStorage.getItem('tickjapan_basic_count') || '0', 10) || 0) + 1
+          localStorage.setItem('tickjapan_basic_count', String(n))
+          if (n % 30 === 0) { setAdNotice(true); track('interstitial_prompt', { count: n }) }
+        } catch {}
+      }
 
       // 빠른 번역 사용량 갱신 (서버 판정 결과 반영)
       if (selectedModel === 'fast' && user) {
@@ -505,6 +677,7 @@ export default function App() {
   // 입력을 모두 지웠을 때 — 이전 결과/상태 초기화
   function handleClear() {
     setResult(null)
+    setBreakdownExpanded(false)
     setError(null)
     setTyping(false)
     setBreakdownLoading(false)
@@ -537,6 +710,7 @@ export default function App() {
 
   return (
     <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
+      <UpdateGate />
       <div className="container">
 
         {/* 앱 헤더 */}
@@ -555,26 +729,49 @@ export default function App() {
             </span>
           </h1>
 
-          {user ? (
-            /* 로그인: 프로필 아바타 (탭 → 프로필) */
-            <button
-              onClick={() => navigate('/profile')}
-              aria-label="프로필"
-              style={{ marginLeft: 'auto', position: 'relative', width: 36, height: 36, borderRadius: '50%', background: '#5CA9CE', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              {user.name?.[0] ?? '회'}
-              {fastUnlimited && (
-                <span style={{ position: 'absolute', bottom: -2, right: -2, width: 15, height: 15, borderRadius: '50%', background: 'linear-gradient(145deg, #ffd97a 0%, #f0a500 100%)', border: '1.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
-                </span>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+            {user && (
+              /* 로그인: 메시지함 (벨 + 안 읽은 빨간 점) */
+              <button
+                onClick={() => { setMsgUnread(0); navigate('/messages') }}
+                aria-label="메시지함"
+                style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: 'var(--surface-2,#f0f3f5)', border: '1px solid var(--bd,#e6eaee)', color: 'var(--text-2,#5f6b73)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+                {msgUnread > 0 && (
+                  <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8, background: '#e84c5a', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fff' }}>{msgUnread > 9 ? '9+' : msgUnread}</span>
+                )}
+              </button>
+            )}
+            {user && (
+              /* 로그인: 프로필 아바타 (탭 → 프로필) */
+              <button
+                onClick={() => navigate('/profile')}
+                aria-label="프로필"
+                style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: '#5CA9CE', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                {user.name?.[0] ?? '회'}
+                {fastUnlimited && (
+                  <span style={{ position: 'absolute', bottom: -2, right: -2, width: 15, height: 15, borderRadius: '50%', background: 'linear-gradient(145deg, #ffd97a 0%, #f0a500 100%)', border: '1.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+                  </span>
+                )}
+              </button>
+            )}
+            {/* 다크모드 토글 — 헤더 오른쪽 끝(오른손 엄지 접근 용이) */}
+            <button onClick={toggleTheme} aria-label="다크모드 전환" style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--surface-2,#f0f3f5)', border: '1px solid var(--bd,#e6eaee)', color: 'var(--text-2,#5f6b73)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+              {dark ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4.5" /><path d="M12 2v2 M12 20v2 M4.2 4.2l1.4 1.4 M18.4 18.4l1.4 1.4 M2 12h2 M20 12h2 M4.2 19.8l1.4-1.4 M18.4 5.6l1.4-1.4" /></svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
               )}
             </button>
-          ) : null}
+          </div>
         </div>
 
         {/* 품사 단어 목록 화면일 때 — 상단에 학습으로 돌아가기 + 카테고리 전환 바 */}
         {/* 문법 페이지는 자체 카테고리 탭이 있으므로 CategoryBars 숨김 */}
-        {isWordTab && !isGrammarDetail && (
+        {isWordTab && !isGrammarDetail && tab !== 'onomatope' && tab !== 'live' && (
           <>
             <button onClick={() => navigate('/study')} className="back-to-translate">
               ← 학습
@@ -669,6 +866,14 @@ export default function App() {
             />
             <ParticleLibrary items={PARTICLES} />
           </>} />
+          <Route path="/onomatope"     element={<OnomatopeLibrary />} />
+          <Route path="/onomatope/:id" element={<OnomatopeDetailPage />} />
+          <Route path="/live"        element={<LiveCamLibrary />} />
+          <Route path="/live/:city"  element={<LiveCamDetailPage />} />
+          <Route path="/plans"       element={<SubscriptionPage />} />
+          <Route path="/billing/success" element={<BillingSuccess />} />
+          <Route path="/billing/fail"    element={<BillingFail />} />
+          <Route path="/messages"    element={<MessageInbox />} />
           <Route path="*" element={
             <>
               <PageSEO
@@ -688,10 +893,33 @@ export default function App() {
                   unlimited: fastUnlimited,
                   resetSec: fastResetSec,
                   onToggle: handleFastToggle,
+                  onUnlock: isApp ? handleUnlockFast : null,
+                  unlimitedLabel: fastUnlimited ? (user?.is_admin ? '무제한 이용 중' : '무제한 · 2026.10.1까지') : null,
                 }}
               />
 
-              {/* 동사 감지 시 인스타 강의 CTA — 번역 버튼 아래, 결과 카드 위 */}
+              {error && <div className="error-box">{error}</div>}
+              {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
+              {typing && !loading && !result && (
+                <div className="translating-dots" aria-label="번역 준비 중">
+                  <span /><span /><span />
+                </div>
+              )}
+              {loading && <SkeletonCard inputText={inputText} />}
+              {result && (
+                <ResultCard
+                  data={result}
+                  onSave={handleSave}
+                  saved={saved}
+                  inputText={inputText}
+                  breakdownLoading={breakdownLoading}
+                  onRequestBreakdown={() => fetchBreakdown(result, inputText)}
+                  onBreakdownExpanded={() => setBreakdownExpanded(true)}
+                />
+              )}
+              {/* 여행 추천 팝업 — 분해 펼친 뒤 아래로 스크롤 시 1회 (여행 문장 한정) */}
+              {result && <TravelPopup input={inputText} japanese={result.japanese} armed={breakdownExpanded} />}
+              {/* 동사 감지 시 인스타 강의 CTA — 결과 카드 아래 */}
               {result?.breakdown && (() => {
                 const verbRow = result.breakdown.find(r => r.part_of_speech?.includes('동사'))
                 if (!verbRow) return null
@@ -700,11 +928,12 @@ export default function App() {
                 const baseForm = baseStep?.form || verbRow.unit
                 return (
                   <a
-                    href="https://www.instagram.com/p/DZVF2naN7QW/"
+                    href="https://www.instagram.com/p/DZ6TPrATN4l/"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
+                      marginTop: 8,
                       padding: '12px 14px',
                       background: 'linear-gradient(135deg, #fdf0f8 0%, #fff5fb 100%)',
                       border: '1.5px solid #f0c0de',
@@ -739,27 +968,8 @@ export default function App() {
                   </a>
                 )
               })()}
-
-              {error && <div className="error-box">{error}</div>}
-              {/* 입력 즉시 "번역 중" 점 표시 (디바운스 대기 단계) */}
-              {typing && !loading && !result && (
-                <div className="translating-dots" aria-label="번역 준비 중">
-                  <span /><span /><span />
-                </div>
-              )}
-              {loading && <SkeletonCard inputText={inputText} />}
-              {result && (
-                <ResultCard
-                  data={result}
-                  onSave={handleSave}
-                  saved={saved}
-                  inputText={inputText}
-                  breakdownLoading={breakdownLoading}
-                  onRequestBreakdown={() => fetchBreakdown(result, inputText)}
-                />
-              )}
               {/* 번역 결과 카드 아래 광고 (웹 전용) — 핵심 가치 소비 직후 */}
-              {result && <AdSenseUnit slot="1147239321" style={{ marginTop: 4 }} />}
+              {result && !subAdFree && <AdSenseUnit slot="1147239321" style={{ marginTop: 4 }} />}
 
               {/* 결과/입력 전 홈 화면 — 앱 사용 안내 + 품사 단어 목록 바 + 오늘의 단어 */}
               {!hasContent && (
@@ -779,9 +989,37 @@ export default function App() {
                       </svg>
                     </button>
                   )}
+                  {/* 지금 일본 날씨는? — 도시별 라이브캠 (앱 다운로드 바로 아래) */}
+                  <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '0 2px 9px' }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1,#8a9197)' }}>지금 일본 날씨는?</span>
+                    <button onClick={() => navigate('/live')} style={{ background: 'none', border: 'none', fontSize: 12, color: '#5CA9CE', cursor: 'pointer', fontFamily: 'inherit' }}>전체 ›</button>
+                  </div>
+                  {/* 우→좌 자동 흐름 마퀴 (호버 시 일시정지) */}
+                  <div style={{ overflow: 'hidden', margin: '0 -2px', paddingBottom: 2 }}>
+                    <div className="lc-marquee" style={{ display: 'flex', gap: 9, width: 'max-content' }}>
+                      {[...LIVECAMS, ...LIVECAMS].map((c, i) => (
+                        <button key={`${c.id}-${i}`} onClick={() => navigate(`/live/${c.id}`)} style={{ flex: '0 0 230px', textAlign: 'left', background: 'var(--card-bg,#fff)', border: '1px solid var(--card-bd,#eef1f3)', borderRadius: 15, padding: 0, cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden' }}>
+                          <div style={{ width: '100%', height: 128, backgroundColor: '#11161b', backgroundImage: `url('https://i.ytimg.com/vi/${c.videoId}/hqdefault.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                            <span style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><polygon points="9 7 9 17 17 12" /></svg>
+                            </span>
+                            <span style={{ position: 'absolute', top: 8, left: 8, fontSize: 9, fontWeight: 700, color: '#fff', background: '#e24b4a', borderRadius: 4, padding: '1px 5px', letterSpacing: '0.3px' }}>LIVE</span>
+                          </div>
+                          <div style={{ padding: '10px 12px 12px' }}>
+                            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-1,#3a4250)' }}>{c.city} <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-3,#9aa0a6)' }}>{c.cityJp}</span></p>
+                            <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-3,#9aa0a6)' }}>{c.spot}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <style>{`@keyframes lcflow{from{transform:translateX(0)}to{transform:translateX(-50%)}}.lc-marquee{animation:lcflow 36s linear infinite}.lc-marquee:hover{animation-play-state:paused}@media (prefers-reduced-motion:reduce){.lc-marquee{animation:none}}`}</style>
+                  </div>
                   {/* 학습 콘텐츠 — 가로 스크롤 카드 (전체는 학습 탭) */}
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '2px 2px 0' }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197' }}>학습 콘텐츠</span>
+                  <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '0 2px 9px' }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1,#8a9197)' }}>학습 콘텐츠</span>
                     <button onClick={() => navigate('/verbs')} style={{ background: 'none', border: 'none', fontSize: 12, color: '#5CA9CE', cursor: 'pointer', fontFamily: 'inherit' }}>전체 ›</button>
                   </div>
                   <div style={{ display: 'flex', gap: 9, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2, margin: '0 -2px' }}>
@@ -792,23 +1030,27 @@ export default function App() {
                       { jp: 'な', label: 'な형용사',  sub: 'TOP 100',     path: '/adj-na' },
                       { jp: '名', label: '명사',      sub: 'TOP 100',     path: '/noun' },
                       { jp: '助', label: '조사',      sub: 'TOP 10',      path: '/particles' },
+                      { jp: '音', label: '의성어·의태어', sub: 'JLPT별', path: '/onomatope' },
                     ].map(c => (
-                      <button key={c.path} onClick={() => navigate(c.path)} style={{ flex: '0 0 112px', textAlign: 'left', background: '#fff', border: '1px solid #eef1f3', borderRadius: 13, padding: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <div style={{ width: 34, height: 34, borderRadius: 9, background: '#f0f6fa', color: '#7bb4d3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 500 }}>{c.jp}</div>
-                        <p style={{ margin: '8px 0 0', fontSize: 12, fontWeight: 600, color: '#4b5563' }}>{c.label}</p>
-                        <p style={{ margin: '1px 0 0', fontSize: 10.5, color: '#9aa0a6' }}>{c.sub}</p>
+                      <button key={c.path} onClick={() => navigate(c.path)} style={{ flex: '0 0 112px', textAlign: 'left', background: 'var(--surface,#fff)', border: '1px solid var(--bd,#eef1f3)', borderRadius: 13, padding: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--accent-soft,#f0f6fa)', color: '#5CA9CE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 500 }}>{c.jp}</div>
+                        <p style={{ margin: '8px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--text-1,#4b5563)' }}>{c.label}</p>
+                        <p style={{ margin: '1px 0 0', fontSize: 10.5, color: 'var(--text-3,#9aa0a6)' }}>{c.sub}</p>
                       </button>
                     ))}
                   </div>
+                  </div>
 
                   {/* 오늘의 학습 */}
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197', margin: '4px 2px 0' }}>오늘의 학습</span>
-                  {dailyVerb    && <DailyVerbCard    verb={dailyVerb}       onNavigate={navigate} />}
-                  {dailyGrammar && <DailyGrammarCard grammar={dailyGrammar} onNavigate={navigate} />}
-                  {/* 일본 여행 준비 — Klook 제휴 추천 */}
-                  <TravelAffiliate />
+                  <div>
+                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--text-1,#8a9197)', margin: '0 2px 9px' }}>오늘의 학습</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {dailyVerb    && <DailyVerbCard    verb={dailyVerb}       onNavigate={navigate} />}
+                    {dailyGrammar && <DailyGrammarCard grammar={dailyGrammar} onNavigate={navigate} />}
+                  </div>
+                  </div>
                   {/* 학습 콘텐츠 영역 하단 광고 (웹 전용) */}
-                  <AdSenseUnit slot="2450758307" style={{ marginTop: 4 }} />
+                  {!subAdFree && <AdSenseUnit slot="2450758307" style={{ marginTop: 4 }} />}
                 </>
               )}
             </>
@@ -836,6 +1078,38 @@ export default function App() {
         />
       )}
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}
+      {/* 보상형 광고 양해 팝업 (앱 전용) */}
+      {adPopup && (
+        <AdConsentPopup
+          mode={adPopup.mode}
+          onWatch={adPopup.mode === 'unlock5h' ? watchAdUnlock5h : watchAdEnable}
+          onClose={() => { setAdPopup(null); track('fast_ad_dismissed', { mode: adPopup.mode }) }}
+        />
+      )}
+      {/* 웹에서 빠른 번역 시도 → 앱 전용 안내 */}
+      {webFastNotice && (
+        <div onClick={() => setWebFastNotice(false)} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 300, maxWidth: '90vw', background: '#fff', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+            <div style={{ width: 50, height: 50, borderRadius: 14, background: '#eef7fc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#5CA9CE"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+            </div>
+            <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: '#1f2937' }}>빠른 번역은 앱에서 만나요</p>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#666', lineHeight: 1.6 }}>더 빠르고 자연스러운 <b>빠른 번역</b>은<br />틱재팬 앱에서 무료로 이용할 수 있어요.</p>
+            <button onClick={() => { setWebFastNotice(false); track('download_cta_click', { from: 'web_fast' }); navigate('/download?from=web_fast') }} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>앱 다운로드</button>
+            <button onClick={() => setWebFastNotice(false)} style={{ width: '100%', height: 38, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: '#aab', cursor: 'pointer', fontFamily: 'inherit' }}>그냥 일반 번역 쓸게요</button>
+          </div>
+        </div>
+      )}
+      {/* 일반 번역 30회마다 전면 광고 사전 팝업 (앱 전용) */}
+      {adNotice && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ width: 300, maxWidth: '90vw', background: '#fff', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: '#1f2937' }}>잠시 광고가 표시돼요</p>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#666', lineHeight: 1.6 }}>틱재팬을 계속 <b>무료</b>로 운영하기 위해<br />짧은 광고를 보여드려요. 양해 부탁드려요.</p>
+            <button onClick={async () => { setAdNotice(false); await showInterstitialAd() }} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>확인</button>
+          </div>
+        </div>
+      )}
       {/* 첫 방문 앱 다운로드 유도 — 웹 + 다운로드 페이지 아님 */}
       {!isApp && !isDownload && <AppDownloadPromo onDownload={() => navigate('/download')} />}
       {/* 안드로이드 출시 시 알림 신청 회원에게 노출 (현재 플래그 OFF) */}

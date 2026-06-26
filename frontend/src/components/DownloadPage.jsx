@@ -84,10 +84,10 @@ export default function DownloadPage() {
       />
 
       {/* 타이틀 */}
-      <h1 style={{ fontSize: 19, fontWeight: 700, color: '#111', margin: '20px 0 8px', lineHeight: 1.3, whiteSpace: 'nowrap' }}>
+      <h1 style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-strong)', margin: '20px 0 8px', lineHeight: 1.3, whiteSpace: 'nowrap' }}>
         일본어에만 집중한 AI 번역앱
       </h1>
-      <p style={{ fontSize: 12, color: '#777', lineHeight: 1.6, margin: '0 0 32px', whiteSpace: 'nowrap' }}>
+      <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, margin: '0 0 32px', whiteSpace: 'nowrap' }}>
         일본어 문법 설명은 물론 특유의 억양·뉘앙스까지 알려드립니다!
       </p>
 
@@ -150,7 +150,7 @@ export default function DownloadPage() {
       </div>
 
       {/* OS 안내 문구 */}
-      <p style={{ fontSize: 12.5, color: '#bbb', marginTop: 20 }}>
+      <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 20 }}>
         {os === 'android'
           ? 'Android 버전은 곧 출시됩니다. iOS는 지금 이용 가능해요.'
           : os === 'ios'

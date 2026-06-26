@@ -71,9 +71,45 @@ function SaveButton({ onSave, saved }) {
   )
 }
 
-export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading, onRequestBreakdown }) {
-  const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = data
-  const hasBreakdown = breakdown && breakdown.length > 0
+// 번역 톤 칩
+const TONES = [
+  { key: 'natural',  label: '자연스럽게', hint: '' },
+  { key: 'business', label: '비즈니스',   hint: '정중한 경어체 (です·ます·おります)' },
+  { key: 'literal',  label: '직역',       hint: '구조 그대로 — 학습용' },
+]
+
+export default function ResultCard({ data, onSave, saved, inputText, breakdownLoading, onRequestBreakdown, onBreakdownExpanded }) {
+  const hasBreakdown = data.breakdown && data.breakdown.length > 0
+
+  // 톤 전환 — 'natural'은 원본 data, 그 외는 /translate-tone 로 받아 교체(칩 누를 때 생성)
+  const [tone, setTone]         = useState('natural')
+  const [toneData, setToneData] = useState({})   // { business: {...}, literal: {...} }
+  const [toneLoading, setToneLoading] = useState(false)
+
+  const view = tone === 'natural' ? data : (toneData[tone] || data)
+  const { japanese, furigana, furigana_html, korean_pronunciation, accent_data, breakdown } = view
+
+  async function handleTone(t) {
+    if (t === tone) return
+    if (t === 'natural' || toneData[t]) { setTone(t); track('tone_switch', { tone: t, cached: true }); return }
+    if (!inputText) return
+    setTone(t)
+    setToneLoading(true)
+    track('tone_switch', { tone: t, cached: false })
+    try {
+      const res = await fetch(`${API_URL}/translate-tone`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: inputText, tone: t }),
+      })
+      if (!res.ok) throw new Error()
+      const d = await res.json()
+      setToneData(prev => ({ ...prev, [t]: d }))
+    } catch {
+      setTone('natural')   // 실패 시 기본으로 복귀
+    } finally {
+      setToneLoading(false)
+    }
+  }
 
   const [gender, setGender]         = useState('female')
   const [audioState, setAudioState] = useState('idle')
@@ -81,14 +117,25 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
   // 문장 분해는 기본 접힘 — 펼칠 때만 실제 호출(온디맨드)
   const [expanded, setExpanded]     = useState(false)
 
+  const breakdownRef = useRef(null)
+
   function handleExpandBreakdown() {
     track('breakdown_expand', { text_length: japanese.length })
     setExpanded(true)
     if (!hasBreakdown) onRequestBreakdown?.()   // 아직 없으면 이때 1회 호출
+    onBreakdownExpanded?.()   // 여행 추천 팝업 트리거 armed
   }
 
-  // 새 번역(다른 문장)이 오면 분해 다시 접기
-  useEffect(() => { setExpanded(false); setShowDetail(false) }, [japanese])
+  // 펼친 직후 + 분해 콘텐츠가 실제로 그려진 뒤, 누른 자리(분해 섹션)를 화면 상단으로
+  useEffect(() => {
+    if (!expanded) return
+    requestAnimationFrame(() => {
+      breakdownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [expanded, hasBreakdown])
+
+  // 새 번역(다른 문장)이 오면 분해 접기 + 톤 기본(자연스럽게)으로 초기화
+  useEffect(() => { setExpanded(false); setShowDetail(false); setTone('natural'); setToneData({}) }, [data.japanese])
   const audioRef = useRef(null)
 
   const segments = parseFurigana(furigana_html)
@@ -152,7 +199,33 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
         </p>
         {/* 한국어 발음 */}
         <p className="pronunciation-text">{korean_pronunciation}</p>
+
+        {/* 번역 톤 칩 — 누를 때 생성(자연스럽게/비즈니스/직역) */}
+        {inputText && (
+          <div style={{ marginTop: 10 }}>
+            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+              {TONES.map(t => {
+                const on = tone === t.key
+                const busy = toneLoading && on
+                return (
+                  <button key={t.key} onClick={() => handleTone(t.key)} disabled={toneLoading} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: 'inherit', cursor: toneLoading ? 'default' : 'pointer',
+                    fontSize: 11.5, fontWeight: on ? 600 : 500, padding: '5px 12px', borderRadius: 999,
+                    border: `1px solid ${on ? PRIMARY : 'var(--bd,#e3e7ea)'}`, background: on ? PRIMARY : 'var(--surface,#fff)', color: on ? '#fff' : 'var(--text-2,#6b7177)',
+                  }}>
+                    {busy && <span style={{ width: 9, height: 9, border: '1.5px solid rgba(255,255,255,0.5)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'tjspin 0.6s linear infinite' }} />}
+                    {t.label}
+                  </button>
+                )
+              })}
+            </div>
+            {(() => { const h = TONES.find(t => t.key === tone)?.hint; return h ? (
+              <p style={{ margin: '6px 2px 0', fontSize: 10.5, color: '#9aa0a6' }}>{h}</p>
+            ) : null })()}
+          </div>
+        )}
       </div>
+      <style>{`@keyframes tjspin{to{transform:rotate(360deg)}}`}</style>
 
       {/* 피치 그래프 — full-width */}
       <div style={{ padding: '0 20px 4px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -162,7 +235,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
       <hr className="divider" />
 
       {/* 섹션 2: 문장 분해 — 기본 접힘(정적 예시), 펼칠 때만 실제 호출 */}
-      <div className="section">
+      <div className="section" ref={breakdownRef} style={{ scrollMarginTop: 12 }}>
         <div className="section-header">
           <span className="section-label">문장 분해</span>
           {expanded && hasBreakdown && (

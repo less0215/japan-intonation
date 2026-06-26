@@ -14,11 +14,11 @@ export default function ParticleLibrary({ items }) {
         display: 'flex', alignItems: 'flex-start', gap: 8,
         padding: '11px 14px',
         background: '#f8f9fa',
-        border: '1px solid #e8e8e8',
+        border: '1px solid var(--bd)',
         borderRadius: 10,
       }}>
         <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>📌</span>
-        <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>
           한국어와 다르게 쓰이는 일본어 조사 핵심 10개를 기본·응용 용법으로 정리했습니다.
         </p>
       </div>

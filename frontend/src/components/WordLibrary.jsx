@@ -52,12 +52,12 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
         display: 'flex', alignItems: 'flex-start', gap: 8,
         padding: '11px 14px',
         background: '#f8f9fa',
-        border: '1px solid #e8e8e8',
+        border: '1px solid var(--bd)',
         borderRadius: 10,
       }}>
         <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0 }}>📖</span>
-        <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
-          {description} <span style={{ color: '#aaa' }}>(BCCWJ, 2011)</span>
+        <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>
+          {description} <span style={{ color: 'var(--text-3)' }}>(BCCWJ, 2011)</span>
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
                 ...styles.tabBtn,
                 backgroundColor: active ? PRIMARY : '#ffffff',
                 color:           active ? '#ffffff' : '#555555',
-                border:          active ? 'none' : '1.5px solid #e8e8e8',
+                border:          active ? 'none' : '1.5px solid var(--bd)',
               }}
             >
               {tab.label}
@@ -86,10 +86,10 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
       {isComingSoon ? (
         <div style={styles.comingSoon}>
           <span style={{ fontSize: 32, marginBottom: 12 }}>🚧</span>
-          <p style={{ fontSize: 15, fontWeight: 700, color: '#555', margin: '0 0 6px' }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', margin: '0 0 6px' }}>
             곧 업데이트 됩니다
           </p>
-          <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>
             {currentTab.start}~{currentTab.end}위 데이터를 준비 중이에요.
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
         <>
           {/* 정렬 */}
           <div style={styles.sortRow}>
-            <span style={{ fontSize: 12, color: '#aaa', marginRight: 4 }}>정렬</span>
+            <span style={{ fontSize: 12, color: 'var(--text-3)', marginRight: 4 }}>정렬</span>
             {SORT_OPTIONS.map(opt => (
               <button
                 key={opt.id}
@@ -107,7 +107,7 @@ export default function WordLibrary({ items, wordType, getRankTabs, description 
                   backgroundColor: sortBy === opt.id ? '#f0f9ff' : 'transparent',
                   color:           sortBy === opt.id ? PRIMARY : '#888',
                   fontWeight:      sortBy === opt.id ? 700 : 400,
-                  border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid #e8e8e8',
+                  border:          sortBy === opt.id ? `1.5px solid ${PRIMARY}` : '1.5px solid var(--bd)',
                 }}
               >
                 {opt.label}
@@ -176,8 +176,8 @@ const styles = {
     gap: 10,
   },
   verbCard: {
-    background: '#ffffff',
-    border: '1.5px solid #e8e8e8',
+    background: 'var(--surface)',
+    border: '1.5px solid var(--bd)',
     borderRadius: 12,
     padding: '14px 12px',
     display: 'flex',
@@ -202,7 +202,7 @@ const styles = {
     fontSize: 22,
     fontWeight: 500,
     fontFamily: "'Noto Sans JP', sans-serif",
-    color: '#111111',
+    color: 'var(--text-strong)',
   },
   verbReading: {
     fontSize: 12,
@@ -211,7 +211,7 @@ const styles = {
   },
   verbMeaning: {
     fontSize: 13,
-    color: '#888888',
+    color: 'var(--text-3)',
     marginTop: 2,
   },
   comingSoon: {

@@ -16,7 +16,7 @@ export default function VerbDetailPage() {
 
   if (!verb) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 0', color: '#aaa' }}>
+      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-3)' }}>
         동사를 찾을 수 없어요.
       </div>
     )

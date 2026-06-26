@@ -1,49 +1,93 @@
-import { KLOOK_PRODUCTS } from '../data/klookProducts'
+import { useState, useEffect } from 'react'
+import { loadTravelProducts, getCachedTravelProducts, openTravelProduct } from '../travel'
 
-/* 일본 여행 준비 — Klook 제휴 추천 섹션
- * - 가로 스크롤 카드. 광고 배너가 아닌 "여행 준비 도움" 톤
- * - 클릭 시 GA4 이벤트 기록(내 클릭 수 자체 집계 → 대시보드 대조용) 후 새 탭으로 이동
- * - TODO(앱): @capacitor/browser 설치 후 외부 브라우저로 열어 추적 쿠키 보장 */
+/* 일본 여행 준비 — 마이리얼트립/세시간전 제휴 추천 (홈)
+ * - 캐시가 있으면 첫 렌더에서 즉시 표시(레이아웃 점프 방지)
+ * - 첫 방문(캐시 없음)엔 같은 높이의 스켈레톤으로 자리 예약 후 부드럽게 전환
+ * - 우→좌 자동 흐름(마퀴), hover 시 일시정지 */
 const PRIMARY = '#5CA9CE'
 
-function openAffiliate(item) {
-  // 자체 클릭 집계 (Klook 대시보드와 대조용)
-  try { window.gtag?.('event', 'affiliate_click', { partner: 'klook', item_id: item.id, price: item.price }) } catch {}
-  window.open(item.url, '_blank', 'noopener,noreferrer')
+const Header = () => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 2px 8px' }}>
+    <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197' }}>일본 여행 준비</span>
+    <span style={{ fontSize: 11, color: '#b6bcc1' }}>· 더 싸고 편하게</span>
+  </div>
+)
+
+// 로딩(첫 방문) 스켈레톤 — 실제 카드와 같은 크기로 자리만 예약
+function Skeleton() {
+  return (
+    <div style={{ marginTop: 4 }}>
+      <Header />
+      <div style={{ display: 'flex', gap: 10, overflow: 'hidden', padding: '2px 0 6px' }}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} style={{ flex: '0 0 auto', width: 142, border: '1px solid #eef1f3', borderRadius: 13, overflow: 'hidden', background: '#fff' }}>
+            <div style={{ height: 90, background: '#eef1f3' }} />
+            <div style={{ padding: '8px 9px 10px' }}>
+              <div style={{ height: 8, width: '55%', background: '#eef1f3', borderRadius: 4, marginBottom: 7 }} />
+              <div style={{ height: 9, width: '90%', background: '#eef1f3', borderRadius: 4, marginBottom: 5 }} />
+              <div style={{ height: 9, width: '40%', background: '#eef1f3', borderRadius: 4 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function TravelAffiliate() {
-  return (
-    <div style={{ marginTop: 4 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 2px 8px' }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#8a9197' }}>일본 여행 준비</span>
-        <span style={{ fontSize: 11, color: '#b6bcc1' }}>· 더 싸고 편하게</span>
-      </div>
+  // 캐시 있으면 즉시(동기) 표시, 없으면 null(=첫 방문 로딩)
+  const [items, setItems] = useState(() => getCachedTravelProducts())
+  useEffect(() => { loadTravelProducts().then(setItems) }, [])
 
-      <div style={{ display: 'flex', gap: 10, overflowX: 'auto', padding: '2px 2px 6px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-        {KLOOK_PRODUCTS.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => openAffiliate(item)}
-            style={{
-              flex: '0 0 auto', width: 142, textAlign: 'left', padding: 0, cursor: 'pointer',
-              background: '#fff', border: '1px solid #eaecef', borderRadius: 13, overflow: 'hidden',
-              fontFamily: 'inherit',
-            }}
-          >
-            <div style={{ height: 90, background: `#e8edf0 url('${item.image}') center/cover` }} />
-            <div style={{ padding: '8px 9px 10px' }}>
-              <p style={{ margin: '0 0 3px', fontSize: 10.5, color: '#aeb4b9' }}>{item.city} · 일본</p>
-              <p style={{
-                margin: '0 0 6px', fontSize: 11.5, color: '#2b2f33', lineHeight: 1.35,
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 31,
-              }}>{item.name}</p>
-              <span style={{ fontSize: 12, fontWeight: 600, color: PRIMARY }}>
-                ₩{item.price.toLocaleString()}~
-              </span>
-            </div>
-          </button>
-        ))}
+  if (items == null) return <Skeleton />
+  if (items.length === 0) return null
+
+  const loop = [...items, ...items]
+  const duration = Math.max(24, Math.round(items.length * 2.6))
+
+  return (
+    <div style={{ marginTop: 4 }} className="travel-fadein">
+      <style>{`
+        @keyframes travelflow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes travelfade { from { opacity: 0; } to { opacity: 1; } }
+        .travel-fadein { animation: travelfade .35s ease both; }
+        .travel-marquee { animation: travelflow var(--dur,60s) linear infinite; }
+        .travel-marquee:hover { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) { .travel-marquee { animation: none; } .travel-fadein { animation: none; } }
+      `}</style>
+
+      <Header />
+
+      <div style={{ overflow: 'hidden', padding: '2px 0 6px' }}>
+        <div className="travel-marquee" style={{ display: 'flex', width: 'max-content', '--dur': `${duration}s` }}>
+          {loop.map((item, i) => (
+            <button
+              key={`${item.id}-${i}`}
+              aria-hidden={i >= items.length ? 'true' : undefined}
+              onClick={() => openTravelProduct(item, 'home_banner')}
+              style={{
+                flex: '0 0 auto', width: 142, marginRight: 10, textAlign: 'left', padding: 0, cursor: 'pointer',
+                background: '#fff', border: '1px solid #eaecef', borderRadius: 13, overflow: 'hidden',
+                fontFamily: 'inherit',
+              }}
+            >
+              <div style={{ height: 90, background: `#e8edf0 url('${item.image}') center/cover` }} />
+              <div style={{ padding: '8px 9px 10px' }}>
+                <p style={{ margin: '0 0 3px', fontSize: 10.5, color: '#aeb4b9' }}>{item.city} · 일본</p>
+                <p style={{
+                  margin: '0 0 6px', fontSize: 11.5, color: '#2b2f33', lineHeight: 1.35,
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 31,
+                }}>{item.title}</p>
+                {item.price > 0 && (
+                  <span style={{ fontSize: 12, fontWeight: 600, color: PRIMARY }}>
+                    ₩{item.price.toLocaleString()}~
+                  </span>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       <p style={{ margin: '6px 2px 0', fontSize: 10, color: '#c2c7cc' }}>

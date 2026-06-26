@@ -16,7 +16,7 @@ export default function GrammarDetailPage() {
 
   if (!pattern) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 0', color: '#aaa' }}>
+      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-3)' }}>
         문법 패턴을 찾을 수 없어요.
       </div>
     )

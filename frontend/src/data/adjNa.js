@@ -29,7 +29,7 @@ export const ADJ_NA = [
    * 1위  可能
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kanou', rank: 1, verb: '可能', reading: '카노ー', meaning: '가능한',
+    id: 'kanou', rank: 1, verb: '可能', jlpt: 'N3', reading: '카노ー', meaning: '가능한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -94,7 +94,7 @@ export const ADJ_NA = [
    * 2위  好き
    * ══════════════════════════════════════════════════ */
   {
-    id: 'suki', rank: 2, verb: '好き', reading: '스키', meaning: '좋아하는; 좋아함',
+    id: 'suki', rank: 2, verb: '好き', jlpt: 'N5', reading: '스키', meaning: '좋아하는; 좋아함',
     accentType: 1,
     conjugations: {
       formal: [
@@ -159,7 +159,7 @@ export const ADJ_NA = [
    * 3위  重要
    * ══════════════════════════════════════════════════ */
   {
-    id: 'juuyou', rank: 3, verb: '重要', reading: '쥬ー요ー', meaning: '중요한',
+    id: 'juuyou', rank: 3, verb: '重要', jlpt: 'N3', reading: '쥬ー요ー', meaning: '중요한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -225,7 +225,7 @@ export const ADJ_NA = [
    * 4위  非常
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hijou', rank: 4, verb: '非常', reading: '히죠ー', meaning: '매우; 대단히 (な형용사·부사)',
+    id: 'hijou', rank: 4, verb: '非常', jlpt: 'N3', reading: '히죠ー', meaning: '매우; 대단히 (な형용사·부사)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -290,7 +290,7 @@ export const ADJ_NA = [
    * 5위  様々
    * ══════════════════════════════════════════════════ */
   {
-    id: 'samazama', rank: 5, verb: '様々', reading: '사마자마', meaning: '다양한; 여러 가지',
+    id: 'samazama', rank: 5, verb: '様々', jlpt: 'N3', reading: '사마자마', meaning: '다양한; 여러 가지',
     accentType: 2,
     conjugations: {
       formal: [
@@ -355,7 +355,7 @@ export const ADJ_NA = [
    * 6위  特別
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tokubetsu', rank: 6, verb: '特別', reading: '토쿠베츠', meaning: '특별한',
+    id: 'tokubetsu', rank: 6, verb: '特別', jlpt: 'N4', reading: '토쿠베츠', meaning: '특별한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -420,7 +420,7 @@ export const ADJ_NA = [
    * 7위  確か
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tashika', rank: 7, verb: '確か', reading: '타시카', meaning: '확실한; 틀림없는',
+    id: 'tashika', rank: 7, verb: '確か', jlpt: 'N4', reading: '타시카', meaning: '확실한; 틀림없는',
     accentType: 1,
     conjugations: {
       formal: [
@@ -485,7 +485,7 @@ export const ADJ_NA = [
    * 8위  簡単
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kantan', rank: 8, verb: '簡単', reading: '칸탄', meaning: '간단한; 쉬운',
+    id: 'kantan', rank: 8, verb: '簡単', jlpt: 'N4', reading: '칸탄', meaning: '간단한; 쉬운',
     accentType: 0,
     conjugations: {
       formal: [
@@ -550,7 +550,7 @@ export const ADJ_NA = [
    * 9위  大切
    * ══════════════════════════════════════════════════ */
   {
-    id: 'taisetsu', rank: 9, verb: '大切', reading: '타이세츠', meaning: '소중한; 중요한',
+    id: 'taisetsu', rank: 9, verb: '大切', jlpt: 'N5', reading: '타이세츠', meaning: '소중한; 중요한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -615,7 +615,7 @@ export const ADJ_NA = [
    * 10위  十分
    * ══════════════════════════════════════════════════ */
   {
-    id: 'juubun', rank: 10, verb: '十分', reading: '쥬ー붕', meaning: '충분한',
+    id: 'juubun', rank: 10, verb: '十分', jlpt: 'N4', reading: '쥬ー붕', meaning: '충분한',
     accentType: 3,
     conjugations: {
       formal: [
@@ -680,7 +680,7 @@ export const ADJ_NA = [
    * 11위  明らか
    * ══════════════════════════════════════════════════ */
   {
-    id: 'akiraka', rank: 11, verb: '明らか', reading: '아키라카', meaning: '명백한; 분명한',
+    id: 'akiraka', rank: 11, verb: '明らか', jlpt: 'N3', reading: '아키라카', meaning: '명백한; 분명한',
     accentType: 2,
     conjugations: {
       formal: [
@@ -745,7 +745,7 @@ export const ADJ_NA = [
    * 12위  嫌
    * ══════════════════════════════════════════════════ */
   {
-    id: 'iya', rank: 12, verb: '嫌', reading: '이야', meaning: '싫은; 불쾌한',
+    id: 'iya', rank: 12, verb: '嫌', jlpt: 'N5', reading: '이야', meaning: '싫은; 불쾌한',
     accentType: 2,
     conjugations: {
       formal: [
@@ -811,7 +811,7 @@ export const ADJ_NA = [
    * 13위  同じ
    * ══════════════════════════════════════════════════ */
   {
-    id: 'onaji', rank: 13, verb: '同じ', reading: '오나지', meaning: '같은; 동일한',
+    id: 'onaji', rank: 13, verb: '同じ', jlpt: 'N5', reading: '오나지', meaning: '같은; 동일한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -876,7 +876,7 @@ export const ADJ_NA = [
    * 14위  同様
    * ══════════════════════════════════════════════════ */
   {
-    id: 'douyou', rank: 14, verb: '同様', reading: '도ー요ー', meaning: '마찬가지; 같은 식으로',
+    id: 'douyou', rank: 14, verb: '同様', jlpt: 'N3', reading: '도ー요ー', meaning: '마찬가지; 같은 식으로',
     accentType: 0,
     conjugations: {
       formal: [
@@ -941,7 +941,7 @@ export const ADJ_NA = [
    * 15위  奇麗
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kirei', rank: 15, verb: '奇麗', reading: '키레이', meaning: '예쁜; 깨끗한',
+    id: 'kirei', rank: 15, verb: '奇麗', jlpt: 'N5', reading: '키레이', meaning: '예쁜; 깨끗한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1006,7 +1006,7 @@ export const ADJ_NA = [
    * 16위  完全
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kanzen', rank: 16, verb: '完全', reading: '칸젱', meaning: '완전한',
+    id: 'kanzen', rank: 16, verb: '完全', jlpt: 'N3', reading: '칸젱', meaning: '완전한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1072,7 +1072,7 @@ export const ADJ_NA = [
    * 17위  新た
    * ══════════════════════════════════════════════════ */
   {
-    id: 'arata', rank: 17, verb: '新た', reading: '아라타', meaning: '새로운 (격식)',
+    id: 'arata', rank: 17, verb: '新た', jlpt: 'N3', reading: '아라타', meaning: '새로운 (격식)',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1137,7 +1137,7 @@ export const ADJ_NA = [
    * 18위  色々
    * ══════════════════════════════════════════════════ */
   {
-    id: 'iroiro', rank: 18, verb: '色々', reading: '이로이로', meaning: '여러 가지; 다양한',
+    id: 'iroiro', rank: 18, verb: '色々', jlpt: 'N5', reading: '이로이로', meaning: '여러 가지; 다양한',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1203,7 +1203,7 @@ export const ADJ_NA = [
    * 19위  大変
    * ══════════════════════════════════════════════════ */
   {
-    id: 'taihen', rank: 19, verb: '大変', reading: '타이헨', meaning: '힘든; 매우',
+    id: 'taihen', rank: 19, verb: '大変', jlpt: 'N5', reading: '타이헨', meaning: '힘든; 매우',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1269,7 +1269,7 @@ export const ADJ_NA = [
    * 20위  大丈夫
    * ══════════════════════════════════════════════════ */
   {
-    id: 'daijoubu', rank: 20, verb: '大丈夫', reading: '다이죠ー부', meaning: '괜찮은; 문제없는',
+    id: 'daijoubu', rank: 20, verb: '大丈夫', jlpt: 'N5', reading: '다이죠ー부', meaning: '괜찮은; 문제없는',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1338,7 +1338,7 @@ export const ADJ_NA = [
    * 21위  大事
    * ══════════════════════════════════════════════════ */
   {
-    id: 'daiji', rank: 21, verb: '大事', reading: '다이지', meaning: '중요한; 소중한',
+    id: 'daiji', rank: 21, verb: '大事', jlpt: 'N4', reading: '다이지', meaning: '중요한; 소중한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1403,7 +1403,7 @@ export const ADJ_NA = [
    * 22위  有名
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yuumei', rank: 22, verb: '有名', reading: '유ー메이', meaning: '유명한',
+    id: 'yuumei', rank: 22, verb: '有名', jlpt: 'N5', reading: '유ー메이', meaning: '유명한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1468,7 +1468,7 @@ export const ADJ_NA = [
    * 23위  有効
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yuukou', rank: 23, verb: '有効', reading: '유ー코ー', meaning: '유효한; 효과 있는',
+    id: 'yuukou', rank: 23, verb: '有効', jlpt: 'N3', reading: '유ー코ー', meaning: '유효한; 효과 있는',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1533,7 +1533,7 @@ export const ADJ_NA = [
    * 24위  当然
    * ══════════════════════════════════════════════════ */
   {
-    id: 'touzen', rank: 24, verb: '当然', reading: '토ー젱', meaning: '당연한',
+    id: 'touzen', rank: 24, verb: '当然', jlpt: 'N3', reading: '토ー젱', meaning: '당연한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1598,7 +1598,7 @@ export const ADJ_NA = [
    * 25위  そんな
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sonna', rank: 25, verb: 'そんな', reading: '손나', meaning: '그런; 그러한',
+    id: 'sonna', rank: 25, verb: 'そんな', jlpt: 'N4', reading: '손나', meaning: '그런; 그러한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1663,7 +1663,7 @@ export const ADJ_NA = [
    * 26위  余り
    * ══════════════════════════════════════════════════ */
   {
-    id: 'amari', rank: 26, verb: '余り', reading: '아마리', meaning: '그다지; 별로',
+    id: 'amari', rank: 26, verb: '余り', jlpt: 'N5', reading: '아마리', meaning: '그다지; 별로',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1728,7 +1728,7 @@ export const ADJ_NA = [
    * 27위  豊か
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yutaka', rank: 27, verb: '豊か', reading: '유타카', meaning: '풍요로운; 풍부한',
+    id: 'yutaka', rank: 27, verb: '豊か', jlpt: 'N3', reading: '유타카', meaning: '풍요로운; 풍부한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1793,7 +1793,7 @@ export const ADJ_NA = [
    * 28위  静か
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shizuka', rank: 28, verb: '静か', reading: '시즈카', meaning: '조용한',
+    id: 'shizuka', rank: 28, verb: '静か', jlpt: 'N5', reading: '시즈카', meaning: '조용한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1858,7 +1858,7 @@ export const ADJ_NA = [
    * 29위  適切
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tekisetsu', rank: 29, verb: '適切', reading: '테키세츠', meaning: '적절한',
+    id: 'tekisetsu', rank: 29, verb: '適切', jlpt: 'N3', reading: '테키세츠', meaning: '적절한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1923,7 +1923,7 @@ export const ADJ_NA = [
    * 30위  残念
    * ══════════════════════════════════════════════════ */
   {
-    id: 'zannen', rank: 30, verb: '残念', reading: '잔넨', meaning: '유감인; 아쉬운',
+    id: 'zannen', rank: 30, verb: '残念', jlpt: 'N4', reading: '잔넨', meaning: '유감인; 아쉬운',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1990,7 +1990,7 @@ export const ADJ_NA = [
    * 31위  自然
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shizen', rank: 31, verb: '自然', reading: '시젱', meaning: '자연스러운',
+    id: 'shizen', rank: 31, verb: '自然', jlpt: 'N3', reading: '시젱', meaning: '자연스러운',
     accentType: 2,
     conjugations: {
       formal: [
@@ -2049,7 +2049,7 @@ export const ADJ_NA = [
    * 32위  明確
    * ══════════════════════════════════════════════════ */
   {
-    id: 'meikaku', rank: 32, verb: '明確', reading: '메이카쿠', meaning: '명확한',
+    id: 'meikaku', rank: 32, verb: '明確', jlpt: 'N3', reading: '메이카쿠', meaning: '명확한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2108,7 +2108,7 @@ export const ADJ_NA = [
    * 33위  多様
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tayou', rank: 33, verb: '多様', reading: '타요ー', meaning: '다양한',
+    id: 'tayou', rank: 33, verb: '多様', jlpt: 'N1', reading: '타요ー', meaning: '다양한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2167,7 +2167,7 @@ export const ADJ_NA = [
    * 34위  主要
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shuyou', rank: 34, verb: '主要', reading: '슈요ー', meaning: '주요한',
+    id: 'shuyou', rank: 34, verb: '主要', jlpt: 'N3', reading: '슈요ー', meaning: '주요한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2226,7 +2226,7 @@ export const ADJ_NA = [
    * 35위  高度
    * ══════════════════════════════════════════════════ */
   {
-    id: 'koudo', rank: 35, verb: '高度', reading: '코ー도', meaning: '고도의; 수준 높은',
+    id: 'koudo', rank: 35, verb: '高度', jlpt: 'N2', reading: '코ー도', meaning: '고도의; 수준 높은',
     accentType: 1,
     conjugations: {
       formal: [
@@ -2285,7 +2285,7 @@ export const ADJ_NA = [
    * 36위  如何
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ikaga', rank: 36, verb: '如何', reading: '이카가', meaning: '어떤지; 어떠한',
+    id: 'ikaga', rank: 36, verb: '如何', jlpt: 'N5', reading: '이카가', meaning: '어떤지; 어떠한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2344,7 +2344,7 @@ export const ADJ_NA = [
    * 37위  確実
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kakujitsu', rank: 37, verb: '確実', reading: '카쿠지츠', meaning: '확실한',
+    id: 'kakujitsu', rank: 37, verb: '確実', jlpt: 'N3', reading: '카쿠지츠', meaning: '확실한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2403,7 +2403,7 @@ export const ADJ_NA = [
    * 38위  特殊
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tokushu', rank: 38, verb: '特殊', reading: '토쿠슈', meaning: '특수한; 특별한',
+    id: 'tokushu', rank: 38, verb: '特殊', jlpt: 'N2', reading: '토쿠슈', meaning: '특수한; 특별한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2462,7 +2462,7 @@ export const ADJ_NA = [
    * 39위  沢山
    * ══════════════════════════════════════════════════ */
   {
-    id: 'takusan', rank: 39, verb: '沢山', reading: '타쿠상', meaning: '많은',
+    id: 'takusan', rank: 39, verb: '沢山', jlpt: 'N5', reading: '타쿠상', meaning: '많은',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2521,7 +2521,7 @@ export const ADJ_NA = [
    * 40위  こんな
    * ══════════════════════════════════════════════════ */
   {
-    id: 'konna', rank: 40, verb: 'こんな', reading: '콘나', meaning: '이런; 이러한',
+    id: 'konna', rank: 40, verb: 'こんな', jlpt: 'N5', reading: '콘나', meaning: '이런; 이러한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2581,7 +2581,7 @@ export const ADJ_NA = [
    * 41위  大好き
    * ══════════════════════════════════════════════════ */
   {
-    id: 'daisuki', rank: 41, verb: '大好き', reading: '다이스키', meaning: '매우 좋아하는',
+    id: 'daisuki', rank: 41, verb: '大好き', jlpt: 'N5', reading: '다이스키', meaning: '매우 좋아하는',
     accentType: 1,
     conjugations: {
       formal: [
@@ -2652,7 +2652,7 @@ export const ADJ_NA = [
    * 42위  意外
    * ══════════════════════════════════════════════════ */
   {
-    id: 'igai', rank: 42, verb: '意外', reading: '이가이', meaning: '의외인; 뜻밖의',
+    id: 'igai', rank: 42, verb: '意外', jlpt: 'N3', reading: '이가이', meaning: '의외인; 뜻밖의',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2723,7 +2723,7 @@ export const ADJ_NA = [
    * 43위  単純
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tanjun', rank: 43, verb: '単純', reading: '탄쥰', meaning: '단순한',
+    id: 'tanjun', rank: 43, verb: '単純', jlpt: 'N3', reading: '탄쥰', meaning: '단순한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2794,7 +2794,7 @@ export const ADJ_NA = [
    * 44위  巨大
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kyodai', rank: 44, verb: '巨大', reading: '쿄다이', meaning: '거대한',
+    id: 'kyodai', rank: 44, verb: '巨大', jlpt: 'N3', reading: '쿄다이', meaning: '거대한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2867,7 +2867,7 @@ export const ADJ_NA = [
    * 45위  大幅
    * ══════════════════════════════════════════════════ */
   {
-    id: 'oohaba', rank: 45, verb: '大幅', reading: '오ー하바', meaning: '대폭적인; 큰 폭의',
+    id: 'oohaba', rank: 45, verb: '大幅', jlpt: 'N1', reading: '오ー하바', meaning: '대폭적인; 큰 폭의',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2938,7 +2938,7 @@ export const ADJ_NA = [
    * 46위  見事
    * ══════════════════════════════════════════════════ */
   {
-    id: 'migoto', rank: 46, verb: '見事', reading: '미고토', meaning: '훌륭한; 멋진',
+    id: 'migoto', rank: 46, verb: '見事', jlpt: 'N3', reading: '미고토', meaning: '훌륭한; 멋진',
     accentType: 1,
     conjugations: {
       formal: [
@@ -3008,7 +3008,7 @@ export const ADJ_NA = [
    * 47위  僅か
    * ══════════════════════════════════════════════════ */
   {
-    id: 'wazuka', rank: 47, verb: '僅か', reading: '와즈카', meaning: '약간의; 극소량의',
+    id: 'wazuka', rank: 47, verb: '僅か', jlpt: 'N3', reading: '와즈카', meaning: '약간의; 극소량의',
     accentType: 1,
     conjugations: {
       formal: [
@@ -3078,7 +3078,7 @@ export const ADJ_NA = [
    * 48위  当たり前
    * ══════════════════════════════════════════════════ */
   {
-    id: 'atarimae', rank: 48, verb: '当たり前', reading: '아타리마에', meaning: '당연한; 보통의',
+    id: 'atarimae', rank: 48, verb: '当たり前', jlpt: 'N3', reading: '아타리마에', meaning: '당연한; 보통의',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3226,7 +3226,7 @@ export const ADJ_NA = [
    * 50위  立派
    * ══════════════════════════════════════════════════ */
   {
-    id: 'rippa', rank: 50, verb: '立派', reading: '립파', meaning: '훌륭한; 당당한',
+    id: 'rippa', rank: 50, verb: '立派', jlpt: 'N5', reading: '립파', meaning: '훌륭한; 당당한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3299,7 +3299,7 @@ export const ADJ_NA = [
    * 51위  素敵
    * ══════════════════════════════════════════════════ */
   {
-    id: 'suteki', rank: 51, verb: '素敵', reading: '스테키', meaning: '멋진; 근사한',
+    id: 'suteki', rank: 51, verb: '素敵', jlpt: 'N3', reading: '스테키', meaning: '멋진; 근사한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3371,7 +3371,7 @@ export const ADJ_NA = [
    * 52위  容易
    * ══════════════════════════════════════════════════ */
   {
-    id: 'youi', rank: 52, verb: '容易', reading: '요ー이', meaning: '쉬운; 용이한',
+    id: 'youi', rank: 52, verb: '容易', jlpt: 'N3', reading: '요ー이', meaning: '쉬운; 용이한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -3444,7 +3444,7 @@ export const ADJ_NA = [
    * 53위  独自
    * ══════════════════════════════════════════════════ */
   {
-    id: 'dokuji', rank: 53, verb: '独自', reading: '도쿠지', meaning: '독자적인; 자체적인',
+    id: 'dokuji', rank: 53, verb: '独自', jlpt: 'N1', reading: '도쿠지', meaning: '독자적인; 자체적인',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3518,7 +3518,7 @@ export const ADJ_NA = [
    * 54위  懸命
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kenmei', rank: 54, verb: '懸命', reading: '켄메이', meaning: '필사적인',
+    id: 'kenmei', rank: 54, verb: '懸命', jlpt: 'N2', reading: '켄메이', meaning: '필사적인',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3592,7 +3592,7 @@ export const ADJ_NA = [
    * 55위  同一
    * ══════════════════════════════════════════════════ */
   {
-    id: 'douitsu', rank: 55, verb: '同一', reading: '도ー이츠', meaning: '동일한',
+    id: 'douitsu', rank: 55, verb: '同一', jlpt: 'N3', reading: '도ー이츠', meaning: '동일한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3664,7 +3664,7 @@ export const ADJ_NA = [
    * 56위  適正
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tekisei', rank: 56, verb: '適正', reading: '테키세이', meaning: '적정한',
+    id: 'tekisei', rank: 56, verb: '適正', jlpt: 'N1', reading: '테키세이', meaning: '적정한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3736,7 +3736,7 @@ export const ADJ_NA = [
    * 57위  幼稚
    * ══════════════════════════════════════════════════ */
   {
-    id: 'youchi', rank: 57, verb: '幼稚', reading: '요ー치', meaning: '유치한',
+    id: 'youchi', rank: 57, verb: '幼稚', jlpt: 'N2', reading: '요ー치', meaning: '유치한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -3809,7 +3809,7 @@ export const ADJ_NA = [
    * 58위  どんな
    * ══════════════════════════════════════════════════ */
   {
-    id: 'donna', rank: 58, verb: 'どんな', reading: '돈나', meaning: '어떤; 어떠한',
+    id: 'donna', rank: 58, verb: 'どんな', jlpt: 'N5', reading: '돈나', meaning: '어떤; 어떠한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3879,7 +3879,7 @@ export const ADJ_NA = [
    * 59위  上手
    * ══════════════════════════════════════════════════ */
   {
-    id: 'jouzu', rank: 59, verb: '上手', reading: '죠ー즈', meaning: '능숙한; 잘하는',
+    id: 'jouzu', rank: 59, verb: '上手', jlpt: 'N5', reading: '죠ー즈', meaning: '능숙한; 잘하는',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3951,7 +3951,7 @@ export const ADJ_NA = [
    * 60위  高等
    * ══════════════════════════════════════════════════ */
   {
-    id: 'koutou', rank: 60, verb: '高等', reading: '코ー토ー', meaning: '고등의; 수준 높은',
+    id: 'koutou', rank: 60, verb: '高等', jlpt: 'N2', reading: '코ー토ー', meaning: '고등의; 수준 높은',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4024,7 +4024,7 @@ export const ADJ_NA = [
    * 61위  遥か
    * ══════════════════════════════════════════════════ */
   {
-    id: 'haruka', rank: 61, verb: '遥か', reading: '하루카', meaning: '아득한; 훨씬',
+    id: 'haruka', rank: 61, verb: '遥か', jlpt: 'N1', reading: '하루카', meaning: '아득한; 훨씬',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4097,7 +4097,7 @@ export const ADJ_NA = [
    * 62위  必死
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hisshi', rank: 62, verb: '必死', reading: '힛시', meaning: '필사적인',
+    id: 'hisshi', rank: 62, verb: '必死', jlpt: 'N3', reading: '힛시', meaning: '필사적인',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4244,7 +4244,7 @@ export const ADJ_NA = [
    * 64위  重大
    * ══════════════════════════════════════════════════ */
   {
-    id: 'juudai', rank: 64, verb: '重大', reading: '쥬ー다이', meaning: '중대한',
+    id: 'juudai', rank: 64, verb: '重大', jlpt: 'N3', reading: '쥬ー다이', meaning: '중대한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4317,7 +4317,7 @@ export const ADJ_NA = [
    * 65위  急速
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kyuusoku', rank: 65, verb: '急速', reading: '큐ー소쿠', meaning: '급속한',
+    id: 'kyuusoku', rank: 65, verb: '急速', jlpt: 'N3', reading: '큐ー소쿠', meaning: '급속한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4389,7 +4389,7 @@ export const ADJ_NA = [
    * 66위  透明
    * ══════════════════════════════════════════════════ */
   {
-    id: 'toumei', rank: 66, verb: '透明', reading: '토ー메이', meaning: '투명한',
+    id: 'toumei', rank: 66, verb: '透明', jlpt: 'N2', reading: '토ー메이', meaning: '투명한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4462,7 +4462,7 @@ export const ADJ_NA = [
    * 67위  微妙
    * ══════════════════════════════════════════════════ */
   {
-    id: 'bimyou', rank: 67, verb: '微妙', reading: '비묘ー', meaning: '미묘한; 애매한',
+    id: 'bimyou', rank: 67, verb: '微妙', jlpt: 'N3', reading: '비묘ー', meaning: '미묘한; 애매한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -4535,7 +4535,7 @@ export const ADJ_NA = [
    * 68위  丁寧
    * ══════════════════════════════════════════════════ */
   {
-    id: 'teinei', rank: 68, verb: '丁寧', reading: '테이네이', meaning: '정중한; 꼼꼼한',
+    id: 'teinei', rank: 68, verb: '丁寧', jlpt: 'N4', reading: '테이네이', meaning: '정중한; 꼼꼼한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4607,7 +4607,7 @@ export const ADJ_NA = [
    * 69위  素直
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sunao', rank: 69, verb: '素直', reading: '스나오', meaning: '솔직한; 순순한',
+    id: 'sunao', rank: 69, verb: '素直', jlpt: 'N2', reading: '스나오', meaning: '솔직한; 순순한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4680,7 +4680,7 @@ export const ADJ_NA = [
    * 70위  知的
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chiteki', rank: 70, verb: '知的', reading: '치테키', meaning: '지적인',
+    id: 'chiteki', rank: 70, verb: '知的', jlpt: 'N1', reading: '치테키', meaning: '지적인',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4753,7 +4753,7 @@ export const ADJ_NA = [
    * 71위  深刻
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shinkoku', rank: 71, verb: '深刻', reading: '싱코쿠', meaning: '심각한',
+    id: 'shinkoku', rank: 71, verb: '深刻', jlpt: 'N3', reading: '싱코쿠', meaning: '심각한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4824,7 +4824,7 @@ export const ADJ_NA = [
    * 72위  真面目
    * ══════════════════════════════════════════════════ */
   {
-    id: 'majime', rank: 72, verb: '真面目', reading: '마지메', meaning: '성실한; 진지한',
+    id: 'majime', rank: 72, verb: '真面目', jlpt: 'N4', reading: '마지메', meaning: '성실한; 진지한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4897,7 +4897,7 @@ export const ADJ_NA = [
    * 73위  身近
    * ══════════════════════════════════════════════════ */
   {
-    id: 'michika', rank: 73, verb: '身近', reading: '미치카', meaning: '친근한; 가까운',
+    id: 'michika', rank: 73, verb: '身近', jlpt: 'N1', reading: '미치카', meaning: '친근한; 가까운',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4971,7 +4971,7 @@ export const ADJ_NA = [
    * 74위  貴重
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kichou', rank: 74, verb: '貴重', reading: '키쵸-', meaning: '귀중한',
+    id: 'kichou', rank: 74, verb: '貴重', jlpt: 'N3', reading: '키쵸-', meaning: '귀중한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5044,7 +5044,7 @@ export const ADJ_NA = [
    * 75위  盛ん
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sakan', rank: 75, verb: '盛ん', reading: '사캉', meaning: '활발한; 왕성한',
+    id: 'sakan', rank: 75, verb: '盛ん', jlpt: 'N4', reading: '사캉', meaning: '활발한; 왕성한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5117,7 +5117,7 @@ export const ADJ_NA = [
    * 76위  可成
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kanari', rank: 76, verb: '可成', reading: '카나리', meaning: '상당한; 꽤',
+    id: 'kanari', rank: 76, verb: '可成', jlpt: 'N3', reading: '카나리', meaning: '상당한; 꽤',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5190,7 +5190,7 @@ export const ADJ_NA = [
    * 77위  豊富
    * ══════════════════════════════════════════════════ */
   {
-    id: 'houfu', rank: 77, verb: '豊富', reading: '호-후', meaning: '풍부한',
+    id: 'houfu', rank: 77, verb: '豊富', jlpt: 'N3', reading: '호-후', meaning: '풍부한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5263,7 +5263,7 @@ export const ADJ_NA = [
    * 78위  正式
    * ══════════════════════════════════════════════════ */
   {
-    id: 'seishiki', rank: 78, verb: '正式', reading: '세이시키', meaning: '정식의',
+    id: 'seishiki', rank: 78, verb: '正式', jlpt: 'N3', reading: '세이시키', meaning: '정식의',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5334,7 +5334,7 @@ export const ADJ_NA = [
    * 79위  健全
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kenzen', rank: 79, verb: '健全', reading: '켄젱', meaning: '건전한',
+    id: 'kenzen', rank: 79, verb: '健全', jlpt: 'N1', reading: '켄젱', meaning: '건전한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5406,7 +5406,7 @@ export const ADJ_NA = [
    * 80위  優秀
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yuushuu', rank: 80, verb: '優秀', reading: '유-슈-', meaning: '우수한',
+    id: 'yuushuu', rank: 80, verb: '優秀', jlpt: 'N3', reading: '유-슈-', meaning: '우수한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5480,7 +5480,7 @@ export const ADJ_NA = [
    * 81위  強力
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kyouryoku', rank: 81, verb: '強力', reading: '쿄-료쿠', meaning: '강력한',
+    id: 'kyouryoku', rank: 81, verb: '強力', jlpt: 'N3', reading: '쿄-료쿠', meaning: '강력한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5551,7 +5551,7 @@ export const ADJ_NA = [
    * 82위  不要
    * ══════════════════════════════════════════════════ */
   {
-    id: 'fuyou', rank: 82, verb: '不要', reading: '후요-', meaning: '불필요한',
+    id: 'fuyou', rank: 82, verb: '不要', jlpt: 'N1', reading: '후요-', meaning: '불필요한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5768,7 +5768,7 @@ export const ADJ_NA = [
    * 85위  不可欠
    * ══════════════════════════════════════════════════ */
   {
-    id: 'fukaketsu', rank: 85, verb: '不可欠', reading: '후카케츠', meaning: '불가결한; 필수적인',
+    id: 'fukaketsu', rank: 85, verb: '不可欠', jlpt: 'N1', reading: '후카케츠', meaning: '불가결한; 필수적인',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5844,7 +5844,7 @@ export const ADJ_NA = [
    * 86위  活発
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kappatsu', rank: 86, verb: '活発', reading: '캇파츠', meaning: '활발한',
+    id: 'kappatsu', rank: 86, verb: '活発', jlpt: 'N1', reading: '캇파츠', meaning: '활발한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5917,7 +5917,7 @@ export const ADJ_NA = [
    * 87위  穏やか
    * ══════════════════════════════════════════════════ */
   {
-    id: 'odayaka', rank: 87, verb: '穏やか', reading: '오다야카', meaning: '온화한; 잔잔한',
+    id: 'odayaka', rank: 87, verb: '穏やか', jlpt: 'N3', reading: '오다야카', meaning: '온화한; 잔잔한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5989,7 +5989,7 @@ export const ADJ_NA = [
    * 88위  独特
    * ══════════════════════════════════════════════════ */
   {
-    id: 'dokutoku', rank: 88, verb: '独特', reading: '도쿠토쿠', meaning: '독특한',
+    id: 'dokutoku', rank: 88, verb: '独特', jlpt: 'N3', reading: '도쿠토쿠', meaning: '독특한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6062,7 +6062,7 @@ export const ADJ_NA = [
    * 89위  微か
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kasuka', rank: 89, verb: '微か', reading: '카스카', meaning: '희미한; 어렴풋한',
+    id: 'kasuka', rank: 89, verb: '微か', jlpt: 'N1', reading: '카스카', meaning: '희미한; 어렴풋한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6134,7 +6134,7 @@ export const ADJ_NA = [
    * 90위  可哀想
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kawaisou', rank: 90, verb: '可哀想', reading: '카와이소-', meaning: '불쌍한; 가엾은',
+    id: 'kawaisou', rank: 90, verb: '可哀想', jlpt: 'N3', reading: '카와이소-', meaning: '불쌍한; 가엾은',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6207,7 +6207,7 @@ export const ADJ_NA = [
    * 91위  単独
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tandoku', rank: 91, verb: '単独', reading: '탄도쿠', meaning: '단독의',
+    id: 'tandoku', rank: 91, verb: '単独', jlpt: 'N1', reading: '탄도쿠', meaning: '단독의',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6279,7 +6279,7 @@ export const ADJ_NA = [
    * 92위  円滑
    * ══════════════════════════════════════════════════ */
   {
-    id: 'enkatsu', rank: 92, verb: '円滑', reading: '엔카츠', meaning: '원활한',
+    id: 'enkatsu', rank: 92, verb: '円滑', jlpt: 'N1', reading: '엔카츠', meaning: '원활한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6353,7 +6353,7 @@ export const ADJ_NA = [
    * 93위  奇妙
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kimyou', rank: 93, verb: '奇妙', reading: '키묘-', meaning: '기묘한; 이상한',
+    id: 'kimyou', rank: 93, verb: '奇妙', jlpt: 'N3', reading: '키묘-', meaning: '기묘한; 이상한',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6426,7 +6426,7 @@ export const ADJ_NA = [
    * 94위  有利
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yuuri', rank: 94, verb: '有利', reading: '유-리', meaning: '유리한',
+    id: 'yuuri', rank: 94, verb: '有利', jlpt: 'N3', reading: '유-리', meaning: '유리한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6499,7 +6499,7 @@ export const ADJ_NA = [
    * 95위  有力
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yuuryoku', rank: 95, verb: '有力', reading: '유-료쿠', meaning: '유력한; 강력한',
+    id: 'yuuryoku', rank: 95, verb: '有力', jlpt: 'N1', reading: '유-료쿠', meaning: '유력한; 강력한',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6650,7 +6650,7 @@ export const ADJ_NA = [
    * 97위  熱心
    * ══════════════════════════════════════════════════ */
   {
-    id: 'nesshin', rank: 97, verb: '熱心', reading: '넷싱', meaning: '열심인; 열정적인',
+    id: 'nesshin', rank: 97, verb: '熱心', jlpt: 'N4', reading: '넷싱', meaning: '열심인; 열정적인',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6723,7 +6723,7 @@ export const ADJ_NA = [
    * 98위  結構
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kekkou', rank: 98, verb: '結構', reading: '켁코-', meaning: '꽤; 상당히',
+    id: 'kekkou', rank: 98, verb: '結構', jlpt: 'N5', reading: '켁코-', meaning: '꽤; 상당히',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6864,7 +6864,7 @@ export const ADJ_NA = [
    * 100위  純粋
    * ══════════════════════════════════════════════════ */
   {
-    id: 'junsui', rank: 100, verb: '純粋', reading: '쥰스이', meaning: '순수한',
+    id: 'junsui', rank: 100, verb: '純粋', jlpt: 'N2', reading: '쥰스이', meaning: '순수한',
     accentType: 0,
     conjugations: {
       formal: [

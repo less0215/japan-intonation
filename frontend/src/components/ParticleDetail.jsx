@@ -137,7 +137,7 @@ function ExampleBox({ example, exampleInfo }) {
 
       {/* 한국어 발음 */}
       {example.pronunciation && (
-        <p style={{ margin: '4px 0 0', fontSize: 12, color: '#aaa', fontStyle: 'italic', lineHeight: 1.4 }}>
+        <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic', lineHeight: 1.4 }}>
           {example.pronunciation}
         </p>
       )}
@@ -176,7 +176,7 @@ export default function ParticleDetail({ particle }) {
             <span style={{ fontSize: 48, fontWeight: 800, color: '#5CA9CE', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1 }}>
               {particle.particle}
             </span>
-            <span style={{ fontSize: 16, color: '#aaa' }}>({particle.reading})</span>
+            <span style={{ fontSize: 16, color: 'var(--text-3)' }}>({particle.reading})</span>
           </div>
           <WordBookmarkButton wordInfo={{ id: particle.id, category: 'particle', word: particle.particle, reading: particle.reading, meaning: particle.meanings[0] ?? '' }} />
         </div>
@@ -189,7 +189,7 @@ export default function ParticleDetail({ particle }) {
 
       {/* 인스타 강의 배너 */}
       <a
-        href="https://www.instagram.com/p/DZe9rFoNUJI/"
+        href="https://www.instagram.com/p/DZ6V1YZzvYk/"
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => track('instagram_banner_click', { category: 'particle', word_id: particle.id, word: particle.particle })}
@@ -240,7 +240,7 @@ export default function ParticleDetail({ particle }) {
               <span className={`particle-section-badge particle-section-badge--${usage.type}`}>
                 {usage.type === 'basic' ? '기본' : '응용'}
               </span>
-              <span style={{ fontSize: 14, color: '#444', fontWeight: 500, lineHeight: 1.5 }}>
+              <span style={{ fontSize: 14, color: 'var(--text-1)', fontWeight: 500, lineHeight: 1.5 }}>
                 {usage.meaning}
               </span>
             </div>

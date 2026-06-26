@@ -31,7 +31,7 @@ export const VERBS = [
    * 1위  する
    * ══════════════════════════════════════════════════ */
   {
-    id: 'suru', rank: 1, verb: 'する', reading: '스루', meaning: '하다',
+    id: 'suru', rank: 1, verb: 'する', jlpt: 'N5', reading: '스루', meaning: '하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -98,7 +98,7 @@ export const VERBS = [
    * 2위  いる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'iru', rank: 2, verb: 'いる', reading: '이루', meaning: '있다 (사람·동물)',
+    id: 'iru', rank: 2, verb: 'いる', jlpt: 'N5', reading: '이루', meaning: '있다 (사람·동물)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -165,7 +165,7 @@ export const VERBS = [
    * 3위  ある
    * ══════════════════════════════════════════════════ */
   {
-    id: 'aru', rank: 3, verb: 'ある', reading: '아루', meaning: '있다 (사물)',
+    id: 'aru', rank: 3, verb: 'ある', jlpt: 'N5', reading: '아루', meaning: '있다 (사물)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -231,7 +231,7 @@ export const VERBS = [
    * 4위  言う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'iu', rank: 4, verb: '言う', reading: '이우', meaning: '말하다',
+    id: 'iu', rank: 4, verb: '言う', jlpt: 'N5', reading: '이우', meaning: '말하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -300,7 +300,7 @@ export const VERBS = [
    * 5위  なる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'naru', rank: 5, verb: 'なる', reading: '나루', meaning: '되다',
+    id: 'naru', rank: 5, verb: 'なる', jlpt: 'N5', reading: '나루', meaning: '되다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -367,7 +367,7 @@ export const VERBS = [
    * 6위  来る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kuru', rank: 6, verb: '来る', reading: '쿠루', meaning: '오다',
+    id: 'kuru', rank: 6, verb: '来る', jlpt: 'N5', reading: '쿠루', meaning: '오다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -433,7 +433,7 @@ export const VERBS = [
    * 7위  思う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'omou', rank: 7, verb: '思う', reading: '오모우', meaning: '생각하다',
+    id: 'omou', rank: 7, verb: '思う', jlpt: 'N4', reading: '오모우', meaning: '생각하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -501,7 +501,7 @@ export const VERBS = [
    * 8위  見る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'miru', rank: 8, verb: '見る', reading: '미루', meaning: '보다',
+    id: 'miru', rank: 8, verb: '見る', jlpt: 'N5', reading: '미루', meaning: '보다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -568,7 +568,7 @@ export const VERBS = [
    * 9위  行く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'iku', rank: 9, verb: '行く', reading: '이쿠', meaning: '가다',
+    id: 'iku', rank: 9, verb: '行く', jlpt: 'N5', reading: '이쿠', meaning: '가다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -636,7 +636,7 @@ export const VERBS = [
    * 10위  できる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'dekiru', rank: 10, verb: 'できる', reading: '데키루', meaning: '할 수 있다; 생기다',
+    id: 'dekiru', rank: 10, verb: 'できる', jlpt: 'N5', reading: '데키루', meaning: '할 수 있다; 생기다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -700,7 +700,7 @@ export const VERBS = [
    * 11위  因る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yoru', rank: 11, verb: '因る', reading: '요루', meaning: '~에 의하다; ~에 달려 있다',
+    id: 'yoru', rank: 11, verb: '因る', jlpt: 'N3', reading: '요루', meaning: '~에 의하다; ~에 달려 있다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -764,7 +764,7 @@ export const VERBS = [
    * 12위  つく
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsuku_iru', rank: 12, verb: 'つく', reading: '츠쿠', meaning: '붙다; 켜지다; 도착하다',
+    id: 'tsuku_iru', rank: 12, verb: 'つく', jlpt: 'N5', reading: '츠쿠', meaning: '붙다; 켜지다; 도착하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -828,7 +828,7 @@ export const VERBS = [
    * 13위  考える
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kangaeru', rank: 13, verb: '考える', reading: '캉가에루', meaning: '생각하다; 고려하다',
+    id: 'kangaeru', rank: 13, verb: '考える', jlpt: 'N4', reading: '캉가에루', meaning: '생각하다; 고려하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -956,7 +956,7 @@ export const VERBS = [
    * 15위  持つ
    * ══════════════════════════════════════════════════ */
   {
-    id: 'motsu', rank: 15, verb: '持つ', reading: '모츠', meaning: '가지다; 들다',
+    id: 'motsu', rank: 15, verb: '持つ', jlpt: 'N5', reading: '모츠', meaning: '가지다; 들다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1020,7 +1020,7 @@ export const VERBS = [
    * 16위  やる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yaru', rank: 16, verb: 'やる', reading: '야루', meaning: '하다 (구어)',
+    id: 'yaru', rank: 16, verb: 'やる', jlpt: 'N5', reading: '야루', meaning: '하다 (구어)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1086,7 +1086,7 @@ export const VERBS = [
    * 17위  分かる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'wakaru', rank: 17, verb: '分かる', reading: '와카루', meaning: '알다; 이해하다',
+    id: 'wakaru', rank: 17, verb: '分かる', jlpt: 'N5', reading: '와카루', meaning: '알다; 이해하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1151,7 +1151,7 @@ export const VERBS = [
    * 18위  居る(おる)
    * ══════════════════════════════════════════════════ */
   {
-    id: 'oru', rank: 18, verb: '居る(おる)', reading: '오루', meaning: '있다 (겸양·방언)',
+    id: 'oru', rank: 18, verb: '居る(おる)', jlpt: 'N5', reading: '오루', meaning: '있다 (겸양·방언)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1215,7 +1215,7 @@ export const VERBS = [
    * 19위  於く (〜ておく)
    * ══════════════════════════════════════════════════ */
   {
-    id: 'oku_aux', rank: 19, verb: '於く', reading: '오쿠', meaning: '~해 두다 (보조동사)',
+    id: 'oku_aux', rank: 19, verb: '於く', jlpt: 'N5', reading: '오쿠', meaning: '~해 두다 (보조동사)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1279,7 +1279,7 @@ export const VERBS = [
    * 20위  出る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'deru', rank: 20, verb: '出る', reading: '데루', meaning: '나오다; 나가다',
+    id: 'deru', rank: 20, verb: '出る', jlpt: 'N5', reading: '데루', meaning: '나오다; 나가다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1344,7 +1344,7 @@ export const VERBS = [
    * 21위  行う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'okonau', rank: 21, verb: '行う', reading: '오코나우', meaning: '실시하다; 행하다',
+    id: 'okonau', rank: 21, verb: '行う', jlpt: 'N4', reading: '오코나우', meaning: '실시하다; 행하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1408,7 +1408,7 @@ export const VERBS = [
    * 22위  取る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'toru', rank: 22, verb: '取る', reading: '토루', meaning: '잡다; 가져가다',
+    id: 'toru', rank: 22, verb: '取る', jlpt: 'N5', reading: '토루', meaning: '잡다; 가져가다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1472,7 +1472,7 @@ export const VERBS = [
    * 23위  下さる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kudasaru', rank: 23, verb: '下さる', reading: '쿠다사루', meaning: '주시다 (존경어)',
+    id: 'kudasaru', rank: 23, verb: '下さる', jlpt: 'N4', reading: '쿠다사루', meaning: '주시다 (존경어)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1536,7 +1536,7 @@ export const VERBS = [
    * 24위  対する
    * ══════════════════════════════════════════════════ */
   {
-    id: 'taisuru', rank: 24, verb: '対する', reading: '타이스루', meaning: '~에 대하다',
+    id: 'taisuru', rank: 24, verb: '対する', jlpt: 'N3', reading: '타이스루', meaning: '~에 대하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1600,7 +1600,7 @@ export const VERBS = [
    * 25위  使う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsukau', rank: 25, verb: '使う', reading: '츠카우', meaning: '사용하다',
+    id: 'tsukau', rank: 25, verb: '使う', jlpt: 'N5', reading: '츠카우', meaning: '사용하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1664,7 +1664,7 @@ export const VERBS = [
    * 26위  聞く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kiku', rank: 26, verb: '聞く', reading: '키쿠', meaning: '듣다; 묻다',
+    id: 'kiku', rank: 26, verb: '聞く', jlpt: 'N5', reading: '키쿠', meaning: '듣다; 묻다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1729,7 +1729,7 @@ export const VERBS = [
    * 27위  呉れる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kureru', rank: 27, verb: '呉れる', reading: '쿠레루', meaning: '(나에게) 주다',
+    id: 'kureru', rank: 27, verb: '呉れる', jlpt: 'N4', reading: '쿠레루', meaning: '(나에게) 주다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1793,7 +1793,7 @@ export const VERBS = [
    * 28위  知る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shiru', rank: 28, verb: '知る', reading: '시루', meaning: '알다',
+    id: 'shiru', rank: 28, verb: '知る', jlpt: 'N5', reading: '시루', meaning: '알다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1857,7 +1857,7 @@ export const VERBS = [
    * 29위  置く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'oku2', rank: 29, verb: '置く', reading: '오쿠', meaning: '두다; 놓다',
+    id: 'oku2', rank: 29, verb: '置く', jlpt: 'N5', reading: '오쿠', meaning: '두다; 놓다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1921,7 +1921,7 @@ export const VERBS = [
    * 30위  入る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hairu', rank: 30, verb: '入る', reading: '하이루', meaning: '들어가다',
+    id: 'hairu', rank: 30, verb: '入る', jlpt: 'N5', reading: '하이루', meaning: '들어가다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1985,7 +1985,7 @@ export const VERBS = [
    * 31위  作る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsukuru', rank: 31, verb: '作る', reading: '츠쿠루', meaning: '만들다',
+    id: 'tsukuru', rank: 31, verb: '作る', jlpt: 'N5', reading: '츠쿠루', meaning: '만들다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2114,7 +2114,7 @@ export const VERBS = [
    * 33위  出す
    * ══════════════════════════════════════════════════ */
   {
-    id: 'dasu', rank: 33, verb: '出す', reading: '다스', meaning: '내다; 꺼내다; ~하기 시작하다',
+    id: 'dasu', rank: 33, verb: '出す', jlpt: 'N5', reading: '다스', meaning: '내다; 꺼내다; ~하기 시작하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2179,7 +2179,7 @@ export const VERBS = [
    * 34위  付ける
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsukeru', rank: 34, verb: '付ける', reading: '츠케루', meaning: '붙이다; 켜다; 기입하다',
+    id: 'tsukeru', rank: 34, verb: '付ける', jlpt: 'N3', reading: '츠케루', meaning: '붙이다; 켜다; 기입하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2244,7 +2244,7 @@ export const VERBS = [
    * 35위  付く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsuku2', rank: 35, verb: '付く', reading: '츠쿠', meaning: '붙다; 달리다; 따라가다',
+    id: 'tsuku2', rank: 35, verb: '付く', jlpt: 'N3', reading: '츠쿠', meaning: '붙다; 달리다; 따라가다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2309,7 +2309,7 @@ export const VERBS = [
    * 36위  受ける
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ukeru', rank: 36, verb: '受ける', reading: '우케루', meaning: '받다; 수용하다; 수험하다',
+    id: 'ukeru', rank: 36, verb: '受ける', jlpt: 'N4', reading: '우케루', meaning: '받다; 수용하다; 수험하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2375,7 +2375,7 @@ export const VERBS = [
    * 37위  書く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kaku', rank: 37, verb: '書く', reading: '카쿠', meaning: '쓰다; 그리다',
+    id: 'kaku', rank: 37, verb: '書く', jlpt: 'N5', reading: '카쿠', meaning: '쓰다; 그리다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2440,7 +2440,7 @@ export const VERBS = [
    * 38위  貰う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'morau', rank: 38, verb: '貰う', reading: '모라우', meaning: '받다 (내가 받음)',
+    id: 'morau', rank: 38, verb: '貰う', jlpt: 'N4', reading: '모라우', meaning: '받다 (내가 받음)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2505,7 +2505,7 @@ export const VERBS = [
    * 39위  得る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'eru', rank: 39, verb: '得る', reading: '에루', meaning: '얻다; ~할 수 있다',
+    id: 'eru', rank: 39, verb: '得る', jlpt: 'N3', reading: '에루', meaning: '얻다; ~할 수 있다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2570,7 +2570,7 @@ export const VERBS = [
    * 40위  掛ける
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kakeru', rank: 40, verb: '掛ける', reading: '카케루', meaning: '걸다; 곱하다; (전화) 걸다',
+    id: 'kakeru', rank: 40, verb: '掛ける', jlpt: 'N5', reading: '카케루', meaning: '걸다; 곱하다; (전화) 걸다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2706,7 +2706,7 @@ export const VERBS = [
    * 42위  入れる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ireru', rank: 42, verb: '入れる', reading: '이레루', meaning: '넣다; 집어넣다',
+    id: 'ireru', rank: 42, verb: '入れる', jlpt: 'N5', reading: '이레루', meaning: '넣다; 집어넣다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2777,7 +2777,7 @@ export const VERBS = [
    * 43위  関する
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kansuru', rank: 43, verb: '関する', reading: '캉스루', meaning: '관련되다',
+    id: 'kansuru', rank: 43, verb: '関する', jlpt: 'N3', reading: '캉스루', meaning: '관련되다',
     accentType: 3,
     conjugations: {
       formal: [
@@ -2851,7 +2851,7 @@ export const VERBS = [
    * 44위  上げる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ageru', rank: 44, verb: '上げる', reading: '아게루', meaning: '올리다; (아랫사람에게) 주다',
+    id: 'ageru', rank: 44, verb: '上げる', jlpt: 'N5', reading: '아게루', meaning: '올리다; (아랫사람에게) 주다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2921,7 +2921,7 @@ export const VERBS = [
    * 45위  見える
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mieru', rank: 45, verb: '見える', reading: '미에루', meaning: '보이다',
+    id: 'mieru', rank: 45, verb: '見える', jlpt: 'N4', reading: '미에루', meaning: '보이다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -2991,7 +2991,7 @@ export const VERBS = [
    * 46위  頂く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'itadaku', rank: 46, verb: '頂く', reading: '이타다쿠', meaning: '받다; 먹다 (겸양)',
+    id: 'itadaku', rank: 46, verb: '頂く', jlpt: 'N4', reading: '이타다쿠', meaning: '받다; 먹다 (겸양)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3060,7 +3060,7 @@ export const VERBS = [
    * 47위  掛かる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kakaru', rank: 47, verb: '掛かる', reading: '카카루', meaning: '걸리다; (시간·돈이) 들다',
+    id: 'kakaru', rank: 47, verb: '掛かる', jlpt: 'N5', reading: '카카루', meaning: '걸리다; (시간·돈이) 들다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -3133,7 +3133,7 @@ export const VERBS = [
    * 48위  食べる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'taberu', rank: 48, verb: '食べる', reading: '타베루', meaning: '먹다',
+    id: 'taberu', rank: 48, verb: '食べる', jlpt: 'N5', reading: '타베루', meaning: '먹다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -3206,7 +3206,7 @@ export const VERBS = [
    * 49위  教える
    * ══════════════════════════════════════════════════ */
   {
-    id: 'oshieru', rank: 49, verb: '教える', reading: '오시에루', meaning: '가르치다; 알려주다',
+    id: 'oshieru', rank: 49, verb: '教える', jlpt: 'N5', reading: '오시에루', meaning: '가르치다; 알려주다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3277,7 +3277,7 @@ export const VERBS = [
    * 50위  違う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chigau', rank: 50, verb: '違う', reading: '치가우', meaning: '다르다; 틀리다',
+    id: 'chigau', rank: 50, verb: '違う', jlpt: 'N5', reading: '치가우', meaning: '다르다; 틀리다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3348,7 +3348,7 @@ export const VERBS = [
    * 51위  始める
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hajimeru', rank: 51, verb: '始める', reading: '하지메루', meaning: '시작하다',
+    id: 'hajimeru', rank: 51, verb: '始める', jlpt: 'N4', reading: '하지메루', meaning: '시작하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3419,7 +3419,7 @@ export const VERBS = [
    * 52위  変わる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kawaru', rank: 52, verb: '変わる', reading: '카와루', meaning: '바뀌다; 변하다',
+    id: 'kawaru', rank: 52, verb: '変わる', jlpt: 'N4', reading: '카와루', meaning: '바뀌다; 변하다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -3492,7 +3492,7 @@ export const VERBS = [
    * 53위  過ぎる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sugiru', rank: 53, verb: '過ぎる', reading: '스기루', meaning: '지나다; 너무 ~하다',
+    id: 'sugiru', rank: 53, verb: '過ぎる', jlpt: 'N4', reading: '스기루', meaning: '지나다; 너무 ~하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3564,7 +3564,7 @@ export const VERBS = [
    * 54위  呼ぶ
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yobu', rank: 54, verb: '呼ぶ', reading: '요부', meaning: '부르다; 초대하다',
+    id: 'yobu', rank: 54, verb: '呼ぶ', jlpt: 'N5', reading: '요부', meaning: '부르다; 초대하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3637,7 +3637,7 @@ export const VERBS = [
    * 55위  感じる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kanjiru', rank: 55, verb: '感じる', reading: '캉지루', meaning: '느끼다',
+    id: 'kanjiru', rank: 55, verb: '感じる', jlpt: 'N3', reading: '캉지루', meaning: '느끼다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3709,7 +3709,7 @@ export const VERBS = [
    * 56위  買う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kau', rank: 56, verb: '買う', reading: '카우', meaning: '사다',
+    id: 'kau', rank: 56, verb: '買う', jlpt: 'N5', reading: '카우', meaning: '사다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3780,7 +3780,7 @@ export const VERBS = [
    * 57위  続ける
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsuzukeru', rank: 57, verb: '続ける', reading: '츠즈케루', meaning: '계속하다',
+    id: 'tsuzukeru', rank: 57, verb: '続ける', jlpt: 'N4', reading: '츠즈케루', meaning: '계속하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3852,7 +3852,7 @@ export const VERBS = [
    * 58위  示す
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shimesu', rank: 58, verb: '示す', reading: '시메스', meaning: '나타내다; 제시하다',
+    id: 'shimesu', rank: 58, verb: '示す', jlpt: 'N3', reading: '시메스', meaning: '나타내다; 제시하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3923,7 +3923,7 @@ export const VERBS = [
    * 59위  返る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kaeru_moto', rank: 59, verb: '返る', reading: '카에루', meaning: '돌아가다 (원래 상태로)',
+    id: 'kaeru_moto', rank: 59, verb: '返る', jlpt: 'N5', reading: '카에루', meaning: '돌아가다 (원래 상태로)',
     accentType: 2,
     conjugations: {
       formal: [
@@ -3995,7 +3995,7 @@ export const VERBS = [
    * 60위  致す
    * ══════════════════════════════════════════════════ */
   {
-    id: 'itasu', rank: 60, verb: '致す', reading: '이타스', meaning: '하다 (겸양)',
+    id: 'itasu', rank: 60, verb: '致す', jlpt: 'N4', reading: '이타스', meaning: '하다 (겸양)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4064,7 +4064,7 @@ export const VERBS = [
    * 61위  切る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kiru', rank: 61, verb: '切る', reading: '키루', meaning: '자르다; 끊다',
+    id: 'kiru', rank: 61, verb: '切る', jlpt: 'N5', reading: '키루', meaning: '자르다; 끊다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4135,7 +4135,7 @@ export const VERBS = [
    * 62위  読む
    * ══════════════════════════════════════════════════ */
   {
-    id: 'yomu', rank: 62, verb: '読む', reading: '요무', meaning: '읽다',
+    id: 'yomu', rank: 62, verb: '読む', jlpt: 'N5', reading: '요무', meaning: '읽다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4209,7 +4209,7 @@ export const VERBS = [
    * 63위  立つ
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tatsu', rank: 63, verb: '立つ', reading: '타츠', meaning: '서다; 일어서다',
+    id: 'tatsu', rank: 63, verb: '立つ', jlpt: 'N5', reading: '타츠', meaning: '서다; 일어서다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -4283,7 +4283,7 @@ export const VERBS = [
    * 64위  話す
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hanasu', rank: 64, verb: '話す', reading: '하나스', meaning: '말하다; 이야기하다',
+    id: 'hanasu', rank: 64, verb: '話す', jlpt: 'N5', reading: '하나스', meaning: '말하다; 이야기하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4356,7 +4356,7 @@ export const VERBS = [
    * 65위  求める
    * ══════════════════════════════════════════════════ */
   {
-    id: 'motomeru', rank: 65, verb: '求める', reading: '모토메루', meaning: '구하다; 요구하다',
+    id: 'motomeru', rank: 65, verb: '求める', jlpt: 'N3', reading: '모토메루', meaning: '구하다; 요구하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4429,7 +4429,7 @@ export const VERBS = [
    * 66위  与える
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ataeru', rank: 66, verb: '与える', reading: '아타에루', meaning: '주다; 부여하다',
+    id: 'ataeru', rank: 66, verb: '与える', jlpt: 'N3', reading: '아타에루', meaning: '주다; 부여하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4502,7 +4502,7 @@ export const VERBS = [
    * 67위  生きる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ikiru', rank: 67, verb: '生きる', reading: '이키루', meaning: '살다',
+    id: 'ikiru', rank: 67, verb: '生きる', jlpt: 'N4', reading: '이키루', meaning: '살다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4572,7 +4572,7 @@ export const VERBS = [
    * 68위  飲む
    * ══════════════════════════════════════════════════ */
   {
-    id: 'nomu', rank: 68, verb: '飲む', reading: '노무', meaning: '마시다; 삼키다',
+    id: 'nomu', rank: 68, verb: '飲む', jlpt: 'N5', reading: '노무', meaning: '마시다; 삼키다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4647,7 +4647,7 @@ export const VERBS = [
    * 69위  願う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'negau', rank: 69, verb: '願う', reading: '네가우', meaning: '바라다; 부탁하다',
+    id: 'negau', rank: 69, verb: '願う', jlpt: 'N3', reading: '네가우', meaning: '바라다; 부탁하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4719,7 +4719,7 @@ export const VERBS = [
    * 70위  待つ
    * ══════════════════════════════════════════════════ */
   {
-    id: 'matsu', rank: 70, verb: '待つ', reading: '마츠', meaning: '기다리다',
+    id: 'matsu', rank: 70, verb: '待つ', jlpt: 'N5', reading: '마츠', meaning: '기다리다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -4790,7 +4790,7 @@ export const VERBS = [
    * 71위  続く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsuzuku', rank: 71, verb: '続く', reading: '츠즈쿠', meaning: '계속되다',
+    id: 'tsuzuku', rank: 71, verb: '続く', jlpt: 'N4', reading: '츠즈쿠', meaning: '계속되다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4862,7 +4862,7 @@ export const VERBS = [
    * 72위  従う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shitagau', rank: 72, verb: '従う', reading: '시타가우', meaning: '따르다; 복종하다',
+    id: 'shitagau', rank: 72, verb: '従う', jlpt: 'N3', reading: '시타가우', meaning: '따르다; 복종하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4934,7 +4934,7 @@ export const VERBS = [
    * 73위  乗る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'noru', rank: 73, verb: '乗る', reading: '노루', meaning: '타다 (교통수단)',
+    id: 'noru', rank: 73, verb: '乗る', jlpt: 'N5', reading: '노루', meaning: '타다 (교통수단)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5007,7 +5007,7 @@ export const VERBS = [
    * 74위  認める
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mitomeru', rank: 74, verb: '認める', reading: '미토메루', meaning: '인정하다; 허가하다',
+    id: 'mitomeru', rank: 74, verb: '認める', jlpt: 'N3', reading: '미토메루', meaning: '인정하다; 허가하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5083,7 +5083,7 @@ export const VERBS = [
    * 75위  答える
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kotaeru', rank: 75, verb: '答える', reading: '코타에루', meaning: '대답하다',
+    id: 'kotaeru', rank: 75, verb: '答える', jlpt: 'N5', reading: '코타에루', meaning: '대답하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5158,7 +5158,7 @@ export const VERBS = [
    * 76위  終わる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'owaru', rank: 76, verb: '終わる', reading: '오와루', meaning: '끝나다',
+    id: 'owaru', rank: 76, verb: '終わる', jlpt: 'N5', reading: '오와루', meaning: '끝나다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5231,7 +5231,7 @@ export const VERBS = [
    * 77위  開く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hiraku', rank: 77, verb: '開く', reading: '히라쿠', meaning: '열다; 개최하다',
+    id: 'hiraku', rank: 77, verb: '開く', jlpt: 'N5', reading: '히라쿠', meaning: '열다; 개최하다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -5305,7 +5305,7 @@ export const VERBS = [
    * 78위  含む
    * ══════════════════════════════════════════════════ */
   {
-    id: 'fukumu', rank: 78, verb: '含む', reading: '후쿠무', meaning: '포함하다; 담다',
+    id: 'fukumu', rank: 78, verb: '含む', jlpt: 'N3', reading: '후쿠무', meaning: '포함하다; 담다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5385,7 +5385,7 @@ export const VERBS = [
    * 79위  会う
    * ══════════════════════════════════════════════════ */
   {
-    id: 'au', rank: 79, verb: '会う', reading: '아우', meaning: '만나다',
+    id: 'au', rank: 79, verb: '会う', jlpt: 'N5', reading: '아우', meaning: '만나다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5457,7 +5457,7 @@ export const VERBS = [
    * 80위  戻る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'modoru', rank: 80, verb: '戻る', reading: '모도루', meaning: '돌아오다; 돌아가다',
+    id: 'modoru', rank: 80, verb: '戻る', jlpt: 'N4', reading: '모도루', meaning: '돌아오다; 돌아가다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5530,7 +5530,7 @@ export const VERBS = [
    * 81위  歩く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'aruku', rank: 81, verb: '歩く', reading: '아루쿠', meaning: '걷다',
+    id: 'aruku', rank: 81, verb: '歩く', jlpt: 'N5', reading: '아루쿠', meaning: '걷다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5601,7 +5601,7 @@ export const VERBS = [
    * 82위  当たる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ataru', rank: 82, verb: '当たる', reading: '아타루', meaning: '맞다; 해당하다',
+    id: 'ataru', rank: 82, verb: '当たる', jlpt: 'N3', reading: '아타루', meaning: '맞다; 해당하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5674,7 +5674,7 @@ export const VERBS = [
    * 83위  図る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hakaru', rank: 83, verb: '図る', reading: '하카루', meaning: '꾀하다; 도모하다',
+    id: 'hakaru', rank: 83, verb: '図る', jlpt: 'N3', reading: '하카루', meaning: '꾀하다; 도모하다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -5749,7 +5749,7 @@ export const VERBS = [
    * 84위  向かう
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mukau', rank: 84, verb: '向かう', reading: '무카우', meaning: '향하다; 마주하다',
+    id: 'mukau', rank: 84, verb: '向かう', jlpt: 'N4', reading: '무카우', meaning: '향하다; 마주하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5824,7 +5824,7 @@ export const VERBS = [
    * 85위  見せる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'miseru', rank: 85, verb: '見せる', reading: '미세루', meaning: '보여주다',
+    id: 'miseru', rank: 85, verb: '見せる', jlpt: 'N5', reading: '미세루', meaning: '보여주다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5896,7 +5896,7 @@ export const VERBS = [
    * 86위  死ぬ
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shinu', rank: 86, verb: '死ぬ', reading: '시누', meaning: '죽다',
+    id: 'shinu', rank: 86, verb: '死ぬ', jlpt: 'N5', reading: '시누', meaning: '죽다',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5969,7 +5969,7 @@ export const VERBS = [
    * 87위  変える
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kaeru_v', rank: 87, verb: '変える', reading: '카에루', meaning: '바꾸다',
+    id: 'kaeru_v', rank: 87, verb: '変える', jlpt: 'N4', reading: '카에루', meaning: '바꾸다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6040,7 +6040,7 @@ export const VERBS = [
    * 88위  残る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'nokoru', rank: 88, verb: '残る', reading: '노코루', meaning: '남다',
+    id: 'nokoru', rank: 88, verb: '残る', jlpt: 'N4', reading: '노코루', meaning: '남다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6114,7 +6114,7 @@ export const VERBS = [
    * 89위  選ぶ
    * ══════════════════════════════════════════════════ */
   {
-    id: 'erabu', rank: 89, verb: '選ぶ', reading: '에라부', meaning: '선택하다; 고르다',
+    id: 'erabu', rank: 89, verb: '選ぶ', jlpt: 'N4', reading: '에라부', meaning: '선택하다; 고르다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -6187,7 +6187,7 @@ export const VERBS = [
    * 90위  生まれる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'umareru', rank: 90, verb: '生まれる', reading: '우마레루', meaning: '태어나다',
+    id: 'umareru', rank: 90, verb: '生まれる', jlpt: 'N5', reading: '우마레루', meaning: '태어나다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6260,7 +6260,7 @@ export const VERBS = [
    * 91위  合わせる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'awaseru', rank: 91, verb: '合わせる', reading: '아와세루', meaning: '맞추다; 합치다',
+    id: 'awaseru', rank: 91, verb: '合わせる', jlpt: 'N3', reading: '아와세루', meaning: '맞추다; 합치다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6332,7 +6332,7 @@ export const VERBS = [
    * 92위  進む
    * ══════════════════════════════════════════════════ */
   {
-    id: 'susumu', rank: 92, verb: '進む', reading: '스스무', meaning: '나아가다; 진행하다',
+    id: 'susumu', rank: 92, verb: '進む', jlpt: 'N4', reading: '스스무', meaning: '나아가다; 진행하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6402,7 +6402,7 @@ export const VERBS = [
    * 93위  定める
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sadameru', rank: 93, verb: '定める', reading: '사다메루', meaning: '정하다; 결정하다',
+    id: 'sadameru', rank: 93, verb: '定める', jlpt: 'N1', reading: '사다메루', meaning: '정하다; 결정하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6474,7 +6474,7 @@ export const VERBS = [
    * 94위  加える
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kuwaeru', rank: 94, verb: '加える', reading: '쿠와에루', meaning: '더하다; 추가하다',
+    id: 'kuwaeru', rank: 94, verb: '加える', jlpt: 'N3', reading: '쿠와에루', meaning: '더하다; 추가하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6545,7 +6545,7 @@ export const VERBS = [
    * 95위  始まる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hajimaru', rank: 95, verb: '始まる', reading: '하지마루', meaning: '시작되다',
+    id: 'hajimaru', rank: 95, verb: '始まる', jlpt: 'N5', reading: '하지마루', meaning: '시작되다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6616,7 +6616,7 @@ export const VERBS = [
    * 96위  走る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hashiru', rank: 96, verb: '走る', reading: '하시루', meaning: '달리다',
+    id: 'hashiru', rank: 96, verb: '走る', jlpt: 'N5', reading: '하시루', meaning: '달리다',
     accentType: 2,
     conjugations: {
       formal: [
@@ -6686,7 +6686,7 @@ export const VERBS = [
    * 97위  忘れる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'wasureru', rank: 97, verb: '忘れる', reading: '와스레루', meaning: '잊다',
+    id: 'wasureru', rank: 97, verb: '忘れる', jlpt: 'N5', reading: '와스레루', meaning: '잊다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6759,7 +6759,7 @@ export const VERBS = [
    * 98위  関わる
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kakawaru', rank: 98, verb: '関わる', reading: '카카와루', meaning: '관련되다; 관계하다',
+    id: 'kakawaru', rank: 98, verb: '関わる', jlpt: 'N2', reading: '카카와루', meaning: '관련되다; 관계하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6834,7 +6834,7 @@ export const VERBS = [
    * 99위  働く
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hataraku', rank: 99, verb: '働く', reading: '하타라쿠', meaning: '일하다; 작용하다',
+    id: 'hataraku', rank: 99, verb: '働く', jlpt: 'N5', reading: '하타라쿠', meaning: '일하다; 작용하다',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6908,7 +6908,7 @@ export const VERBS = [
    * 100위  送る
    * ══════════════════════════════════════════════════ */
   {
-    id: 'okuru', rank: 100, verb: '送る', reading: '오쿠루', meaning: '보내다; 전송하다',
+    id: 'okuru', rank: 100, verb: '送る', jlpt: 'N4', reading: '오쿠루', meaning: '보내다; 전송하다',
     accentType: 0,
     conjugations: {
       formal: [

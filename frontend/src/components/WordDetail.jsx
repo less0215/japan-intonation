@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
 import WordBookmarkButton from './WordBookmarkButton'
+import JlptBadge from './JlptBadge'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
 import { ExampleAnalysis } from './BreakdownPanel'
@@ -78,17 +79,17 @@ function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {
   return (
     <div style={{ borderTop: borderStyle?.borderTop, backgroundColor: borderStyle?.bg }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', padding: '9px 12px', gap: 8, alignItems: 'center' }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>{conjLabel}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>{conjLabel}</span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span style={{ fontSize: 12, color: '#888' }}>{row.meaning}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{row.meaning}</span>
           <RubyText text={row.text} />
-          <span style={{ fontSize: 11, color: '#aaa' }}>{row.ruby}</span>
+          <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{row.ruby}</span>
         </div>
         <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexShrink: 0 }}>
           <button onClick={() => setShowGraph(v => !v)} title="억양 그래프" style={{
             width: 26, height: 26, borderRadius: 6,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `1px solid ${graphActive ? PRIMARY : '#e0e0e0'}`,
+            border: `1px solid ${graphActive ? PRIMARY : 'var(--bd)'}`,
             backgroundColor: graphActive ? `${PRIMARY}18` : 'transparent', cursor: 'pointer',
           }}>
             <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
@@ -99,11 +100,11 @@ function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {
           <button onClick={handlePlay} title={audioState === 'playing' ? '정지' : '발음 듣기'} style={{
             width: 26, height: 26, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `1px solid ${audioState === 'playing' ? PRIMARY : '#e0e0e0'}`,
+            border: `1px solid ${audioState === 'playing' ? PRIMARY : 'var(--bd)'}`,
             backgroundColor: audioState === 'playing' ? `${PRIMARY}18` : 'transparent', cursor: 'pointer',
           }}>
             {audioState === 'loading' ? (
-              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: '#e0e0e0' }} />
+              <span className="spinner" style={{ width: 9, height: 9, borderTopColor: PRIMARY, borderColor: 'var(--bd)' }} />
             ) : audioState === 'playing' ? (
               <svg width="9" height="9" viewBox="0 0 24 24" fill={PRIMARY}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             ) : (
@@ -140,13 +141,13 @@ function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* 탭 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', border: '1.5px solid #e8e8e8', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', border: '1.5px solid var(--bd)', borderRadius: 10, overflow: 'hidden' }}>
           {tabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               padding: '7px 18px', fontSize: 13, fontWeight: 700,
               fontFamily: 'inherit', cursor: 'pointer', border: 'none',
               backgroundColor: tab === t.id ? PRIMARY : '#fff',
-              color:           tab === t.id ? '#fff' : '#aaa',
+              color:           tab === t.id ? '#fff' : 'var(--text-3)',
               transition: 'all 0.15s',
             }}>
               {t.label}
@@ -155,23 +156,23 @@ function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
           ))}
         </div>
         {/* 성별 토글 */}
-        <div style={{ display: 'flex', border: '1.5px solid #e8e8e8', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', border: '1.5px solid var(--bd)', borderRadius: 8, overflow: 'hidden' }}>
           {[{ v: 'female', l: '여성' }, { v: 'male', l: '남성' }].map(({ v, l }) => (
             <button key={v} onClick={() => setGender(v)} style={{
               height: 26, padding: '0 10px', fontSize: 11, fontWeight: 600,
               fontFamily: 'inherit', cursor: 'pointer', border: 'none',
               backgroundColor: gender === v ? PRIMARY : '#fff',
-              color:           gender === v ? '#fff' : '#aaa',
+              color:           gender === v ? '#fff' : 'var(--text-3)',
               transition: 'all 0.15s',
             }}>{l}</button>
           ))}
         </div>
       </div>
       {/* 테이블 */}
-      <div style={{ border: '1px solid #f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 28px', padding: '8px 12px', gap: 8, backgroundColor: '#f7f7f7' }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>구분</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>표현</span>
+      <div style={{ border: '1px solid var(--bd)', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 28px', padding: '8px 12px', gap: 8, backgroundColor: 'var(--surface-2)' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)' }}>구분</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)' }}>표현</span>
           <span />
         </div>
         {rows.map((row, i) => (
@@ -182,8 +183,8 @@ function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
             gender={gender}
             accentType={accentType}
             borderStyle={{
-              borderTop: i === 0 ? 'none' : '1px solid #f0f0f0',
-              bg: i % 2 === 1 ? '#fafafa' : 'transparent',
+              borderTop: i === 0 ? 'none' : '1px solid var(--bd)',
+              bg: i % 2 === 1 ? 'var(--surface-2)' : 'transparent',
             }}
           />
         ))}
@@ -216,12 +217,15 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
         padding: '18px 20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{
-            fontSize: 11, fontWeight: 700, color: PRIMARY,
-            background: `${PRIMARY}18`, borderRadius: 8, padding: '2px 8px',
-          }}>
-            {posLabel} #{item.rank}위
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <JlptBadge level={item.jlpt} />
+            <span style={{
+              fontSize: 11, fontWeight: 700, color: PRIMARY,
+              background: `${PRIMARY}18`, borderRadius: 8, padding: '2px 8px',
+            }}>
+              {posLabel} #{item.rank}위
+            </span>
+          </div>
           <WordBookmarkButton wordInfo={{ id: item.id, category: wordType, word: item.verb ?? item.word, reading: item.reading, meaning: item.meaning }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
@@ -232,14 +236,14 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
             {item.reading}
           </span>
         </div>
-        <div style={{ fontSize: 16, color: '#555', marginTop: 4 }}>
+        <div style={{ fontSize: 16, color: 'var(--text-2)', marginTop: 4 }}>
           {item.meaning}
         </div>
       </div>
 
       {/* 인스타 강의 배너 */}
       <a
-        href="https://www.instagram.com/p/DZXBE3HttW_/"
+        href="https://www.instagram.com/p/DZ6U2LgTSXT/"
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => track('instagram_banner_click', { category: wordType, word_id: item.id, word: item.verb ?? item.word })}
@@ -289,15 +293,15 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '48px 20px',
-          background: '#fafafa',
+          background: 'var(--surface-2)',
           borderRadius: 14,
           border: '1.5px dashed #e0e0e0',
         }}>
           <span style={{ fontSize: 32, marginBottom: 12 }}>🚧</span>
-          <p style={{ fontSize: 15, fontWeight: 700, color: '#555', margin: '0 0 6px' }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', margin: '0 0 6px' }}>
             곧 업데이트 됩니다
           </p>
-          <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>
             이 단어의 활용 데이터를 준비 중이에요.
           </p>
         </div>
@@ -317,16 +321,16 @@ export default function WordDetail({ item, wordType, conjLabels, onBack }) {
       {isNoun && item.expressions?.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <p style={styles.sectionTitle}>자주 쓰는 표현</p>
-          <div style={{ border: '1px solid #f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--bd)', borderRadius: 10, overflow: 'hidden' }}>
             {item.expressions.map((exp, i) => (
               <div key={i} style={{
                 display: 'grid', gridTemplateColumns: '1fr 1fr',
                 padding: '10px 14px', gap: 8, alignItems: 'center',
-                borderTop: i === 0 ? 'none' : '1px solid #f0f0f0',
-                backgroundColor: i % 2 === 1 ? '#fafafa' : 'transparent',
+                borderTop: i === 0 ? 'none' : '1px solid var(--bd)',
+                backgroundColor: i % 2 === 1 ? 'var(--surface-2)' : 'transparent',
               }}>
                 <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, fontWeight: 500 }}>{exp.text}</span>
-                <span style={{ fontSize: 12, color: '#888' }}>{exp.meaning}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{exp.meaning}</span>
               </div>
             ))}
           </div>
@@ -356,13 +360,13 @@ const styles = {
     alignSelf: 'flex-start',
     height: 34, padding: '0 14px',
     background: 'transparent',
-    border: '1.5px solid #e8e8e8',
+    border: '1.5px solid var(--bd)',
     borderRadius: 8,
     fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
-    cursor: 'pointer', color: '#555',
+    cursor: 'pointer', color: 'var(--text-2)',
     whiteSpace: 'nowrap',
   },
   sectionTitle: {
-    fontSize: 13, fontWeight: 700, color: '#555', margin: 0,
+    fontSize: 13, fontWeight: 700, color: 'var(--text-2)', margin: 0,
   },
 }

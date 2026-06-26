@@ -19,7 +19,7 @@ export const NOUNS = [
    * 1위  事
    * ══════════════════════════════════════════════════ */
   {
-    id: 'koto', rank: 1, verb: '事', reading: '코토', meaning: '일; 것; 사항',
+    id: 'koto', rank: 1, verb: '事', jlpt: 'N4', reading: '코토', meaning: '일; 것; 사항',
     accentType: 2,
     conjugations: {
       formal: [
@@ -84,7 +84,7 @@ export const NOUNS = [
    * 2위  人
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hito', rank: 2, verb: '人', reading: '히토', meaning: '사람; 인간',
+    id: 'hito', rank: 2, verb: '人', jlpt: 'N5', reading: '히토', meaning: '사람; 인간',
     accentType: 2,
     conjugations: {
       formal: [
@@ -149,7 +149,7 @@ export const NOUNS = [
    * 3위  自分
    * ══════════════════════════════════════════════════ */
   {
-    id: 'jibun', rank: 3, verb: '自分', reading: '지붕', meaning: '자신; 나',
+    id: 'jibun', rank: 3, verb: '自分', jlpt: 'N5', reading: '지붕', meaning: '자신; 나',
     accentType: 0,
     conjugations: {
       formal: [
@@ -214,7 +214,7 @@ export const NOUNS = [
    * 4위  方
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hou', rank: 4, verb: '方', reading: '호ー', meaning: '쪽; 방향; 방법; 편',
+    id: 'hou', rank: 4, verb: '方', jlpt: 'N5', reading: '호ー', meaning: '쪽; 방향; 방법; 편',
     accentType: 1,
     conjugations: {
       formal: [
@@ -279,7 +279,7 @@ export const NOUNS = [
    * 5위  訳
    * ══════════════════════════════════════════════════ */
   {
-    id: 'wake', rank: 5, verb: '訳', reading: '와케', meaning: '이유; 의미; 도리',
+    id: 'wake', rank: 5, verb: '訳', jlpt: 'N4', reading: '와케', meaning: '이유; 의미; 도리',
     accentType: 2,
     conjugations: {
       formal: [
@@ -344,7 +344,7 @@ export const NOUNS = [
    * 6위  問題
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mondai', rank: 6, verb: '問題', reading: '몬다이', meaning: '문제',
+    id: 'mondai', rank: 6, verb: '問題', jlpt: 'N5', reading: '몬다이', meaning: '문제',
     accentType: 0,
     conjugations: {
       formal: [
@@ -409,7 +409,7 @@ export const NOUNS = [
    * 7위  会
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kai', rank: 7, verb: '会', reading: '카이', meaning: '모임; 회; 협회',
+    id: 'kai', rank: 7, verb: '会', jlpt: 'N3', reading: '카이', meaning: '모임; 회; 협회',
     accentType: 1,
     conjugations: {
       formal: [
@@ -474,7 +474,7 @@ export const NOUNS = [
    * 8위  子供
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kodomo', rank: 8, verb: '子供', reading: '코도모', meaning: '어린이; 아이',
+    id: 'kodomo', rank: 8, verb: '子供', jlpt: 'N5', reading: '코도모', meaning: '어린이; 아이',
     accentType: 0,
     conjugations: {
       formal: [
@@ -539,7 +539,7 @@ export const NOUNS = [
    * 9위  気
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ki', rank: 9, verb: '気', reading: '키', meaning: '기분; 기색; 마음',
+    id: 'ki', rank: 9, verb: '気', jlpt: 'N4', reading: '키', meaning: '기분; 기색; 마음',
     accentType: 1,
     conjugations: {
       formal: [
@@ -604,7 +604,7 @@ export const NOUNS = [
    * 10위  目
    * ══════════════════════════════════════════════════ */
   {
-    id: 'me', rank: 10, verb: '目', reading: '메', meaning: '눈; 시각; 눈금',
+    id: 'me', rank: 10, verb: '目', jlpt: 'N5', reading: '메', meaning: '눈; 시각; 눈금',
     accentType: 2,
     conjugations: {
       formal: [
@@ -669,7 +669,7 @@ export const NOUNS = [
    * 11위  市
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shi', rank: 11, verb: '市', reading: '시', meaning: '시 (행정구역)',
+    id: 'shi', rank: 11, verb: '市', jlpt: 'N4', reading: '시', meaning: '시 (행정구역)',
     accentType: 2,
     conjugations: {
       formal: [
@@ -734,7 +734,7 @@ export const NOUNS = [
    * 12위  社会
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shakai', rank: 12, verb: '社会', reading: '샤카이', meaning: '사회',
+    id: 'shakai', rank: 12, verb: '社会', jlpt: 'N4', reading: '샤카이', meaning: '사회',
     accentType: 0,
     conjugations: {
       formal: [
@@ -799,7 +799,7 @@ export const NOUNS = [
    * 13위  事業
    * ══════════════════════════════════════════════════ */
   {
-    id: 'jigyou', rank: 13, verb: '事業', reading: '지교ー', meaning: '사업',
+    id: 'jigyou', rank: 13, verb: '事業', jlpt: 'N1', reading: '지교ー', meaning: '사업',
     accentType: 0,
     conjugations: {
       formal: [
@@ -864,7 +864,7 @@ export const NOUNS = [
    * 14위  世界
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sekai', rank: 14, verb: '世界', reading: '세카이', meaning: '세계; 세상',
+    id: 'sekai', rank: 14, verb: '世界', jlpt: 'N4', reading: '세카이', meaning: '세계; 세상',
     accentType: 0,
     conjugations: {
       formal: [
@@ -929,7 +929,7 @@ export const NOUNS = [
    * 15위  人間
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ningen', rank: 15, verb: '人間', reading: '닝겐', meaning: '인간; 사람',
+    id: 'ningen', rank: 15, verb: '人間', jlpt: 'N3', reading: '닝겐', meaning: '인간; 사람',
     accentType: 0,
     conjugations: {
       formal: [
@@ -994,7 +994,7 @@ export const NOUNS = [
    * 16위  次
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tsugi', rank: 16, verb: '次', reading: '츠기', meaning: '다음',
+    id: 'tsugi', rank: 16, verb: '次', jlpt: 'N5', reading: '츠기', meaning: '다음',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1059,7 +1059,7 @@ export const NOUNS = [
    * 17위  法
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hou_law', rank: 17, verb: '法', reading: '호ー', meaning: '법; 법률',
+    id: 'hou_law', rank: 17, verb: '法', jlpt: 'N3', reading: '호ー', meaning: '법; 법률',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1124,7 +1124,7 @@ export const NOUNS = [
    * 18위  会社
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kaisha', rank: 18, verb: '会社', reading: '카이샤', meaning: '회사',
+    id: 'kaisha', rank: 18, verb: '会社', jlpt: 'N5', reading: '카이샤', meaning: '회사',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1189,7 +1189,7 @@ export const NOUNS = [
    * 19위  男
    * ══════════════════════════════════════════════════ */
   {
-    id: 'otoko', rank: 19, verb: '男', reading: '오토코', meaning: '남자; 남성',
+    id: 'otoko', rank: 19, verb: '男', jlpt: 'N5', reading: '오토코', meaning: '남자; 남성',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1254,7 +1254,7 @@ export const NOUNS = [
    * 20위  地域
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chiiki', rank: 20, verb: '地域', reading: '치이키', meaning: '지역',
+    id: 'chiiki', rank: 20, verb: '地域', jlpt: 'N3', reading: '치이키', meaning: '지역',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1321,7 +1321,7 @@ export const NOUNS = [
    * 21위  顔
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kao', rank: 21, verb: '顔', reading: '카오', meaning: '얼굴',
+    id: 'kao', rank: 21, verb: '顔', jlpt: 'N5', reading: '카오', meaning: '얼굴',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1386,7 +1386,7 @@ export const NOUNS = [
    * 22위  情報
    * ══════════════════════════════════════════════════ */
   {
-    id: 'jouhou', rank: 22, verb: '情報', reading: '죠ー호ー', meaning: '정보',
+    id: 'jouhou', rank: 22, verb: '情報', jlpt: 'N3', reading: '죠ー호ー', meaning: '정보',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1451,7 +1451,7 @@ export const NOUNS = [
    * 23위  図
    * ══════════════════════════════════════════════════ */
   {
-    id: 'zu', rank: 23, verb: '図', reading: '즈', meaning: '그림; 도표; 도면',
+    id: 'zu', rank: 23, verb: '図', jlpt: 'N3', reading: '즈', meaning: '그림; 도표; 도면',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1516,7 +1516,7 @@ export const NOUNS = [
    * 24위  言葉
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kotoba', rank: 24, verb: '言葉', reading: '코토바', meaning: '말; 언어; 단어',
+    id: 'kotoba', rank: 24, verb: '言葉', jlpt: 'N5', reading: '코토바', meaning: '말; 언어; 단어',
     accentType: 3,
     conjugations: {
       formal: [
@@ -1581,7 +1581,7 @@ export const NOUNS = [
    * 25위  国
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kuni', rank: 25, verb: '国', reading: '쿠니', meaning: '나라; 국가',
+    id: 'kuni', rank: 25, verb: '国', jlpt: 'N5', reading: '쿠니', meaning: '나라; 국가',
     accentType: 2,
     conjugations: {
       formal: [
@@ -1646,7 +1646,7 @@ export const NOUNS = [
    * 26위  県
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ken', rank: 26, verb: '県', reading: '켄', meaning: '현 (행정 단위)',
+    id: 'ken', rank: 26, verb: '県', jlpt: 'N3', reading: '켄', meaning: '현 (행정 단위)',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1711,7 +1711,7 @@ export const NOUNS = [
    * 27위  学校
    * ══════════════════════════════════════════════════ */
   {
-    id: 'gakkou', rank: 27, verb: '学校', reading: '각코ー', meaning: '학교',
+    id: 'gakkou', rank: 27, verb: '学校', jlpt: 'N5', reading: '각코ー', meaning: '학교',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1776,7 +1776,7 @@ export const NOUNS = [
    * 28위  企業
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kigyou', rank: 28, verb: '企業', reading: '키교ー', meaning: '기업',
+    id: 'kigyou', rank: 28, verb: '企業', jlpt: 'N3', reading: '키교ー', meaning: '기업',
     accentType: 1,
     conjugations: {
       formal: [
@@ -1841,7 +1841,7 @@ export const NOUNS = [
    * 29위  委員
    * ══════════════════════════════════════════════════ */
   {
-    id: 'iin', rank: 29, verb: '委員', reading: '이잉', meaning: '위원',
+    id: 'iin', rank: 29, verb: '委員', jlpt: 'N3', reading: '이잉', meaning: '위원',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1906,7 +1906,7 @@ export const NOUNS = [
    * 30위  時代
    * ══════════════════════════════════════════════════ */
   {
-    id: 'jidai', rank: 30, verb: '時代', reading: '지다이', meaning: '시대',
+    id: 'jidai', rank: 30, verb: '時代', jlpt: 'N4', reading: '지다이', meaning: '시대',
     accentType: 0,
     conjugations: {
       formal: [
@@ -1973,7 +1973,7 @@ export const NOUNS = [
    * 31위  本当
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hontou', rank: 31, verb: '本当', reading: '혼토ー', meaning: '정말; 진짜',
+    id: 'hontou', rank: 31, verb: '本当', jlpt: 'N5', reading: '혼토ー', meaning: '정말; 진짜',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2032,7 +2032,7 @@ export const NOUNS = [
    * 32위  者
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mono', rank: 32, verb: '者', reading: '모노', meaning: '사람; 자 (자격)',
+    id: 'mono', rank: 32, verb: '者', jlpt: 'N3', reading: '모노', meaning: '사람; 자 (자격)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2091,7 +2091,7 @@ export const NOUNS = [
    * 33위  声
    * ══════════════════════════════════════════════════ */
   {
-    id: 'koe', rank: 33, verb: '声', reading: '코에', meaning: '목소리; 소리',
+    id: 'koe', rank: 33, verb: '声', jlpt: 'N5', reading: '코에', meaning: '목소리; 소리',
     accentType: 1,
     conjugations: {
       formal: [
@@ -2150,7 +2150,7 @@ export const NOUNS = [
    * 34위  家
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ie', rank: 34, verb: '家', reading: '이에', meaning: '집; 가정',
+    id: 'ie', rank: 34, verb: '家', jlpt: 'N5', reading: '이에', meaning: '집; 가정',
     accentType: 2,
     conjugations: {
       formal: [
@@ -2209,7 +2209,7 @@ export const NOUNS = [
    * 35위  方法
    * ══════════════════════════════════════════════════ */
   {
-    id: 'houhou', rank: 35, verb: '方法', reading: '호ー호ー', meaning: '방법',
+    id: 'houhou', rank: 35, verb: '方法', jlpt: 'N3', reading: '호ー호ー', meaning: '방법',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2268,7 +2268,7 @@ export const NOUNS = [
    * 36위  経済
    * ══════════════════════════════════════════════════ */
   {
-    id: 'keizai', rank: 36, verb: '経済', reading: '케이자이', meaning: '경제',
+    id: 'keizai', rank: 36, verb: '経済', jlpt: 'N4', reading: '케이자이', meaning: '경제',
     accentType: 1,
     conjugations: {
       formal: [
@@ -2327,7 +2327,7 @@ export const NOUNS = [
    * 37위  女性
    * ══════════════════════════════════════════════════ */
   {
-    id: 'josei', rank: 37, verb: '女性', reading: '죠세이', meaning: '여성',
+    id: 'josei', rank: 37, verb: '女性', jlpt: 'N4', reading: '죠세이', meaning: '여성',
     accentType: 1,
     conjugations: {
       formal: [
@@ -2386,7 +2386,7 @@ export const NOUNS = [
    * 38위  共
    * ══════════════════════════════════════════════════ */
   {
-    id: 'tomo', rank: 38, verb: '共', reading: '토모', meaning: '함께; 모두',
+    id: 'tomo', rank: 38, verb: '共', jlpt: 'N3', reading: '토모', meaning: '함께; 모두',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2445,7 +2445,7 @@ export const NOUNS = [
    * 39위  年度
    * ══════════════════════════════════════════════════ */
   {
-    id: 'nendo', rank: 39, verb: '年度', reading: '넨도', meaning: '연도 (회계·학사)',
+    id: 'nendo', rank: 39, verb: '年度', jlpt: 'N2', reading: '넨도', meaning: '연도 (회계·학사)',
     accentType: 1,
     conjugations: {
       formal: [
@@ -2504,7 +2504,7 @@ export const NOUNS = [
    * 40위  環境
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kankyou', rank: 40, verb: '環境', reading: '캉쿄ー', meaning: '환경',
+    id: 'kankyou', rank: 40, verb: '環境', jlpt: 'N3', reading: '캉쿄ー', meaning: '환경',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2564,7 +2564,7 @@ export const NOUNS = [
    * 41위  子
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ko', rank: 41, verb: '子', reading: '코', meaning: '아이; 자식',
+    id: 'ko', rank: 41, verb: '子', jlpt: 'N4', reading: '코', meaning: '아이; 자식',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2635,7 +2635,7 @@ export const NOUNS = [
    * 42위  相手
    * ══════════════════════════════════════════════════ */
   {
-    id: 'aite', rank: 42, verb: '相手', reading: '아이테', meaning: '상대; 상대방',
+    id: 'aite', rank: 42, verb: '相手', jlpt: 'N3', reading: '아이테', meaning: '상대; 상대방',
     accentType: 3,
     conjugations: {
       formal: [
@@ -2709,7 +2709,7 @@ export const NOUNS = [
    * 43위  状況
    * ══════════════════════════════════════════════════ */
   {
-    id: 'joukyou', rank: 43, verb: '状況', reading: '죠ー쿄ー', meaning: '상황',
+    id: 'joukyou', rank: 43, verb: '状況', jlpt: 'N3', reading: '죠ー쿄ー', meaning: '상황',
     accentType: 0,
     conjugations: {
       formal: [
@@ -2780,7 +2780,7 @@ export const NOUNS = [
    * 44위  女
    * ══════════════════════════════════════════════════ */
   {
-    id: 'onna', rank: 44, verb: '女', reading: '온나', meaning: '여자; 여성',
+    id: 'onna', rank: 44, verb: '女', jlpt: 'N5', reading: '온나', meaning: '여자; 여성',
     accentType: 3,
     conjugations: {
       formal: [
@@ -2852,7 +2852,7 @@ export const NOUNS = [
    * 45위  地
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chi', rank: 45, verb: '地', reading: '치', meaning: '땅; 지역; 배경',
+    id: 'chi', rank: 45, verb: '地', jlpt: 'N3', reading: '치', meaning: '땅; 지역; 배경',
     accentType: 1,
     conjugations: {
       formal: [
@@ -2923,7 +2923,7 @@ export const NOUNS = [
    * 46위  技術
    * ══════════════════════════════════════════════════ */
   {
-    id: 'gijutsu', rank: 46, verb: '技術', reading: '기쥬츠', meaning: '기술',
+    id: 'gijutsu', rank: 46, verb: '技術', jlpt: 'N4', reading: '기쥬츠', meaning: '기술',
     accentType: 1,
     conjugations: {
       formal: [
@@ -2997,7 +2997,7 @@ export const NOUNS = [
    * 47위  大学
    * ══════════════════════════════════════════════════ */
   {
-    id: 'daigaku', rank: 47, verb: '大学', reading: '다이가쿠', meaning: '대학; 대학교',
+    id: 'daigaku', rank: 47, verb: '大学', jlpt: 'N5', reading: '다이가쿠', meaning: '대학; 대학교',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3068,7 +3068,7 @@ export const NOUNS = [
    * 48위  先生
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sensei', rank: 48, verb: '先生', reading: '센세이', meaning: '선생님',
+    id: 'sensei', rank: 48, verb: '先生', jlpt: 'N5', reading: '센세이', meaning: '선생님',
     accentType: 3,
     conjugations: {
       formal: [
@@ -3139,7 +3139,7 @@ export const NOUNS = [
    * 49위  内容
    * ══════════════════════════════════════════════════ */
   {
-    id: 'naiyou', rank: 49, verb: '内容', reading: '나이요ー', meaning: '내용',
+    id: 'naiyou', rank: 49, verb: '内容', jlpt: 'N3', reading: '나이요ー', meaning: '내용',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3209,7 +3209,7 @@ export const NOUNS = [
    * 50위  写真
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shashin', rank: 50, verb: '写真', reading: '샤싱', meaning: '사진',
+    id: 'shashin', rank: 50, verb: '写真', jlpt: 'N5', reading: '샤싱', meaning: '사진',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3282,7 +3282,7 @@ export const NOUNS = [
    * 51위  保険
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hoken', rank: 51, verb: '保険', reading: '호켄', meaning: '보험',
+    id: 'hoken', rank: 51, verb: '保険', jlpt: 'N1', reading: '호켄', meaning: '보험',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3355,7 +3355,7 @@ export const NOUNS = [
    * 52위  場所
    * ══════════════════════════════════════════════════ */
   {
-    id: 'basho', rank: 52, verb: '場所', reading: '바쇼', meaning: '장소',
+    id: 'basho', rank: 52, verb: '場所', jlpt: 'N4', reading: '바쇼', meaning: '장소',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3426,7 +3426,7 @@ export const NOUNS = [
    * 53위  筈
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hazu', rank: 53, verb: '筈', reading: '하즈', meaning: '~할 것임 (형식명사)',
+    id: 'hazu', rank: 53, verb: '筈', jlpt: 'N4', reading: '하즈', meaning: '~할 것임 (형식명사)',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3497,7 +3497,7 @@ export const NOUNS = [
    * 54위  状態
    * ══════════════════════════════════════════════════ */
   {
-    id: 'joutai', rank: 54, verb: '状態', reading: '죠ー타이', meaning: '상태',
+    id: 'joutai', rank: 54, verb: '状態', jlpt: 'N3', reading: '죠ー타이', meaning: '상태',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3568,7 +3568,7 @@ export const NOUNS = [
    * 55위  一般
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ippan', rank: 55, verb: '一般', reading: '잇판', meaning: '일반',
+    id: 'ippan', rank: 55, verb: '一般', jlpt: 'N3', reading: '잇판', meaning: '일반',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3641,7 +3641,7 @@ export const NOUNS = [
    * 56위  部分
    * ══════════════════════════════════════════════════ */
   {
-    id: 'bubun', rank: 56, verb: '部分', reading: '부붕', meaning: '부분',
+    id: 'bubun', rank: 56, verb: '部分', jlpt: 'N3', reading: '부붕', meaning: '부분',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3713,7 +3713,7 @@ export const NOUNS = [
    * 57위  政府
    * ══════════════════════════════════════════════════ */
   {
-    id: 'seifu', rank: 57, verb: '政府', reading: '세이후', meaning: '정부',
+    id: 'seifu', rank: 57, verb: '政府', jlpt: 'N3', reading: '세이후', meaning: '정부',
     accentType: 1,
     conjugations: {
       formal: [
@@ -3786,7 +3786,7 @@ export const NOUNS = [
    * 58위  制度
    * ══════════════════════════════════════════════════ */
   {
-    id: 'seido', rank: 58, verb: '制度', reading: '세이도', meaning: '제도',
+    id: 'seido', rank: 58, verb: '制度', jlpt: 'N3', reading: '세이도', meaning: '제도',
     accentType: 1,
     conjugations: {
       formal: [
@@ -3858,7 +3858,7 @@ export const NOUNS = [
    * 59위  対象
    * ══════════════════════════════════════════════════ */
   {
-    id: 'taishou', rank: 59, verb: '対象', reading: '타이쇼ー', meaning: '대상',
+    id: 'taishou', rank: 59, verb: '対象', jlpt: 'N3', reading: '타이쇼ー', meaning: '대상',
     accentType: 0,
     conjugations: {
       formal: [
@@ -3931,7 +3931,7 @@ export const NOUNS = [
    * 60위  気持ち
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kimochi', rank: 60, verb: '気持ち', reading: '키모치', meaning: '기분; 마음',
+    id: 'kimochi', rank: 60, verb: '気持ち', jlpt: 'N4', reading: '키모치', meaning: '기분; 마음',
     accentType: 2,
     conjugations: {
       formal: [
@@ -4001,7 +4001,7 @@ export const NOUNS = [
    * 61위  基本
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kihon', rank: 61, verb: '基本', reading: '키홍', meaning: '기본',
+    id: 'kihon', rank: 61, verb: '基本', jlpt: 'N3', reading: '키홍', meaning: '기본',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4077,7 +4077,7 @@ export const NOUNS = [
    * 62위  体
    * ══════════════════════════════════════════════════ */
   {
-    id: 'karada', rank: 62, verb: '体', reading: '카라다', meaning: '몸; 신체',
+    id: 'karada', rank: 62, verb: '体', jlpt: 'N5', reading: '카라다', meaning: '몸; 신체',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4150,7 +4150,7 @@ export const NOUNS = [
    * 63위  頭
    * ══════════════════════════════════════════════════ */
   {
-    id: 'atama', rank: 63, verb: '頭', reading: '아타마', meaning: '머리',
+    id: 'atama', rank: 63, verb: '頭', jlpt: 'N5', reading: '아타마', meaning: '머리',
     accentType: 2,
     conjugations: {
       formal: [
@@ -4223,7 +4223,7 @@ export const NOUNS = [
    * 64위  項
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kou', rank: 64, verb: '項', reading: '코ー', meaning: '항목; 조항',
+    id: 'kou', rank: 64, verb: '項', jlpt: 'N4', reading: '코ー', meaning: '항목; 조항',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4293,7 +4293,7 @@ export const NOUNS = [
    * 65위  水
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mizu', rank: 65, verb: '水', reading: '미즈', meaning: '물',
+    id: 'mizu', rank: 65, verb: '水', jlpt: 'N5', reading: '미즈', meaning: '물',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4363,7 +4363,7 @@ export const NOUNS = [
    * 66위  表
    * ══════════════════════════════════════════════════ */
   {
-    id: 'hyou', rank: 66, verb: '表', reading: '효ー', meaning: '표; 테이블',
+    id: 'hyou', rank: 66, verb: '表', jlpt: 'N4', reading: '효ー', meaning: '표; 테이블',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4434,7 +4434,7 @@ export const NOUNS = [
    * 67위  地方
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chihou', rank: 67, verb: '地方', reading: '치호ー', meaning: '지방; 지역',
+    id: 'chihou', rank: 67, verb: '地方', jlpt: 'N3', reading: '치호ー', meaning: '지방; 지역',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4509,7 +4509,7 @@ export const NOUNS = [
    * 68위  車
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kuruma', rank: 68, verb: '車', reading: '쿠루마', meaning: '자동차; 차',
+    id: 'kuruma', rank: 68, verb: '車', jlpt: 'N5', reading: '쿠루마', meaning: '자동차; 차',
     accentType: 2,
     conjugations: {
       formal: [
@@ -4582,7 +4582,7 @@ export const NOUNS = [
    * 69위  口
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kuchi', rank: 69, verb: '口', reading: '쿠치', meaning: '입; 입구',
+    id: 'kuchi', rank: 69, verb: '口', jlpt: 'N5', reading: '쿠치', meaning: '입; 입구',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4653,7 +4653,7 @@ export const NOUNS = [
    * 70위  形
    * ══════════════════════════════════════════════════ */
   {
-    id: 'katachi', rank: 70, verb: '形', reading: '카타치', meaning: '형태; 모양',
+    id: 'katachi', rank: 70, verb: '形', jlpt: 'N4', reading: '카타치', meaning: '형태; 모양',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4725,7 +4725,7 @@ export const NOUNS = [
    * 71위  事件
    * ══════════════════════════════════════════════════ */
   {
-    id: 'jiken', rank: 71, verb: '事件', reading: '지켄', meaning: '사건',
+    id: 'jiken', rank: 71, verb: '事件', jlpt: 'N3', reading: '지켄', meaning: '사건',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4797,7 +4797,7 @@ export const NOUNS = [
    * 72위  語
    * ══════════════════════════════════════════════════ */
   {
-    id: 'go', rank: 72, verb: '語', reading: '고', meaning: '단어; 말; 언어',
+    id: 'go', rank: 72, verb: '語', jlpt: 'N5', reading: '고', meaning: '단어; 말; 언어',
     accentType: 1,
     conjugations: {
       formal: [
@@ -4870,7 +4870,7 @@ export const NOUNS = [
    * 73위  国民
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kokumin', rank: 73, verb: '国民', reading: '코쿠민', meaning: '국민',
+    id: 'kokumin', rank: 73, verb: '国民', jlpt: 'N3', reading: '코쿠민', meaning: '국민',
     accentType: 0,
     conjugations: {
       formal: [
@@ -4948,7 +4948,7 @@ export const NOUNS = [
    * 74위  程度
    * ══════════════════════════════════════════════════ */
   {
-    id: 'teido', rank: 74, verb: '程度', reading: '테이도', meaning: '정도',
+    id: 'teido', rank: 74, verb: '程度', jlpt: 'N3', reading: '테이도', meaning: '정도',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5019,7 +5019,7 @@ export const NOUNS = [
    * 75위  中心
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chuushin', rank: 75, verb: '中心', reading: '추-싱', meaning: '중심',
+    id: 'chuushin', rank: 75, verb: '中心', jlpt: 'N3', reading: '추-싱', meaning: '중심',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5095,7 +5095,7 @@ export const NOUNS = [
    * 76위  機関
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kikan', rank: 76, verb: '機関', reading: '키캉', meaning: '기관',
+    id: 'kikan', rank: 76, verb: '機関', jlpt: 'N3', reading: '키캉', meaning: '기관',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5169,7 +5169,7 @@ export const NOUNS = [
    * 77위  センター
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sentaa', rank: 77, verb: 'センター', reading: '센타-', meaning: '센터',
+    id: 'sentaa', rank: 77, verb: 'センター', jlpt: 'N3', reading: '센타-', meaning: '센터',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5238,7 +5238,7 @@ export const NOUNS = [
    * 78위  文化
    * ══════════════════════════════════════════════════ */
   {
-    id: 'bunka', rank: 78, verb: '文化', reading: '붕카', meaning: '문화',
+    id: 'bunka', rank: 78, verb: '文化', jlpt: 'N4', reading: '붕카', meaning: '문화',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5312,7 +5312,7 @@ export const NOUNS = [
    * 79위  国際
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kokusai', rank: 79, verb: '国際', reading: '코쿠사이', meaning: '국제',
+    id: 'kokusai', rank: 79, verb: '国際', jlpt: 'N4', reading: '코쿠사이', meaning: '국제',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5386,7 +5386,7 @@ export const NOUNS = [
    * 80위  額
    * ══════════════════════════════════════════════════ */
   {
-    id: 'gaku', rank: 80, verb: '額', reading: '가쿠', meaning: '금액; 액수',
+    id: 'gaku', rank: 80, verb: '額', jlpt: 'N3', reading: '가쿠', meaning: '금액; 액수',
     accentType: 2,
     conjugations: {
       formal: [
@@ -5459,7 +5459,7 @@ export const NOUNS = [
    * 81위  目的
    * ══════════════════════════════════════════════════ */
   {
-    id: 'mokuteki', rank: 81, verb: '目的', reading: '모쿠테키', meaning: '목적',
+    id: 'mokuteki', rank: 81, verb: '目的', jlpt: 'N3', reading: '모쿠테키', meaning: '목적',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5534,7 +5534,7 @@ export const NOUNS = [
    * 82위  姿
    * ══════════════════════════════════════════════════ */
   {
-    id: 'sugata', rank: 82, verb: '姿', reading: '스가타', meaning: '모습; 자태',
+    id: 'sugata', rank: 82, verb: '姿', jlpt: 'N3', reading: '스가타', meaning: '모습; 자태',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5607,7 +5607,7 @@ export const NOUNS = [
    * 83위  笑い
    * ══════════════════════════════════════════════════ */
   {
-    id: 'warai', rank: 83, verb: '笑い', reading: '와라이', meaning: '웃음',
+    id: 'warai', rank: 83, verb: '笑い', jlpt: 'N3', reading: '와라이', meaning: '웃음',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5680,7 +5680,7 @@ export const NOUNS = [
    * 84위  部屋
    * ══════════════════════════════════════════════════ */
   {
-    id: 'heya', rank: 84, verb: '部屋', reading: '헤야', meaning: '방',
+    id: 'heya', rank: 84, verb: '部屋', jlpt: 'N5', reading: '헤야', meaning: '방',
     accentType: 2,
     conjugations: {
       formal: [
@@ -5754,7 +5754,7 @@ export const NOUNS = [
    * 85위  感じ
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kanji', rank: 85, verb: '感じ', reading: '칸지', meaning: '느낌; 인상',
+    id: 'kanji', rank: 85, verb: '感じ', jlpt: 'N3', reading: '칸지', meaning: '느낌; 인상',
     accentType: 1,
     conjugations: {
       formal: [
@@ -5829,7 +5829,7 @@ export const NOUNS = [
    * 86위  力
    * ══════════════════════════════════════════════════ */
   {
-    id: 'chikara', rank: 86, verb: '力', reading: '치카라', meaning: '힘; 능력',
+    id: 'chikara', rank: 86, verb: '力', jlpt: 'N4', reading: '치카라', meaning: '힘; 능력',
     accentType: 3,
     conjugations: {
       formal: [
@@ -5901,7 +5901,7 @@ export const NOUNS = [
    * 87위  実
    * ══════════════════════════════════════════════════ */
   {
-    id: 'jitsu', rank: 87, verb: '実', reading: '지츠', meaning: '사실; 실제',
+    id: 'jitsu', rank: 87, verb: '実', jlpt: 'N3', reading: '지츠', meaning: '사실; 실제',
     accentType: 0,
     conjugations: {
       formal: [
@@ -5974,7 +5974,7 @@ export const NOUNS = [
    * 88위  主義
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shugi', rank: 88, verb: '主義', reading: '슈기', meaning: '주의; 이즘',
+    id: 'shugi', rank: 88, verb: '主義', jlpt: 'N3', reading: '슈기', meaning: '주의; 이즘',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6049,7 +6049,7 @@ export const NOUNS = [
    * 89위  金
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kane', rank: 89, verb: '金', reading: '카네', meaning: '돈',
+    id: 'kane', rank: 89, verb: '金', jlpt: 'N3', reading: '카네', meaning: '돈',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6122,7 +6122,7 @@ export const NOUNS = [
    * 90위  率
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ritsu', rank: 90, verb: '率', reading: '리츠', meaning: '비율; 율',
+    id: 'ritsu', rank: 90, verb: '率', jlpt: 'N3', reading: '리츠', meaning: '비율; 율',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6193,7 +6193,7 @@ export const NOUNS = [
    * 91위  理由
    * ══════════════════════════════════════════════════ */
   {
-    id: 'riyuu', rank: 91, verb: '理由', reading: '리유-', meaning: '이유',
+    id: 'riyuu', rank: 91, verb: '理由', jlpt: 'N4', reading: '리유-', meaning: '이유',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6264,7 +6264,7 @@ export const NOUNS = [
    * 92위  全体
    * ══════════════════════════════════════════════════ */
   {
-    id: 'zentai', rank: 92, verb: '全体', reading: '젠타이', meaning: '전체',
+    id: 'zentai', rank: 92, verb: '全体', jlpt: 'N3', reading: '젠타이', meaning: '전체',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6336,7 +6336,7 @@ export const NOUNS = [
    * 93위  下
    * ══════════════════════════════════════════════════ */
   {
-    id: 'shita', rank: 93, verb: '下', reading: '시타', meaning: '아래; 하',
+    id: 'shita', rank: 93, verb: '下', jlpt: 'N5', reading: '시타', meaning: '아래; 하',
     accentType: 2,
     conjugations: {
       formal: [
@@ -6410,7 +6410,7 @@ export const NOUNS = [
    * 94위  最後
    * ══════════════════════════════════════════════════ */
   {
-    id: 'saigo', rank: 94, verb: '最後', reading: '사이고', meaning: '마지막; 최후',
+    id: 'saigo', rank: 94, verb: '最後', jlpt: 'N4', reading: '사이고', meaning: '마지막; 최후',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6554,7 +6554,7 @@ export const NOUNS = [
    * 96위  家族
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kazoku', rank: 96, verb: '家族', reading: '카조쿠', meaning: '가족',
+    id: 'kazoku', rank: 96, verb: '家族', jlpt: 'N5', reading: '카조쿠', meaning: '가족',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6630,7 +6630,7 @@ export const NOUNS = [
    * 97위  効果
    * ══════════════════════════════════════════════════ */
   {
-    id: 'kouka', rank: 97, verb: '効果', reading: '코-카', meaning: '효과',
+    id: 'kouka', rank: 97, verb: '効果', jlpt: 'N3', reading: '코-카', meaning: '효과',
     accentType: 0,
     conjugations: {
       formal: [
@@ -6702,7 +6702,7 @@ export const NOUNS = [
    * 98위  量
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ryou', rank: 98, verb: '量', reading: '료-', meaning: '양; 분량',
+    id: 'ryou', rank: 98, verb: '量', jlpt: 'N3', reading: '료-', meaning: '양; 분량',
     accentType: 1,
     conjugations: {
       formal: [
@@ -6853,7 +6853,7 @@ export const NOUNS = [
    * 100위  以下
    * ══════════════════════════════════════════════════ */
   {
-    id: 'ika', rank: 100, verb: '以下', reading: '이카', meaning: '이하',
+    id: 'ika', rank: 100, verb: '以下', jlpt: 'N4', reading: '이카', meaning: '이하',
     accentType: 1,
     conjugations: {
       formal: [

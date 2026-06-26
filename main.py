@@ -2021,6 +2021,7 @@ def admin_delete_user(req: DeleteUserRequest):
             raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
         name = u.name
         db.query(Subscription).filter(Subscription.user_id == req.user_id).delete()
+        db.query(ReferralRedemption).filter(ReferralRedemption.user_id == req.user_id).delete()
         db.query(SavedResult).filter(SavedResult.user_id == req.user_id).delete()
         db.delete(u)
         db.commit()

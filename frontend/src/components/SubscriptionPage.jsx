@@ -141,14 +141,13 @@ export default function SubscriptionPage() {
         <span style={{ position: 'absolute', top: -11, left: 18, background: PRIMARY, color: '#fff', fontSize: 11.5, fontWeight: 600, padding: '3px 12px', borderRadius: 8 }}>추천</span>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 2 }}>
           <span style={{ fontSize: 16, fontWeight: 700, color: PRIMARY }}>플러스</span>
-          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>
-            {p.plus.was && <span style={{ textDecoration: 'line-through', color: 'var(--text-3)', marginRight: 5 }}>₩{p.plus.was.toLocaleString()}</span>}
-            {p.plus.unit} ₩{p.plus.total.toLocaleString()}
-          </span>
+          {p.plus.was && <span style={{ fontSize: 13, textDecoration: 'line-through', color: 'var(--text-3)' }}>{p.plus.unit} ₩{p.plus.was.toLocaleString()}</span>}
         </div>
-        <p style={{ margin: '8px 0 0', fontSize: 30, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
-          하루 {p.plus.per}원
-          <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-3)', marginLeft: 7, letterSpacing: 0, whiteSpace: 'nowrap' }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원</span>
+        {/* 청구금액(실제 결제액)을 가장 크고 또렷하게 — Apple 3.1.2(c). 하루 환산가는 작은 부수 표기. */}
+        <p style={{ margin: '8px 0 0', display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>₩{p.plus.total.toLocaleString()}</span>
+          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)' }}>/ {p.plus.unit}</span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-3)' }}>하루 {p.plus.per}원꼴</span>
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', margin: '8px 0 0' }}>
           {p.plus.was && <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--warning)', background: 'var(--warning-tint)', borderRadius: 6, padding: '2px 8px' }}>출시 할인 {Math.round((1 - p.plus.total / p.plus.was) * 100)}%</span>}
@@ -168,11 +167,12 @@ export default function SubscriptionPage() {
       <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 18, padding: '18px', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-strong)' }}>프로</span>
-          <span style={{ fontSize: 12.5, color: 'var(--text-2)' }}>{p.pro.unit} ₩{p.pro.total.toLocaleString()}</span>
         </div>
-        <p style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>
-          하루 {p.pro.per}원
-          <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-3)', marginLeft: 7, letterSpacing: 0, whiteSpace: 'nowrap' }}>버스 한 번 타는데 {BUS_FARE.toLocaleString()}원</span>
+        {/* 청구금액 최우선 — Apple 3.1.2(c). 하루 환산가는 부수 표기. */}
+        <p style={{ margin: '8px 0 0', display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-strong)' }}>₩{p.pro.total.toLocaleString()}</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>/ {p.pro.unit}</span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-3)' }}>하루 {p.pro.per}원꼴</span>
         </p>
         {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>

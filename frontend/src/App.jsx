@@ -882,6 +882,14 @@ export default function App() {
     } catch { /* 무시 */ }
   }
 
+  // ⭐ 앱 실행 직후 ATT 사전안내를 띄운다(번역 성공 게이트와 무관) — 리뷰/iPad에서 권한 프롬프트가
+  // 확실히 보이도록. 신규 설치+notDetermined일 때만 1회. (이전: 번역 1회 성공해야만 떠서 리뷰어가 못 봄)
+  useEffect(() => {
+    if (!isApp) return
+    const t = setTimeout(() => { maybeShowAttPrompt() }, 1500)
+    return () => clearTimeout(t)
+  }, [])
+
   async function doSave(currentUser, text, data) {
     try {
       await saveResult(currentUser ?? null, text ?? inputText, data ?? result)

@@ -5,7 +5,7 @@ const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
 
 const card = { border: '1px solid var(--bd)', borderRadius: 16, padding: 14, marginBottom: 8, background: 'var(--surface)' }
-const title = { margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: 'var(--text-strong)' }
+const title = { margin: '0 0 10px', fontSize: 14, fontWeight: 700, color: 'var(--text-strong)' }
 
 export default function ReferralCodeCard({ user, fastUnlimited, onLogin, onApplied }) {
   const [code, setCode] = useState('')
@@ -50,9 +50,6 @@ export default function ReferralCodeCard({ user, fastUnlimited, onLogin, onAppli
   return (
     <div style={card}>
       <p style={title}>🎁 추천인 코드</p>
-      <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
-        인플루언서에게 받은 코드를 입력하면 <b style={{ color: PRIMARY }}>플러스 1개월</b>이 무료로 적용돼요.
-      </p>
       <div style={{ display: 'flex', gap: 8 }}>
         <input
           value={code}

@@ -41,6 +41,58 @@ const KANA_HANGUL = {
 }
 const moraToHangul = (m) => KANA_HANGUL[m] ?? m
 
+// 모라 모음(a/i/u/e/o) — 장음 압축 판정용
+const MORA_VOWEL = {}
+for (const k of 'あかさたなはまやらわがざだばぱ') MORA_VOWEL[k] = 'a'
+for (const k of 'いきしちにひみりぎじぢびぴゐ') MORA_VOWEL[k] = 'i'
+for (const k of 'うくすつぬふむゆるぐずづぶぷ') MORA_VOWEL[k] = 'u'
+for (const k of 'えけせてねへめれげぜでべぺゑ') MORA_VOWEL[k] = 'e'
+for (const k of 'おこそとのほもよろをごぞどぼぽ') MORA_VOWEL[k] = 'o'
+const vowelOf = (m) => {
+  if (!m) return null
+  const last = m[m.length - 1]
+  if (last === 'ゃ') return 'a'
+  if (last === 'ゅ') return 'u'
+  if (last === 'ょ') return 'o'
+  return MORA_VOWEL[m] ?? null
+}
+
+// furigana_html의 '한자 독음(괄호 안)'에 해당하는 모라만 true 표시. splitMora와 분절·문자가 일치할 때만 신뢰(아니면 null → 압축 안 함).
+// 한자 독음 그룹 안에서만 장음을 압축하므로 형태소 경계 밖(ています의 てい 등)은 건드리지 않는다.
+function kanjiGroupFlags(furiganaHtml, allMora) {
+  if (!furiganaHtml) return null
+  const isKana = (ch) => /[぀-ヿ]/.test(ch)
+  const chars = []
+  let inParen = false
+  for (const ch of furiganaHtml) {
+    if (ch === '(' || ch === '（') { inParen = true; continue }
+    if (ch === ')' || ch === '）') { inParen = false; continue }
+    if (isKana(ch)) chars.push({ ch, kanji: inParen })
+  }
+  const small = new Set(['ぁ','ぃ','ぅ','ぇ','ぉ','ゃ','ゅ','ょ','っ','ァ','ィ','ゥ','ェ','ォ','ャ','ュ','ョ','ッ'])
+  const moras = [], flags = []
+  for (let i = 0; i < chars.length; i++) {
+    let m = chars[i].ch
+    const kanji = chars[i].kanji
+    if (i + 1 < chars.length && small.has(chars[i + 1].ch)) { m += chars[i + 1].ch; i++ }
+    moras.push(m); flags.push(kanji)
+  }
+  if (moras.length !== allMora.length) return null
+  for (let i = 0; i < moras.length; i++) if (moras[i] !== allMora[i]) return null
+  return flags
+}
+
+// 한자 그룹 안에서만 장음 압축: え단+い→ー, お/う단+う→ー. 그 외엔 가나→한글 그대로.
+function moraHangulLV(moraList, i, kanjiFlags) {
+  const m = moraList[i]
+  if (kanjiFlags && i > 0 && kanjiFlags[i] && kanjiFlags[i - 1]) {
+    const pv = vowelOf(moraList[i - 1])
+    if (m === 'い' && pv === 'e') return 'ー'
+    if (m === 'う' && (pv === 'o' || pv === 'u')) return 'ー'
+  }
+  return moraToHangul(m)
+}
+
 function splitMora(hiragana) {
   const smallKana = new Set([
     'ぁ','ぃ','ぅ','ぇ','ぉ','ゃ','ゅ','ょ','っ',
@@ -63,8 +115,9 @@ function splitMora(hiragana) {
  * 모든 phrase의 accent를 하나의 배열로 합쳐 단일 연속 곡선으로 렌더링.
  * phrase 경계 공백 없음 → OJAD처럼 끊김 없는 부드러운 선.
  */
-export default function PitchGraph({ accentData, furigana, hideHeader = false }) {
+export default function PitchGraph({ accentData, furigana, furiganaHtml, hideHeader = false }) {
   const allMora = splitMora(furigana)
+  const kanjiFlags = kanjiGroupFlags(furiganaHtml, allMora)
 
   // phrase 순서대로 mora + accent 통합
   // 마지막 phrase가 나머지 mora를 모두 흡수해 잘림 없이 전체 문장을 표시
@@ -143,7 +196,7 @@ export default function PitchGraph({ accentData, furigana, hideHeader = false })
             fontSize="10.5"
             style={{ fill: 'var(--text-3, #9aa0a6)' }}
           >
-            {moraToHangul(m)}
+            {moraHangulLV(moraList, i, kanjiFlags)}
           </text>
         ))}
       </svg>

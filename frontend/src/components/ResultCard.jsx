@@ -310,7 +310,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
 
       {/* 피치 그래프 — full-width */}
       <div style={{ padding: '0 20px 4px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        <PitchGraph accentData={accent_data} furigana={furigana} hideHeader />
+        <PitchGraph accentData={accent_data} furigana={furigana} furiganaHtml={furigana_html} hideHeader />
       </div>
 
       {/* 발음 연습(베타) — 전체 공개. 마이크 녹음→온디바이스 음높이 비교(광고·서버비용 0) */}

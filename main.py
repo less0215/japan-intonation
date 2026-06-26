@@ -312,7 +312,8 @@ _BD_CACHE_VER = "v5"
 # 번역/발음 캐시 버전 — TRANSLATION_PROMPT(후리가나·한글발음 규칙) 바꾸면 올려서 옛 캐시 자동 무효화
 # v4: 한글 독음 띄어쓰기 규칙을 모든 톤(특히 비즈니스 敬語)에 명시 → 붙어 나오던 옛 캐시 무효화
 # v5: 장음 え단+い→'-' (予定→요테-, 学生→가쿠세-) + 둘째 모라는 '-'로만 대체(이/우 중복 제거)
-_AN_CACHE_VER = "v5"
+# v6: 한자 그룹 장음 결정론 후처리(_fix_kpron_long_vowel) — 学生류 누락·요테-이 중복 확정 교정
+_AN_CACHE_VER = "v6"
 
 # ──────────────────────────────────────────────
 # DB 설정 (SQLite)
@@ -1084,6 +1085,94 @@ TONE_INSTRUCTIONS = {
 }
 
 
+# ── 장음(長音) 결정론 교정 ────────────────────────────────────────────────
+# LLM korean_pronunciation은 대부분 맞지만 일부 한자어(学生→가쿠세이 등)에서 え단+い 장음을 놓친다.
+# furigana_html의 '한자 독음 그룹(괄호 안)' 안에서만 장음을 기계적으로 교정한다 → 한자 독음은 단일
+# 형태소라 장음 규칙이 항상 성립하고, 형태소 경계 밖(ています의 てい, 思い의 おもい 등)은 절대 안 건드림.
+_LV_KR = {
+ 'あ':'아','い':'이','う':'우','え':'에','お':'오','か':'카','き':'키','く':'쿠','け':'케','こ':'코',
+ 'さ':'사','し':'시','す':'스','せ':'세','そ':'소','た':'타','ち':'치','つ':'츠','て':'테','と':'토',
+ 'な':'나','に':'니','ぬ':'누','ね':'네','の':'노','は':'하','ひ':'히','ふ':'후','へ':'헤','ほ':'호',
+ 'ま':'마','み':'미','む':'무','め':'메','も':'모','や':'야','ゆ':'유','よ':'요',
+ 'ら':'라','り':'리','る':'루','れ':'레','ろ':'로','わ':'와','を':'오','ゐ':'이','ゑ':'에',
+ 'が':'가','ぎ':'기','ぐ':'구','げ':'게','ご':'고','ざ':'자','じ':'지','ず':'즈','ぜ':'제','ぞ':'조',
+ 'だ':'다','ぢ':'지','づ':'즈','で':'데','ど':'도','ば':'바','び':'비','ぶ':'부','べ':'베','ぼ':'보',
+ 'ぱ':'파','ぴ':'피','ぷ':'푸','ぺ':'페','ぽ':'포',
+ 'きゃ':'캬','きゅ':'큐','きょ':'쿄','しゃ':'샤','しゅ':'슈','しょ':'쇼','ちゃ':'차','ちゅ':'추','ちょ':'초',
+ 'にゃ':'냐','にゅ':'뉴','にょ':'뇨','ひゃ':'햐','ひゅ':'휴','ひょ':'효','みゃ':'먀','みゅ':'뮤','みょ':'묘',
+ 'りゃ':'랴','りゅ':'류','りょ':'료','ぎゃ':'갸','ぎゅ':'규','ぎょ':'교','じゃ':'자','じゅ':'주','じょ':'조',
+ 'びゃ':'뱌','びゅ':'뷰','びょ':'뵤','ぴゃ':'퍄','ぴゅ':'퓨','ぴょ':'표',
+}
+_LV_VOWEL = {}
+for _k in 'あかさたなはまやらわがざだばぱ': _LV_VOWEL[_k] = 'a'
+for _k in 'いきしちにひみりぎじぢびぴゐ': _LV_VOWEL[_k] = 'i'
+for _k in 'うくすつぬふむゆるぐずづぶぷ': _LV_VOWEL[_k] = 'u'
+for _k in 'えけせてねへめれげぜでべぺゑ': _LV_VOWEL[_k] = 'e'
+for _k in 'おこそとのほもよろをごぞどぼぽ': _LV_VOWEL[_k] = 'o'
+_LV_SMALL = set('ぁぃぅぇぉゃゅょっ')
+
+def _lv_split(kana: str) -> list:
+    chars = list(kana); out = []; i = 0
+    while i < len(chars):
+        if i + 1 < len(chars) and chars[i + 1] in _LV_SMALL and chars[i + 1] != 'っ':
+            out.append(chars[i] + chars[i + 1]); i += 2
+        else:
+            out.append(chars[i]); i += 1
+    return out
+
+def _lv_vowel(m: str):
+    if not m: return None
+    last = m[-1]
+    if last == 'ゃ': return 'a'
+    if last == 'ゅ': return 'u'
+    if last == 'ょ': return 'o'
+    return _LV_VOWEL.get(m)
+
+def _lv_add_final(s: str, jong: str) -> str:
+    if not s: return s
+    c = ord(s[-1])
+    if 0xAC00 <= c <= 0xD7A3 and (c - 0xAC00) % 28 == 0:
+        return s[:-1] + chr(c + {'ㄴ': 4, 'ㅅ': 19}[jong])
+    return s + jong
+
+def _lv_group_hangul(kana: str, collapse: bool) -> str:
+    morae = _lv_split(kana); out = []
+    for i, m in enumerate(morae):
+        if m == 'っ':
+            if out: out[-1] = _lv_add_final(out[-1], 'ㅅ')
+            continue
+        if m == 'ん':
+            if out: out[-1] = _lv_add_final(out[-1], 'ㄴ')
+            else: out.append('ㄴ')
+            continue
+        if m == 'ー':
+            out.append('-'); continue
+        if collapse and i > 0:
+            pv = _lv_vowel(morae[i - 1])
+            if m == 'い' and pv == 'e': out.append('-'); continue
+            if m == 'う' and pv in ('o', 'u'): out.append('-'); continue
+        out.append(_LV_KR.get(m, m))
+    return ''.join(out)
+
+def _fix_kpron_long_vowel(kpron: str, furigana_html: str) -> str:
+    """furigana_html 한자 그룹 안의 장음만 교정. 学生→가쿠세-, 요테-이→요테- ; ています·注意는 그대로."""
+    if not kpron or not furigana_html:
+        return kpron
+    for kana in re.findall(r'[（(]([ぁ-ゖゝゞ゠-ヿー]+)[)）]', furigana_html):
+        unc = _lv_group_hangul(kana, False)
+        col = _lv_group_hangul(kana, True)
+        if col == unc:
+            continue
+        if unc in kpron:
+            kpron = kpron.replace(unc, col)
+        if col.endswith('-'):
+            morae = _lv_split(kana)
+            artifact = col + _LV_KR.get(morae[-1], '')   # 'collapse + 모음 중복'(요테-이) 아티팩트
+            if artifact != col and artifact in kpron:
+                kpron = kpron.replace(artifact, col)
+    return kpron
+
+
 def translate_korean_to_japanese(korean_text: str, model: str = None, tone: str = "natural") -> dict:
     """한국어 문장을 Gemini API로 번역해 번역문·발음·악센트를 반환한다 (문장 분해 제외)."""
     tone_instr = TONE_INSTRUCTIONS.get(tone, "")
@@ -1094,6 +1183,9 @@ def translate_korean_to_japanese(korean_text: str, model: str = None, tone: str 
     if missing:
         raise HTTPException(status_code=502, detail=f"Gemini 응답에 누락된 키: {missing}")
 
+    # 한자 그룹 장음 결정론 교정(학생류 누락·요테-이 중복 정리)
+    result["korean_pronunciation"] = _fix_kpron_long_vowel(
+        result.get("korean_pronunciation", ""), result.get("furigana_html", ""))
     return result
 
 
@@ -1530,13 +1622,14 @@ def analyze_image(req: AnalyzeImageRequest, request: Request):
             acc = [AccentEntry(**e) for e in (c.get("accent_data") or [])]
         except Exception:
             acc = []
+        fhtml = _clean_furigana_html(c.get("furigana_html") or "", jp)  # 검증 통과 시 루비, 아니면 원문
         out_chunks.append(PhotoChunk(
             order=c.get("order", i),
             japanese=jp,
             korean_meaning=c.get("korean_meaning", ""),
             furigana=c.get("furigana", ""),
-            korean_pronunciation=c.get("korean_pronunciation", ""),
-            furigana_html=_clean_furigana_html(c.get("furigana_html") or "", jp),  # 검증 통과 시 루비, 아니면 원문
+            korean_pronunciation=_fix_kpron_long_vowel(c.get("korean_pronunciation", ""), fhtml),
+            furigana_html=fhtml,
             accent_data=acc,
             bbox=_norm_box(c.get("box")),
         ))

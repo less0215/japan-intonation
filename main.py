@@ -182,10 +182,10 @@ Rules:
     きゃ=캬 きゅ=큐 きょ=쿄 / しゃ=샤 しゅ=슈 しょ=쇼 / ちゃ=차 ちゅ=추 ちょ=초 /
     にゃ=냐 にゅ=뉴 にょ=뇨 / ひゃ=햐 ひゅ=휴 ひょ=효 / みゃ=먀 みゅ=뮤 みょ=묘 /
     りゃ=랴 りゅ=류 りょ=료 / ぎゃ=갸 ぎゅ=규 ぎょ=교 / じゃ=자 じゅ=주 じょ=조 / びょ=뵤 ぴょ=표
-  LONG VOWEL (장음) — write the SPOKEN length with "-", reflecting how it is actually pronounced (NOT a literal kana spelling):
-    • お/う-row sound + う or ー → "-"   e.g., とうきょう→토-쿄- , おはよう→오하요- , がっこう→각코- , ビール→비-루
-    • え-row sound + い → "-"   e.g., 予定(よてい)→요테- , 先生(せんせい)→센세- , 時計(とけい)→토케- , 計算(けいさん)→케-산
-    • long ああ/おお within ONE word → "-"   e.g., おかあさん→오카-상 , 大きい(おおきい)→오-키-
+  LONG VOWEL (장음) — the SECOND mora of a long vowel becomes ONLY "-". It gets NO Hangul letter of its own: do NOT also write 이/우. (REPLACE, never append.)
+    • お/う-row + う or ー → "-"   とうきょう→토-쿄-(NOT 토우쿄우) , おはよう→오하요- , がっこう→각코- , ビール→비-루
+    • え-row + い → "-"   予定(よてい)→요테-(NOT 요테이, NOT 요테-이) , 先生(せんせい)→센세-(NOT 센세이) , 時計(とけい)→토케- , 計算(けいさん)→케-산
+    • long ああ/おお within ONE word → "-"   おかあさん→오카-상 , 大きい(おおきい)→오-키-
     ⚠️ NOT a long vowel across a word/morpheme boundary — keep the literal kana:
       て-form + いる/います/いた … → 테이 STAYS: しています→시테이마스 , 待っている→맛테이루 .
       (the お/う-row condition already excludes 買う(かう)→카우 and 言う(いう)→이우.)
@@ -275,7 +275,7 @@ Fields:
 - "hiragana": reading in hiragana
 - "korean_pronunciation": Korean-character (한글) pronunciation — a faithful mora-by-mora transcription of "hiragana"
   (same morae; nothing added/dropped/changed). Yōon merges: しょ=쇼 ちょ=초 きょ=쿄 りょ=료 …;
-  long vowels → "-"(장음): お/う-row+う/ー (とうきょう→토-쿄-) AND え-row+い (予定→요테-, 先生→센세-) — but NOT across a morpheme boundary (て-form+いる/います stays: しています→시테이마스);
+  long vowels → "-"(장음), where the 2nd mora becomes ONLY "-" (REPLACE it; do NOT also write 이/우): お/う-row+う/ー (とうきょう→토-쿄-) AND え-row+い (予定→요테- NOT 요테-이/요테이, 先生→센세-) — but NOT across a morpheme boundary (て-form+いる/います stays: しています→시테이마스);
   っ → ㅅ받침; ん → ㄴ받침. Verb endings EXACT: ましょう=마쇼-(NOT 마시타), ました=마시타, ません=마셍, です=데스, ます=마스.
 - "korean_meaning": Korean meaning of this chunk
 - "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
@@ -1425,7 +1425,7 @@ Field rules (per chunk, follow EXACTLY):
 - japanese: the text EXACTLY as printed in the image. Do NOT add furigana, spaces, or parentheses here.
 - furigana_html: copy "japanese", but after each KANJI word add its reading in half-width (parentheses). The reading inside ( ) MUST be hiragana only — never kanji, never katakana. If you remove every "(...)" the result MUST equal "japanese" exactly. Example: "吾輩は猫である。" -> "吾輩(わがはい)は猫(ねこ)である。" ; "名前はまだ無い。" -> "名前(なまえ)はまだ無(な)い。"
 - korean_meaning AND summary: write FLUENT, NATURAL Korean the way a Korean speaker actually talks. Prioritize MEANING and readability over literal word order. Avoid stiff translationese (번역투) and awkward direct translations. Make it sound natural in Korean.
-- korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). LONG VOWEL → write "-"(장음): お/う-row+う/ー (とうきょう→토-쿄-) AND え-row+い (予定よてい→요테-, 先生→센세-), but NOT across a morpheme boundary (て-form+いる/います stays: しています→시테이마스). っ→ㅅ받침. The first kana い always starts with 이. IMPORTANT: do NOT run it all together — put SPACES between words/phrases so a Korean can read it easily, and reflect the original punctuation (。→ ".", 、→ ","). Example: 吾輩は猫である。名前はまだ無い。 → "와가하이와 네코데아루. 나마에와 마다 나이.".
+- korean_pronunciation: convert that chunk's furigana kana to Hangul mora by mora (あ=아 い=이 う=우 え=에 お=오, か=카 き=키 く=쿠 け=케 こ=코, さ=사 し=시 す=스 せ=세 そ=소, た=타 ち=치 つ=츠 て=테 と=토, な=나 に=니 ぬ=누 ね=네 の=노, は=하 ひ=히 ふ=후 へ=헤 ほ=호, ま=마 み=미 む=무 め=메 も=모, や=야 ゆ=유 よ=요, ら=라 り=리 る=루 れ=레 ろ=로, わ=와 を=오, ん=ㄴ받침). LONG VOWEL → the 2nd mora becomes ONLY "-"(장음) (REPLACE it; do NOT also write 이/우): お/う-row+う/ー (とうきょう→토-쿄-) AND え-row+い (予定よてい→요테- NOT 요테-이/요테이, 先生→센세-), but NOT across a morpheme boundary (て-form+いる/います stays: しています→시테이마스). っ→ㅅ받침. The first kana い (word-initial only) starts with 이. IMPORTANT: do NOT run it all together — put SPACES between words/phrases so a Korean can read it easily, and reflect the original punctuation (。→ ".", 、→ ","). Example: 吾輩は猫である。名前はまだ無い。 → "와가하이와 네코데아루. 나마에와 마다 나이.".
 - accent_data: Tokyo pitch accent per phrase (2-5 morae each). accent length == mora_count; sum of mora_count == total morae of that chunk's furigana. 0=Low, 1=High. 平板[0,1,1,...], 頭高[1,0,0,...].
 - box: the bounding box of WHERE this chunk's text appears in the image, as [ymin, xmin, ymax, xmax] integers normalized to 0-1000 (origin = top-left). For vertical text, the box wraps that column/region. Give your best estimate even if approximate. If you cannot locate it, omit box.
 """

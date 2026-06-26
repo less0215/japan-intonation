@@ -9,6 +9,15 @@ const PRIMARY = '#5CA9CE'
 const BUS_FARE = 1500   // 시내버스 한 번 요금 — 가격 앵커링용
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
 
+// IAP 실패 코드 → 사용자 안내(괄호로 코드 노출 = 무한로딩 대신 원인 즉시 파악).
+// no_product/product_timeout 이 뜨면 ASC 상품 미로드(유료 계약 미체결·상품 상태)임을 바로 알 수 있다.
+const IAP_ERROR_HINT = {
+  not_ready:        '결제를 시작하지 못했어요. 앱을 완전히 종료 후 다시 실행해 주세요. (not_ready)',
+  no_product:       '상품 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요. (no_product)',
+  product_timeout:  '상품 정보를 불러오지 못했어요. 네트워크 확인 후 다시 시도해 주세요. (product_timeout)',
+  purchase_timeout: "결제가 완료되지 않았어요. 이미 결제됐다면 '구매 복원'을 눌러주세요. (purchase_timeout)",
+}
+
 /* 플랜 업그레이드 (/plans) — 무료/플러스/프로. 미니멀
  * 가격 단일 출처(SSOT) */
 export const PLANS = {
@@ -29,6 +38,7 @@ export default function SubscriptionPage() {
   const [sp] = useSearchParams()
   const [period, setPeriod] = useState('monthly')
   const [notice, setNotice] = useState(null)   // 'login' | 'error' | 'useapp' | 'done' | 'restored' | 'norestore'
+  const [errDetail, setErrDetail] = useState('')            // IAP 실패 코드(error 모달에서 원인 안내)
   const [purchasing, setPurchasing] = useState(null)        // 결제 진행 중인 플랜(앱 인앱결제)
   const lastChoice = useRef({ plan: null, period: 'monthly' })   // 직전 선택(plan/period) — waitlist·abandon에서 재사용
   const p = PLANS[period]
@@ -45,22 +55,29 @@ export default function SubscriptionPage() {
   }
 
   async function choose(plan) {
+    console.log('[iap] choose() 클릭 —', { plan, period, isApp })   // 핸들러 진입 자체 확인용
     lastChoice.current = { plan, period }
-    track('subscribe_cta', { plan, period, is_logged_in: !!user, is_app: isApp })
+    track('subscribe_cta', { plan, period, source: sp.get('from') || 'direct', is_logged_in: !!user, is_app: isApp })
     // 앱(iOS): RevenueCat 인앱 결제(StoreKit)
     if (isApp) {
       if (purchasing) return
       setPurchasing(plan)
-      const r = await iapPurchase(IAP_PRODUCTS[`${plan}-${period}`])
-      setPurchasing(null)
-      if (r.success) {
+      let r
+      try {
+        r = await iapPurchase(IAP_PRODUCTS[`${plan}-${period}`])
+      } finally {
+        setPurchasing(null)   // 성공·취소·실패·예외 모든 분기에서 '처리 중' 해제(무한로딩 방지)
+      }
+      if (r?.success) {
         try { localStorage.setItem('tickjapan_ad_free', '1') } catch {}
         window.dispatchEvent(new CustomEvent('tickjapan:iap-updated'))   // App.jsx가 권한 재확인 → 광고제거·무제한 반영
-        track('subscribe_success', { plan, period, via: 'iap' })
+        track('subscribe_success', { plan, period, via: 'iap', source: sp.get('from') || 'direct', value: PLANS[period]?.[plan]?.total, currency: 'KRW' })
         setNotice('done')
-      } else if (r.cancelled) {
+      } else if (r?.cancelled) {
         track('subscribe_cancel', { plan, period, via: 'iap' })
       } else {
+        track('subscribe_fail', { plan, period, via: 'iap', reason: r?.error || 'unknown' })
+        setErrDetail(r?.error || '')
         setNotice('error')
       }
       return
@@ -194,7 +211,7 @@ export default function SubscriptionPage() {
           done:  { title: '구독 완료!', body: '이제 광고 없이 빠르게 이용할 수 있어요. 감사해요 :)', primary: '확인', onPrimary: () => { closeNotice(); navigate('/') } },
           restored: { title: '구매 복원 완료', body: '기존 구독을 되살렸어요. 혜택이 다시 적용됩니다.', primary: '확인', onPrimary: () => { closeNotice(); navigate('/') } },
           norestore: { title: '복원할 구매가 없어요', body: '이 Apple ID로 구독한 내역을 찾지 못했어요.', primary: '확인', onPrimary: closeNotice },
-          error: { title: '문제가 발생했어요', body: '잠시 후 다시 시도해 주세요.', primary: '확인', onPrimary: closeNotice },
+          error: { title: '문제가 발생했어요', body: IAP_ERROR_HINT[errDetail] || '잠시 후 다시 시도해 주세요.', primary: '확인', onPrimary: closeNotice },
         }[notice] || { title: '안내', body: '', primary: '확인', onPrimary: closeNotice }
         return (
           <div onClick={closeNotice} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>

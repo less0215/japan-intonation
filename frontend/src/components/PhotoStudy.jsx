@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react'
+import { useState, useRef, Fragment } from 'react'
 import ResultCard from './ResultCard'
 import AdSenseUnit from './AdSenseUnit'
 import { isAdFreeMember } from '../ads'
@@ -96,10 +96,26 @@ export default function PhotoStudy({ result, imageUrl, onSaveChunk, onClose }) {
 
   const label = DOC_LABELS[result?.doc_type] || result?.doc_type || ''
 
+  // 앱: 헤더가 상태바와 겹치지 않게 상단 패딩 보정(이 앱은 viewport-fit=cover가 아니라 env()=0 → 본문 .is-app처럼 56px 보장).
+  const isApp = window.Capacitor?.isNativePlatform?.() ?? false
+  // 좌→우 가장자리 스와이프 = 닫기(뒤로). 라우트가 아닌 상태 오버레이라 여기서 직접 처리.
+  const sw = useRef({ x: 0, y: 0, t: 0, armed: false })
+  const onTouchStart = (e) => {
+    const tt = e.touches[0]
+    sw.current = { x: tt.clientX, y: tt.clientY, t: Date.now(), armed: tt.clientX <= 40 }
+  }
+  const onTouchEnd = (e) => {
+    const s = sw.current
+    if (!s.armed) return
+    s.armed = false
+    const tt = e.changedTouches[0]
+    if (tt.clientX - s.x > 70 && Math.abs(tt.clientY - s.y) < 50 && Date.now() - s.t < 600) onClose?.()
+  }
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9400, background: 'var(--bg)', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+    <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ position: 'fixed', inset: 0, zIndex: 9400, background: 'var(--bg)', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       {/* 헤더 */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--surface)', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', paddingTop: 'calc(14px + env(safe-area-inset-top, 0px))' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--surface)', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', paddingTop: isApp ? 'max(56px, calc(env(safe-area-inset-top, 0px) + 14px))' : '14px' }}>
         <button onClick={onClose} aria-label="닫기" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, color: 'var(--text-2)' }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>

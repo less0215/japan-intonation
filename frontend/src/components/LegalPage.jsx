@@ -13,14 +13,14 @@ function Section({ title, children }) {
       <h2 style={{
         fontSize: 15,
         fontWeight: 700,
-        color: '#111',
+        color: 'var(--text-strong)',
         margin: '0 0 12px',
         paddingBottom: 10,
-        borderBottom: '1.5px solid #f0f0f0',
+        borderBottom: '1.5px solid var(--bd)',
       }}>
         {title}
       </h2>
-      <div style={{ fontSize: 13.5, color: '#444', lineHeight: 1.9 }}>
+      <div style={{ fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.9 }}>
         {children}
       </div>
     </section>
@@ -44,11 +44,11 @@ function Table({ headers, rows }) {
     <div style={{ overflowX: 'auto', margin: '12px 0' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
         <thead>
-          <tr style={{ background: '#f8f9fa' }}>
+          <tr style={{ background: 'var(--surface-2)' }}>
             {headers.map((h, i) => (
               <th key={i} style={{
                 padding: '9px 12px', textAlign: 'left',
-                border: '1px solid #e8e8e8', fontWeight: 700, color: '#333',
+                border: '1px solid var(--bd)', fontWeight: 700, color: 'var(--text-strong)',
                 whiteSpace: 'nowrap',
               }}>{h}</th>
             ))}
@@ -56,11 +56,11 @@ function Table({ headers, rows }) {
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+            <tr key={i} style={{ background: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
               {row.map((cell, j) => (
                 <td key={j} style={{
-                  padding: '9px 12px', border: '1px solid #e8e8e8',
-                  color: '#444', lineHeight: 1.6,
+                  padding: '9px 12px', border: '1px solid var(--bd)',
+                  color: 'var(--text-1)', lineHeight: 1.6,
                 }}>{cell}</td>
               ))}
             </tr>
@@ -80,7 +80,7 @@ function InfoBox({ children }) {
       borderRadius: 10,
       padding: '12px 16px',
       fontSize: 13,
-      color: '#333',
+      color: 'var(--text-1)',
       lineHeight: 1.8,
       margin: '12px 0',
     }}>
@@ -311,12 +311,12 @@ export default function LegalPage({ type = 'privacy' }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#fafafa',
+      background: 'var(--bg)',
     }}>
       {/* 헤더 */}
       <div style={{
-        background: '#fff',
-        borderBottom: '1px solid #f0f0f0',
+        background: 'var(--surface)',
+        borderBottom: '1px solid var(--bd)',
         padding: '16px 20px',
         position: 'sticky',
         top: 0,
@@ -327,8 +327,8 @@ export default function LegalPage({ type = 'privacy' }) {
             <img src="/favicon.svg" alt="틱재팬" width={22} height={22} onError={e => e.target.style.display='none'} />
             <span style={{ fontSize: 14, fontWeight: 700, color: PRIMARY }}>틱재팬</span>
           </a>
-          <span style={{ color: '#ddd' }}>›</span>
-          <span style={{ fontSize: 13, color: '#666' }}>
+          <span style={{ color: 'var(--text-3)' }}>›</span>
+          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>
             {isPrivacy ? '개인정보처리방침' : '이용약관'}
           </span>
         </div>
@@ -338,7 +338,7 @@ export default function LegalPage({ type = 'privacy' }) {
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 80px' }}>
 
         {/* 탭 전환 */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 32, background: '#f0f0f0', borderRadius: 10, padding: 4 }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 32, background: 'var(--surface-2)', borderRadius: 10, padding: 4 }}>
           {[
             { label: '개인정보처리방침', href: '/privacy' },
             { label: '이용약관', href: '/terms' },
@@ -354,8 +354,8 @@ export default function LegalPage({ type = 'privacy' }) {
                   borderRadius: 8,
                   fontSize: 13,
                   fontWeight: active ? 700 : 500,
-                  color: active ? '#111' : '#888',
-                  background: active ? '#fff' : 'transparent',
+                  color: active ? 'var(--text-strong)' : 'var(--text-3)',
+                  background: active ? 'var(--surface)' : 'transparent',
                   textDecoration: 'none',
                   boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                   transition: 'all 0.15s',
@@ -369,10 +369,10 @@ export default function LegalPage({ type = 'privacy' }) {
 
         {/* 제목 + 시행일 */}
         <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111', margin: '0 0 8px' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 8px' }}>
             {isPrivacy ? '개인정보처리방침' : '이용약관'}
           </h1>
-          <p style={{ fontSize: 12.5, color: '#aaa', margin: 0 }}>
+          <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: 0 }}>
             시행일: {UPDATED_DATE} · 운영: {COMPANY_NAME}
           </p>
         </div>
@@ -384,18 +384,18 @@ export default function LegalPage({ type = 'privacy' }) {
         <div style={{
           marginTop: 40,
           paddingTop: 24,
-          borderTop: '1px solid #f0f0f0',
+          borderTop: '1px solid var(--bd)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: 8,
         }}>
-          <span style={{ fontSize: 12, color: '#bbb' }}>© 2026 {COMPANY_NAME}. All rights reserved.</span>
+          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>© 2026 {COMPANY_NAME}. All rights reserved.</span>
           <div style={{ display: 'flex', gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 12, color: isPrivacy ? PRIMARY : '#aaa', textDecoration: 'none', fontWeight: isPrivacy ? 600 : 400 }}>개인정보처리방침</a>
-            <a href="/terms" style={{ fontSize: 12, color: !isPrivacy ? PRIMARY : '#aaa', textDecoration: 'none', fontWeight: !isPrivacy ? 600 : 400 }}>이용약관</a>
-            <a href={`mailto:${CONTACT_EMAIL}`} style={{ fontSize: 12, color: '#aaa', textDecoration: 'none' }}>문의하기</a>
+            <a href="/privacy" style={{ fontSize: 12, color: isPrivacy ? PRIMARY : 'var(--text-3)', textDecoration: 'none', fontWeight: isPrivacy ? 600 : 400 }}>개인정보처리방침</a>
+            <a href="/terms" style={{ fontSize: 12, color: !isPrivacy ? PRIMARY : 'var(--text-3)', textDecoration: 'none', fontWeight: !isPrivacy ? 600 : 400 }}>이용약관</a>
+            <a href={`mailto:${CONTACT_EMAIL}`} style={{ fontSize: 12, color: 'var(--text-3)', textDecoration: 'none' }}>문의하기</a>
           </div>
         </div>
       </div>

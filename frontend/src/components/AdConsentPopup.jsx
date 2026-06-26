@@ -89,17 +89,17 @@ const ov = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
 }
 const card = {
-  width: 320, maxWidth: '90vw', background: '#fff', borderRadius: 20,
+  width: 320, maxWidth: '90vw', background: 'var(--surface)', borderRadius: 20,
   padding: '26px 22px 16px', textAlign: 'center',
   boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
 }
 const iconBox = {
-  width: 54, height: 54, borderRadius: 15, background: '#eef7fc',
+  width: 54, height: 54, borderRadius: 15, background: 'var(--primary-tint)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px',
 }
 // 이모지(🙇)가 두부로 깨지지 않도록 이모지 폰트 fallback 명시
 const head = {
-  fontSize: 19, fontWeight: 600, color: '#1f2937', margin: '0 0 14px', letterSpacing: '-0.3px',
+  fontSize: 19, fontWeight: 600, color: 'var(--text-strong)', margin: '0 0 14px', letterSpacing: '-0.3px',
   fontFamily: "'Noto Sans KR', 'Apple Color Emoji', sans-serif",
 }
 const body = { fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, margin: '0 0 18px' }

@@ -159,7 +159,7 @@ function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               padding: '7px 18px', fontSize: 13, fontWeight: 700,
               fontFamily: 'inherit', cursor: 'pointer', border: 'none',
-              backgroundColor: tab === t.id ? PRIMARY : '#fff',
+              backgroundColor: tab === t.id ? PRIMARY : 'var(--surface)',
               color:           tab === t.id ? '#fff' : 'var(--text-3)',
               transition: 'all 0.15s',
             }}>
@@ -174,7 +174,7 @@ function ConjugationTable({ conjugations, conjLabels, accentType, wordType }) {
             <button key={v} onClick={() => setGender(v)} style={{
               height: 26, padding: '0 10px', fontSize: 11, fontWeight: 600,
               fontFamily: 'inherit', cursor: 'pointer', border: 'none',
-              backgroundColor: gender === v ? PRIMARY : '#fff',
+              backgroundColor: gender === v ? PRIMARY : 'var(--surface)',
               color:           gender === v ? '#fff' : 'var(--text-3)',
               transition: 'all 0.15s',
             }}>{l}</button>

@@ -16,7 +16,7 @@ export default function ParticleLibrary({ items }) {
       <div style={{
         display: 'flex', alignItems: 'flex-start', gap: 8,
         padding: '11px 14px',
-        background: '#f8f9fa',
+        background: 'var(--surface-2)',
         border: '1px solid var(--bd)',
         borderRadius: 10,
       }}>

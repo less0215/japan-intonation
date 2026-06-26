@@ -64,8 +64,8 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save', title, 
           <div style={{
             display: 'flex', alignItems: 'flex-start', gap: 7,
             padding: '9px 11px',
-            background: '#f0f9ff',
-            border: '1px solid #d6ecf7',
+            background: 'var(--primary-tint)',
+            border: '1px solid var(--primary-tint-bd)',
             borderRadius: 9,
             marginTop: 2,
           }}>
@@ -74,7 +74,7 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save', title, 
               <line x1="12" y1="16" x2="12" y2="12" />
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <span style={{ fontSize: 12, color: '#357694', lineHeight: 1.5 }}>
+            <span style={{ fontSize: 12, color: 'var(--primary-strong)', lineHeight: 1.5 }}>
               휴대폰 번호는 중복 가입이 불가능하니 정확한 정보를 입력해 주세요.
             </span>
           </div>
@@ -97,7 +97,7 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save', title, 
             onChange={e => setPhone(formatPhone(e.target.value))}
             inputMode="tel"
           />
-          {error && <p style={{ fontSize: 13, color: '#c53030', margin: '0 2px' }}>{error}</p>}
+          {error && <p style={{ fontSize: 13, color: 'var(--danger)', margin: '0 2px' }}>{error}</p>}
           <button type="submit" className="modal-submit" disabled={loading} style={{ marginTop: 4 }}>
             {loading ? '처리 중...' : (submitLabel ?? (mode === 'login' ? '로그인' : '가입하고 저장하기'))}
           </button>

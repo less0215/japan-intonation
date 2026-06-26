@@ -63,7 +63,7 @@ export default function AndroidLaunchPopup() {
         >✕</button>
 
         {/* 아이콘 */}
-        <div style={{ width: 60, height: 60, borderRadius: 16, background: '#eaf7f1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+        <div style={{ width: 60, height: 60, borderRadius: 16, background: 'var(--success-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
           <svg width="32" height="32" viewBox="0 0 24 24" fill="#1d9e75">
             <path d="M17.6 9.48l1.84-3.18a.4.4 0 1 0-.69-.4l-1.86 3.23a11.46 11.46 0 0 0-9.78 0L5.25 5.9a.4.4 0 1 0-.69.4L6.4 9.48A11.34 11.34 0 0 0 .5 18.5h23a11.34 11.34 0 0 0-5.9-9.02zM7 15.25a1.13 1.13 0 1 1 0-2.25 1.13 1.13 0 0 1 0 2.25zm10 0a1.13 1.13 0 1 1 0-2.25 1.13 1.13 0 0 1 0 2.25z"/>
           </svg>

@@ -51,12 +51,12 @@ export default function SavesPage({ onSelectHistory }) {
   const segStyle = (on) => ({
     flex: 1, textAlign: 'center', borderRadius: 9, padding: '8px 0', fontSize: 12.5,
     fontWeight: on ? 600 : 400, cursor: 'pointer', border: 'none', fontFamily: 'inherit',
-    background: on ? PRIMARY : '#f3f5f7', color: on ? '#fff' : 'var(--text-2)',
+    background: on ? PRIMARY : 'var(--surface-2)', color: on ? '#fff' : 'var(--text-2)',
   })
 
   function Checkbox({ on }) {
     return (
-      <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${on ? PRIMARY : '#d4dade'}`, background: on ? PRIMARY : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${on ? PRIMARY : 'var(--bd)'}`, background: on ? PRIMARY : 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {on && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
       </span>
     )
@@ -73,14 +73,14 @@ export default function SavesPage({ onSelectHistory }) {
         </div>
         {editMode
           ? <Checkbox on={on} />
-          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cfd6db" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="9 18 15 12 9 6" /></svg>}
+          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="9 18 15 12 9 6" /></svg>}
       </button>
     )
   }
 
   const empty = (t) => (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, padding: '48px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#d4dade" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" /></svg>
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" /></svg>
       <p style={{ margin: 0, textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>{t}</p>
     </div>
   )

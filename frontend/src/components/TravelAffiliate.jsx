@@ -21,12 +21,12 @@ function Skeleton() {
       <Header />
       <div style={{ display: 'flex', gap: 10, overflow: 'hidden', padding: '2px 0 6px' }}>
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} style={{ flex: '0 0 auto', width: 142, border: '1px solid #eef1f3', borderRadius: 13, overflow: 'hidden', background: '#fff' }}>
-            <div style={{ height: 90, background: '#eef1f3' }} />
+          <div key={i} style={{ flex: '0 0 auto', width: 142, border: '1px solid var(--bd)', borderRadius: 13, overflow: 'hidden', background: 'var(--surface)' }}>
+            <div style={{ height: 90, background: 'var(--surface-2)' }} />
             <div style={{ padding: '8px 9px 10px' }}>
-              <div style={{ height: 8, width: '55%', background: '#eef1f3', borderRadius: 4, marginBottom: 7 }} />
-              <div style={{ height: 9, width: '90%', background: '#eef1f3', borderRadius: 4, marginBottom: 5 }} />
-              <div style={{ height: 9, width: '40%', background: '#eef1f3', borderRadius: 4 }} />
+              <div style={{ height: 8, width: '55%', background: 'var(--surface-2)', borderRadius: 4, marginBottom: 7 }} />
+              <div style={{ height: 9, width: '90%', background: 'var(--surface-2)', borderRadius: 4, marginBottom: 5 }} />
+              <div style={{ height: 9, width: '40%', background: 'var(--surface-2)', borderRadius: 4 }} />
             </div>
           </div>
         ))}
@@ -68,15 +68,15 @@ export default function TravelAffiliate() {
               onClick={() => openTravelProduct(item, 'home_banner')}
               style={{
                 flex: '0 0 auto', width: 142, marginRight: 10, textAlign: 'left', padding: 0, cursor: 'pointer',
-                background: '#fff', border: '1px solid #eaecef', borderRadius: 13, overflow: 'hidden',
+                background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 13, overflow: 'hidden',
                 fontFamily: 'inherit',
               }}
             >
               <div style={{ height: 90, background: `#e8edf0 url('${item.image}') center/cover` }} />
               <div style={{ padding: '8px 9px 10px' }}>
-                <p style={{ margin: '0 0 3px', fontSize: 10.5, color: '#aeb4b9' }}>{item.city} · 일본</p>
+                <p style={{ margin: '0 0 3px', fontSize: 10.5, color: 'var(--text-3)' }}>{item.city} · 일본</p>
                 <p style={{
-                  margin: '0 0 6px', fontSize: 11.5, color: '#2b2f33', lineHeight: 1.35,
+                  margin: '0 0 6px', fontSize: 11.5, color: 'var(--text-strong)', lineHeight: 1.35,
                   display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 31,
                 }}>{item.title}</p>
                 {item.price > 0 && (
@@ -90,7 +90,7 @@ export default function TravelAffiliate() {
         </div>
       </div>
 
-      <p style={{ margin: '6px 2px 0', fontSize: 10, color: '#c2c7cc' }}>
+      <p style={{ margin: '6px 2px 0', fontSize: 10, color: 'var(--text-3)' }}>
         일부 링크는 제휴 링크이며, 구매 시 틱재팬에 일정 수수료가 지급됩니다.
       </p>
     </div>

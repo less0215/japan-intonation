@@ -271,7 +271,7 @@ function PracticeButton({ japanesePlain }) {
               fontFamily: 'inherit',
               cursor: 'pointer',
               border: 'none',
-              backgroundColor: gender === v ? PRIMARY : '#fff',
+              backgroundColor: gender === v ? PRIMARY : 'var(--surface)',
               color:           gender === v ? '#fff' : 'var(--text-3)',
               transition: 'all 0.15s',
             }}
@@ -301,7 +301,7 @@ function ConjSection({ title, titleJp, rows, accentType }) {
             <button key={v} onClick={() => setGender(v)} style={{
               height: 26, padding: '0 10px', fontSize: 11, fontWeight: 600,
               fontFamily: 'inherit', cursor: 'pointer', border: 'none',
-              backgroundColor: gender === v ? PRIMARY : '#fff',
+              backgroundColor: gender === v ? PRIMARY : 'var(--surface)',
               color:           gender === v ? '#fff' : 'var(--text-3)',
               transition: 'all 0.15s',
             }}>{l}</button>

@@ -579,6 +579,10 @@ export default function App() {
     }
   }, [location.pathname])
 
+  // 사진학습 오버레이가 열려 있으면 전역 뒤로가기 스와이프는 건너뜀(PhotoStudy가 자체 닫기 처리 → 이중 동작 방지)
+  const photoStudyOpenRef = useRef(false)
+  photoStudyOpenRef.current = !!photoStudy
+
   // 좌→우 가장자리 스와이프 = 뒤로가기 (iOS 제스처 대응)
   useEffect(() => {
     let startX = 0, startY = 0, startT = 0, armed = false
@@ -595,7 +599,7 @@ export default function App() {
       const dx = t.clientX - startX
       const dy = Math.abs(t.clientY - startY)
       const dt = Date.now() - startT
-      if (dx > 70 && dy < 50 && dt < 600) navigate(-1)
+      if (dx > 70 && dy < 50 && dt < 600 && !photoStudyOpenRef.current) navigate(-1)
     }
     document.addEventListener('touchstart', onStart, { passive: true })
     document.addEventListener('touchend', onEnd, { passive: true })
@@ -947,7 +951,7 @@ export default function App() {
               style={{ verticalAlign: '-8px', marginRight: '6px' }}
             />
             틱재팬{' '}
-            <span style={{ fontWeight: 400, color: '#888888', fontSize: '14px' }}>
+            <span style={{ fontWeight: 400, color: 'var(--text-3)', fontSize: '14px' }}>
               일본어 번역기
             </span>
           </h1>
@@ -1346,23 +1350,23 @@ export default function App() {
       {/* 웹에서 빠른 번역 시도 → 앱 전용 안내 */}
       {webFastNotice && (
         <div onClick={() => setWebFastNotice(false)} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 300, maxWidth: '90vw', background: '#fff', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 300, maxWidth: '90vw', background: 'var(--surface)', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ width: 50, height: 50, borderRadius: 14, background: '#eef7fc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="#5CA9CE"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
             </div>
-            <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: '#1f2937' }}>빠른 번역은 앱에서 만나요</p>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#666', lineHeight: 1.6 }}>더 빠르고 자연스러운 <b>빠른 번역</b>은<br />틱재팬 앱에서 무료로 이용할 수 있어요.</p>
+            <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)' }}>빠른 번역은 앱에서 만나요</p>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>더 빠르고 자연스러운 <b>빠른 번역</b>은<br />틱재팬 앱에서 무료로 이용할 수 있어요.</p>
             <button onClick={() => { setWebFastNotice(false); track('download_cta_click', { from: 'web_fast' }); navigate('/download?from=web_fast') }} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>앱 다운로드</button>
-            <button onClick={() => setWebFastNotice(false)} style={{ width: '100%', height: 38, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: '#aab', cursor: 'pointer', fontFamily: 'inherit' }}>그냥 일반 번역 쓸게요</button>
+            <button onClick={() => setWebFastNotice(false)} style={{ width: '100%', height: 38, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>그냥 일반 번역 쓸게요</button>
           </div>
         </div>
       )}
       {/* 일반 번역 일정 횟수마다 전면 광고 사전 팝업 (앱 전용) */}
       {adNotice && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div style={{ width: 300, maxWidth: '90vw', background: '#fff', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
-            <p style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: '#1f2937' }}>잠시 광고가 표시돼요</p>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#666', lineHeight: 1.6 }}>틱재팬을 계속 <b>무료</b>로 운영하기 위해<br />짧은 광고를 보여드려요. 양해 부탁드려요.</p>
+          <div style={{ width: 300, maxWidth: '90vw', background: 'var(--surface)', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)' }}>잠시 광고가 표시돼요</p>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>틱재팬을 계속 <b>무료</b>로 운영하기 위해<br />짧은 광고를 보여드려요. 양해 부탁드려요.</p>
             <button onClick={async () => { setAdNotice(false); const n = parseInt(localStorage.getItem('tickjapan_basic_count') || '0', 10) || 0; const ok = await showInterstitialAd(); track('interstitial_result', { count: n, result: ok ? 'shown' : 'no_fill_or_fail' }) }} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>확인</button>
           </div>
         </div>

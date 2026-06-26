@@ -54,8 +54,8 @@ export default function ConsentBanner() {
       left: 0,
       right: 0,
       zIndex: 9999,
-      background: '#fff',
-      borderTop: '1px solid #e8e8e8',
+      background: 'var(--surface)',
+      borderTop: '1px solid var(--bd)',
       padding: '16px 20px 24px',
       boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
     }}>

@@ -50,7 +50,7 @@ export default function AppDownloadPromo({ onDownload }) {
         onClick={e => e.stopPropagation()}
         style={{
           position: 'relative', width: '100%', maxWidth: 320,
-          background: '#fff', borderRadius: 20,
+          background: 'var(--surface)', borderRadius: 20,
           padding: '28px 24px 16px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
           boxShadow: '0 12px 40px rgba(0,0,0,0.18)',

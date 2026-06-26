@@ -22,11 +22,11 @@ export default function AttPrePrompt({ onProceed }) {
         </div>
 
         {/* 헤드카피 */}
-        <p style={{ fontSize: 19, fontWeight: 700, margin: '0 0 8px', color: '#222', lineHeight: 1.4 }}>
+        <p style={{ fontSize: 19, fontWeight: 700, margin: '0 0 8px', color: 'var(--text-strong)', lineHeight: 1.4 }}>
           일본어 실력이 늘 수 있게 도와드릴게요
         </p>
         {/* 서브카피 */}
-        <p style={{ fontSize: 14, color: '#666', margin: '0 0 18px', lineHeight: 1.65 }}>
+        <p style={{ fontSize: 14, color: 'var(--text-2)', margin: '0 0 18px', lineHeight: 1.65 }}>
           사용 패턴을 익명 분석해 번역 품질 및 학습 경험 향상을 도와 드릴 수 있습니다. 다음 화면에서 ‘허용’을 눌러 주세요.
         </p>
 
@@ -35,7 +35,7 @@ export default function AttPrePrompt({ onProceed }) {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          <span style={{ fontSize: 12.5, color: '#aaa' }}>개인을 식별하는 정보는 수집하지 않아요</span>
+          <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>개인을 식별하는 정보는 수집하지 않아요</span>
         </div>
 
         {/* 단일 버튼 → 시스템 ATT 팝업 */}

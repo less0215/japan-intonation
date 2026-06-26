@@ -42,7 +42,7 @@ export default function RubyText({ text, fontSize = 15, fontWeight = 500 }) {
           /* 괄호 표기: 話(はな)す — 밀림 없는 교재 스타일 */
           <span key={i}>
             {p.kanji}
-            <span style={{ fontSize: rtSize, color: '#888' }}>({p.reading})</span>
+            <span style={{ fontSize: rtSize, color: 'var(--text-3)' }}>({p.reading})</span>
           </span>
         ) : (
           <span key={i}>{p.text}</span>

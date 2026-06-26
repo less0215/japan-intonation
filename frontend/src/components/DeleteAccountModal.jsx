@@ -99,7 +99,7 @@ const styles = {
     zIndex: 1000,
   },
   sheet: {
-    background: '#fff',
+    background: 'var(--surface)',
     borderRadius: '20px 20px 0 0',
     padding: '32px 24px 40px',
     width: '100%',
@@ -129,7 +129,7 @@ const styles = {
   },
   infoBox: {
     background: 'var(--surface-2)',
-    border: '1px solid #e8e8e8',
+    border: '1px solid var(--bd)',
     borderRadius: 10,
     padding: '12px 14px',
     width: '100%',

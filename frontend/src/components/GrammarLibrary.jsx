@@ -1,6 +1,7 @@
 import { useState, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GRAMMAR } from '../data/grammar'
+import { useUser } from '../context/UserContext'
 import WordBookmarkButton from './WordBookmarkButton'
 import HiraganaTable from './HiraganaTable'
 import AdSenseUnit from './AdSenseUnit'
@@ -10,6 +11,7 @@ const PRIMARY = '#5CA9CE'
 
 const TABS = [
   { key: 'all',        label: '전체' },
+  { key: 'noun',       label: '명사',     sub: '~이다 / ~입니다 등' },
   { key: 'te',         label: '동작 표현', sub: '~해 가다/오다 등' },
   { key: 'giving',     label: '주고받기',  sub: '~해 주다 등' },
   { key: 'conjecture', label: '추측 표현', sub: '~인 것 같다 등' },
@@ -20,13 +22,21 @@ const TABS = [
 
 export default function GrammarLibrary() {
   const navigate = useNavigate()
+  const { user } = useUser()
+  const isAdmin = !!user?.is_admin
   const [activeTab, setActiveTab] = useState('all')
 
-  const filtered = activeTab === 'all'
-    ? GRAMMAR
-    : GRAMMAR.filter(g => g.category === activeTab)
+  // beta 패턴(예: 명사 챕터)은 관리자 계정에서만 노출
+  const visibleGrammar = isAdmin ? GRAMMAR : GRAMMAR.filter(g => !g.beta)
+  const visibleTabs = TABS.filter(t =>
+    t.key === 'all' || visibleGrammar.some(g => g.category === t.key))
 
-  const activeTabInfo = TABS.find(t => t.key === activeTab)
+  const activeKey = visibleTabs.some(t => t.key === activeTab) ? activeTab : 'all'
+  const filtered = activeKey === 'all'
+    ? visibleGrammar
+    : visibleGrammar.filter(g => g.category === activeKey)
+
+  const activeTabInfo = visibleTabs.find(t => t.key === activeKey)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -51,9 +61,9 @@ export default function GrammarLibrary() {
       {/* 카테고리 탭 */}
       <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
         <div style={{ display: 'flex', gap: 6, minWidth: 'max-content' }}>
-          {TABS.map(tab => {
-            const active = activeTab === tab.key
-            const count = tab.key === 'all' ? GRAMMAR.length : GRAMMAR.filter(g => g.category === tab.key).length
+          {visibleTabs.map(tab => {
+            const active = activeKey === tab.key
+            const count = tab.key === 'all' ? visibleGrammar.length : visibleGrammar.filter(g => g.category === tab.key).length
             return (
               <button
                 key={tab.key}

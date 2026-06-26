@@ -1,7 +1,609 @@
 /* 문법 패턴 데이터
- * category: 'te' | 'giving' | 'conjecture' | 'reason' | 'koto' | 'other'
+ * category(심화): 'te' | 'giving' | 'conjecture' | 'reason' | 'koto' | 'other'
+ * category(기초·책 챕터): 'noun' | ...
  */
 export const GRAMMAR = [
+
+  /* ── 명사 (기초·beta, 관리자 전용 노출) ── */
+  {
+    id: 'noun-da',
+    category: 'noun',
+    beta: true,
+    pattern: '〜だ',
+    reading: '다',
+    meanings: ['~(이)다'],
+    connection: '명사 + だ',
+    explanation: '명사 뒤에 「だ」를 붙여 "~(이)다"라고 단정하는 가장 기본적인 보통체 표현이에요. 한국어의 "~이다 / ~다"에 해당하고, 친구나 가까운 사이에서 반말로 쓰거나 글에서 단정적으로 서술할 때 써요. 회화에서는 「だ」를 떼고 명사만 말하는 경우도 많지만, 글이나 단정적인 말투에서는 「だ」를 붙여요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~(이)다',
+        example: {
+          kr: '나는 학생이야.',
+          jp: '私(わたし)は学生(がくせい)だよ',
+          pronunciation: '와타시와가쿠세-다요',
+          furigana: 'わたしはがくせいだよ',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 1] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+          ],
+        },
+        note: '단정: 「명사 + だ」는 "~(이)다". 명사를 그대로 받아 보통체로 단정하는 가장 기본 형태(회화에서는 だよ처럼 끝에 よ를 붙이기도 함).',
+      },
+      {
+        type: 'basic',
+        meaning: '~(이)다',
+        example: {
+          kr: '오늘은 휴일이다.',
+          jp: '今日(きょう)は休日(きゅうじつ)だ。',
+          pronunciation: '쿄-와큐-지츠다',
+          furigana: 'きょうはきゅうじつだ',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [1, 0, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+          ],
+        },
+        note: '今日は休みだ처럼 "오늘은 ~이다"로 자주 쓰임. 「だ」가 문장을 단정적으로 마무리한다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~(이)다',
+        example: {
+          kr: '다음은 내 차례야.',
+          jp: '次(つぎ)は私(わたし)の番(ばん)だよ。',
+          pronunciation: '츠기와와타시노반다요',
+          furigana: 'つぎはわたしのばんだよ',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 1] },
+            { phrase_id: 1, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 3, accent: [0, 1, 1] },
+          ],
+        },
+        note: '회화에서는 「だ」를 떼고 "次は私の番"처럼 명사로 끝내기도 하지만, 단정 어감을 살리려면 「だ」를 붙인다.',
+      },
+    ],
+  },
+  {
+    id: 'noun-desu',
+    category: 'noun',
+    beta: true,
+    pattern: '〜です',
+    reading: '데스',
+    meanings: ['~입니다'],
+    connection: '명사 + です',
+    explanation: '명사 뒤에 「です」를 붙여 "~입니다"라고 정중하게 단정하는 표현이에요. 「だ」의 정중체 버전으로, 처음 만나는 사람이나 윗사람, 손님에게 두루 쓸 수 있는 가장 안전한 말투예요. 한국어의 "~입니다 / ~이에요"에 해당해요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~입니다',
+        example: {
+          kr: '저는 회사원입니다.',
+          jp: '私(わたし)は会社員(かいしゃいん)です。',
+          pronunciation: '와타시와카이샤인데스',
+          furigana: 'わたしはかいしゃいんです',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 1] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 2, accent: [0, 1] },
+          ],
+        },
+        note: '정중 단정: 「명사 + です」는 "~입니다". 自己紹介(자기소개)에서 가장 많이 쓰는 형태.',
+      },
+      {
+        type: 'basic',
+        meaning: '~입니다',
+        example: {
+          kr: '여기는 학교입니다.',
+          jp: 'ここは学校(がっこう)です。',
+          pronunciation: '코코와갓코-데스',
+          furigana: 'ここはがっこうです',
+          accentData: [
+            { phrase_id: 0, mora_count: 2, accent: [0, 1] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+          ],
+        },
+        note: 'ここは学校です처럼 장소를 정중히 소개할 때 사용. 「だ」를 「です」로 바꾸면 바로 정중체.',
+      },
+      {
+        type: 'applied',
+        meaning: '~입니다',
+        example: {
+          kr: '제 차례는 다음입니다.',
+          jp: '私(わたし)の番(ばん)は次(つぎ)です。',
+          pronunciation: '와타시노반와츠기데스',
+          furigana: 'わたしのばんはつぎです',
+          accentData: [
+            { phrase_id: 0, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 1, mora_count: 2, accent: [0, 1] },
+            { phrase_id: 2, mora_count: 3, accent: [0, 1, 1] },
+          ],
+        },
+        note: '私の番は次です. 명사가 길어져도 마지막에 「です」만 붙이면 정중한 단정이 된다.',
+      },
+    ],
+  },
+  {
+    id: 'noun-nano',
+    category: 'noun',
+    beta: true,
+    pattern: '〜なの',
+    reading: '나노',
+    meanings: ['~야?', '~인 거야'],
+    connection: '명사 + なの',
+    explanation: '명사 뒤에 「なの」를 붙여 부드럽게 설명하거나 물어보는 표현이에요. 끝을 올리면 "~야?"라는 부드러운 의문, 내리면 "~인 거야"라는 부드러운 설명이 돼요. 명사 뒤에는 반드시 「な」가 들어가는 게 핵심이고(회화에서는 「なんだ」 형태로도 자주 들려요), 「だ」보다 말랑말랑하고 친근한 어감이라 이유를 묻거나 확인할 때 잘 어울려요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~야?',
+        example: {
+          kr: '너 학생인 거야?',
+          jp: '君(きみ)は学生(がくせい)なの？',
+          pronunciation: '키미와가쿠세-나노',
+          furigana: 'きみはがくせいなの',
+          accentData: [
+            { phrase_id: 0, mora_count: 2, accent: [1, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 2, accent: [0, 1] },
+          ],
+        },
+        note: '부드러운 의문·설명: 명사 뒤에 「な」를 넣어 「なの／なんだ」로 부드럽게 묻거나 설명한다. 올림조면 "~인 거야?". 君、学生なの？',
+      },
+      {
+        type: 'basic',
+        meaning: '~야?',
+        example: {
+          kr: '너 의사야?',
+          jp: '君(きみ)は医者(いしゃ)なの？',
+          pronunciation: '키미와이샤나노',
+          furigana: 'きみはいしゃなの',
+          accentData: [
+            { phrase_id: 0, mora_count: 2, accent: [1, 0] },
+            { phrase_id: 1, mora_count: 2, accent: [0, 1] },
+            { phrase_id: 2, mora_count: 3, accent: [0, 1, 1] },
+          ],
+        },
+        note: '君は医者なの？처럼 「명사+なの？」로 끝을 올려 부드럽게 확인하는 의문. 단순 의문보다 다정하다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~야?',
+        example: {
+          kr: '그 사람 가수야?',
+          jp: 'あの人(ひと)、歌手(かしゅ)なの？',
+          pronunciation: '아노히토카슈나노',
+          furigana: 'あのひとかしゅなの',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [1, 0, 0, 0] },
+          ],
+        },
+        note: 'あの人、歌手なの？ 핵심은 명사 뒤에 반드시 「な」가 들어간다는 점.',
+      },
+    ],
+  },
+  {
+    id: 'noun-desuka',
+    category: 'noun',
+    beta: true,
+    pattern: '〜ですか',
+    reading: '데스카',
+    meanings: ['~입니까?'],
+    connection: '명사 + ですか',
+    explanation: '명사 정중체 「です」 뒤에 의문 조사 「か」를 붙여 "~입니까?"라고 정중하게 묻는 표현이에요. 한국어의 "~입니까? / ~이세요?"에 해당하고, 처음 만난 사람이나 손님에게 정중하게 물어볼 때 두루 써요. 일본어에서는 「か」가 붙으면 물음표 없이도 의문문이 돼요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~입니까?',
+        example: {
+          kr: '실례지만 학생입니까?',
+          jp: '失礼(しつれい)ですが、学生(がくせい)ですか。',
+          pronunciation: '시츠레-데스가가쿠세-데스카',
+          furigana: 'しつれいですががくせいですか',
+          accentData: [
+            { phrase_id: 0, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 1, mora_count: 2, accent: [0, 1] },
+            { phrase_id: 2, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+          ],
+        },
+        note: '정중 의문: 「명사 + ですか」는 "~입니까?". です 뒤에 か만 붙이면 정중한 질문이 완성된다.',
+      },
+      {
+        type: 'basic',
+        meaning: '~입니까?',
+        example: {
+          kr: '오늘은 휴일입니까?',
+          jp: '今日(きょう)は休日(きゅうじつ)ですか？',
+          pronunciation: '쿄-와큐-지츠데스카',
+          furigana: 'きょうはきゅうじつですか',
+          accentData: [
+            { phrase_id: 0, mora_count: 2, accent: [1, 0] },
+            { phrase_id: 1, mora_count: 3, accent: [0, 1, 1] },
+            { phrase_id: 2, mora_count: 4, accent: [0, 1, 1, 1] },
+          ],
+        },
+        note: '今日は休みですか. 「か」가 의문을 나타내므로 끝에 ? 없이도 질문이 된다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~입니까?',
+        example: {
+          kr: '다음은 제 차례입니까?',
+          jp: '次(つぎ)は私(わたし)の番(ばん)ですか',
+          pronunciation: '츠기와와타시노반데스카',
+          furigana: 'つぎはわたしのばんですか',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 1] },
+            { phrase_id: 1, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 2, accent: [1, 0] },
+            { phrase_id: 3, mora_count: 2, accent: [0, 1] },
+          ],
+        },
+        note: '次は私の番ですか. 순서·차례를 정중히 확인할 때 자주 쓰는 표현.',
+      },
+    ],
+  },
+  {
+    id: 'noun-datta',
+    category: 'noun',
+    beta: true,
+    pattern: '〜だった',
+    reading: '닷타',
+    meanings: ['~였다', '~였어'],
+    connection: '명사 + だった',
+    explanation: '명사 뒤에 「だった」를 붙여 "~였다 / ~였어"라고 과거를 단정하는 보통체 표현이에요. 「だ」의 과거형으로, 친구나 가까운 사이에서 반말로 지난 일을 말할 때 써요. 한국어의 "~였다 / ~였어"처럼 과거의 상태나 정체를 회상하듯 말할 때 잘 어울려요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~였다',
+        example: {
+          kr: '그 사람은 학생이었어.',
+          jp: 'その人(ひと)は学生(がくせい)だった',
+          pronunciation: '소노히토와가쿠세-닷타',
+          furigana: 'そのひとはがくせいだった',
+          accentData: [
+            { phrase_id: 0, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 1, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+          ],
+        },
+        note: '과거 단정: 「명사 + だった」는 "~였다/였어". だ의 과거형으로 보통체(반말) 과거를 만든다.',
+      },
+      {
+        type: 'basic',
+        meaning: '~였다',
+        example: {
+          kr: '어제는 휴일이었어.',
+          jp: '昨日(きのう)は休日(きゅうじつ)だったよ。',
+          pronunciation: '키노-와큐-지츠닷타요',
+          furigana: 'きのうはきゅうじつだったよ',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [1, 0, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 4, accent: [0, 1, 1, 1] },
+          ],
+        },
+        note: '昨日は休みだった. "명사 + だった"로 지난 일을 회상하듯 단정한다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~였다',
+        example: {
+          kr: '아까는 내 차례였어.',
+          jp: 'さっきは私(わたし)の番(ばん)だった。',
+          pronunciation: '삿키와와타시노반닷타',
+          furigana: 'さっきはわたしのばんだった',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [1, 0, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 4, accent: [0, 1, 0, 0] },
+          ],
+        },
+        note: 'さっきは私の番だった. 차례·상태가 과거였음을 반말로 표현. だ → だった.',
+      },
+    ],
+  },
+  {
+    id: 'noun-deshita',
+    category: 'noun',
+    beta: true,
+    pattern: '〜でした',
+    reading: '데시타',
+    meanings: ['~였습니다'],
+    connection: '명사 + でした',
+    explanation: '명사 정중체 「です」의 과거형으로 "~였습니다"라고 정중하게 과거를 단정하는 표현이에요. 「だった」의 정중체 버전이라, 윗사람이나 손님에게 지난 일을 정중하게 말할 때 써요. 한국어의 "~였습니다 / ~이었어요"에 해당해요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~였습니다',
+        example: {
+          kr: '그 사람은 회사원이었습니다.',
+          jp: 'その人(ひと)会社員(かいしゃいん)でした',
+          pronunciation: '소노히토카이샤인데시타',
+          furigana: 'そのひとかいしゃいんでした',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 0] },
+            { phrase_id: 1, mora_count: 5, accent: [0, 1, 1, 1, 0] },
+            { phrase_id: 2, mora_count: 3, accent: [0, 1, 0] },
+          ],
+        },
+        note: '정중 과거: 「명사 + でした」는 "~였습니다". です의 과거형으로 정중하게 과거를 단정한다.',
+      },
+      {
+        type: 'basic',
+        meaning: '~였습니다',
+        example: {
+          kr: '어제는 휴일이었습니다.',
+          jp: '昨日(きのう)は休日(きゅうじつ)でした。',
+          pronunciation: '키노-와큐-지츠데시타',
+          furigana: 'きのうはきゅうじつでした',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [1, 0, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 4, accent: [0, 1, 1, 1] },
+          ],
+        },
+        note: '昨日は休みでした. です → でした로 바꾸면 그대로 정중한 과거가 된다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~였습니다',
+        example: {
+          kr: '거기는 정말 맛집이었습니다.',
+          jp: 'そこは本当(ほんとう)に美味(おい)しい店(みせ)でした',
+          pronunciation: '소코와혼토-니오이시이미세데시타',
+          furigana: 'そこはほんとうにおいしいみせでした',
+          accentData: [
+            { phrase_id: 0, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 1, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+            { phrase_id: 3, mora_count: 4, accent: [0, 1, 1, 1] },
+          ],
+        },
+        note: 'あそこは本当にいい店でした. 다녀온 가게·장소를 정중히 회상할 때 자연스럽다.',
+      },
+    ],
+  },
+  {
+    id: 'noun-janai',
+    category: 'noun',
+    beta: true,
+    pattern: '〜じゃない',
+    reading: '자나이',
+    meanings: ['~가 아니다', '~가 아니야'],
+    connection: '명사 + じゃない',
+    explanation: '명사 뒤에 「じゃない」를 붙여 "~가 아니다 / ~가 아니야"라고 부정하는 보통체 표현이에요. 「だ」의 부정형으로, 원래는 「ではない」지만 회화에서는 줄여서 「じゃない」를 훨씬 많이 써요. 친구나 가까운 사이에서 반말로 "그건 아니야"라고 정정하거나 부정할 때 자주 쓰여요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~가 아니다',
+        example: {
+          kr: '나는 학생이 아니야.',
+          jp: '私(わたし)は学生(がくせい)じゃない',
+          pronunciation: '와타시와가쿠세-자나이',
+          furigana: 'わたしはがくせいじゃない',
+          accentData: [
+            { phrase_id: 0, mora_count: 4, accent: [1, 0, 0, 0] },
+            { phrase_id: 1, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+          ],
+        },
+        note: '부정: 「명사 + じゃない」는 "~가 아니다". だ의 부정형이며 회화체. ではない의 축약형이 じゃない.',
+      },
+      {
+        type: 'basic',
+        meaning: '~가 아니다',
+        example: {
+          kr: '오늘은 휴일이 아니야.',
+          jp: '今日(きょう)は休日(きゅうじつ)じゃない。',
+          pronunciation: '쿄-와큐-지츠자나이',
+          furigana: 'きょうはきゅうじつじゃない',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [1, 0, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 4, accent: [0, 1, 1, 1] },
+          ],
+        },
+        note: '今日は休みじゃない. "명사 + じゃない"로 사실을 부정·정정한다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~가 아니다',
+        example: {
+          kr: '지금은 네 차례가 아니야.',
+          jp: '今(いま)は君(きみ)の番(ばん)じゃない',
+          pronunciation: '이마와키미노반자나이',
+          furigana: 'いまはきみのばんじゃない',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 0] },
+            { phrase_id: 1, mora_count: 3, accent: [0, 1, 0] },
+            { phrase_id: 2, mora_count: 4, accent: [0, 1, 1, 0] },
+          ],
+        },
+        note: '今は君の番じゃない. 차례·자격 등을 반말로 부정할 때 자연스럽다.',
+      },
+    ],
+  },
+  {
+    id: 'noun-janaidesu',
+    category: 'noun',
+    beta: true,
+    pattern: '〜じゃないです',
+    reading: '자나이데스',
+    meanings: ['~가 아닙니다'],
+    connection: '명사 + じゃないです',
+    explanation: '명사 부정 보통체 「じゃない」 뒤에 「です」를 붙여 "~가 아닙니다"라고 정중하게 부정하는 표현이에요. 같은 뜻을 더 격식 있게 「ではないです／ではありません」으로도 쓰는데(예문은 이 격식형으로 나옵니다), 회화에서는 「じゃ」로 줄여 「会社員じゃないです」처럼 더 부드럽게 말해요. 한국어의 "~가 아닙니다 / ~가 아니에요"에 해당해요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~가 아닙니다',
+        example: {
+          kr: '저는 회사원이 아니에요.',
+          jp: '私(わたし)は会社員(かいしゃいん)ではありません。',
+          pronunciation: '와타시와카이샤인데와아리마센',
+          furigana: 'わたしはかいしゃいんではありません',
+          accentData: [
+            { phrase_id: 0, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 1, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 7, accent: [0, 1, 1, 1, 1, 1, 1] },
+          ],
+        },
+        note: '정중 부정: 예문은 「ではないです」로 나왔는데, 회화에선 「会社員じゃないです」처럼 「じゃ」로 줄여 말한다(じゃ=では의 축약).',
+      },
+      {
+        type: 'basic',
+        meaning: '~가 아닙니다',
+        example: {
+          kr: '오늘은 휴일이 아니에요.',
+          jp: '今日(きょう)は休日(きゅうじつ)ではありません。',
+          pronunciation: '쿄-와큐-지츠데와아리마센',
+          furigana: 'きょうはきゅうじつではありません',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [1, 0, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 7, accent: [0, 1, 1, 1, 1, 1, 1] },
+          ],
+        },
+        note: '今日は休みじゃないです＝ではないです. じゃない/ではない 뒤에 です만 붙이면 정중한 부정이 된다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~가 아닙니다',
+        example: {
+          kr: '여기는 우리 회사가 아니에요.',
+          jp: 'ここはうちの会社(かいしゃ)じゃないです',
+          pronunciation: '코코와우치노카이샤자나이데스',
+          furigana: 'ここはうちのかいしゃじゃないです',
+          accentData: [
+            { phrase_id: 0, mora_count: 2, accent: [0, 1] },
+            { phrase_id: 1, mora_count: 3, accent: [0, 1, 1] },
+            { phrase_id: 2, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 3, mora_count: 2, accent: [0, 1] },
+          ],
+        },
+        note: 'ここは私の会社じゃないです로도 말할 수 있다. 「じゃありません／ではありません」은 더 딱딱한 정중 부정.',
+      },
+    ],
+  },
+  {
+    id: 'noun-janakatta',
+    category: 'noun',
+    beta: true,
+    pattern: '〜じゃなかった',
+    reading: '자나캇타',
+    meanings: ['~가 아니었다', '~가 아니었어'],
+    connection: '명사 + じゃなかった',
+    explanation: '명사 부정 보통체 「じゃない」의 과거형으로 "~가 아니었다 / ~가 아니었어"라고 과거를 부정하는 표현이에요. "~인 줄 알았는데 아니었어"처럼 지난 사실을 반말로 부정할 때 써요. 「ではなかった」를 회화에서 줄인 형태가 「じゃなかった」예요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~가 아니었다',
+        example: {
+          kr: '그 사람은 학생이 아니었어.',
+          jp: 'その人(ひと)は学生(がくせい)じゃなかった。',
+          pronunciation: '소노히토와가쿠세-자나캇타',
+          furigana: 'そのひとはがくせいじゃなかった',
+          accentData: [
+            { phrase_id: 0, mora_count: 4, accent: [0, 1, 1, 0] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 0] },
+            { phrase_id: 2, mora_count: 5, accent: [0, 1, 1, 1, 0] },
+          ],
+        },
+        note: '과거 부정: 「じゃなかった」는 "~가 아니었다". じゃない의 과거형이며 보통체(반말).',
+      },
+      {
+        type: 'basic',
+        meaning: '~가 아니었다',
+        example: {
+          kr: '어제는 휴일이 아니었어.',
+          jp: '昨日(きのう)は休日(きゅうじつ)じゃなかったよ。',
+          pronunciation: '키노-와큐-지츠자나캇타요',
+          furigana: 'きのうはきゅうじつじゃなかったよ',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [1, 0, 0] },
+            { phrase_id: 1, mora_count: 5, accent: [0, 1, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 5, accent: [0, 1, 0, 0, 1] },
+          ],
+        },
+        note: '昨日は休みじゃなかった. "~인 줄 알았는데 아니었어"라는 정정 뉘앙스로 자주 쓰인다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~가 아니었다',
+        example: {
+          kr: '거기는 소문난 가게가 아니었어.',
+          jp: 'そこは噂(うわさ)の店(みせ)じゃなかったよ',
+          pronunciation: '소코와우와사노미세자나캇타요',
+          furigana: 'そこはうわさのみせじゃなかったよ',
+          accentData: [
+            { phrase_id: 0, mora_count: 2, accent: [0, 1] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 3, accent: [0, 1, 0] },
+            { phrase_id: 3, mora_count: 4, accent: [0, 1, 0, 1] },
+          ],
+        },
+        note: 'あそこは噂の店じゃなかった. 기대와 달랐던 과거 사실을 반말로 부정. じゃない → じゃなかった.',
+      },
+    ],
+  },
+  {
+    id: 'noun-janakattadesu',
+    category: 'noun',
+    beta: true,
+    pattern: '〜じゃなかったです',
+    reading: '자나캇타데스',
+    meanings: ['~가 아니었습니다'],
+    connection: '명사 + じゃなかったです',
+    explanation: '명사 과거부정 「じゃなかった」 뒤에 「です」를 붙여 "~가 아니었습니다"라고 정중하게 과거를 부정하는 표현이에요. 같은 뜻을 더 격식 있게 「ではありませんでした」로도 쓰는데(예문은 이 격식형으로 나옵니다), 회화에서는 「休みじゃなかったです」처럼 「じゃ」로 줄여 더 부드럽게 말해요. 한국어의 "~가 아니었습니다 / ~가 아니었어요"에 해당해요.',
+    usages: [
+      {
+        type: 'basic',
+        meaning: '~가 아니었습니다',
+        example: {
+          kr: '그 사람은 회사원이 아니었습니다.',
+          jp: 'その人(ひと)は会社員(かいしゃいん)ではありませんでした',
+          pronunciation: '소노히토와카이샤인데와아리마센데시타',
+          furigana: 'そのひとはかいしゃいんではありませんでした',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 1] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 10, accent: [0, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+          ],
+        },
+        note: '정중 과거 부정: 예문은 격식형 「ではありませんでした」지만, 회화에선 「会社員じゃなかったです」처럼 「じゃ」로 줄여 말한다.',
+      },
+      {
+        type: 'basic',
+        meaning: '~가 아니었습니다',
+        example: {
+          kr: '어제는 휴일이 아니었습니다.',
+          jp: '昨日(きのう)は休日(きゅうじつ)ではありませんでした',
+          pronunciation: '키노-와큐-지츠데와아리마센데시타',
+          furigana: 'きのうはきゅうじつではありませんでした',
+          accentData: [
+            { phrase_id: 0, mora_count: 3, accent: [0, 1, 1] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 10, accent: [0, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+          ],
+        },
+        note: '昨日は休みじゃなかったです＝ではありませんでした. じゃなかった 뒤에 です만 붙이면 부드러운 정중 과거 부정이 된다.',
+      },
+      {
+        type: 'applied',
+        meaning: '~가 아니었습니다',
+        example: {
+          kr: '거기는 제 학교가 아니었습니다.',
+          jp: 'そこは私(わたし)の学校(がっこう)ではありませんでした。',
+          pronunciation: '소코와와타시노갓코-데와아리마센데시타',
+          furigana: 'そこはわたしのがっこうではありませんでした',
+          accentData: [
+            { phrase_id: 0, mora_count: 2, accent: [0, 1] },
+            { phrase_id: 1, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 2, mora_count: 4, accent: [0, 1, 1, 1] },
+            { phrase_id: 3, mora_count: 7, accent: [0, 1, 1, 1, 1, 1, 1] },
+          ],
+        },
+        note: 'そこは私の学校じゃなかったです로도 말할 수 있다. 「ではありませんでした」는 더 딱딱한 정중 과거 부정.',
+      },
+    ],
+  },
 
   /* ── 기타 (권유·제안) ── */
   {

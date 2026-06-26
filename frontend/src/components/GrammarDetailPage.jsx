@@ -1,13 +1,18 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { GRAMMAR } from '../data/grammar'
+import { useUser } from '../context/UserContext'
 import GrammarDetail from './GrammarDetail'
 import PageSEO from './PageSEO'
 import { track } from '../App'
 
 export default function GrammarDetailPage() {
   const { id }  = useParams()
-  const pattern = GRAMMAR.find(g => g.id === id)
+  const { user } = useUser()
+  const isAdmin = !!user?.is_admin
+  const found   = GRAMMAR.find(g => g.id === id)
+  // beta 패턴은 관리자 외에는 접근 불가(직접 URL 진입 차단)
+  const pattern = found && (isAdmin || !found.beta) ? found : null
 
   useEffect(() => {
     window.scrollTo(0, 0)

@@ -38,6 +38,17 @@ const KANA_HANGUL = {
   ぢゃ:'자',ぢゅ:'주',ぢょ:'조',
   びゃ:'뱌',びゅ:'뷰',びょ:'뵤',
   ぴゃ:'퍄',ぴゅ:'퓨',ぴょ:'표',
+  // 외래어 합성 모라(でぃ=디, ふぇ=페 등) — 없으면 가나 그대로 떨어짐. 후리가나는 보통 히라가나라 히라가나 우선 + 가타카나 보강.
+  いぇ:'예',うぃ:'위',うぇ:'웨',うぉ:'워',
+  ゔ:'브',ゔぁ:'바',ゔぃ:'비',ゔぇ:'베',ゔぉ:'보',ゔゅ:'뷰',
+  しぇ:'셰',じぇ:'제',ちぇ:'체',つぁ:'차',つぃ:'치',つぇ:'체',つぉ:'초',
+  てぃ:'티',てゅ:'튜',でぃ:'디',でゅ:'듀',とぅ:'투',どぅ:'두',
+  ふぁ:'파',ふぃ:'피',ふぇ:'페',ふぉ:'포',ふゅ:'퓨',
+  イェ:'예',ウィ:'위',ウェ:'웨',ウォ:'워',
+  ヴ:'브',ヴァ:'바',ヴィ:'비',ヴェ:'베',ヴォ:'보',ヴュ:'뷰',
+  シェ:'셰',ジェ:'제',チェ:'체',ツァ:'차',ツィ:'치',ツェ:'체',ツォ:'초',
+  ティ:'티',テュ:'튜',ディ:'디',デュ:'듀',トゥ:'투',ドゥ:'두',
+  ファ:'파',フィ:'피',フェ:'페',フォ:'포',フュ:'퓨',
 }
 const moraToHangul = (m) => KANA_HANGUL[m] ?? m
 
@@ -51,9 +62,11 @@ for (const k of 'おこそとのほもよろをごぞどぼぽ') MORA_VOWEL[k] =
 const vowelOf = (m) => {
   if (!m) return null
   const last = m[m.length - 1]
-  if (last === 'ゃ') return 'a'
-  if (last === 'ゅ') return 'u'
-  if (last === 'ょ') return 'o'
+  if (last === 'ゃ' || last === 'ぁ' || last === 'ァ') return 'a'
+  if (last === 'ぃ' || last === 'ィ') return 'i'
+  if (last === 'ゅ' || last === 'ぅ' || last === 'ゥ') return 'u'
+  if (last === 'ぇ' || last === 'ェ') return 'e'
+  if (last === 'ょ' || last === 'ぉ' || last === 'ォ') return 'o'
   return MORA_VOWEL[m] ?? null
 }
 
@@ -61,13 +74,16 @@ const vowelOf = (m) => {
 // 한자 독음 그룹 안에서만 장음을 압축하므로 형태소 경계 밖(ています의 てい 등)은 건드리지 않는다.
 function kanjiGroupFlags(furiganaHtml, allMora) {
   if (!furiganaHtml) return null
-  const isKana = (ch) => /[぀-ヿ]/.test(ch)
+  // furigana는 히라가나. 괄호 안=한자/외래어 독음(히라가나+장음 ー), 괄호 밖=히라가나만(조사 등).
+  // 괄호 밖 가타카나 외래어(ディカフェ·コーヒー 등)와 그 ー는 '한자처럼' 건너뛰어 정렬을 맞춘다.
+  const isHira = (ch) => /[ぁ-ゟ]/.test(ch)
   const chars = []
   let inParen = false
   for (const ch of furiganaHtml) {
     if (ch === '(' || ch === '（') { inParen = true; continue }
     if (ch === ')' || ch === '）') { inParen = false; continue }
-    if (isKana(ch)) chars.push({ ch, kanji: inParen })
+    if (inParen) { if (isHira(ch) || ch === 'ー') chars.push({ ch, kanji: true }) }
+    else if (isHira(ch)) chars.push({ ch, kanji: false })
   }
   const small = new Set(['ぁ','ぃ','ぅ','ぇ','ぉ','ゃ','ゅ','ょ','っ','ァ','ィ','ゥ','ェ','ォ','ャ','ュ','ョ','ッ'])
   const moras = [], flags = []

@@ -32,10 +32,10 @@ const TEST_BANNER = {
   ios: 'ca-app-pub-3940256099942544/2934735716',
   android: 'ca-app-pub-3940256099942544/6300978111',
 }
-// 실제 배너 광고 단위 ID (AdMob에서 '배너' 단위 생성 후 채울 것. 미입력이면 테스트 ID 폴백)
+// 실제 배너 광고 단위 ID (미입력이면 테스트 ID 폴백)
 const REAL_BANNER = {
-  ios: '',    // TODO: AdMob 배너 단위 생성 후 채우기
-  android: '',
+  ios: 'ca-app-pub-8958373483224358/5219320042',
+  android: '',   // 안드로이드 단위 미생성 — 미입력이면 테스트 ID 폴백
 }
 
 // Google 공식 테스트 전면(interstitial) 광고 단위 ID

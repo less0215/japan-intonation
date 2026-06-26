@@ -33,7 +33,7 @@ import SubscriptionPage from './components/SubscriptionPage'
 import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbox'
 import UpdateGate from './components/UpdateGate'
 import ReviewEventPopup from './components/ReviewEventPopup'
-import { showRewardedAd, showInterstitialAd } from './ads'
+import { showRewardedAd, showInterstitialAd, showAppBanner, hideAppBanner } from './ads'
 import { adsCfg } from './config'   // 광고 빈도(백엔드 제어)
 import { iapLogin, iapLogout, getEntitlements } from './iap'
 import ParticleDetailPage from './components/ParticleDetailPage'
@@ -360,6 +360,15 @@ export default function App() {
   const [iapActive, setIapActive] = useState(false)           // 인앱 결제(RevenueCat) 활성 권한(plus/pro)
   const iapActiveRef = useRef(false)                          // /subscription effect에서 현재값 참조용
   function applyIap(active) { iapActiveRef.current = active; setIapActive(active); if (active) setSubAdFree(true) }
+  // 앱 하단 고정 배너 — 목록·상세·라이브캠 '브라우징/학습' 화면에서만 노출(번역 결과·홈·결제·다운로드·프로필 제외).
+  // 웹은 인피드 AdSense가 담당하므로 이 배너는 앱(AdMob) 전용. 광고제거(subAdFree) 회원은 미노출.
+  useEffect(() => {
+    if (!isApp) return
+    const p = location.pathname
+    const onBannerScreen = /^\/(verbs|adj-i|adj-na|noun|particles|grammar|onomatope|live)(\/|$)/.test(p)
+    if (!subAdFree && onBannerScreen) showAppBanner()
+    else hideAppBanner()
+  }, [location.pathname, subAdFree])
   const [photoStudy, setPhotoStudy] = useState(null)          // 사진 학습 전체화면 { result, imageUrl } (관리자 베타)
   const [msgUnread, setMsgUnread] = useState(0)               // 메시지함 안 읽은 개수(헤더 빨간 점)
   // 정착(settled) 번역 세션 — 디바운스 중간 호출을 한 번역으로 묶어 한도·광고 카운트

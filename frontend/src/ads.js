@@ -27,6 +27,17 @@ const REAL_REWARDED = {
   android: '',   // 안드로이드 단위 미생성 — 생성 시 채울 것(미입력이면 테스트 ID 폴백)
 }
 
+// Google 공식 테스트 배너 광고 단위 ID
+const TEST_BANNER = {
+  ios: 'ca-app-pub-3940256099942544/2934735716',
+  android: 'ca-app-pub-3940256099942544/6300978111',
+}
+// 실제 배너 광고 단위 ID (AdMob에서 '배너' 단위 생성 후 채울 것. 미입력이면 테스트 ID 폴백)
+const REAL_BANNER = {
+  ios: '',    // TODO: AdMob 배너 단위 생성 후 채우기
+  android: '',
+}
+
 // Google 공식 테스트 전면(interstitial) 광고 단위 ID
 const TEST_INTERSTITIAL = {
   ios: 'ca-app-pub-3940256099942544/4411468910',
@@ -55,6 +66,11 @@ function rewardedAdId() {
 function interstitialAdId() {
   // 전면 실제 단위 미생성 → 테스트 ID 폴백
   return REAL_INTERSTITIAL[platform()] || TEST_INTERSTITIAL[platform()]
+}
+
+function bannerAdId() {
+  // 배너 실제 단위 미생성 → 테스트 ID 폴백
+  return REAL_BANNER[platform()] || TEST_BANNER[platform()]
 }
 
 // 앱 시작 시 1회 호출 (main.jsx)
@@ -176,4 +192,34 @@ export async function showInterstitialAd({ minGapMs } = {}) {
     console.warn('[ads] interstitial 실패', e)
     return false
   }
+}
+
+// ── 하단 고정 배너 (앱 전용) — 목록·상세·라이브캠 등 '브라우징/학습' 화면에 노출.
+// 네이티브 오버레이라 콘텐츠 흐름을 밀어내지 않고, 화면 하단(탭바 위)에 떠 있다.
+// ⚠️ margin: 하단 탭바(BottomNav, position:fixed bottom:0 + safe-area)를 가리지 않도록 그 위로 띄우는 값.
+//    기기마다 탭바 높이·safe-area가 달라 실기기에서 미세조정 필요(아래 기본값은 추정치).
+let _bannerShown = false
+const BANNER_MARGIN = 58   // TODO: 실기기에서 하단 탭바 위에 정확히 오도록 조정
+
+export async function showAppBanner() {
+  if (!isApp || isAdFreeMember() || _bannerShown) return
+  try {
+    if (!_ready) await initAds()
+    if (!_admob) return
+    const { BannerAdSize, BannerAdPosition } = await import('@capacitor-community/admob')
+    await _admob.showBanner({
+      adId: bannerAdId(),
+      adSize: BannerAdSize.ADAPTIVE_BANNER,
+      position: BannerAdPosition.BOTTOM_CENTER,
+      margin: BANNER_MARGIN,
+      isTesting: USE_TEST,
+    })
+    _bannerShown = true
+  } catch (e) { console.warn('[ads] banner 표시 실패', e) }
+}
+
+export async function hideAppBanner() {
+  if (!isApp || !_bannerShown) return
+  try { if (_admob) await _admob.removeBanner() } catch {}
+  _bannerShown = false
 }

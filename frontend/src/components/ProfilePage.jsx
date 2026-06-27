@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import ReferralCodeCard from './ReferralCodeCard'
+import AdminMetrics from './AdminMetrics'
 import AdminRevenue from './AdminRevenue'
 import AdminLearning from './AdminLearning'
 
@@ -63,6 +64,7 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
       )}
 
       {/* 관리자 전용 — 제휴 수익 대시보드 */}
+      {user?.is_admin && <AdminMetrics />}
       {user?.is_admin && <AdminRevenue />}
       {user?.is_admin && <AdminLearning />}
 

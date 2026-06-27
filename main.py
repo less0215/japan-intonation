@@ -2786,6 +2786,86 @@ def mrt_revenue_summary(key: str = ""):
     return _revenue_summary()
 
 
+@app.get("/admin/metrics")
+def admin_metrics(key: str = ""):
+    """관리자 핵심 지표 — 구독자(순수/Plus/Pro)·회원·신규 + 활성 구독 목록(테스트 정리용).
+    순수 구독자 = 활성 구독 중 관리자·무료지급(화이트리스트) 제외한 실 결제자."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    db = SessionLocal()
+    try:
+        now = now_kst()
+        active = [s for s in db.query(Subscription)
+                       .filter(Subscription.status == 'active')
+                       .order_by(Subscription.started_at.desc()).all()
+                  if (not s.expires_at or s.expires_at > now)]
+        uids = list({s.user_id for s in active})
+        umap = {u.id: u for u in db.query(User).filter(User.id.in_(uids)).all()} if uids else {}
+        def is_comp(u):  # 관리자·무제한 화이트리스트(비결제 계정)
+            return bool(u and (is_admin_phone(u.phone) or is_fast_unlimited(u.phone)))
+        plus = pro = pure = pure_plus = pure_pro = 0
+        subs = []
+        for s in active:
+            u = umap.get(s.user_id)
+            c = is_comp(u)
+            if s.plan == 'plus': plus += 1
+            elif s.plan == 'pro': pro += 1
+            if not c:
+                pure += 1
+                if s.plan == 'plus': pure_plus += 1
+                elif s.plan == 'pro': pure_pro += 1
+            ph = re.sub(r'[^0-9]', '', u.phone) if (u and u.phone) else ''
+            subs.append({
+                "id": s.id, "user_id": s.user_id,
+                "name": u.name if u else "(탈퇴 회원)",
+                "phone_tail": ph[-4:] if ph else "",
+                "plan": s.plan, "period": s.period,
+                "started_at": s.started_at.isoformat() if s.started_at else None,
+                "comp": c,
+            })
+        try:
+            today0 = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            week0 = now - datetime.timedelta(days=7)
+            new_today = db.query(User).filter(User.created_at >= today0).count()
+            new_7d = db.query(User).filter(User.created_at >= week0).count()
+        except Exception:
+            new_today = new_7d = None
+        return {
+            "subscribers": {
+                "pure": pure, "pure_plus": pure_plus, "pure_pro": pure_pro,
+                "total_active": len(active), "plus": plus, "pro": pro,
+                "comp": len(active) - pure,
+            },
+            "users": {"total": db.query(User).count(), "new_today": new_today, "new_7d": new_7d},
+            "subs": subs,
+        }
+    finally:
+        db.close()
+
+
+class CancelSubRequest(BaseModel):
+    key: str
+    user_id: int
+
+@app.post("/admin/cancel-sub")
+def admin_cancel_sub(req: CancelSubRequest):
+    """특정 회원의 활성 구독을 취소(status='canceled'). 테스트 계정 정리용."""
+    if req.key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    db = SessionLocal()
+    try:
+        rows = db.query(Subscription).filter(
+            Subscription.user_id == req.user_id,
+            Subscription.status == 'active').all()
+        n = 0
+        for s in rows:
+            s.status = 'canceled'; s.updated_at = now_kst(); n += 1
+        db.commit()
+        return {"ok": True, "canceled": n, "user_id": req.user_id}
+    finally:
+        db.close()
+
+
 @app.post("/admin/rename-user")
 def admin_rename_user(key: str = "", phone: str = "", new_name: str = ""):
     """회원 이름 변경 (관리 토큰). 보안상 노출된 이름과 다른 비공개 이름으로 교체할 때 사용."""

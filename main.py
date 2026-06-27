@@ -1270,7 +1270,10 @@ from collections import deque as _deque
 
 RATE_PER_MIN  = 40     # 분당 LLM 호출 상한(번역+분해+톤+TTS 합산)
 RATE_PER_HOUR = 600    # 시간당 상한
-GUEST_PER_DAY = 300    # 비회원 IP당 일일 번역(analyze) 상한
+# 일일 번역(analyze) 상한 — 웹 API 비용 방어. 앱(platform=='app')은 광고로 충당하므로 면제.
+GUEST_PER_DAY    = 50   # 웹 비회원 IP당 일일 (기존 300 → 하향)
+WEB_USER_PER_DAY = 200  # 웹 로그인 회원당 일일 (무인증 가입=무제한 구멍 차단; 일반 학습자엔 충분히 여유)
+MAX_INPUT_CHARS  = 300  # 1회 번역 입력 길이 상한(긴 페이로드 비용 방어)
 
 _rate_buckets: dict[str, "_deque"] = {}   # key → 최근 1시간 타임스탬프
 _guest_daily: dict[str, list] = {}        # ip → [date_kst, count]
@@ -1284,10 +1287,10 @@ def _client_ip(request: Request) -> str:
     return request.client.host if (request and request.client) else "unknown"
 
 
-def rate_guard(request: Request, user_id: int | None = None, count_daily: bool = False):
-    """분당/시간당 호출 상한 + (비회원·count_daily) 일일 상한. 초과 시 429."""
+def rate_guard(request: Request, user_id: int | None = None, count_daily: bool = False, platform: str | None = None):
+    """분당/시간당 호출 상한 + (count_daily) 일일 상한. 초과 시 429.
+    일일 상한은 웹 비용 방어용 — 앱(platform=='app')은 광고로 충당하므로 면제, 웹은 게스트/로그인 차등."""
     now = time.time()
-    is_guest = not user_id
     key = f"u:{user_id}" if user_id else f"ip:{_client_ip(request)}"
 
     dq = _rate_buckets.setdefault(key, _deque())
@@ -1298,16 +1301,19 @@ def rate_guard(request: Request, user_id: int | None = None, count_daily: bool =
     if sum(1 for t in dq if now - t <= 60) >= RATE_PER_MIN:
         raise HTTPException(status_code=429, detail="잠깐만요, 너무 빠르게 요청했어요. 잠시 후 다시 시도해 주세요.")
 
-    # 비회원 일일 번역 상한 (KST 기준 자정 리셋)
-    if is_guest and count_daily:
+    # 일일 번역 상한 (KST 자정 리셋). 앱은 면제, 웹은 게스트(IP)/로그인(회원) 차등.
+    if count_daily and platform != "app":
+        cap = WEB_USER_PER_DAY if user_id else GUEST_PER_DAY
         today = time.strftime("%Y-%m-%d", time.gmtime(now + 9 * 3600))
         d = _guest_daily.get(key)
         if not d or d[0] != today:
             d = [today, 0]
             _guest_daily[key] = d
-        if d[1] >= GUEST_PER_DAY:
-            raise HTTPException(status_code=429,
-                detail="오늘 무료 번역을 많이 사용했어요. 로그인하거나 앱에서 이어서 이용해 주세요.")
+        if d[1] >= cap:
+            msg = ("오늘 웹 무료 번역 한도에 도달했어요. 앱에서 무제한으로 이어서 이용해 주세요."
+                   if user_id else
+                   "오늘 무료 번역을 많이 사용했어요. 로그인하거나 앱에서 이어서 이용해 주세요.")
+            raise HTTPException(status_code=429, detail=msg)
         d[1] += 1
 
     dq.append(now)
@@ -1356,7 +1362,7 @@ def consume_photo_quota(db, user_id, anon_id, request):
 
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze(req: AnalyzeRequest, request: Request):
-    rate_guard(request, req.user_id, count_daily=True)
+    rate_guard(request, req.user_id, count_daily=True, platform=req.platform)
     """
     한국어 문장을 받아 일본어 번역 + 악센트 배열을 빠르게 반환한다 (문장 분해 제외).
 
@@ -1369,6 +1375,9 @@ def analyze(req: AnalyzeRequest, request: Request):
     text = req.text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="입력 텍스트가 비어 있습니다.")
+    if len(text) > MAX_INPUT_CHARS:
+        raise HTTPException(status_code=400,
+            detail=f"한 번에 번역할 수 있는 길이를 초과했어요(최대 {MAX_INPUT_CHARS}자).")
 
     # ── 빠른 번역 한도 판정 (서버에서 차감·리셋) ──
     # 빠른 번역은 로그인 회원만. 한도 초과/비회원이면 기본 번역으로 폴백.

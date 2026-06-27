@@ -1895,6 +1895,31 @@ def survey_submit(req: SurveySubmitRequest):
         db.close()
 
 
+class ResetSurveyRequest(BaseModel):
+    admin_phone: str
+    phone: str
+
+@app.post("/admin/reset-survey")
+def admin_reset_survey(req: ResetSurveyRequest):
+    """관리자 전용 — 특정 회원의 설문 참여 기록 + 설문 지급(7일) 구독을 초기화(테스트 재참여용).
+    실결제(IAP) 구독은 건드리지 않음(customer_key='survey7d'만 삭제)."""
+    if not is_admin_phone(req.admin_phone):
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    db = SessionLocal()
+    try:
+        target = _norm_phone(req.phone)
+        u = next((x for x in db.query(User).all() if _norm_phone(x.phone) == target), None)
+        if not u:
+            raise HTTPException(status_code=404, detail="해당 회원을 찾을 수 없어요.")
+        n1 = db.query(SurveyResponse).filter(SurveyResponse.user_id == u.id).delete()
+        n2 = db.query(Subscription).filter(Subscription.user_id == u.id,
+                                           Subscription.customer_key == "survey7d").delete()
+        db.commit()
+        return {"ok": True, "user_id": u.id, "name": u.name, "deleted_response": n1, "deleted_sub": n2}
+    finally:
+        db.close()
+
+
 # ── 인앱 결제(RevenueCat) 웹훅 ─────────────────────────────────
 # RevenueCat → 구매/갱신/취소/만료 이벤트 → Subscription 갱신(서버 enforcement: 광고제거·무제한·한도).
 # RevenueCat 대시보드 Integrations → Webhooks 에 URL + Authorization 헤더(아래 값) 등록.

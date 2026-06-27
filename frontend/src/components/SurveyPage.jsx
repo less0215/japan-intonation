@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import PageSEO from './PageSEO'
@@ -12,7 +12,7 @@ const QUESTIONS = [
   { id: 'purpose', q: '틱재팬을 쓰는 가장 주된 목적은?', type: 'single', otherOpt: '기타',
     options: ['시험·자격 (JLPT 등)', '취업·업무·비즈니스', '유학·워홀·이민 등 일본 체류', '여행', '연인·친구·가족과 소통', '덕질·취미·자기계발', '기타'] },
   { id: 'level', q: '현재 일본어 수준은?', type: 'single',
-    options: ['입문 (가나 떼는 중)', '기초 (N5~N4)', '일상회화 (N3)', '상급 (N2 이상)'] },
+    options: ['입문', '기초 (N5~N4)', '일상회화 (N3)', '상급 (N2 이상)'] },
   { id: 'frequency', q: '최근 1주일간 며칠 쓰셨나요?', type: 'single',
     options: ['거의 매일 (5~7일)', '주 3~4일', '주 1~2일', '이번 주는 안 씀'] },
   { id: 'pmf', q: '내일부터 틱재팬을 못 쓰게 된다면?', type: 'single',
@@ -33,7 +33,6 @@ export default function SurveyPage({ onLogin, onSubRefresh }) {
   const { user } = useUser()
   const [ans, setAns] = useState({})
   const [other, setOther] = useState({})
-  const [step, setStep] = useState(1)          // 노출된 문항 수
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState(null)   // 'new' | 'extended' | 'already'
   const [err, setErr] = useState('')
@@ -44,24 +43,43 @@ export default function SurveyPage({ onLogin, onSubRefresh }) {
   const allRequired = answeredReq === REQUIRED.length
   const progress = Math.round((answeredReq / REQUIRED.length) * 100)
 
-  function revealNext(idx) {
-    if (idx === step - 1 && step < total) {
-      setStep(s => s + 1)
-      setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 90)
-    }
+  // 노출 문항 수 = 위에서부터 '연속으로' 답한 문항 + 1 → 한 번에 하나씩만 등장/제거
+  const revealed = useMemo(() => {
+    let r = 1
+    for (let i = 0; i < total; i++) { if (filled(ans[QUESTIONS[i].id])) r = i + 2; else break }
+    return Math.min(r, total)
+  }, [ans, total])
+
+  // 새 문항이 나타날 때만 부드럽게 스크롤
+  const prevRevealed = useRef(1)
+  useEffect(() => {
+    if (revealed > prevRevealed.current) setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 90)
+    prevRevealed.current = revealed
+  }, [revealed])
+
+  // idx 이후 문항들의 답변 제거(해제 시 뒤따라 생겼던 문항도 다시 사라지게)
+  function clearFrom(obj, idx) {
+    for (let i = idx + 1; i < total; i++) { delete obj[QUESTIONS[i].id] }
   }
-  function pickSingle(q, idx, opt) {
-    setAns(a => ({ ...a, [q.id]: opt }))
-    revealNext(idx)
+  function pickSingle(q, idx, opt) {           // 같은 보기 재클릭 = 해제
+    setAns(a => {
+      const next = { ...a }
+      if (a[q.id] === opt) { delete next[q.id]; clearFrom(next, idx) }
+      else next[q.id] = opt
+      return next
+    })
   }
   function pickMulti(q, idx, opt) {
     setAns(a => {
       const cur = a[q.id] || []
-      if (cur.includes(opt)) return { ...a, [q.id]: cur.filter(x => x !== opt) }
-      if (cur.length >= q.max) return a
-      return { ...a, [q.id]: [...cur, opt] }
+      let arr
+      if (cur.includes(opt)) arr = cur.filter(x => x !== opt)
+      else if (cur.length >= q.max) return a
+      else arr = [...cur, opt]
+      const next = { ...a, [q.id]: arr }
+      if (arr.length === 0) { delete next[q.id]; clearFrom(next, idx) }   // 전부 해제 시 이후 문항도 사라지게
+      return next
     })
-    revealNext(idx)
   }
 
   async function submit() {
@@ -128,7 +146,7 @@ export default function SurveyPage({ onLogin, onSubRefresh }) {
           </p>
         </div>
 
-        {QUESTIONS.slice(0, step).map((Q, i) => {
+        {QUESTIONS.slice(0, revealed).map((Q, i) => {
           const v = ans[Q.id]
           const showOther = Q.otherOpt && (Array.isArray(v) ? v.includes(Q.otherOpt) : v === Q.otherOpt)
           return (

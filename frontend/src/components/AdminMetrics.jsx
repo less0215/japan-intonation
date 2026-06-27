@@ -149,14 +149,18 @@ export default function AdminMetrics() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {filtered.map((s) => {
-            const isRev = s.active !== undefined   // 리뷰이벤트 코호트 행(만료 포함)
+            const isRev = s.active !== undefined   // 리뷰이벤트 코호트 행(만료·무제한 포함)
             const tag = isRev
-              ? { label: s.active ? '활성' : '만료', c: s.active ? '#1D9E75' : '#9aa3ad' }
+              ? (s.grant === '무제한'
+                  ? { label: '무제한', c: '#7F77DD' }
+                  : { label: s.active ? '기간제·활성' : '만료', c: s.active ? '#1D9E75' : '#9aa3ad' })
               : (KIND[s.kind] || KIND.etc)
             const meta = isRev
-              ? `${(s.plan || '').toUpperCase()} · ${s.expires_at ? '~' + s.expires_at.slice(0, 10) : (s.started_at ? s.started_at.slice(0, 10) : '')}`
+              ? (s.grant === '무제한'
+                  ? 'PLUS · 무제한(화이트리스트)'
+                  : `${(s.plan || '').toUpperCase()} · ${s.expires_at ? '~' + s.expires_at.slice(0, 10) : ''}${s.active ? '' : ' · 만료'}`)
               : `${(s.plan || '').toUpperCase()} · ${s.period === 'trial' ? '체험' : s.period === 'yearly' ? '연' : '월'} · ${s.started_at ? s.started_at.slice(0, 10) : ''}`
-            const cancellable = isRev ? s.active : true
+            const cancellable = isRev ? (s.grant === '기간제' && s.active) : true
             return (
               <div key={(isRev ? 'r' : 's') + s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--bd)', borderRadius: 10, background: 'var(--surface)' }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
@@ -172,7 +176,7 @@ export default function AdminMetrics() {
                     {busyId === s.id ? '취소 중…' : '취소'}
                   </button>
                 ) : (
-                  <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--text-3)' }}>만료됨</span>
+                  <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--text-3)' }}>{isRev && s.grant === '무제한' ? '화이트리스트' : '만료됨'}</span>
                 )}
               </div>
             )

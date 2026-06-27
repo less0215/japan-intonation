@@ -2832,7 +2832,8 @@ def admin_metrics(key: str = ""):
                 "started_at": s.started_at.isoformat() if s.started_at else None,
             })
 
-        # 리뷰이벤트 코호트 — 모든 comp_ 지급(만료 포함), 유저별 최신 1건, 관리자(정봉준*) 제외
+        # 리뷰이벤트 코호트 — 리뷰 보상 받은 사람 전부(관리자 제외):
+        #  ① comp_ 기간제 지급(만료 포함, 유저별 최신) + ② 무제한 화이트리스트(전화 기반, 항상 활성)
         review_seen = {}
         for s in db.query(Subscription).filter(Subscription.customer_key.like('comp%')).all():
             if not (s.customer_key or '').startswith('comp_'):
@@ -2840,25 +2841,31 @@ def admin_metrics(key: str = ""):
             cur = review_seen.get(s.user_id)
             if cur is None or (s.started_at and (not cur.started_at or s.started_at > cur.started_at)):
                 review_seen[s.user_id] = s
-        ruids = list(review_seen.keys())
-        rumap = {u.id: u for u in db.query(User).filter(User.id.in_(ruids)).all()} if ruids else {}
         review_list = []
-        for uid, s in review_seen.items():
-            u = rumap.get(uid)
-            if u and is_admin_phone(u.phone):
+        for u in db.query(User).all():
+            if is_admin_phone(u.phone):
                 continue
-            ph = re.sub(r'[^0-9]', '', u.phone) if (u and u.phone) else ''
-            is_active = s.status == 'active' and (not s.expires_at or s.expires_at > now)
-            review_list.append({
-                "id": s.id, "user_id": uid,
-                "name": u.name if u else "(탈퇴 회원)",
-                "phone_tail": ph[-4:] if ph else "",
-                "plan": s.plan, "period": s.period,
-                "started_at": s.started_at.isoformat() if s.started_at else None,
-                "expires_at": s.expires_at.isoformat() if s.expires_at else None,
-                "active": is_active,
-            })
-        review_list.sort(key=lambda x: x["started_at"] or "", reverse=True)
+            wl = is_fast_unlimited(u.phone)
+            cs = review_seen.get(u.id)
+            if not wl and not cs:
+                continue
+            ph = re.sub(r'[^0-9]', '', u.phone) if u.phone else ''
+            if wl:   # 무제한 화이트리스트(코드 기반) — 항상 활성, 대시보드 취소 대상 아님
+                review_list.append({
+                    "id": "wl%d" % u.id, "user_id": u.id, "name": u.name,
+                    "phone_tail": ph[-4:] if ph else "", "grant": "무제한",
+                    "plan": "plus", "started_at": None, "expires_at": None, "active": True,
+                })
+            else:    # comp_ 기간제
+                is_active = cs.status == 'active' and (not cs.expires_at or cs.expires_at > now)
+                review_list.append({
+                    "id": cs.id, "user_id": u.id, "name": u.name,
+                    "phone_tail": ph[-4:] if ph else "", "grant": "기간제",
+                    "plan": cs.plan, "started_at": cs.started_at.isoformat() if cs.started_at else None,
+                    "expires_at": cs.expires_at.isoformat() if cs.expires_at else None,
+                    "active": is_active,
+                })
+        review_list.sort(key=lambda x: (not x["active"], x["name"] or ""))
         review_active = sum(1 for r in review_list if r["active"])
         try:
             today0 = now.replace(hour=0, minute=0, second=0, microsecond=0)

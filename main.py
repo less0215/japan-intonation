@@ -3180,7 +3180,7 @@ def android_interest_status(user_id: int):
 # DEFAULT_MIN_APP_VERSION 이상이 아니면 앱에서 '업데이트' 강제 팝업.
 # 평소엔 현재 출시버전과 같게 둬서 아무도 안 막힘. 새 버전 필수 반영 시 /admin/set-min-version으로 올림.
 DEFAULT_MIN_APP_VERSION = "1.6"   # 평소 안전값(아무도 안 막힘). 1.8 출시 승인 후 /admin/force-update로 "1.8" 올리면 전원 강제
-LATEST_APP_VERSION = "1.8"
+LATEST_APP_VERSION = "1.9"
 APP_STORE_URL = "https://apps.apple.com/app/id6781296261"
 
 def _get_setting(db, key, default):

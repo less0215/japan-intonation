@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import PitchGraph from './PitchGraph'
 import CopyButton from './CopyButton'
 import { BreakdownTable, BreakdownCards, DetailToggleButton, BreakdownPreview } from './BreakdownPanel'
+import { pronText } from '../utils/kana.mjs'
 import { track, logLearning } from '../App'
 
 const PRIMARY = '#5CA9CE'
@@ -257,7 +258,7 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
           )}
         </p>
         {/* 한국어 발음 */}
-        <p className="pronunciation-text">{korean_pronunciation}</p>
+        <p className="pronunciation-text">{pronText(furigana, furigana_html, accent_data) || korean_pronunciation}</p>
 
         {/* 번역 톤 칩 — 누를 때 생성(자연스럽게/비즈니스/직역) */}
         {inputText && (

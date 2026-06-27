@@ -159,3 +159,50 @@ export function moraHangulLV(moraList, i, kanjiFlags) {
   }
   return moraToHangul(m)
 }
+
+// 후리가나 → 한글 발음 텍스트(번역 본문·예문 공용). 그래프와 동일 로직으로 결정론 생성:
+// 조사 보정(한자그룹 밖 は→와, へ→에), 한자그룹 장음 압축(ー), ん→앞 음절 받침ㄴ, 어절 띄어쓰기(accentData 기준).
+// LLM 발음 필드의 간헐 오타(예: ざ→즈)를 원천 차단한다.
+export function pronText(furigana, furiganaHtml, accentData) {
+  const moras = splitMora(furigana || '')
+  if (!moras.length) return ''
+  const flags = kanjiGroupFlags(furiganaHtml, moras)
+  const toks = moras.map((m, i) => {
+    if (flags && flags[i] === false) {
+      if (m === 'は') return '와'
+      if (m === 'へ') return '에'
+    }
+    return moraHangulLV(moras, i, flags)
+  })
+  const fold = (arr) => {
+    const r = []
+    for (const t of arr) {
+      if (t === 'ー') { r.push('-'); continue }
+      if (t === 'ㄴ') {
+        let attached = false
+        for (let k = r.length - 1; k >= 0; k--) {
+          if (r[k] === '-') continue
+          const c = r[k].charCodeAt(r[k].length - 1)
+          if (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 === 0) { r[k] = r[k].slice(0, -1) + String.fromCharCode(c + 4); attached = true }
+          break
+        }
+        if (!attached) r.push('ㄴ')
+        continue
+      }
+      r.push(t)
+    }
+    return r.join('')
+  }
+  // 한자 그룹 시작마다 어절 분리(앞 kana 조사·어미는 직전 어절에 붙음) → 자연스러운 띄어쓰기.
+  // (accentData는 단어 경계와 어긋나 사용하지 않음)
+  if (flags) {
+    const out = []; let cur = []
+    for (let i = 0; i < toks.length; i++) {
+      if (i > 0 && flags[i] === true && flags[i - 1] === false && cur.length) { out.push(fold(cur)); cur = [] }
+      cur.push(toks[i])
+    }
+    if (cur.length) out.push(fold(cur))
+    return out.filter(Boolean).join(' ')
+  }
+  return fold(toks)
+}

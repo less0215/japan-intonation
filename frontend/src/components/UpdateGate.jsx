@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 
 /* 강제 업데이트 게이트 (앱 전용)
- * - 서버(/app-version)의 min_required 보다 설치버전이 낮으면 닫기 불가 팝업 → App Store로.
- * - 웹은 동작 안 함. 서버 호출 실패 시엔 막지 않음(fail-open).
- * ★ 새 버전 빌드할 때마다 APP_VERSION 을 그 버전(=project.pbxproj MARKETING_VERSION)으로 올릴 것! */
-const APP_VERSION = '1.8'
+ * - 설치된 '네이티브 실제 버전'(@capacitor/app)을 읽어 서버(/app-version)의 min_required와 비교.
+ *   하드코딩 버전 상수를 쓰지 않으므로 출시 버전과 절대 어긋나지 않는다(자기 자신을 막는 무한팝업 방지).
+ * - 웹은 동작 안 함. 버전·서버 조회 실패 시엔 막지 않음(fail-open). */
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
@@ -21,24 +20,31 @@ function cmpVersion(a, b) {
 }
 
 export default function UpdateGate() {
-  const [info, setInfo] = useState(null)   // { ios_url } when update required
+  const [info, setInfo] = useState(null)   // { url } when update required
 
   useEffect(() => {
     if (!isApp) return
-    fetch(`${API_URL}/app-version`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        if (d && d.min_required && cmpVersion(APP_VERSION, d.min_required) < 0) {
-          setInfo({ ios_url: d.ios_url })
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { App } = await import('@capacitor/app')
+        const installed = (await App.getInfo())?.version   // 네이티브 실제 버전(=MARKETING_VERSION)
+        if (!installed) return                             // 버전 못 읽으면 막지 않음
+        const r = await fetch(`${API_URL}/app-version`)
+        if (!r.ok) return
+        const d = await r.json()
+        if (!cancelled && d?.min_required && cmpVersion(installed, d.min_required) < 0) {
+          setInfo({ url: d.ios_url })
         }
-      })
-      .catch(() => {})   // 실패 시 막지 않음
+      } catch { /* 실패 시 막지 않음 */ }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   if (!info) return null
 
   const openStore = () => {
-    try { window.open(info.ios_url, '_system') } catch { window.location.href = info.ios_url }
+    try { window.open(info.url, '_system') } catch { window.location.href = info.url }
   }
 
   return (
@@ -52,7 +58,7 @@ export default function UpdateGate() {
           더 나은 번역과 새로운 기능을 위해<br />최신 버전으로 업데이트해 주세요.
         </p>
         <button onClick={openStore} style={{ width: '100%', height: 50, border: 'none', borderRadius: 14, background: PRIMARY, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-          App Store에서 업데이트
+          업데이트하기
         </button>
       </div>
     </div>

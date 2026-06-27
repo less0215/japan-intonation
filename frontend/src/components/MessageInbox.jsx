@@ -55,6 +55,8 @@ export default function MessageInbox() {
   const [expanded, setExpanded] = useState(() => new Set())
   const [editMode, setEditMode] = useState(false)
   const [selected, setSelected] = useState(() => new Set())
+  const [tab, setTab] = useState('all')                   // all | unread | read
+  const [unreadSnap, setUnreadSnap] = useState(() => new Set())  // 진입 시점 '안 읽음' 스냅샷(읽는 중 사라짐 방지)
   const initedRef = useRef(null)   // StrictMode 이중 실행/재렌더 가드 (markRead 부작용 보호)
 
   useEffect(() => {
@@ -69,6 +71,7 @@ export default function MessageInbox() {
         const fresh = new Set(visible.filter(m => !read.has(m.id)).map(m => m.id))
         setMsgs(visible)
         setNewIds(fresh)
+        setUnreadSnap(new Set(fresh))   // 탭 분류용 스냅샷(읽어도 이번 세션엔 그 탭에 남게 — 읽는 중 사라짐 방지)
         setExpanded(new Set())       // 모두 접힌 채 시작 — 탭해서 펼치면(또는 편집모드에서 선택) 읽음 처리(이메일식)
       })
       .catch(() => setMsgs([]))
@@ -123,6 +126,9 @@ export default function MessageInbox() {
   const hasMsgs = user?.user_id && msgs && msgs.length > 0
   const allExpanded = hasMsgs && expanded.size >= msgs.length
   const allSelected = hasMsgs && selected.size >= msgs.length
+  const unreadCount = hasMsgs ? msgs.filter(m => unreadSnap.has(m.id)).length : 0
+  const tabFiltered = hasMsgs ? msgs.filter(m =>
+    tab === 'all' ? true : tab === 'unread' ? unreadSnap.has(m.id) : !unreadSnap.has(m.id)) : []
 
   return (
     <>
@@ -189,9 +195,28 @@ export default function MessageInbox() {
         </div>
       )}
 
+      {/* 탭: 전체 / 안 읽음 / 읽음 */}
+      {hasMsgs && !editMode && (
+        <div style={{ display: 'flex', gap: 7, marginBottom: 12 }}>
+          {[['all', '전체', msgs.length], ['unread', '안 읽음', unreadCount], ['read', '읽음', msgs.length - unreadCount]].map(([k, label, cnt]) => {
+            const on = tab === k
+            return (
+              <button key={k} onClick={() => { setUnreadSnap(new Set(newIds)); setTab(k) }}
+                style={{ flex: 1, height: 36, borderRadius: 10, border: `1.5px solid ${on ? PRIMARY : 'var(--bd)'}`, background: on ? PRIMARY : 'var(--surface)', color: on ? '#fff' : 'var(--text-2)', fontSize: 12.5, fontWeight: on ? 700 : 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {label} {cnt}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       {hasMsgs && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {msgs.map(m => {
+          {tabFiltered.length === 0 ? (
+            <p style={{ textAlign: 'center', padding: '30px 0', fontSize: 13, color: 'var(--text-3)' }}>
+              {tab === 'unread' ? '안 읽은 메시지가 없어요.' : tab === 'read' ? '읽은 메시지가 없어요.' : '메시지가 없어요.'}
+            </p>
+          ) : tabFiltered.map(m => {
             const open = expanded.has(m.id)
             const isNew = newIds.has(m.id)
             const sel = selected.has(m.id)

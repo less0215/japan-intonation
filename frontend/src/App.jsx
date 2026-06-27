@@ -1111,7 +1111,7 @@ export default function App() {
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
           <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="/messages"    element={<MessageInbox />} />
-          <Route path="/survey"      element={<SurveyPage />} />
+          <Route path="/survey"      element={<SurveyPage onLogin={handleLoginClick} onSubRefresh={() => setSubTick(t => t + 1)} />} />
           <Route path="*" element={
             <>
               <PageSEO

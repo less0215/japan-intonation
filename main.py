@@ -1854,24 +1854,43 @@ def referral_redeem(req: ReferralRedeemRequest):
 
 # ── 사용자 설문 응답 ───────────────────────────────────────────
 class SurveySubmitRequest(BaseModel):
-    user_id: int | None = None
-    anonymous_id: str | None = None
+    user_id: int
     answers: dict
 
 @app.post("/survey/submit")
 def survey_submit(req: SurveySubmitRequest):
-    """설문 응답 적재(세그먼트 분석·IR용). 로그인 시 user_id, 아니면 anonymous_id로 귀속."""
+    """설문 응답 적재 + 보상 플러스 7일(1인 1회). 로그인 필수.
+    신규/무구독자는 7일 지급, 기존 유효 구독자는 만료일을 7일 연장."""
+    if not req.user_id:
+        raise HTTPException(status_code=401, detail="로그인 후 참여할 수 있어요.")
     if not req.answers:
         raise HTTPException(status_code=400, detail="응답이 비어 있어요.")
     db = SessionLocal()
     try:
-        db.add(SurveyResponse(
-            user_id=req.user_id,
-            anonymous_id=(req.anonymous_id if not req.user_id else None),
-            answers_json=json.dumps(req.answers, ensure_ascii=False)[:4000],
-        ))
+        u = db.query(User).filter(User.id == req.user_id).first()
+        if not u:
+            raise HTTPException(status_code=404, detail="회원 정보를 찾을 수 없어요. 로그인 후 다시 시도해 주세요.")
+        # 1인 1회(복수 응답·중복 지급 방지)
+        if db.query(SurveyResponse).filter(SurveyResponse.user_id == u.id).first():
+            raise HTTPException(status_code=409, detail="이미 설문에 참여하셨어요. 감사합니다!")
+        db.add(SurveyResponse(user_id=u.id, anonymous_id=None,
+                              answers_json=json.dumps(req.answers, ensure_ascii=False)[:4000]))
+        # 보상: 플러스 7일 — 기존 유효 구독자는 연장, 아니면 신규 지급
+        now = now_kst()
+        active = get_active_subscription(db, u.id)
+        if active and active.expires_at:
+            base = active.expires_at if active.expires_at > now else now
+            active.expires_at = base + datetime.timedelta(days=7)
+            granted, exp = "extended", active.expires_at
+        elif active:
+            granted, exp = "already", None   # 만료 없는 활성(관리자·무제한 등) → 별도 지급 불필요
+        else:
+            sub = Subscription(user_id=u.id, plan="plus", period="trial", status="active",
+                               billing_key=None, customer_key="survey7d",
+                               started_at=now, expires_at=now + datetime.timedelta(days=7), last_paid_at=now)
+            db.add(sub); granted, exp = "new", sub.expires_at
         db.commit()
-        return {"ok": True}
+        return {"ok": True, "granted": granted, "expires_at": exp.isoformat() if exp else None}
     finally:
         db.close()
 

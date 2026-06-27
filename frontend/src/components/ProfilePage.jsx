@@ -56,7 +56,7 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, color: 'var(--on-primary)' }}>광고 제거 + 빠른 번역</span>
-            <span style={{ display: 'block', fontSize: 12, color: '#eaf5fb', marginTop: 1 }}>플러스 하루 297원 · 버스 한 번 타는데 1,500원</span>
+            <span style={{ display: 'block', fontSize: 12, color: '#eaf5fb', marginTop: 1 }}>버스 한 번 타는데 1,500원, 플러스는 하루 147원</span>
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
         </button>

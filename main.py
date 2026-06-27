@@ -2076,6 +2076,7 @@ def admin_delete_user(req: DeleteUserRequest):
         name = u.name
         db.query(Subscription).filter(Subscription.user_id == req.user_id).delete()
         db.query(ReferralRedemption).filter(ReferralRedemption.user_id == req.user_id).delete()
+        db.query(SurveyResponse).filter(SurveyResponse.user_id == req.user_id).delete()
         db.query(SavedResult).filter(SavedResult.user_id == req.user_id).delete()
         db.delete(u)
         db.commit()

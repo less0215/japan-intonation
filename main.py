@@ -2804,11 +2804,13 @@ def admin_metrics(key: str = ""):
         # 구독 종류 분류(customer_key):
         #  rc_*=플랜 페이지 능동 구독(Apple 결제·무료체험 자동전환) / survey7d=설문 보상 체험(자동전환X)
         #  ref:*=추천코드 지급 / comp_*=리뷰이벤트·관리자 지급
-        plus = pro = paying = pay_plus = pay_pro = trial = referral = review = etc = 0
+        plus = pro = paying = pay_plus = pay_pro = trial = referral = etc = 0
         subs = []
         for s in active:
             u = umap.get(s.user_id)
             ck = s.customer_key or ''
+            if ck.startswith('comp_'):
+                continue   # 리뷰이벤트(관리자 지급)는 아래 코호트에서 만료 포함 별도 집계
             if ck.startswith('rc_'):
                 kind = 'paying'; paying += 1
                 if s.plan == 'plus': pay_plus += 1
@@ -2817,8 +2819,6 @@ def admin_metrics(key: str = ""):
                 kind = 'trial'; trial += 1
             elif ck.startswith('ref:'):
                 kind = 'referral'; referral += 1
-            elif ck.startswith('comp_'):
-                kind = 'review'; review += 1
             else:
                 kind = 'etc'; etc += 1
             if s.plan == 'plus': plus += 1
@@ -2831,6 +2831,35 @@ def admin_metrics(key: str = ""):
                 "plan": s.plan, "period": s.period, "kind": kind,
                 "started_at": s.started_at.isoformat() if s.started_at else None,
             })
+
+        # 리뷰이벤트 코호트 — 모든 comp_ 지급(만료 포함), 유저별 최신 1건, 관리자(정봉준*) 제외
+        review_seen = {}
+        for s in db.query(Subscription).filter(Subscription.customer_key.like('comp%')).all():
+            if not (s.customer_key or '').startswith('comp_'):
+                continue
+            cur = review_seen.get(s.user_id)
+            if cur is None or (s.started_at and (not cur.started_at or s.started_at > cur.started_at)):
+                review_seen[s.user_id] = s
+        ruids = list(review_seen.keys())
+        rumap = {u.id: u for u in db.query(User).filter(User.id.in_(ruids)).all()} if ruids else {}
+        review_list = []
+        for uid, s in review_seen.items():
+            u = rumap.get(uid)
+            if u and is_admin_phone(u.phone):
+                continue
+            ph = re.sub(r'[^0-9]', '', u.phone) if (u and u.phone) else ''
+            is_active = s.status == 'active' and (not s.expires_at or s.expires_at > now)
+            review_list.append({
+                "id": s.id, "user_id": uid,
+                "name": u.name if u else "(탈퇴 회원)",
+                "phone_tail": ph[-4:] if ph else "",
+                "plan": s.plan, "period": s.period,
+                "started_at": s.started_at.isoformat() if s.started_at else None,
+                "expires_at": s.expires_at.isoformat() if s.expires_at else None,
+                "active": is_active,
+            })
+        review_list.sort(key=lambda x: x["started_at"] or "", reverse=True)
+        review_active = sum(1 for r in review_list if r["active"])
         try:
             today0 = now.replace(hour=0, minute=0, second=0, microsecond=0)
             week0 = now - datetime.timedelta(days=7)
@@ -2841,11 +2870,13 @@ def admin_metrics(key: str = ""):
         return {
             "subscribers": {
                 "paying": paying, "paying_plus": pay_plus, "paying_pro": pay_pro,
-                "trial": trial, "referral": referral, "review": review, "etc": etc,
-                "total_active": len(active), "plus": plus, "pro": pro,
+                "trial": trial, "referral": referral, "etc": etc,
+                "review": len(review_list), "review_active": review_active,
+                "total_active": len(subs), "plus": plus, "pro": pro,
             },
             "users": {"total": db.query(User).count(), "new_today": new_today, "new_7d": new_7d},
             "subs": subs,
+            "review_event": review_list,
         }
     finally:
         db.close()

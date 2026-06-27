@@ -83,16 +83,19 @@ export default function AdminMetrics() {
     </div>
   )
 
+  const reviewList = data.review_event || []
   const TABS = [
     { key: 'all', label: '전체', n: subs.length },
     { key: 'paying', label: '플랜구독', n: sb.paying || 0 },
     { key: 'trial', label: '설문체험', n: sb.trial || 0 },
     { key: 'referral', label: '추천', n: sb.referral || 0 },
-    { key: 'review', label: '리뷰·관리자', n: sb.review || 0 },
     ...(sb.etc ? [{ key: 'etc', label: '기타', n: sb.etc }] : []),
+    { key: 'review', label: '리뷰이벤트', n: sb.review || 0 },
   ]
   const activeTab = TABS.some(t => t.key === tab) ? tab : 'all'
-  const filtered = activeTab === 'all' ? subs : subs.filter((s) => s.kind === activeTab)
+  const filtered = activeTab === 'review' ? reviewList
+    : activeTab === 'all' ? subs
+    : subs.filter((s) => s.kind === activeTab)
 
   return (
     <div style={wrap}>
@@ -113,14 +116,18 @@ export default function AdminMetrics() {
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
         {stat('설문 체험', sb.trial)}
         {stat('추천', sb.referral)}
-        {stat('리뷰·관리자', sb.review)}
+        {stat('리뷰이벤트', sb.review, `활성 ${fmt(sb.review_active)} · 만료 포함`)}
         {stat('총 회원', us.total)}
         {stat('오늘 가입', us.new_today)}
         {stat('최근 7일 가입', us.new_7d)}
       </div>
 
       {/* 활성 구독 목록 — 유형별 탭 + 테스트 정리용 */}
-      <p style={{ margin: '0 0 8px', fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)' }}>활성 구독 {subs.length}건 <span style={{ fontWeight: 400 }}>· 취소하면 활성 카운트에서 빠집니다</span></p>
+      <p style={{ margin: '0 0 8px', fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)' }}>
+        {activeTab === 'review'
+          ? <>리뷰이벤트 {reviewList.length}명 <span style={{ fontWeight: 400 }}>· 활성 {fmt(sb.review_active)} (만료 포함)</span></>
+          : <>활성 구독 {subs.length}건 <span style={{ fontWeight: 400 }}>· 취소하면 활성 카운트에서 빠집니다</span></>}
+      </p>
 
       {/* 유형 탭 */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
@@ -141,23 +148,35 @@ export default function AdminMetrics() {
         <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>해당 유형의 구독이 없습니다.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {filtered.map((s) => (
-            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--bd)', borderRadius: 10, background: 'var(--surface)' }}>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {s.name}{s.phone_tail ? <span style={{ color: 'var(--text-3)', fontWeight: 400 }}> ··{s.phone_tail}</span> : null}
-                  {(() => { const k = KIND[s.kind] || KIND.etc; return <span style={{ marginLeft: 6, fontSize: 10, color: k.c, border: `1px solid ${k.c}55`, borderRadius: 5, padding: '1px 5px' }}>{k.label}</span> })()}
-                </p>
-                <p style={{ margin: '2px 0 0', fontSize: 10.5, color: 'var(--text-3)' }}>
-                  {s.plan?.toUpperCase()} · {s.period === 'trial' ? '체험' : s.period === 'yearly' ? '연' : '월'} · {s.started_at ? s.started_at.slice(0, 10) : ''}
-                </p>
+          {filtered.map((s) => {
+            const isRev = s.active !== undefined   // 리뷰이벤트 코호트 행(만료 포함)
+            const tag = isRev
+              ? { label: s.active ? '활성' : '만료', c: s.active ? '#1D9E75' : '#9aa3ad' }
+              : (KIND[s.kind] || KIND.etc)
+            const meta = isRev
+              ? `${(s.plan || '').toUpperCase()} · ${s.expires_at ? '~' + s.expires_at.slice(0, 10) : (s.started_at ? s.started_at.slice(0, 10) : '')}`
+              : `${(s.plan || '').toUpperCase()} · ${s.period === 'trial' ? '체험' : s.period === 'yearly' ? '연' : '월'} · ${s.started_at ? s.started_at.slice(0, 10) : ''}`
+            const cancellable = isRev ? s.active : true
+            return (
+              <div key={(isRev ? 'r' : 's') + s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--bd)', borderRadius: 10, background: 'var(--surface)' }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {s.name}{s.phone_tail ? <span style={{ color: 'var(--text-3)', fontWeight: 400 }}> ··{s.phone_tail}</span> : null}
+                    <span style={{ marginLeft: 6, fontSize: 10, color: tag.c, border: `1px solid ${tag.c}55`, borderRadius: 5, padding: '1px 5px' }}>{tag.label}</span>
+                  </p>
+                  <p style={{ margin: '2px 0 0', fontSize: 10.5, color: 'var(--text-3)' }}>{meta}</p>
+                </div>
+                {cancellable ? (
+                  <button onClick={() => cancelSub(s)} disabled={busyId === s.id}
+                    style={{ flexShrink: 0, height: 30, padding: '0 12px', borderRadius: 8, border: '1px solid var(--danger)', background: 'transparent', color: 'var(--danger)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {busyId === s.id ? '취소 중…' : '취소'}
+                  </button>
+                ) : (
+                  <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--text-3)' }}>만료됨</span>
+                )}
               </div>
-              <button onClick={() => cancelSub(s)} disabled={busyId === s.id}
-                style={{ flexShrink: 0, height: 30, padding: '0 12px', borderRadius: 8, border: '1px solid var(--danger)', background: 'transparent', color: 'var(--danger)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {busyId === s.id ? '취소 중…' : '취소'}
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

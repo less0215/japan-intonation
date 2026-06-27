@@ -62,16 +62,13 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
         </button>
       )}
 
-      {/* 추천인 코드 — 인플루언서 협업(웹 전용: 앱은 IAP 안티스티어링 고려) */}
-      {!isApp && (
-        <ReferralCodeCard user={user} fastUnlimited={fastUnlimited} onLogin={onLogin} onApplied={onSubRefresh} />
-      )}
-
       {/* 관리자 전용 — 제휴 수익 대시보드 */}
       {user?.is_admin && <AdminRevenue />}
       {user?.is_admin && <AdminLearning />}
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* 추천인 코드(웹 전용) — 메뉴 행, 탭하면 입력란 펼침 */}
+        {!isApp && <ReferralCodeCard user={user} fastUnlimited={fastUnlimited} onLogin={onLogin} onApplied={onSubRefresh} />}
         <Row icon="M4 4h16v16H4z M4 6l8 6 8-6" label="문의하기" onClick={() => { window.location.href = 'mailto:mgz.less@tickjapan.com?subject=[틱재팬] 문의' }} />
         {!isApp && <Row icon="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" label="앱 다운로드" onClick={() => navigate('/download')} />}
         {user && <Row icon="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" label="로그아웃" color="var(--text-2)" onClick={onLogout} />}

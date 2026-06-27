@@ -413,6 +413,17 @@ class ReferralRedemption(Base):
     redeemed_at = Column(DateTime, default=now_kst)
 
 
+class SurveyResponse(Base):
+    """사용자 설문 응답(사용목적·수준·빈도·PMF·핵심기능·지출·NPS·유입경로). 별도 테이블, 세그먼트 분석·IR용.
+    answers_json: {purpose, level, frequency, pmf, value[], spend, nps, channel} 형태의 JSON."""
+    __tablename__ = "survey_response"
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    user_id      = Column(Integer, index=True, nullable=True)
+    anonymous_id = Column(String(64), index=True, nullable=True)
+    answers_json = Column(Text, nullable=False)
+    created_at   = Column(DateTime, default=now_kst)
+
+
 class Message(Base):
     """운영자 → 회원 메시지(메시지함). User/SavedResult 스키마와 무관한 별도 테이블.
     audience: 'all'(전체 공지) 또는 특정 user_id 문자열. 읽음 여부는 클라이언트(localStorage)에서 관리."""
@@ -1837,6 +1848,30 @@ def referral_redeem(req: ReferralRedeemRequest):
             pass
         return {"ok": True, "plan": "plus", "period": "monthly",
                 "expires_at": sub.expires_at.isoformat()}
+    finally:
+        db.close()
+
+
+# ── 사용자 설문 응답 ───────────────────────────────────────────
+class SurveySubmitRequest(BaseModel):
+    user_id: int | None = None
+    anonymous_id: str | None = None
+    answers: dict
+
+@app.post("/survey/submit")
+def survey_submit(req: SurveySubmitRequest):
+    """설문 응답 적재(세그먼트 분석·IR용). 로그인 시 user_id, 아니면 anonymous_id로 귀속."""
+    if not req.answers:
+        raise HTTPException(status_code=400, detail="응답이 비어 있어요.")
+    db = SessionLocal()
+    try:
+        db.add(SurveyResponse(
+            user_id=req.user_id,
+            anonymous_id=(req.anonymous_id if not req.user_id else None),
+            answers_json=json.dumps(req.answers, ensure_ascii=False)[:4000],
+        ))
+        db.commit()
+        return {"ok": True}
     finally:
         db.close()
 

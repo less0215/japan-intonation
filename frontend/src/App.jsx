@@ -38,6 +38,7 @@ import { adsCfg } from './config'   // 광고 빈도(백엔드 제어)
 import { iapLogin, iapLogout, getEntitlements } from './iap'
 import ParticleDetailPage from './components/ParticleDetailPage'
 import GrammarDetailPage from './components/GrammarDetailPage'
+import SurveyPage from './components/SurveyPage'
 import GrammarLibrary from './components/GrammarLibrary'
 import LegalPage from './components/LegalPage'
 import DeleteAccountModal from './components/DeleteAccountModal'
@@ -1110,6 +1111,7 @@ export default function App() {
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
           <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="/messages"    element={<MessageInbox />} />
+          <Route path="/survey"      element={<SurveyPage />} />
           <Route path="*" element={
             <>
               <PageSEO

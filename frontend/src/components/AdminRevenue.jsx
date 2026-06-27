@@ -37,7 +37,6 @@ export default function AdminRevenue() {
   if (!data) {
     return (
       <div style={wrap}>
-        <p style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>제휴 수익 (관리자)</p>
         <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-3)' }}>관리자 키를 입력하면 수익을 볼 수 있어요.</p>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
@@ -60,8 +59,7 @@ export default function AdminRevenue() {
   const places = Object.entries(data.by_placement || {})
   return (
     <div style={wrap}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>제휴 수익 (관리자)</span>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
         <button onClick={() => load(adminKey)} style={{ background: 'none', border: '1px solid var(--primary-tint-bd)', borderRadius: 8, padding: '4px 10px', fontSize: 11, color: PRIMARY, cursor: 'pointer', fontFamily: 'inherit' }}>새로고침</button>
       </div>
 

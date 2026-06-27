@@ -49,7 +49,6 @@ export default function AdminLearning() {
   if (!adminKey) {
     return (
       <div style={wrap}>
-        <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>집단 지성 (관리자)</p>
         <p style={{ margin: 0, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>위 ‘제휴 수익’에서 관리자 키를 먼저 입력하면 여기도 함께 열려요.</p>
       </div>
     )
@@ -60,8 +59,7 @@ export default function AdminLearning() {
 
   return (
     <div style={wrap}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>집단 지성 (관리자)</p>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
         <button onClick={() => load()} disabled={loading} style={{ fontSize: 11.5, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{loading ? '불러오는 중…' : '새로고침'}</button>
       </div>
       <p style={{ margin: '0 0 12px', fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>

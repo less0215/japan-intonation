@@ -2866,6 +2866,53 @@ def admin_cancel_sub(req: CancelSubRequest):
         db.close()
 
 
+@app.get("/admin/survey-results")
+def admin_survey_results(key: str = ""):
+    """설문 응답 집계 — 문항별 분포 + NPS + 가치기능(복수). 답변은 옵션 라벨(또는 기타 자유텍스트) 원문."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    from collections import Counter
+    db = SessionLocal()
+    try:
+        rows = db.query(SurveyResponse).all()
+        SINGLE = ['purpose', 'level', 'frequency', 'pmf', 'spend', 'channel']
+        counts = {k: Counter() for k in SINGLE}
+        value_counts = Counter()
+        nps_list = []
+        for r in rows:
+            try:
+                a = json.loads(r.answers_json)
+            except Exception:
+                continue
+            for k in SINGLE:
+                v = a.get(k)
+                if v not in (None, ''):
+                    counts[k][str(v)] += 1
+            for v in (a.get('value') or []):
+                if v not in (None, ''):
+                    value_counts[str(v)] += 1
+            n = a.get('nps')
+            if isinstance(n, bool):
+                pass
+            elif isinstance(n, (int, float)):
+                nps_list.append(int(n))
+            elif isinstance(n, str) and n.strip().isdigit():
+                nps_list.append(int(n.strip()))
+        nps = None
+        if nps_list:
+            pro = sum(1 for x in nps_list if x >= 9)
+            det = sum(1 for x in nps_list if x <= 6)
+            nps = {"count": len(nps_list), "avg": round(sum(nps_list) / len(nps_list), 1),
+                   "score": round((pro - det) / len(nps_list) * 100),
+                   "promoters": pro, "passives": len(nps_list) - pro - det, "detractors": det}
+        srt = lambda c: sorted(c.items(), key=lambda x: -x[1])
+        return {"total": len(rows),
+                "questions": {k: srt(counts[k]) for k in SINGLE},
+                "value": srt(value_counts), "nps": nps}
+    finally:
+        db.close()
+
+
 @app.post("/admin/rename-user")
 def admin_rename_user(key: str = "", phone: str = "", new_name: str = ""):
     """회원 이름 변경 (관리 토큰). 보안상 노출된 이름과 다른 비공개 이름으로 교체할 때 사용."""

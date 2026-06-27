@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import PageSEO from './PageSEO'
 import ReferralCodeCard from './ReferralCodeCard'
+import AdminSection from './AdminSection'
 import AdminMetrics from './AdminMetrics'
+import AdminSurvey from './AdminSurvey'
 import AdminRevenue from './AdminRevenue'
 import AdminLearning from './AdminLearning'
 
@@ -64,9 +66,14 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
       )}
 
       {/* 관리자 전용 — 제휴 수익 대시보드 */}
-      {user?.is_admin && <AdminMetrics />}
-      {user?.is_admin && <AdminRevenue />}
-      {user?.is_admin && <AdminLearning />}
+      {user?.is_admin && (
+        <>
+          <AdminSection title="구독·회원 지표" defaultOpen={true}><AdminMetrics /></AdminSection>
+          <AdminSection title="설문 결과"><AdminSurvey /></AdminSection>
+          <AdminSection title="제휴 수익"><AdminRevenue /></AdminSection>
+          <AdminSection title="집단 지성"><AdminLearning /></AdminSection>
+        </>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {/* 추천인 코드 — 메뉴 행, 탭하면 입력란 펼침(웹·앱 공통) */}

@@ -33,7 +33,6 @@ import FastUpsellPopup from './components/FastUpsellPopup'
 import SubscriptionPage from './components/SubscriptionPage'
 import MessageInbox, { getReadIds, getHiddenIds } from './components/MessageInbox'
 import UpdateGate from './components/UpdateGate'
-import ReviewEventPopup from './components/ReviewEventPopup'
 import { showRewardedAd, showInterstitialAd, showAppBanner, hideAppBanner } from './ads'
 import { adsCfg } from './config'   // 광고 빈도(백엔드 제어)
 import { iapLogin, iapLogout, getEntitlements } from './iap'
@@ -356,7 +355,6 @@ export default function App() {
   // 앱 보상형 광고: 팝업 상태({mode}) + 이번 세션 광고 시청 완료 여부(앱 재시작 시 초기화)
   const [adPopup, setAdPopup] = useState(null)
   const [adNotice, setAdNotice] = useState(false)   // 일반 번역 일정 횟수마다 전면 광고 사전 팝업
-  const [showReviewPrompt, setShowReviewPrompt] = useState(false)   // 리뷰 이벤트 팝업(앱·로그인·누적 8회쯤 1회)
   const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
   const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(백엔드) OR 인앱구매(RevenueCat) → 광고 제거
   const [subInfo, setSubInfo] = useState(null)                // /subscription 응답 { plan, expires_at, fast_unlimited, ad_free }
@@ -721,26 +719,6 @@ export default function App() {
         } catch {}
       }
 
-      // 리뷰 이벤트 팝업 — 앱+로그인+(아직 플러스 아님) 무료 회원에게 1회만 노출.
-      // 트리거 ① 누적 번역 8회쯤  OR  ② 빠른 번역(잠금 해제 후 실제 빠른 번역) 3회
-      if (isApp && user?.user_id && !fastUnlimited && !localStorage.getItem('tickjapan_review_prompt_done')) {
-        try {
-          let trigger = ''
-          const tot = (parseInt(localStorage.getItem('tickjapan_total_translations') || '0', 10) || 0) + 1
-          localStorage.setItem('tickjapan_total_translations', String(tot))
-          if (tot >= 8) trigger = 'total8'
-          if (data.model_used === 'fast') {   // 실제로 빠른 번역이 수행된 경우만(폴백 제외)
-            const fu = (parseInt(localStorage.getItem('tickjapan_fast_uses') || '0', 10) || 0) + 1
-            localStorage.setItem('tickjapan_fast_uses', String(fu))
-            if (fu >= 3) trigger = 'fast3'
-          }
-          if (trigger) {
-            localStorage.setItem('tickjapan_review_prompt_done', '1')
-            setTimeout(() => setShowReviewPrompt(trigger), 900)   // 결과를 잠깐 본 뒤 자연스럽게(값=트리거)
-            track('review_prompt_shown', { trigger, total: tot })
-          }
-        } catch {}
-      }
 
       // 빠른 번역 사용량 갱신 (서버 판정 결과 반영)
       if (selectedModel === 'fast' && user) {
@@ -960,7 +938,6 @@ export default function App() {
   return (
     <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
       <UpdateGate />
-      {showReviewPrompt && <ReviewEventPopup trigger={showReviewPrompt} onClose={() => setShowReviewPrompt(false)} />}
       <div className="container">
 
         {/* 앱 헤더 */}

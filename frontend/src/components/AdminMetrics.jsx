@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
 const KEY_STORE = 'tickjapan_admin_key'
-const KIND = { paying: { label: '결제', c: '#1D9E75' }, promo: { label: '프로모', c: '#5CA9CE' }, etc: { label: '기타', c: '#9aa3ad' } }
+const KIND = { paying: { label: '결제', c: '#1D9E75' }, trial: { label: '체험', c: '#5CA9CE' }, grant: { label: '무료지급', c: '#BA7517' }, etc: { label: '기타', c: '#9aa3ad' } }
 
 export default function AdminMetrics() {
   const [adminKey, setAdminKey] = useState(() => { try { return localStorage.getItem(KEY_STORE) || '' } catch { return '' } })
@@ -14,6 +14,7 @@ export default function AdminMetrics() {
   const [loading, setLoading] = useState(false)
   const [authErr, setAuthErr] = useState(false)
   const [busyId, setBusyId] = useState(null)
+  const [tab, setTab] = useState('all')   // 구독 목록 유형 필터
 
   function load(k) {
     if (!k) return
@@ -76,6 +77,16 @@ export default function AdminMetrics() {
     </div>
   )
 
+  const TABS = [
+    { key: 'all', label: '전체', n: subs.length },
+    { key: 'paying', label: '결제', n: sb.paying || 0 },
+    { key: 'trial', label: '체험', n: sb.trial || 0 },
+    { key: 'grant', label: '무료지급', n: sb.grant || 0 },
+    ...(sb.etc ? [{ key: 'etc', label: '기타', n: sb.etc }] : []),
+  ]
+  const activeTab = TABS.some(t => t.key === tab) ? tab : 'all'
+  const filtered = activeTab === 'all' ? subs : subs.filter((s) => s.kind === activeTab)
+
   return (
     <div style={wrap}>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
@@ -93,20 +104,36 @@ export default function AdminMetrics() {
 
       {/* 스탯 그리드 */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-        {stat('프로모·체험', sb.promo, sb.etc ? `기타 ${fmt(sb.etc)}` : null)}
-        {stat('전체 활성 구독', sb.total_active)}
+        {stat('체험', sb.trial)}
+        {stat('무료지급', sb.grant)}
         {stat('총 회원', us.total)}
         {stat('오늘 가입', us.new_today)}
         {stat('최근 7일 가입', us.new_7d)}
       </div>
 
-      {/* 활성 구독 목록 — 테스트 정리용 */}
-      <p style={{ margin: '0 0 6px', fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)' }}>활성 구독 {subs.length}건 <span style={{ fontWeight: 400 }}>· 취소하면 활성 카운트에서 빠집니다</span></p>
-      {subs.length === 0 ? (
-        <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>활성 구독이 없습니다.</p>
+      {/* 활성 구독 목록 — 유형별 탭 + 테스트 정리용 */}
+      <p style={{ margin: '0 0 8px', fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)' }}>활성 구독 {subs.length}건 <span style={{ fontWeight: 400 }}>· 취소하면 활성 카운트에서 빠집니다</span></p>
+
+      {/* 유형 탭 */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
+        {TABS.map((t) => {
+          const on = activeTab === t.key
+          return (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              fontSize: 11.5, fontWeight: on ? 700 : 500, padding: '5px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              border: `1px solid ${on ? PRIMARY : 'var(--bd)'}`, background: on ? PRIMARY : 'transparent', color: on ? '#fff' : 'var(--text-2)',
+            }}>
+              {t.label} <span style={{ color: on ? 'rgba(255,255,255,0.8)' : 'var(--text-3)' }}>{t.n}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {filtered.length === 0 ? (
+        <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>해당 유형의 구독이 없습니다.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {subs.map((s) => (
+          {filtered.map((s) => (
             <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--bd)', borderRadius: 10, background: 'var(--surface)' }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

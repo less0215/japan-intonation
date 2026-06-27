@@ -1302,19 +1302,28 @@ def rate_guard(request: Request, user_id: int | None = None, count_daily: bool =
         raise HTTPException(status_code=429, detail="잠깐만요, 너무 빠르게 요청했어요. 잠시 후 다시 시도해 주세요.")
 
     # 일일 번역 상한 (KST 자정 리셋). 앱은 면제, 웹은 게스트(IP)/로그인(회원) 차등.
+    # 구독자·관리자(무제한 회원)는 웹에서도 면제 → 유료 혜택 플랫폼 동일 적용.
     if count_daily and platform != "app":
-        cap = WEB_USER_PER_DAY if user_id else GUEST_PER_DAY
-        today = time.strftime("%Y-%m-%d", time.gmtime(now + 9 * 3600))
-        d = _guest_daily.get(key)
-        if not d or d[0] != today:
-            d = [today, 0]
-            _guest_daily[key] = d
-        if d[1] >= cap:
-            msg = ("오늘 웹 무료 번역 한도에 도달했어요. 앱에서 무제한으로 이어서 이용해 주세요."
-                   if user_id else
-                   "오늘 무료 번역을 많이 사용했어요. 로그인하거나 앱에서 이어서 이용해 주세요.")
-            raise HTTPException(status_code=429, detail=msg)
-        d[1] += 1
+        exempt = False
+        if user_id:
+            _db = SessionLocal()
+            try:
+                exempt = _is_unlimited_user(_db, user_id)
+            finally:
+                _db.close()
+        if not exempt:
+            cap = WEB_USER_PER_DAY if user_id else GUEST_PER_DAY
+            today = time.strftime("%Y-%m-%d", time.gmtime(now + 9 * 3600))
+            d = _guest_daily.get(key)
+            if not d or d[0] != today:
+                d = [today, 0]
+                _guest_daily[key] = d
+            if d[1] >= cap:
+                msg = ("오늘 웹 무료 번역 한도에 도달했어요. 앱에서 무제한으로 이어서 이용해 주세요."
+                       if user_id else
+                       "오늘 무료 번역을 많이 사용했어요. 로그인하거나 앱에서 이어서 이용해 주세요.")
+                raise HTTPException(status_code=429, detail=msg)
+            d[1] += 1
 
     dq.append(now)
     # 메모리 방어 — 키가 과도하게 쌓이면 비움(드문 재시작 수준 영향)

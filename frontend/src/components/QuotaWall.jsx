@@ -34,7 +34,7 @@ export default function QuotaWall({ isLoggedIn, onDownload, onLogin, onClose }) 
           오늘 무료 번역을 다 썼어요
         </p>
         <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: '0 0 16px', lineHeight: 1.6 }}>
-          내일 다시 무료로 쓸 수 있어요. 지금 이어서 쓰려면 앱에서 <b style={{ fontWeight: 600, color: 'var(--text-1)' }}>광고를 보며 무제한</b>으로 이용하세요.
+          내일 다시 무료로 쓸 수 있어요. 지금 이어서 쓰려면 앱에서 <b style={{ fontWeight: 600, color: 'var(--text-1)' }}>무제한</b>으로 이용하세요.
         </p>
 
         {/* 주 CTA — 앱 다운로드 */}

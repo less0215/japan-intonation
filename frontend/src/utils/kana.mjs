@@ -189,6 +189,19 @@ export function pronText(furigana, furiganaHtml, accentData) {
         if (!attached) r.push('ㄴ')
         continue
       }
+      // 촉음 っ가 요음(ちょ 등) 뒤에 와 고아 모라로 분리된 경우: 앞 음절에 ㅅ받침으로 결합(ちょっと→춋토).
+      // (단일 가나+っ는 moraToHangul에서 이미 결합되므로 여기 'ㅅ' 토큰은 요음 뒤 케이스뿐)
+      if (t === 'ㅅ') {
+        let attached = false
+        for (let k = r.length - 1; k >= 0; k--) {
+          if (r[k] === '-') continue
+          const c = r[k].charCodeAt(r[k].length - 1)
+          if (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 === 0) { r[k] = r[k].slice(0, -1) + String.fromCharCode(c + 19); attached = true }
+          break
+        }
+        if (!attached) r.push('ㅅ')
+        continue
+      }
       r.push(t)
     }
     return r.join('')

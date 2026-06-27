@@ -7,13 +7,13 @@ const PRIMARY = '#5CA9CE'
 export default function AttPrePrompt({ onProceed }) {
   return (
     <div className="modal-backdrop">
-      <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+      <div className="modal-sheet" onClick={e => e.stopPropagation()} style={{ gap: 0 }}>
         <div className="modal-handle" />
 
         {/* 아이콘 */}
         <div style={{
           width: 52, height: 52, borderRadius: '50%', background: `${PRIMARY}18`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '4px 0 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 0 14px',
         }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 17l6-6 4 4 8-8" />
@@ -22,16 +22,16 @@ export default function AttPrePrompt({ onProceed }) {
         </div>
 
         {/* 헤드카피 */}
-        <p style={{ fontSize: 19, fontWeight: 700, margin: '0 0 8px', color: 'var(--text-strong)', lineHeight: 1.4 }}>
+        <p style={{ fontSize: 'clamp(13px, calc(5.3vw - 4.9px), 17px)', fontWeight: 700, margin: '0 0 7px', color: 'var(--text-strong)', whiteSpace: 'nowrap', letterSpacing: '-0.2px', lineHeight: 1.35 }}>
           일본어 실력이 늘 수 있게 도와드릴게요
         </p>
         {/* 서브카피 */}
-        <p style={{ fontSize: 14, color: 'var(--text-2)', margin: '0 0 18px', lineHeight: 1.65 }}>
+        <p style={{ fontSize: 14, color: 'var(--text-2)', margin: '0 0 14px', lineHeight: 1.55 }}>
           사용 패턴을 익명 분석해 번역 품질 및 학습 경험 향상을 도와 드릴 수 있습니다. 다음 화면에서 ‘허용’을 눌러 주세요.
         </p>
 
         {/* 안심 문구 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 18px' }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>

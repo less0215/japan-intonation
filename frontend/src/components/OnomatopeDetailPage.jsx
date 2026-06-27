@@ -3,6 +3,9 @@ import PageSEO from './PageSEO'
 import OnomatopeIcon from './OnomatopeIcon'
 import JlptBadge from './JlptBadge'
 import WordBookmarkButton from './WordBookmarkButton'
+import RichExampleBox from './RichExampleBox'
+import AdSenseUnit from './AdSenseUnit'
+import { isAdFreeMember } from '../ads'
 import { ONOMATOPE } from '../data/onomatope'
 
 const PRIMARY = '#5CA9CE'
@@ -17,7 +20,7 @@ export default function OnomatopeDetailPage() {
     <>
       <PageSEO
         title={`${o.word} (${o.reading}) — 뜻·예문 | 일본어 오노마토페`}
-        description={`${o.word}(${o.reading}): ${o.meaning}. ${o.sub}. 예문·발음·JLPT 레벨과 함께 배우세요.`}
+        description={`${o.word}(${o.reading}): ${o.meaning}. ${o.sub}. 예문·발음·피치 악센트·JLPT 레벨과 함께 배우세요.`}
         path={`/onomatope/${o.id}`}
       />
 
@@ -54,17 +57,32 @@ export default function OnomatopeDetailPage() {
         )}
       </div>
 
-      {/* 예문 */}
+      {/* 예문 — 문법과 동일한 리치 박스(피치그래프·음성·활용원리·예문저장) */}
       <p style={{ margin: '16px 2px 8px', fontSize: 13, fontWeight: 600, color: 'var(--text-3)' }}>예문</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {o.examples.map((ex, i) => (
-          <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, padding: '13px 14px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: 12.5, color: PRIMARY, fontWeight: 700 }}>{ex.korean}</p>
-            <p style={{ margin: '0 0 3px', fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, color: 'var(--text-strong)' }}>{ex.japanese}</p>
-            <p style={{ margin: 0, fontSize: 12, color: 'var(--text-3)' }}>{ex.reading}</p>
+          <div key={i} className="card">
+            <div className="section">
+              <RichExampleBox
+                example={ex}
+                exampleInfo={{
+                  id: `onomatope_${o.id}_${i}`,
+                  wordId: o.id,
+                  wordText: o.word,
+                  wordReading: o.reading,
+                  wordCategory: 'onomatope',
+                  exampleJp: (ex.jp ?? '').replace(/[（(][^）)]+[）)]/g, ''),
+                  exampleKr: ex.kr ?? '',
+                }}
+                category="onomatope"
+              />
+            </div>
           </div>
         ))}
       </div>
+
+      {/* 예문 하단 인피드 광고 */}
+      {!isAdFreeMember() && <AdSenseUnit slot="2450758307" style={{ margin: '14px 0 0' }} />}
 
       <p style={{ margin: '14px 2px 0', fontSize: 10.5, color: 'var(--text-3)' }}>JLPT 레벨은 Tanos(비공식 표준, CC BY) 기준 참고값이며, 리스트에 없는 단어는 표시되지 않습니다.</p>
     </>

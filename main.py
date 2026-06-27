@@ -3269,7 +3269,7 @@ def set_min_version(req: SetMinVersionRequest):
 AD_CONFIG_DEFAULTS = {
     "ads_enabled":    "1",    # 전체 광고 on/off (0/1)
     "ad_first":       "3",    # 일반 번역 N번째 완료 시 첫 전면광고
-    "ad_every":       "5",    # 이후 N회마다
+    "ad_every":       "6",    # 이후 N회마다
     "ad_min_gap_sec": "45",   # 전면광고 최소 간격(초)
     "photo_ad":       "1",    # 사진 번역 닫을 때 전면광고 (0/1)
 }

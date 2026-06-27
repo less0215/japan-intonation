@@ -1,7 +1,7 @@
 // 앱 동작 설정 — 백엔드 /config 에서 받아옴(광고 빈도 등).
 // 못 받으면 DEFAULTS 사용. 백엔드(/admin/config)에서 값만 바꾸면 앱 재빌드 없이 다음 실행부터 반영.
 const API_URL = 'https://japan-intonation-production.up.railway.app'
-const DEFAULTS = { enabled: true, first: 3, every: 5, min_gap_sec: 45, photo: true }
+const DEFAULTS = { enabled: true, first: 3, every: 6, min_gap_sec: 45, photo: true }
 let _ads = { ...DEFAULTS }
 
 // 광고 빈도 설정 읽기 — { enabled, first, every, min_gap_sec, photo }

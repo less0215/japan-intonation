@@ -158,8 +158,8 @@ export default function AdminMetrics() {
             const meta = isRev
               ? (s.grant === '무제한'
                   ? 'PLUS · 무제한(화이트리스트)'
-                  : `${(s.plan || '').toUpperCase()} · ${s.expires_at ? '~' + s.expires_at.slice(0, 10) : ''}${s.active ? '' : ' · 만료'}`)
-              : `${(s.plan || '').toUpperCase()} · ${s.period === 'trial' ? '체험' : s.period === 'yearly' ? '연' : '월'} · ${s.started_at ? s.started_at.slice(0, 10) : ''}`
+                  : `${(s.plan || '').toUpperCase()} · 만료 ${s.expires_at ? s.expires_at.slice(0, 10) : '미정'}`)
+              : `${(s.plan || '').toUpperCase()} · ${s.period === 'trial' ? '체험' : s.period === 'yearly' ? '연' : '월'} · 만료 ${s.expires_at ? s.expires_at.slice(0, 10) : '무기한'}`
             const cancellable = isRev ? (s.grant === '기간제' && s.active) : true
             return (
               <div key={(isRev ? 'r' : 's') + s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--bd)', borderRadius: 10, background: 'var(--surface)' }}>

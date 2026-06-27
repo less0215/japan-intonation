@@ -2830,6 +2830,7 @@ def admin_metrics(key: str = ""):
                 "phone_tail": ph[-4:] if ph else "",
                 "plan": s.plan, "period": s.period, "kind": kind,
                 "started_at": s.started_at.isoformat() if s.started_at else None,
+                "expires_at": s.expires_at.isoformat() if s.expires_at else None,
             })
 
         # 리뷰이벤트 코호트 — 리뷰 보상 받은 사람 전부(관리자 제외):

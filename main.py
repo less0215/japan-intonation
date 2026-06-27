@@ -2890,7 +2890,9 @@ def admin_metrics(key: str = ""):
             else:
                 asub = get_active_subscription(db, r.user_id) if u else None
                 if asub:
-                    status, exp = "구독중", (asub.expires_at.isoformat() if asub.expires_at else None)
+                    ck = asub.customer_key or ''
+                    status = "신규체험" if ck == "survey7d" else "구독중"
+                    exp = asub.expires_at.isoformat() if asub.expires_at else None
                 else:
                     status, exp = "무료", None
             survey_rows.append({

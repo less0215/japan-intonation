@@ -157,7 +157,7 @@ export default function AdminMetrics() {
             const isRev = !isSurvey && s.active !== undefined // 리뷰이벤트 코호트 행
             let tag, meta, cancellable
             if (isSurvey) {
-              const c = s.status === '구독중' ? '#1D9E75' : s.status === '무제한' ? '#7F77DD' : '#9aa3ad'
+              const c = s.status === '구독중' ? '#1D9E75' : s.status === '신규체험' ? '#5CA9CE' : s.status === '무제한' ? '#7F77DD' : '#9aa3ad'
               tag = { label: s.status, c }
               meta = `${s.expires_at ? '만료 ' + s.expires_at.slice(0, 10) : '무료'} · 응답 ${s.responded_at ? s.responded_at.slice(0, 10) : ''}`
               cancellable = false

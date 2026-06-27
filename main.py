@@ -3152,8 +3152,8 @@ def android_interest_status(user_id: int):
 # ── 강제 업데이트 게이트 ──
 # DEFAULT_MIN_APP_VERSION 이상이 아니면 앱에서 '업데이트' 강제 팝업.
 # 평소엔 현재 출시버전과 같게 둬서 아무도 안 막힘. 새 버전 필수 반영 시 /admin/set-min-version으로 올림.
-DEFAULT_MIN_APP_VERSION = "1.6"   # ★ 1.7 출시 승인 후 /admin/set-min-version으로 "1.7" 올리면 전원 강제 업데이트
-LATEST_APP_VERSION = "1.7"
+DEFAULT_MIN_APP_VERSION = "1.6"   # 평소 안전값(아무도 안 막힘). 1.8 출시 승인 후 /admin/force-update로 "1.8" 올리면 전원 강제
+LATEST_APP_VERSION = "1.8"
 APP_STORE_URL = "https://apps.apple.com/app/id6781296261"
 
 def _get_setting(db, key, default):
@@ -3295,14 +3295,14 @@ def update_config(req: ConfigUpdateRequest):
 
 
 @app.get("/admin/force-update")
-def force_update_get(key: str = "", v: str = "1.7", when_live: int = 0):
+def force_update_get(key: str = "", v: str = "1.8", when_live: int = 0):
     """브라우저 한 탭으로 강제 업데이트 제어 (curl 없이).
-    · 예약(추천): ?key=관리키&v=1.7&when_live=1 → App Store에 1.7 출시되는 즉시 자동 강제(자는 사이 갭 제거).
-    · 즉시:       ?key=관리키&v=1.7            → 지금 바로 강제(반드시 출시 확인 후).
+    · 예약(추천): ?key=관리키&v=1.8&when_live=1 → App Store에 1.8 출시되는 즉시 자동 강제(자는 사이 갭 제거).
+    · 즉시:       ?key=관리키&v=1.8            → 지금 바로 강제(반드시 출시 확인 후).
     · 끄기/롤백:  ?key=관리키&v=1.6            → 강제 해제 + 예약도 해제."""
     if key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다. ?key=... 를 붙여주세요.")
-    v = (v or "1.7").strip()
+    v = (v or "1.8").strip()
     db = SessionLocal()
     try:
         if when_live:

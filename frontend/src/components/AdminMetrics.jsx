@@ -5,7 +5,13 @@ import { useState, useEffect } from 'react'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
 const KEY_STORE = 'tickjapan_admin_key'
-const KIND = { paying: { label: '결제', c: '#1D9E75' }, trial: { label: '체험', c: '#5CA9CE' }, grant: { label: '무료지급', c: '#BA7517' }, etc: { label: '기타', c: '#9aa3ad' } }
+const KIND = {
+  paying: { label: '플랜구독', c: '#1D9E75' },
+  trial: { label: '설문체험', c: '#5CA9CE' },
+  referral: { label: '추천', c: '#7F77DD' },
+  review: { label: '리뷰·관리자', c: '#BA7517' },
+  etc: { label: '기타', c: '#9aa3ad' },
+}
 
 export default function AdminMetrics() {
   const [adminKey, setAdminKey] = useState(() => { try { return localStorage.getItem(KEY_STORE) || '' } catch { return '' } })
@@ -79,9 +85,10 @@ export default function AdminMetrics() {
 
   const TABS = [
     { key: 'all', label: '전체', n: subs.length },
-    { key: 'paying', label: '결제', n: sb.paying || 0 },
-    { key: 'trial', label: '체험', n: sb.trial || 0 },
-    { key: 'grant', label: '무료지급', n: sb.grant || 0 },
+    { key: 'paying', label: '플랜구독', n: sb.paying || 0 },
+    { key: 'trial', label: '설문체험', n: sb.trial || 0 },
+    { key: 'referral', label: '추천', n: sb.referral || 0 },
+    { key: 'review', label: '리뷰·관리자', n: sb.review || 0 },
     ...(sb.etc ? [{ key: 'etc', label: '기타', n: sb.etc }] : []),
   ]
   const activeTab = TABS.some(t => t.key === tab) ? tab : 'all'
@@ -95,7 +102,7 @@ export default function AdminMetrics() {
 
       {/* 헤드라인 — 순수 구독자 */}
       <div style={{ background: 'var(--primary-tint)', borderRadius: 12, padding: '16px 18px', marginBottom: 12 }}>
-        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-2)' }}>결제 구독자 <span style={{ fontSize: 10.5, color: 'var(--text-3)' }}>· IAP 실결제만</span></p>
+        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-2)' }}>플랜 구독 (능동) <span style={{ fontSize: 10.5, color: 'var(--text-3)' }}>· 플랜 페이지 결제·Apple 체험</span></p>
         <p style={{ margin: '2px 0 0', fontSize: 34, fontWeight: 800, color: 'var(--text-strong)', letterSpacing: '-1px', lineHeight: 1.1 }}>
           {fmt(sb.paying)}<span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-2)', marginLeft: 4 }}>명</span>
         </p>
@@ -104,8 +111,9 @@ export default function AdminMetrics() {
 
       {/* 스탯 그리드 */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-        {stat('체험', sb.trial)}
-        {stat('무료지급', sb.grant)}
+        {stat('설문 체험', sb.trial)}
+        {stat('추천', sb.referral)}
+        {stat('리뷰·관리자', sb.review)}
         {stat('총 회원', us.total)}
         {stat('오늘 가입', us.new_today)}
         {stat('최근 7일 가입', us.new_7d)}

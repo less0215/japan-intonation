@@ -2801,8 +2801,10 @@ def admin_metrics(key: str = ""):
                   if (not s.expires_at or s.expires_at > now)]
         uids = list({s.user_id for s in active})
         umap = {u.id: u for u in db.query(User).filter(User.id.in_(uids)).all()} if uids else {}
-        # 구독 종류 분류(customer_key): rc_*=실결제(IAP), survey7d=체험, ref:*/comp_*=무료지급(추천·관리자)
-        plus = pro = paying = pay_plus = pay_pro = trial = grant = etc = 0
+        # 구독 종류 분류(customer_key):
+        #  rc_*=플랜 페이지 능동 구독(Apple 결제·무료체험 자동전환) / survey7d=설문 보상 체험(자동전환X)
+        #  ref:*=추천코드 지급 / comp_*=리뷰이벤트·관리자 지급
+        plus = pro = paying = pay_plus = pay_pro = trial = referral = review = etc = 0
         subs = []
         for s in active:
             u = umap.get(s.user_id)
@@ -2813,8 +2815,10 @@ def admin_metrics(key: str = ""):
                 elif s.plan == 'pro': pay_pro += 1
             elif ck == 'survey7d':
                 kind = 'trial'; trial += 1
-            elif ck.startswith('ref:') or ck.startswith('comp_'):
-                kind = 'grant'; grant += 1
+            elif ck.startswith('ref:'):
+                kind = 'referral'; referral += 1
+            elif ck.startswith('comp_'):
+                kind = 'review'; review += 1
             else:
                 kind = 'etc'; etc += 1
             if s.plan == 'plus': plus += 1
@@ -2837,8 +2841,8 @@ def admin_metrics(key: str = ""):
         return {
             "subscribers": {
                 "paying": paying, "paying_plus": pay_plus, "paying_pro": pay_pro,
-                "trial": trial, "grant": grant, "etc": etc, "total_active": len(active),
-                "plus": plus, "pro": pro,
+                "trial": trial, "referral": referral, "review": review, "etc": etc,
+                "total_active": len(active), "plus": plus, "pro": pro,
             },
             "users": {"total": db.query(User).count(), "new_today": new_today, "new_7d": new_7d},
             "subs": subs,

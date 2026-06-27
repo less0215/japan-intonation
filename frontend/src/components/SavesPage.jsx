@@ -16,7 +16,13 @@ export default function SavesPage({ onSelectHistory }) {
   const [selected, setSelected] = useState([])   // 선택된 id 배열
   const navigate = useNavigate()
 
-  const list = seg === 'history' ? translationHistory : seg === 'words' ? savedWords : savedExamples
+  // 문법 저장은 category 'grammar' → 별도 '문법' 탭으로 분리(단어 탭에선 제외)
+  const grammarWords = savedWords.filter(w => w.category === 'grammar')
+  const plainWords = savedWords.filter(w => w.category !== 'grammar')
+  const list = seg === 'history' ? translationHistory
+    : seg === 'words' ? plainWords
+    : seg === 'grammar' ? grammarWords
+    : savedExamples
   // 탭 전환 시 선택/편집 초기화
   useEffect(() => { setSelected([]); setEditMode(false) }, [seg])
 
@@ -28,7 +34,7 @@ export default function SavesPage({ onSelectHistory }) {
 
   function doRemove(ids) {
     if (seg === 'history') removeHistoryItems(ids)
-    else if (seg === 'words') removeWords(ids)
+    else if (seg === 'words' || seg === 'grammar') removeWords(ids)
     else removeExamples(ids)
   }
   function deleteSelected() {
@@ -38,12 +44,13 @@ export default function SavesPage({ onSelectHistory }) {
   function deleteAll() {
     if (list.length === 0) return
     if (!window.confirm('이 탭의 항목을 모두 삭제할까요?')) return
-    doRemove(undefined); setSelected([]); setEditMode(false)
+    doRemove(list.map(it => it.id)); setSelected([]); setEditMode(false)   // 현재 탭 항목만 삭제(문법/단어 분리 보호)
   }
 
   function onItemClick(it) {
     if (editMode) { toggleSel(it.id); return }
     if (seg === 'history') onSelectHistory?.(it.result, it.input_text)
+    else if (seg === 'grammar') navigate(`/grammar/${it.id}`)
     else if (seg === 'words') CAT_PATH[it.category] && navigate(`${CAT_PATH[it.category]}/${it.id.split('_').pop?.() ?? it.id}`)
     else CAT_PATH[it.wordCategory] && navigate(`${CAT_PATH[it.wordCategory]}/${it.wordId}#examples-section`)
   }
@@ -88,8 +95,10 @@ export default function SavesPage({ onSelectHistory }) {
   const rows = seg === 'history'
     ? translationHistory.map((h, i) => row(h.japanese, h.input_text, h, i === translationHistory.length - 1))
     : seg === 'words'
-      ? savedWords.map((w, i) => row(`${w.word}  ${w.reading ?? ''}`, w.meaning, w, i === savedWords.length - 1))
-      : savedExamples.map((e, i) => row(e.exampleJp, e.exampleKr, e, i === savedExamples.length - 1))
+      ? plainWords.map((w, i) => row(`${w.word}  ${w.reading ?? ''}`, w.meaning, w, i === plainWords.length - 1))
+      : seg === 'grammar'
+        ? grammarWords.map((w, i) => row(`${w.word}  ${w.reading ?? ''}`, w.meaning, w, i === grammarWords.length - 1))
+        : savedExamples.map((e, i) => row(e.exampleJp, e.exampleKr, e, i === savedExamples.length - 1))
 
   return (
     <>
@@ -104,8 +113,9 @@ export default function SavesPage({ onSelectHistory }) {
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        <button style={segStyle(seg === 'history')} onClick={() => setSeg('history')}>번역 기록</button>
-        <button style={segStyle(seg === 'words')}   onClick={() => setSeg('words')}>단어</button>
+        <button style={segStyle(seg === 'history')}  onClick={() => setSeg('history')}>번역 기록</button>
+        <button style={segStyle(seg === 'words')}    onClick={() => setSeg('words')}>단어</button>
+        <button style={segStyle(seg === 'grammar')}  onClick={() => setSeg('grammar')}>문법</button>
         <button style={segStyle(seg === 'examples')} onClick={() => setSeg('examples')}>예문</button>
       </div>
 
@@ -125,7 +135,7 @@ export default function SavesPage({ onSelectHistory }) {
       )}
 
       {list.length === 0
-        ? empty(seg === 'history' ? '저장된 번역 기록이 없어요.' : seg === 'words' ? '저장한 단어가 없어요.' : '저장한 예문이 없어요.')
+        ? empty(seg === 'history' ? '저장된 번역 기록이 없어요.' : seg === 'words' ? '저장한 단어가 없어요.' : seg === 'grammar' ? '저장한 문법이 없어요.' : '저장한 예문이 없어요.')
         : <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, overflow: 'hidden' }}>{rows}</div>}
     </>
   )

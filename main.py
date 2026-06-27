@@ -435,6 +435,7 @@ class Message(Base):
     cta_label  = Column(String(40), nullable=True)    # CTA 버튼 라벨(있으면 메시지함에 버튼 노출)
     cta_target = Column(String(120), nullable=True)   # CTA 이동 경로(예: /plans?from=launch_event)
     active     = Column(Boolean, default=True, index=True)
+    pinned     = Column(Boolean, default=False, index=True)   # 고정 공지 → 메시지함 최상단
     created_at = Column(DateTime, default=now_kst, index=True)
 
 
@@ -674,6 +675,7 @@ def run_migrations():
         with engine.begin() as conn:
             conn.execute(sa_text("ALTER TABLE message ADD COLUMN IF NOT EXISTS cta_label VARCHAR(40)"))
             conn.execute(sa_text("ALTER TABLE message ADD COLUMN IF NOT EXISTS cta_target VARCHAR(120)"))
+            conn.execute(sa_text("ALTER TABLE message ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE"))
     except Exception as e:
         print("[migration] message cta columns skipped:", e)
     # 데일리 체크용 뷰 (우선순위 열 순서) — platform 추가 위해 재생성
@@ -1318,8 +1320,8 @@ def rate_guard(request: Request, user_id: int | None = None, count_daily: bool =
 
 # 사진 번역 — 공개(베타). 플랜별 일일 한도(비용·악용 방지).
 # 비용 근거: 사진(고해상도+페이지 출력) ≈ 빠른번역의 5배 → 빠른번역 한도를 ÷5로 비례 축소.
-# (빠른 번역: 무료 15/5h, Plus 200/일, Pro 무제한 → 사진: 무료 5, Plus 40, Pro 100/일)
-PHOTO_LIMITS = {"free": 5, "plus": 40, "pro": 100}
+# (빠른 번역: 무료 15/5h, Plus 200/일, Pro 무제한 → 사진: 무료 5, Plus 40, Pro 무제한)
+PHOTO_LIMITS = {"free": 5, "plus": 40, "pro": 100}   # pro는 consume_photo_quota에서 early-return(무제한), 값은 미사용
 _photo_daily: dict[str, list] = {}   # key → [date_kst, count] (인메모리 소프트캡, KST 자정 리셋)
 
 def consume_photo_quota(db, user_id, anon_id, request):
@@ -1334,6 +1336,8 @@ def consume_photo_quota(db, user_id, anon_id, request):
         plan = sub.plan
     elif u and is_fast_unlimited(u.phone):
         plan = "plus"
+    if plan == "pro":
+        return  # 프로: 사진 번역 무제한
     limit = PHOTO_LIMITS.get(plan, PHOTO_LIMITS["free"])
     key = f"u:{user_id}" if user_id else (f"a:{anon_id}" if anon_id else f"ip:{_client_ip(request)}")
     today = time.strftime("%Y-%m-%d", time.gmtime(time.time() + 9 * 3600))
@@ -2023,10 +2027,11 @@ def get_messages(user_id: int):
         rows = (db.query(Message)
                   .filter(Message.active == True,
                           Message.audience.in_(["all", str(user_id)]))
-                  .order_by(Message.created_at.desc())
+                  .order_by(Message.pinned.desc(), Message.created_at.desc())
                   .all())
         return [{"id": m.id, "title": m.title, "body": m.body,
                  "cta_label": m.cta_label, "cta_target": m.cta_target,
+                 "pinned": bool(m.pinned),
                  "created_at": m.created_at.isoformat() if m.created_at else None}
                 for m in rows]
     finally:
@@ -2059,6 +2064,28 @@ def admin_send_message(req: SendMessageRequest):
         db.commit()
         db.refresh(m)
         return {"ok": True, "id": m.id, "audience": m.audience}
+    finally:
+        db.close()
+
+
+class PinMessageRequest(BaseModel):
+    admin_phone: str
+    message_id: int
+    pinned: bool = True
+
+@app.post("/admin/pin-message")
+def admin_pin_message(req: PinMessageRequest):
+    """관리자 전용 — 메시지 고정/해제. 고정 메시지는 메시지함 최상단에 노출."""
+    if not is_admin_phone(req.admin_phone):
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    db = SessionLocal()
+    try:
+        m = db.query(Message).filter(Message.id == req.message_id).first()
+        if not m:
+            raise HTTPException(status_code=404, detail="메시지를 찾을 수 없습니다.")
+        m.pinned = bool(req.pinned)
+        db.commit()
+        return {"ok": True, "message_id": m.id, "pinned": m.pinned}
     finally:
         db.close()
 

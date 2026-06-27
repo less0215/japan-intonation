@@ -238,6 +238,7 @@ export default function MessageInbox() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                       <span style={{ fontSize: 14.5, fontWeight: isNew ? 700 : 600, color: 'var(--text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title}</span>
+                      {m.pinned && <span style={{ fontSize: 9.5, fontWeight: 700, color: PRIMARY, background: 'var(--primary-tint)', borderRadius: 5, padding: '1px 5px', flexShrink: 0 }}>고정</span>}
                       {isNew && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#fff', background: PRIMARY, borderRadius: 5, padding: '1px 5px', flexShrink: 0 }}>NEW</span>}
                     </div>
                     {/* 접혔을 때만 미리보기 한 줄 */}

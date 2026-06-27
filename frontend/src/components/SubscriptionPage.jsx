@@ -176,7 +176,7 @@ export default function SubscriptionPage() {
         </p>
         {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {['광고 완전 제거', '빠른 번역 무제한', '사진 번역 하루 100회', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (
+          {['광고 완전 제거', '빠른 번역 무제한', '사진 번역 무제한', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (
             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-1)' }}><Check color="var(--success)" />{f}</li>
           ))}
         </ul>

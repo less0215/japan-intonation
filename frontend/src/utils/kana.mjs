@@ -59,14 +59,27 @@ export function withSokuon(s) {
   return s
 }
 
+// 가타카나 → 히라가나 정규화. 가타카나 음절 영역(0x30A1 ァ ~ 0x30F6 ヶ)만 -0x60; ー(장음)·중점 등은 유지.
+// 기본 가타카나(テ·ス·ト 등)가 KANA_HANGUL에 없어 그래프 독음에 가나로 새던 것을 원천 차단.
+export function kataToHira(s) {
+  let out = ''
+  for (const ch of s) {
+    const c = ch.codePointAt(0)
+    out += (c >= 0x30A1 && c <= 0x30F6) ? String.fromCodePoint(c - 0x60) : ch
+  }
+  return out
+}
+
 // 모라 → 한글(합성식). ① 단일/요음/외래어는 직접 매핑 ② 촉음 결합(れっ 등)은 '앞 한글 + ㅅ받침'으로 합성
-// ③ 그 외 미등록 결합은 글자별 변환으로 이어붙여 가나 노출을 원천 차단(최후 안전망).
+// ③ 가타카나는 히라가나로 정규화 후 매핑 ④ 그 외 미등록 결합은 글자별 변환으로 가나 노출 차단(최후 안전망).
 export function moraToHangul(m) {
   if (!m) return m
   const direct = KANA_HANGUL[m]
   if (direct) return direct
   const last = m[m.length - 1]
   if (last === 'っ' || last === 'ッ') return withSokuon(moraToHangul(m.slice(0, -1)))
+  const hira = kataToHira(m)
+  if (hira !== m) return moraToHangul(hira)
   if (m.length > 1) return [...m].map((c) => KANA_HANGUL[c] ?? c).join('')
   return m
 }
@@ -80,6 +93,7 @@ for (const k of 'えけせてねへめれげぜでべぺゑ') MORA_VOWEL[k] = 'e
 for (const k of 'おこそとのほもよろをごぞどぼぽ') MORA_VOWEL[k] = 'o'
 export const vowelOf = (m) => {
   if (!m) return null
+  m = kataToHira(m)   // 가타카나도 동일하게 모음 판정(장음 압축용)
   const last = m[m.length - 1]
   if (last === 'ゃ' || last === 'ぁ' || last === 'ァ') return 'a'
   if (last === 'ぃ' || last === 'ィ') return 'i'
@@ -113,14 +127,14 @@ export function kanjiGroupFlags(furiganaHtml, allMora) {
   if (!furiganaHtml) return null
   // furigana는 히라가나. 괄호 안=한자/외래어 독음(히라가나+장음 ー), 괄호 밖=히라가나만(조사 등).
   // 괄호 밖 가타카나 외래어(ディカフェ·コーヒー 등)와 그 ー는 '한자처럼' 건너뛰어 정렬을 맞춘다.
-  const isHira = (ch) => /[ぁ-ゟ]/.test(ch)
+  const isKana = (ch) => /[ぁ-ゟァ-ヿ]/.test(ch)   // 히라가나+가타카나(외래어 가타카나도 정렬에 포함)
   const chars = []
   let inParen = false
   for (const ch of furiganaHtml) {
     if (ch === '(' || ch === '（') { inParen = true; continue }
     if (ch === ')' || ch === '）') { inParen = false; continue }
-    if (inParen) { if (isHira(ch) || ch === 'ー') chars.push({ ch, kanji: true }) }
-    else if (isHira(ch)) chars.push({ ch, kanji: false })
+    if (inParen) { if (isKana(ch) || ch === 'ー') chars.push({ ch, kanji: true }) }
+    else if (isKana(ch) || ch === 'ー') chars.push({ ch, kanji: false })
   }
   const small = new Set(['ぁ','ぃ','ぅ','ぇ','ぉ','ゃ','ゅ','ょ','っ','ァ','ィ','ゥ','ェ','ォ','ャ','ュ','ョ','ッ'])
   const moras = [], flags = []

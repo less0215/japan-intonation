@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const PRIMARY = '#5CA9CE'
 const KEY_STORE = 'tickjapan_admin_key'
+const KIND = { paying: { label: '결제', c: '#1D9E75' }, promo: { label: '프로모', c: '#5CA9CE' }, etc: { label: '기타', c: '#9aa3ad' } }
 
 export default function AdminMetrics() {
   const [adminKey, setAdminKey] = useState(() => { try { return localStorage.getItem(KEY_STORE) || '' } catch { return '' } })
@@ -83,16 +84,17 @@ export default function AdminMetrics() {
 
       {/* 헤드라인 — 순수 구독자 */}
       <div style={{ background: 'var(--primary-tint)', borderRadius: 12, padding: '16px 18px', marginBottom: 12 }}>
-        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-2)' }}>순수 구독자 <span style={{ fontSize: 10.5, color: 'var(--text-3)' }}>· 관리자·무료지급 제외</span></p>
+        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-2)' }}>결제 구독자 <span style={{ fontSize: 10.5, color: 'var(--text-3)' }}>· IAP 실결제만</span></p>
         <p style={{ margin: '2px 0 0', fontSize: 34, fontWeight: 800, color: 'var(--text-strong)', letterSpacing: '-1px', lineHeight: 1.1 }}>
-          {fmt(sb.pure)}<span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-2)', marginLeft: 4 }}>명</span>
+          {fmt(sb.paying)}<span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-2)', marginLeft: 4 }}>명</span>
         </p>
-        <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--text-2)' }}>Plus {fmt(sb.pure_plus)} · Pro {fmt(sb.pure_pro)}</p>
+        <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--text-2)' }}>Plus {fmt(sb.paying_plus)} · Pro {fmt(sb.paying_pro)}</p>
       </div>
 
       {/* 스탯 그리드 */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-        {stat('전체 활성 구독', sb.total_active, `관리자·무료 ${fmt(sb.comp)}`)}
+        {stat('프로모·체험', sb.promo, sb.etc ? `기타 ${fmt(sb.etc)}` : null)}
+        {stat('전체 활성 구독', sb.total_active)}
         {stat('총 회원', us.total)}
         {stat('오늘 가입', us.new_today)}
         {stat('최근 7일 가입', us.new_7d)}
@@ -109,10 +111,10 @@ export default function AdminMetrics() {
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {s.name}{s.phone_tail ? <span style={{ color: 'var(--text-3)', fontWeight: 400 }}> ··{s.phone_tail}</span> : null}
-                  {s.comp && <span style={{ marginLeft: 6, fontSize: 10, color: PRIMARY, border: `1px solid ${PRIMARY}55`, borderRadius: 5, padding: '1px 5px' }}>관리자·무료</span>}
+                  {(() => { const k = KIND[s.kind] || KIND.etc; return <span style={{ marginLeft: 6, fontSize: 10, color: k.c, border: `1px solid ${k.c}55`, borderRadius: 5, padding: '1px 5px' }}>{k.label}</span> })()}
                 </p>
                 <p style={{ margin: '2px 0 0', fontSize: 10.5, color: 'var(--text-3)' }}>
-                  {s.plan?.toUpperCase()} · {s.period === 'yearly' ? '연' : '월'} · {s.started_at ? s.started_at.slice(0, 10) : ''}
+                  {s.plan?.toUpperCase()} · {s.period === 'trial' ? '체험' : s.period === 'yearly' ? '연' : '월'} · {s.started_at ? s.started_at.slice(0, 10) : ''}
                 </p>
               </div>
               <button onClick={() => cancelSub(s)} disabled={busyId === s.id}

@@ -2801,27 +2801,29 @@ def admin_metrics(key: str = ""):
                   if (not s.expires_at or s.expires_at > now)]
         uids = list({s.user_id for s in active})
         umap = {u.id: u for u in db.query(User).filter(User.id.in_(uids)).all()} if uids else {}
-        def is_comp(u):  # 관리자·무제한 화이트리스트(비결제 계정)
-            return bool(u and (is_admin_phone(u.phone) or is_fast_unlimited(u.phone)))
-        plus = pro = pure = pure_plus = pure_pro = 0
+        # 구독 종류 분류(customer_key): rc_*=실결제(IAP), survey7d/ref:*/comp_*=프로모·체험
+        plus = pro = paying = pay_plus = pay_pro = promo = etc = 0
         subs = []
         for s in active:
             u = umap.get(s.user_id)
-            c = is_comp(u)
+            ck = s.customer_key or ''
+            if ck.startswith('rc_'):
+                kind = 'paying'; paying += 1
+                if s.plan == 'plus': pay_plus += 1
+                elif s.plan == 'pro': pay_pro += 1
+            elif ck == 'survey7d' or ck.startswith('ref:') or ck.startswith('comp_'):
+                kind = 'promo'; promo += 1
+            else:
+                kind = 'etc'; etc += 1
             if s.plan == 'plus': plus += 1
             elif s.plan == 'pro': pro += 1
-            if not c:
-                pure += 1
-                if s.plan == 'plus': pure_plus += 1
-                elif s.plan == 'pro': pure_pro += 1
             ph = re.sub(r'[^0-9]', '', u.phone) if (u and u.phone) else ''
             subs.append({
                 "id": s.id, "user_id": s.user_id,
                 "name": u.name if u else "(탈퇴 회원)",
                 "phone_tail": ph[-4:] if ph else "",
-                "plan": s.plan, "period": s.period,
+                "plan": s.plan, "period": s.period, "kind": kind,
                 "started_at": s.started_at.isoformat() if s.started_at else None,
-                "comp": c,
             })
         try:
             today0 = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -2832,9 +2834,9 @@ def admin_metrics(key: str = ""):
             new_today = new_7d = None
         return {
             "subscribers": {
-                "pure": pure, "pure_plus": pure_plus, "pure_pro": pure_pro,
-                "total_active": len(active), "plus": plus, "pro": pro,
-                "comp": len(active) - pure,
+                "paying": paying, "paying_plus": pay_plus, "paying_pro": pay_pro,
+                "promo": promo, "etc": etc, "total_active": len(active),
+                "plus": plus, "pro": pro,
             },
             "users": {"total": db.query(User).count(), "new_today": new_today, "new_7d": new_7d},
             "subs": subs,

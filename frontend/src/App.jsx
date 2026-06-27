@@ -9,6 +9,7 @@ import SignupModal from './components/SignupModal'
 import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
+import QuotaWall from './components/QuotaWall'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
 import TravelAffiliate from './components/TravelAffiliate'
@@ -344,6 +345,7 @@ export default function App() {
   const [error, setError]             = useState(null)
   const [saved, setSaved]             = useState(false)
   const [showSignup, setShowSignup]   = useState(false)
+  const [showQuotaWall, setShowQuotaWall] = useState(false)   // 웹 일일 한도 도달 시 안내 시트
   const [signupMode, setSignupMode]   = useState('save') // 'save' | 'login' | 'translate_limit'
   const [showAttPrompt, setShowAttPrompt] = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
@@ -675,9 +677,14 @@ export default function App() {
 
       if (!res.ok) {
         if (res.status === 429) {
-          // 레이트리밋·일일 한도 — 서버가 보낸 친절한 메시지 그대로 노출
           let msg = '잠시 후 다시 시도해 주세요.'
           try { const j = await res.json(); if (j?.detail) msg = j.detail } catch {}
+          // 일일 무료 한도(웹) → 한도벽 시트로 전환 유도. 그 외(분당/시간당 레이트리밋)는 일반 에러.
+          if (msg.includes('이어서 이용')) {
+            setShowQuotaWall(true); setLoading(false)
+            track('quota_wall_shown', { logged_in: !!user })
+            return
+          }
           throw new Error(msg)
         } else if (res.status === 503)
           throw new Error('서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.')
@@ -1319,6 +1326,14 @@ export default function App() {
             subtitle: '이름과 휴대폰 번호만 입력하면 바로 빠른 번역을 쓸 수 있어요.',
             submitLabel: '로그인하고 빠른 번역 켜기',
           } : {})}
+        />
+      )}
+      {showQuotaWall && (
+        <QuotaWall
+          isLoggedIn={!!user}
+          onDownload={() => { track('quota_wall_download'); setShowQuotaWall(false); navigate('/download') }}
+          onLogin={() => { setShowQuotaWall(false); setSignupMode('login'); setShowSignup(true) }}
+          onClose={() => setShowQuotaWall(false)}
         />
       )}
       {showAttPrompt && <AttPrePrompt onProceed={handleAttProceed} />}

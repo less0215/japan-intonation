@@ -2851,11 +2851,13 @@ def admin_metrics(key: str = ""):
             if not wl and not cs:
                 continue
             ph = re.sub(r'[^0-9]', '', u.phone) if u.phone else ''
-            if wl:   # 무제한 화이트리스트(코드 기반) — 항상 활성, 대시보드 취소 대상 아님
+            if wl:   # 무제한 화이트리스트(코드 기반, WHITELIST_PLUS_EXPIRES 만기) — 대시보드 취소 대상 아님
                 review_list.append({
                     "id": "wl%d" % u.id, "user_id": u.id, "name": u.name,
                     "phone_tail": ph[-4:] if ph else "", "grant": "무제한",
-                    "plan": "plus", "started_at": None, "expires_at": None, "active": True,
+                    "plan": "plus", "started_at": None,
+                    "expires_at": WHITELIST_PLUS_EXPIRES.isoformat(),
+                    "active": now < WHITELIST_PLUS_EXPIRES,
                 })
             else:    # comp_ 기간제
                 is_active = cs.status == 'active' and (not cs.expires_at or cs.expires_at > now)
@@ -2868,6 +2870,34 @@ def admin_metrics(key: str = ""):
                 })
         review_list.sort(key=lambda x: (not x["active"], x["name"] or ""))
         review_active = sum(1 for r in review_list if r["active"])
+
+        # 설문참여 코호트 — 설문 응답자 전부(기존 구독자 포함), 유저별 1건, 관리자 제외
+        survey_rows = []
+        seen_sr = set()
+        sr_all = db.query(SurveyResponse).order_by(SurveyResponse.created_at.desc()).all()
+        sruids = list({r.user_id for r in sr_all if r.user_id})
+        srumap = {u.id: u for u in db.query(User).filter(User.id.in_(sruids)).all()} if sruids else {}
+        for r in sr_all:
+            if not r.user_id or r.user_id in seen_sr:
+                continue
+            seen_sr.add(r.user_id)
+            u = srumap.get(r.user_id)
+            if u and is_admin_phone(u.phone):
+                continue
+            ph = re.sub(r'[^0-9]', '', u.phone) if (u and u.phone) else ''
+            if u and is_fast_unlimited(u.phone):
+                status, exp = "무제한", WHITELIST_PLUS_EXPIRES.isoformat()
+            else:
+                asub = get_active_subscription(db, r.user_id) if u else None
+                if asub:
+                    status, exp = "구독중", (asub.expires_at.isoformat() if asub.expires_at else None)
+                else:
+                    status, exp = "무료", None
+            survey_rows.append({
+                "user_id": r.user_id, "name": u.name if u else "(탈퇴 회원)",
+                "phone_tail": ph[-4:] if ph else "", "status": status, "expires_at": exp,
+                "responded_at": r.created_at.isoformat() if r.created_at else None,
+            })
         try:
             today0 = now.replace(hour=0, minute=0, second=0, microsecond=0)
             week0 = now - datetime.timedelta(days=7)
@@ -2880,11 +2910,13 @@ def admin_metrics(key: str = ""):
                 "paying": paying, "paying_plus": pay_plus, "paying_pro": pay_pro,
                 "trial": trial, "referral": referral, "etc": etc,
                 "review": len(review_list), "review_active": review_active,
+                "survey": len(survey_rows),
                 "total_active": len(subs), "plus": plus, "pro": pro,
             },
             "users": {"total": db.query(User).count(), "new_today": new_today, "new_7d": new_7d},
             "subs": subs,
             "review_event": review_list,
+            "survey_event": survey_rows,
         }
     finally:
         db.close()

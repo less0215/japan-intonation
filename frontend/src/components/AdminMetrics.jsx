@@ -84,16 +84,18 @@ export default function AdminMetrics() {
   )
 
   const reviewList = data.review_event || []
+  const surveyList = data.survey_event || []
   const TABS = [
     { key: 'all', label: '전체', n: subs.length },
     { key: 'paying', label: '플랜구독', n: sb.paying || 0 },
-    { key: 'trial', label: '설문체험', n: sb.trial || 0 },
     { key: 'referral', label: '추천', n: sb.referral || 0 },
     ...(sb.etc ? [{ key: 'etc', label: '기타', n: sb.etc }] : []),
     { key: 'review', label: '리뷰이벤트', n: sb.review || 0 },
+    { key: 'survey', label: '설문참여', n: sb.survey || 0 },
   ]
   const activeTab = TABS.some(t => t.key === tab) ? tab : 'all'
   const filtered = activeTab === 'review' ? reviewList
+    : activeTab === 'survey' ? surveyList
     : activeTab === 'all' ? subs
     : subs.filter((s) => s.kind === activeTab)
 
@@ -114,7 +116,7 @@ export default function AdminMetrics() {
 
       {/* 스탯 그리드 */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-        {stat('설문 체험', sb.trial)}
+        {stat('설문 참여', sb.survey, `신규체험 ${fmt(sb.trial)}`)}
         {stat('추천', sb.referral)}
         {stat('리뷰이벤트', sb.review, `활성 ${fmt(sb.review_active)} · 만료 포함`)}
         {stat('총 회원', us.total)}
@@ -126,6 +128,8 @@ export default function AdminMetrics() {
       <p style={{ margin: '0 0 8px', fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)' }}>
         {activeTab === 'review'
           ? <>리뷰이벤트 {reviewList.length}명 <span style={{ fontWeight: 400 }}>· 활성 {fmt(sb.review_active)} (만료 포함)</span></>
+          : activeTab === 'survey'
+          ? <>설문 참여자 {surveyList.length}명 <span style={{ fontWeight: 400 }}>· 기존 구독자 포함</span></>
           : <>활성 구독 {subs.length}건 <span style={{ fontWeight: 400 }}>· 취소하면 활성 카운트에서 빠집니다</span></>}
       </p>
 
@@ -149,20 +153,29 @@ export default function AdminMetrics() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {filtered.map((s) => {
-            const isRev = s.active !== undefined   // 리뷰이벤트 코호트 행(만료·무제한 포함)
-            const tag = isRev
-              ? (s.grant === '무제한'
-                  ? { label: '무제한', c: '#7F77DD' }
-                  : { label: s.active ? '기간제·활성' : '만료', c: s.active ? '#1D9E75' : '#9aa3ad' })
-              : (KIND[s.kind] || KIND.etc)
-            const meta = isRev
-              ? (s.grant === '무제한'
-                  ? 'PLUS · 무제한(화이트리스트)'
-                  : `${(s.plan || '').toUpperCase()} · 만료 ${s.expires_at ? s.expires_at.slice(0, 10) : '미정'}`)
-              : `${(s.plan || '').toUpperCase()} · ${s.period === 'trial' ? '체험' : s.period === 'yearly' ? '연' : '월'} · 만료 ${s.expires_at ? s.expires_at.slice(0, 10) : '무기한'}`
-            const cancellable = isRev ? (s.grant === '기간제' && s.active) : true
+            const isSurvey = s.status !== undefined          // 설문참여 코호트 행
+            const isRev = !isSurvey && s.active !== undefined // 리뷰이벤트 코호트 행
+            let tag, meta, cancellable
+            if (isSurvey) {
+              const c = s.status === '구독중' ? '#1D9E75' : s.status === '무제한' ? '#7F77DD' : '#9aa3ad'
+              tag = { label: s.status, c }
+              meta = `${s.expires_at ? '만료 ' + s.expires_at.slice(0, 10) : '무료'} · 응답 ${s.responded_at ? s.responded_at.slice(0, 10) : ''}`
+              cancellable = false
+            } else if (isRev) {
+              tag = s.grant === '무제한'
+                ? { label: '화이트리스트', c: '#7F77DD' }
+                : { label: s.active ? '기간제·활성' : '만료', c: s.active ? '#1D9E75' : '#9aa3ad' }
+              meta = s.grant === '무제한'
+                ? `PLUS · 만료 ${s.expires_at ? s.expires_at.slice(0, 10) : ''} (화이트리스트)`
+                : `${(s.plan || '').toUpperCase()} · 만료 ${s.expires_at ? s.expires_at.slice(0, 10) : '미정'}`
+              cancellable = s.grant === '기간제' && s.active
+            } else {
+              tag = KIND[s.kind] || KIND.etc
+              meta = `${(s.plan || '').toUpperCase()} · ${s.period === 'trial' ? '체험' : s.period === 'yearly' ? '연' : '월'} · 만료 ${s.expires_at ? s.expires_at.slice(0, 10) : '무기한'}`
+              cancellable = true
+            }
             return (
-              <div key={(isRev ? 'r' : 's') + s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--bd)', borderRadius: 10, background: 'var(--surface)' }}>
+              <div key={(isSurvey ? 'q' : isRev ? 'r' : 's') + (s.id ?? s.user_id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--bd)', borderRadius: 10, background: 'var(--surface)' }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {s.name}{s.phone_tail ? <span style={{ color: 'var(--text-3)', fontWeight: 400 }}> ··{s.phone_tail}</span> : null}
@@ -175,7 +188,7 @@ export default function AdminMetrics() {
                     style={{ flexShrink: 0, height: 30, padding: '0 12px', borderRadius: 8, border: '1px solid var(--danger)', background: 'transparent', color: 'var(--danger)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                     {busyId === s.id ? '취소 중…' : '취소'}
                   </button>
-                ) : (
+                ) : isSurvey ? null : (
                   <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--text-3)' }}>{isRev && s.grant === '무제한' ? '화이트리스트' : '만료됨'}</span>
                 )}
               </div>

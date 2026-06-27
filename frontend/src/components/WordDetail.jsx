@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
-import PronunciationPractice from './PronunciationPractice'
 import WordBookmarkButton from './WordBookmarkButton'
 import JlptBadge from './JlptBadge'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
@@ -128,7 +127,6 @@ function FormRow({ row, index, conjLabel, gender, accentType, borderStyle }) {
       {graphActive && furigana && (
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '2px 12px 10px' }}>
           <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
-          <PronunciationPractice compact accentData={accentData} furigana={furigana} japanese={plainText} korean_pronunciation={row.ruby} inputText={row.meaning} />
         </div>
       )}
     </div>

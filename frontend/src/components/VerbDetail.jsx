@@ -3,7 +3,6 @@ import { BreakdownTable, BreakdownCards, DetailToggleButton, ExampleAnalysis } f
 import { track } from '../App'
 import JlptBadge from './JlptBadge'
 import PitchGraph from './PitchGraph'
-import PronunciationPractice from './PronunciationPractice'
 import SignupModal from './SignupModal'
 import { useUser } from '../context/UserContext'
 import WordBookmarkButton from './WordBookmarkButton'
@@ -151,7 +150,6 @@ function FormRow({ row, index, gender, accentType, borderStyle }) {
       {graphActive && furigana && (
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '2px 12px 10px' }}>
           <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
-          <PronunciationPractice compact accentData={accentData} furigana={furigana} japanese={plainText} korean_pronunciation={row.ruby} inputText={row.meaning} />
         </div>
       )}
     </div>

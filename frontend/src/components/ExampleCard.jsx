@@ -5,7 +5,6 @@
  */
 import { useState, useRef } from 'react'
 import PitchGraph from './PitchGraph'
-import PronunciationPractice from './PronunciationPractice'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
 import { ExampleAnalysis } from './BreakdownPanel'
@@ -99,7 +98,6 @@ export default function ExampleCard({ example, wordInfo, index }) {
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: 4 }}>
             <PitchGraph accentData={example.accentData} furigana={example.furigana} hideHeader />
           </div>
-          <PronunciationPractice compact accentData={example.accentData} furigana={example.furigana} japanese={example.plain} korean_pronunciation={example.reading} inputText={example.korean} />
         </>
       )}
       {example.pattern && (

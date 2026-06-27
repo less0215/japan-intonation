@@ -2,7 +2,6 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GRAMMAR } from '../data/grammar'
 import PitchGraph from './PitchGraph'
-import PronunciationPractice from './PronunciationPractice'
 import WordBookmarkButton from './WordBookmarkButton'
 import ExampleBookmarkButton from './ExampleBookmarkButton'
 import RubyText from './RubyText'
@@ -146,7 +145,6 @@ function ExampleBox({ example, exampleInfo }) {
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: 8 }}>
             <PitchGraph accentData={accentData} furigana={furigana} hideHeader />
           </div>
-          <PronunciationPractice compact accentData={accentData} furigana={furigana} japanese={plainText} korean_pronunciation={example.pronunciation} inputText={example.kr} />
         </>
       )}
 

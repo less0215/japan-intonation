@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
 import PitchGraph from './PitchGraph'
-import PronunciationPractice from './PronunciationPractice'
 import CopyButton from './CopyButton'
 import { BreakdownTable, BreakdownCards, DetailToggleButton, BreakdownPreview } from './BreakdownPanel'
 import { track, logLearning } from '../App'
@@ -313,10 +312,6 @@ export default function ResultCard({ data, onSave, saved, inputText, breakdownLo
         <PitchGraph accentData={accent_data} furigana={furigana} furiganaHtml={furigana_html} hideHeader />
       </div>
 
-      {/* 발음 연습(베타) — 전체 공개. 마이크 녹음→온디바이스 음높이 비교(광고·서버비용 0) */}
-      {accent_data?.length > 0 && (
-        <PronunciationPractice accentData={accent_data} furigana={furigana} japanese={japanese} korean_pronunciation={korean_pronunciation} inputText={inputText} />
-      )}
 
       <hr className="divider" />
 

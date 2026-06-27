@@ -1393,9 +1393,15 @@ def analyze(req: AnalyzeRequest, request: Request):
     # ⚠️ 비용 방어: 빠른 번역(비싼 모델)은 보상형 광고가 가능한 '앱'에서만 허용.
     #    웹 등 그 외 요청은 무조건 basic으로 강제(빠른 모델 호출·한도차감 자체 차단).
     want_fast = (req.model == "fast") and (req.platform == "app")
-    # 관리자는 모든 제약 해제 — 웹에서도 빠른 번역 허용
-    if (req.model == "fast") and not want_fast and _is_admin_user(req.user_id):
-        want_fast = True
+    # 빠른 번역은 기본 앱 전용(비싼 모델 → 보상형 광고 가능한 앱에서만). 단 무제한 회원
+    # (관리자·화이트리스트·유효 구독자 Plus/Pro)은 웹에서도 허용 — 유료 혜택 플랫폼 일관.
+    if (req.model == "fast") and not want_fast and req.user_id:
+        _db = SessionLocal()
+        try:
+            if _is_unlimited_user(_db, req.user_id):
+                want_fast = True
+        finally:
+            _db.close()
     usage_fields = {"model_used": "basic", "fast_limited": False,
                     "fast_used_pct": None, "fast_unlimited": False, "fast_reset_sec": None}
     if want_fast and req.user_id:

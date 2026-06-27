@@ -491,7 +491,13 @@ export default function App() {
       track('fast_enabled', { guest: !user })
       return
     }
-    // 웹: 빠른 번역은 앱 전용 — 비용 누수 방지. 앱 다운로드 안내
+    // 웹: 구독자(무제한·광고제거 회원)는 웹에서도 빠른 번역 허용 — 유료 혜택 플랫폼 일관.
+    if (fastUnlimited || subAdFree) {
+      setSelectedModel('fast')
+      track('fast_enabled', { web: true, sub: true })
+      return
+    }
+    // 그 외(비구독 웹): 비용 누수 방지 — 앱 전용 안내
     setWebFastNotice(true)
     track('fast_web_blocked')
   }

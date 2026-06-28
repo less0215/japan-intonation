@@ -22,7 +22,7 @@ const QUESTIONS = [
   { id: 'spend', q: '매달 일본어 학습·번역에 따로 쓰는 돈은?', sub: '구독·강의·교재·앱 합산', type: 'single',
     options: ['0원', '1만 원 미만', '1~3만 원', '3~5만 원', '5만 원 이상'] },
   { id: 'nps', q: '친구·지인에게 추천할 가능성은?', sub: '0 = 전혀 없음 · 10 = 매우 높음', type: 'nps' },
-  { id: 'channel', q: '틱재팬을 처음 어떻게 알게 되셨나요?', sub: '선택', type: 'single', optional: true, otherOpt: '기타',
+  { id: 'channel', q: '틱재팬을 처음 어떻게 알게 되셨나요?', type: 'single', otherOpt: '기타',
     options: ['SNS', '추천', '검색', '커뮤니티', '기타'] },
 ]
 const REQUIRED = QUESTIONS.filter(q => !q.optional).map(q => q.id)

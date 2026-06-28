@@ -56,7 +56,7 @@ export default function AdminSurvey() {
   return (
     <div style={{ border: '1px solid var(--bd)', borderRadius: 14, padding: 16, background: 'var(--surface)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>응답 <b style={{ color: 'var(--text-strong)', fontSize: 15 }}>{(data.total || 0).toLocaleString()}</b>건</span>
+        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>유효 응답 <b style={{ color: 'var(--text-strong)', fontSize: 15 }}>{(data.valid ?? data.total ?? 0).toLocaleString()}</b>건{data.empty ? ` · 빈 응답 ${data.empty}건 제외` : ''}</span>
         <button onClick={load} style={{ fontSize: 11.5, color: PRIMARY, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>새로고침</button>
       </div>
 

@@ -2967,25 +2967,29 @@ def admin_survey_results(key: str = ""):
         counts = {k: Counter() for k in SINGLE}
         value_counts = Counter()
         nps_list = []
+        valid = 0   # 답변이 1개라도 있는 응답(빈/미완성 응답 제외)
         for r in rows:
             try:
                 a = json.loads(r.answers_json)
             except Exception:
-                continue
+                a = {}
+            had = False
             for k in SINGLE:
                 v = a.get(k)
                 if v not in (None, ''):
-                    counts[k][str(v)] += 1
+                    counts[k][str(v)] += 1; had = True
             for v in (a.get('value') or []):
                 if v not in (None, ''):
-                    value_counts[str(v)] += 1
+                    value_counts[str(v)] += 1; had = True
             n = a.get('nps')
             if isinstance(n, bool):
                 pass
             elif isinstance(n, (int, float)):
-                nps_list.append(int(n))
+                nps_list.append(int(n)); had = True
             elif isinstance(n, str) and n.strip().isdigit():
-                nps_list.append(int(n.strip()))
+                nps_list.append(int(n.strip())); had = True
+            if had:
+                valid += 1
         nps = None
         if nps_list:
             pro = sum(1 for x in nps_list if x >= 9)
@@ -2994,7 +2998,7 @@ def admin_survey_results(key: str = ""):
                    "score": round((pro - det) / len(nps_list) * 100),
                    "promoters": pro, "passives": len(nps_list) - pro - det, "detractors": det}
         srt = lambda c: sorted(c.items(), key=lambda x: -x[1])
-        return {"total": len(rows),
+        return {"total": len(rows), "valid": valid, "empty": len(rows) - valid,
                 "questions": {k: srt(counts[k]) for k in SINGLE},
                 "value": srt(value_counts), "nps": nps}
     finally:

@@ -2158,6 +2158,49 @@ def admin_delete_message(req: DeleteMessageRequest):
         db.close()
 
 
+@app.get("/admin/messages")
+def admin_list_messages(key: str = ""):
+    """관리자 전용 — 전체 메시지 목록(비활성 포함) 관리용. 대시보드 메시지 관리 섹션이 사용."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    db = SessionLocal()
+    try:
+        rows = db.query(Message).order_by(Message.pinned.desc(), Message.created_at.desc()).all()
+        return [{"id": m.id, "audience": m.audience, "title": m.title, "body": m.body,
+                 "cta_label": m.cta_label, "cta_target": m.cta_target,
+                 "active": bool(m.active), "pinned": bool(m.pinned),
+                 "created_at": m.created_at.isoformat() if m.created_at else None}
+                for m in rows]
+    finally:
+        db.close()
+
+
+class MessageSetRequest(BaseModel):
+    key: str = ""
+    message_id: int
+    active: bool | None = None    # 회수(False)/복구(True)
+    pinned: bool | None = None    # 고정(True)/해제(False)
+
+@app.post("/admin/message-set")
+def admin_message_set(req: MessageSetRequest):
+    """관리자 전용 — 메시지 회수/복구(active)·고정/해제(pinned) 토글. 키만 검증(대시보드용)."""
+    if req.key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    db = SessionLocal()
+    try:
+        m = db.query(Message).filter(Message.id == req.message_id).first()
+        if not m:
+            raise HTTPException(status_code=404, detail="메시지를 찾을 수 없습니다.")
+        if req.active is not None:
+            m.active = bool(req.active)
+        if req.pinned is not None:
+            m.pinned = bool(req.pinned)
+        db.commit()
+        return {"ok": True, "id": m.id, "active": bool(m.active), "pinned": bool(m.pinned)}
+    finally:
+        db.close()
+
+
 class DeleteUserRequest(BaseModel):
     admin_phone: str
     key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과

@@ -249,7 +249,7 @@ Example — 日本語を話すことができますか？:
       "korean_meaning": "말하다",
       "part_of_speech": "동사",
       "conjugation_steps": [
-        {"step": 1, "form": "話す", "label": "기본형 (사전형)", "note": "5단 활용 동사"}
+        {"step": 1, "form": "話す", "label": "기본형 (사전형)", "note": "1그룹(5단) 동사예요."}
       ]
     },
     {
@@ -259,17 +259,17 @@ Example — 日本語を話すことができますか？:
       "korean_meaning": "~할 수 있습니까?",
       "part_of_speech": "문법 패턴",
       "conjugation_steps": [
-        {"step": 1, "form": "できる", "label": "기본형", "note": "가능·잠재를 나타내는 이단 동사"},
-        {"step": 2, "form": "できます", "label": "ます형 (정중체)", "note": "できる → できます"},
-        {"step": 3, "form": "できますか", "label": "의문형", "note": "か를 붙여 정중한 의문문 형성"}
+        {"step": 1, "form": "できる", "label": "기본형", "note": "가능·잠재를 나타내는 2그룹(1단) 동사예요."},
+        {"step": 2, "form": "できます", "label": "ます형 (정중체)", "note": "できる를 정중하게 바꾼 형태예요(できる→できます)."},
+        {"step": 3, "form": "できますか", "label": "의문형", "note": "끝에 か를 붙이면 정중한 의문문이 돼요."}
       ],
-      "note": "〜ことができる: '~할 수 있다'(가능)를 나타내는 패턴. 만드는 법: 동사 기본형 + ことができる. 話す(말하다)→話すことができる(말할 수 있다). 여기에 ます·か를 붙이면 정중한 의문문이 됨."
+      "note": "〜ことができる: '~할 수 있다'(가능)를 나타내는 패턴이에요. 만드는 법은 동사 기본형 + ことができる. 話す(말하다)→話すことができる(말할 수 있다)예요. 여기에 ます·か를 붙이면 정중한 의문문이 돼요."
     }
   ]
 }
 
 Vocabulary note example — 吾輩は (archaic word a beginner won't know):
-{"unit": "吾輩は", "hiragana": "わがはいは", "korean_pronunciation": "와가하이와", "korean_meaning": "나는", "part_of_speech": "대명사+조사", "conjugation_steps": null, "note": "吾輩(わがはい)는 고풍스럽고 점잔 빼는 1인칭 '나'. 현대 회화에선 거의 안 쓰고, 보통 '나'는 私(わたし)를 씀."}
+{"unit": "吾輩は", "hiragana": "わがはいは", "korean_pronunciation": "와가하이와", "korean_meaning": "나는", "part_of_speech": "대명사+조사", "conjugation_steps": null, "note": "吾輩(わがはい)는 고풍스럽고 점잔 빼는 1인칭 '나'예요. 현대 회화에선 거의 안 쓰고, 보통 '나'는 私(わたし)를 써요."}
 
 Fields:
 - "unit": surface form as it appears in the sentence (kanji where used)
@@ -282,10 +282,22 @@ Fields:
 - "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
 - "conjugation_steps": null for uninflected chunks; array for conjugated/pattern chunks
   Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
+  · 기본형 step의 note에는 그 동사가 몇 그룹인지 꼭 밝히세요: 1그룹(5단, godan) / 2그룹(1단, ichidan) / 3그룹(불규칙: する·来る).
+  · 형태가 파생될 때(특히 가능형·수동·사역·て형·ない형·ます형 등)는 "왜 그 형태가 되는지" 만드는 규칙을 한 줄로 쉽게 설명하세요. 단순히 "X의 가능형"이라고만 하지 말고, 어디를 어떻게 바꿨는지 보여주세요.
+  · 가능형(잠재형) 규칙은 그룹마다 다르니 정확히 적용:
+      - 1그룹(5단): 어미 う단 → え단 + る   (言う→言える, 飲む→飲める, 書く→書ける, 待つ→待てる)
+      - 2그룹(1단): 어미 る를 떼고 + られる   (食べる→食べられる, 見る→見られる)
+      - 3그룹(불규칙): する→できる,  来る(くる)→来られる(こられる)
+    예) 言える step note: "言う는 1그룹(5단) 동사라 끝의 う를 え로 바꾸고 る를 붙여 가능형이 돼요: 言う→言える(말할 수 있어요). 2그룹은 る→られる, 3그룹은 する→できる로 형태가 달라요."
+    (가능형 言える·食べられる는 그 자체가 2그룹처럼 활용해요 → 부정형은 끝 る를 떼고 ない: 言える→言えない(말할 수 없어요).)
 - "note": a SHORT, beginner-friendly Korean explanation. Assume the learner JUST started — can read hiragana but knows almost no grammar. The goal is not "the form changed" but "you can actually USE this." Fill note whenever the chunk is NOT self-evident:
     • archaic/literary words or special readings (吾輩, 候, 가나 불규칙 등) → explain simply + the common modern word (吾輩 → 보통은 私를 씀).
     • FREQUENT grammar patterns / set forms (〜ています, 〜たい, 〜たことがある, 〜なければならない, 〜ことができる, 〜てしまう, 〜ようにする, だ・です・である, 〜ている, 〜から·〜ので 등) → explain the MEANING and HOW TO MAKE/USE it in plain Korean, with a tiny worked example showing the transformation. e.g. 〜ています → "지금 진행 중이거나 상태가 이어짐(~하고 있습니다). 만드는 법: 동사를 て형으로 바꾸고 + います. 食べる(먹다)→食べて+います→食べています(먹고 있습니다)." e.g. である → "'~이다'의 딱딱한 문어체(글·설명문에 자주). 회화의 だ/です보다 격식 있음. 명사+である. 猫である(고양이다)."
   For ordinary everyday words with no special point, set note to null. Keep it 1-3 short, natural Korean sentences a true beginner can follow.
+- TONE — 모든 한국어 설명(note, 그리고 conjugation_steps 각 step의 note)은 **친근한 구어체 존댓말(해요체)**로 쓰세요: "~예요 / ~이에요 / ~해요 / ~돼요 / ~만들어요 / ~붙여요 / ~써요".
+  ❌ 반말 절대 금지: "뜻이야 / 만들어 / 할 수 있어 / 달라 / ~거든" 같은 반말체로 쓰지 마세요.
+  ❌ 딱딱한 음슴체도 지양: "~함 / ~됨 / ~씀 / ~형성 / ~나타냄" 대신 "~해요 / ~돼요 / ~써요 / 만들어요 / 나타내요".
+  (단, korean_meaning·label·part_of_speech는 톤을 적용하지 말고 간결한 사전형으로: 예 "말하다", "기본형", "동사".)
 """
 
 # (악센트는 Gemini가 /analyze에서 직접 생성 — 구 OJAD 스크래핑은 타임아웃 잦아 폐기)
@@ -309,7 +321,8 @@ _analyze_cache: dict[str, dict] = {}
 _breakdown_cache: dict[str, list] = {}
 # 분해 캐시 버전 — BREAKDOWN_PROMPT(풀이 등) 바꾸면 올려서 옛 캐시 자동 무효화
 # v5: 장음 규칙 え단+い→테- 추가
-_BD_CACHE_VER = "v5"
+# v6: 쉬운 풀이 말투 해요체(반말 금지) + 활용 단계에 동사 그룹·가능형 규칙(그룹별) 설명
+_BD_CACHE_VER = "v6"
 # 번역/발음 캐시 버전 — TRANSLATION_PROMPT(후리가나·한글발음 규칙) 바꾸면 올려서 옛 캐시 자동 무효화
 # v4: 한글 독음 띄어쓰기 규칙을 모든 톤(특히 비즈니스 敬語)에 명시 → 붙어 나오던 옛 캐시 무효화
 # v5: 장음 え단+い→'-' (予定→요테-, 学生→가쿠세-) + 둘째 모라는 '-'로만 대체(이/우 중복 제거)

@@ -1013,12 +1013,12 @@ _GEN_CONFIG = genai.types.GenerateContentConfig(
 
 # 사진(OCR) 전용 설정 — media_resolution HIGH로 이미지 해상도를 올려
 # 작고 빽빽한 글자 인식 정확도 + bounding box 정밀도를 높인다.
-# thinking_budget=-1(동적 추론): 메뉴처럼 곁라벨·뱃지·각주가 많은 빽빽한 이미지에서
-#   '눈에 띄는 항목만 뽑고 멈추는' 현상을 줄여 전체 텍스트를 빠짐없이 청크로 나누게 한다(인식 범위 ↑).
+# thinking_budget=0: 추론을 켜면(특히 -1 동적) 빽빽한 메뉴에서 응답이 2분+로 폭증 → 사용 불가라 끔.
+#   인식 범위 확대는 추론 대신 프롬프트(곁라벨·뱃지·각주 명시) + 청크 캡으로 해결.
 # SDK 버전에 따라 media_resolution 미지원일 수 있어 방어적으로 생성(미지원 시 기본 설정 폴백).
 try:
     _IMG_GEN_CONFIG = genai.types.GenerateContentConfig(
-        thinking_config=genai.types.ThinkingConfig(thinking_budget=-1),
+        thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
         response_mime_type="application/json",
         temperature=0,
         media_resolution=genai.types.MediaResolution.MEDIA_RESOLUTION_HIGH,

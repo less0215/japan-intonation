@@ -4,6 +4,7 @@ import ReferralCodeCard from './ReferralCodeCard'
 import AdminSection from './AdminSection'
 import AdminMetrics from './AdminMetrics'
 import AdminSurvey from './AdminSurvey'
+import AdminMessages from './AdminMessages'
 import AdminRevenue from './AdminRevenue'
 import AdminLearning from './AdminLearning'
 
@@ -70,6 +71,7 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
         <>
           <AdminSection title="구독·회원 지표" defaultOpen={true}><AdminMetrics /></AdminSection>
           <AdminSection title="설문 결과"><AdminSurvey /></AdminSection>
+          <AdminSection title="메시지 관리"><AdminMessages /></AdminSection>
           <AdminSection title="제휴 수익"><AdminRevenue /></AdminSection>
           <AdminSection title="집단 지성"><AdminLearning /></AdminSection>
         </>

@@ -703,7 +703,7 @@ export default function App() {
       setLoading(false)
 
       // 일반(basic) 번역 전면 광고 — 무료 회원(앱 전용). 광고 전 사전 팝업.
-      // 빈도: 3번째에 첫 광고(짧게 쓰고 이탈하는 사용자도 1회는 노출) → 이후 5회마다.
+      // 빈도: first번째에 첫 광고(백엔드 제어, 기본 5) → 이후 every회마다.
       //   (기존 30회는 너무 드물어 대부분 이탈 전까지 광고가 안 떠 비용만 나갔음)
       // 정착 기준: 같은 편집 세션의 중간 호출은 세지 않고, 새 번역(새 세션)일 때만 1 카운트
       const usedModel = data.model_used || useModel
@@ -1332,11 +1332,13 @@ export default function App() {
           }}
           onClose={() => {
             setPhotoStudy(null)
-            // 사진 번역은 멀티모달이라 가장 비싼 기능 → 무료 회원은 학습을 닫을 때(가치 소비 후) 전면 광고 1회.
-            // 결과를 가리지 않도록 '닫기' 시점에만, 최소 간격 가드로 일반 광고와 연속 노출 방지.
+            // 사진 번역은 멀티모달이라 가장 비싼 기능 → 무료 회원은 학습을 닫을 때(가치 소비 후) 전면 광고.
+            // 단, 첫 사진 번역은 광고 없이(체험) → photo_first회째부터 노출(백엔드 제어, 기본 2).
             const ac = adsCfg()
-            if (isApp && !subAdFree && !fastUnlimited && ac.enabled && ac.photo) {
-              showInterstitialAd().then(ok => track('interstitial_result', { from: 'photo_close', result: ok ? 'shown' : 'skip_or_fail' }))
+            const pc = (parseInt(localStorage.getItem('tickjapan_photo_count') || '0', 10) || 0) + 1
+            localStorage.setItem('tickjapan_photo_count', String(pc))
+            if (isApp && !subAdFree && !fastUnlimited && ac.enabled && ac.photo && pc >= (ac.photo_first || 2)) {
+              showInterstitialAd().then(ok => track('interstitial_result', { from: 'photo_close', result: ok ? 'shown' : 'skip_or_fail', count: pc }))
             }
           }}
         />

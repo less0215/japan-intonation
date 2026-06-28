@@ -556,6 +556,21 @@ class CacheEntry(Base):
     created_at = Column(DateTime, default=now_kst)
 
 
+class SavedBookmark(Base):
+    """단어·문법·예문 북마크를 계정(user_id) 단위로 서버에 보관 → 웹↔앱 동기화.
+    번역 저장(SavedResult)과 달리 프론트가 localStorage에만 두던 것을 서버로 끌어올린 것.
+    kind: 'word'(단어/문법/의성어 = savedWords) | 'example'(예문 = savedExamples).
+    item_id: 프론트 항목 고유 id(savedWords.id / savedExamples.id) — (user_id,kind,item_id) 유일.
+    payload: 프론트 항목 객체 전체(JSON) — 그대로 돌려주면 프론트가 기존 모양으로 렌더."""
+    __tablename__ = "saved_bookmark"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, nullable=False, index=True)
+    kind       = Column(String(12), nullable=False)            # 'word' | 'example'
+    item_id    = Column(String(160), nullable=False)
+    payload    = Column(Text, nullable=False)                  # 항목 객체 JSON
+    created_at = Column(DateTime, default=now_kst)
+
+
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine       = create_engine(DATABASE_URL, connect_args=_connect_args)
@@ -3698,6 +3713,124 @@ def delete_save(save_id: int, user_id: int):
         db.delete(row)
         db.commit()
         return {"message": "삭제되었습니다."}
+    finally:
+        db.close()
+
+
+# ──────────────────────────────────────────────
+# 북마크(단어·문법·예문) 계정 동기화 — 웹↔앱 공유
+# 인증은 기존 /saves와 동일하게 user_id 기반(별도 키 없음).
+# ──────────────────────────────────────────────
+
+class BookmarkSyncRequest(BaseModel):
+    user_id: int
+    words: list = []       # 프론트 savedWords 배열(각 항목에 id 포함)
+    examples: list = []    # 프론트 savedExamples 배열
+
+class BookmarkAddRequest(BaseModel):
+    user_id: int
+    kind: str              # 'word' | 'example'
+    item_id: str
+    payload: dict
+
+class BookmarkRemoveRequest(BaseModel):
+    user_id: int
+    kind: str
+    item_ids: list = []    # 빈 배열이면 해당 kind 전체 삭제
+
+def _save_at(p):
+    """정렬 키 — 항목 payload의 savedAt(ISO) 기준 최신순. 없으면 빈 문자열."""
+    return p.get("savedAt", "") if isinstance(p, dict) else ""
+
+def _bookmarks_for(db, user_id):
+    """user_id의 모든 북마크를 {words, examples}로 반환. item_id 기준 중복 제거 후 최신순 정렬."""
+    rows = db.query(SavedBookmark).filter(SavedBookmark.user_id == user_id).all()
+    seen = {"word": set(), "example": set()}
+    words, examples = [], []
+    for r in rows:
+        bucket = words if r.kind == "word" else examples
+        ids = seen.get(r.kind)
+        if ids is None or r.item_id in ids:
+            continue
+        ids.add(r.item_id)
+        try:
+            bucket.append(json.loads(r.payload))
+        except Exception:
+            continue
+    words.sort(key=_save_at, reverse=True)
+    examples.sort(key=_save_at, reverse=True)
+    return {"words": words, "examples": examples}
+
+def _upsert_bookmark(db, user_id, kind, item_id, payload_obj):
+    item_id = str(item_id or "")
+    if not item_id:
+        return
+    row = db.query(SavedBookmark).filter(
+        SavedBookmark.user_id == user_id,
+        SavedBookmark.kind == kind,
+        SavedBookmark.item_id == item_id,
+    ).first()
+    txt = json.dumps(payload_obj, ensure_ascii=False)
+    if row:
+        row.payload = txt            # 페이로드 최신화(라벨/뜻 갱신 반영)
+    else:
+        db.add(SavedBookmark(user_id=user_id, kind=kind, item_id=item_id, payload=txt))
+
+@app.post("/bookmarks/sync")
+def bookmarks_sync(req: BookmarkSyncRequest):
+    """로그인 시 호출 — 기기 로컬 북마크를 서버에 합치고(add-only, 삭제 없음) 합쳐진 전체를 반환.
+    한쪽에만 있던 것도 보존(merge)되어 데이터 유실이 없다."""
+    db = SessionLocal()
+    try:
+        for it in (req.words or []):
+            if isinstance(it, dict):
+                _upsert_bookmark(db, req.user_id, "word", it.get("id"), it)
+        for it in (req.examples or []):
+            if isinstance(it, dict):
+                _upsert_bookmark(db, req.user_id, "example", it.get("id"), it)
+        db.commit()
+        return _bookmarks_for(db, req.user_id)
+    finally:
+        db.close()
+
+@app.get("/bookmarks/{user_id}")
+def bookmarks_get(user_id: int):
+    """계정의 북마크 전체 조회."""
+    db = SessionLocal()
+    try:
+        return _bookmarks_for(db, user_id)
+    finally:
+        db.close()
+
+@app.post("/bookmarks/add")
+def bookmarks_add(req: BookmarkAddRequest):
+    """단일 북마크 추가/갱신(저장 토글 ON)."""
+    if req.kind not in ("word", "example"):
+        raise HTTPException(status_code=400, detail="kind는 word 또는 example.")
+    db = SessionLocal()
+    try:
+        _upsert_bookmark(db, req.user_id, req.kind, req.item_id, req.payload)
+        db.commit()
+        return {"ok": True}
+    finally:
+        db.close()
+
+@app.post("/bookmarks/remove")
+def bookmarks_remove(req: BookmarkRemoveRequest):
+    """북마크 삭제(저장 토글 OFF / 다중·전체 삭제). item_ids 비면 해당 kind 전체."""
+    if req.kind not in ("word", "example"):
+        raise HTTPException(status_code=400, detail="kind는 word 또는 example.")
+    db = SessionLocal()
+    try:
+        q = db.query(SavedBookmark).filter(
+            SavedBookmark.user_id == req.user_id,
+            SavedBookmark.kind == req.kind,
+        )
+        if req.item_ids:
+            q = q.filter(SavedBookmark.item_id.in_([str(x) for x in req.item_ids]))
+        q.delete(synchronize_session=False)
+        db.commit()
+        return {"ok": True}
     finally:
         db.close()
 

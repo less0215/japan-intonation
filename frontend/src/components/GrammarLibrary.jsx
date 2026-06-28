@@ -4,6 +4,7 @@ import { GRAMMAR } from '../data/grammar'
 import { useUser } from '../context/UserContext'
 import WordBookmarkButton from './WordBookmarkButton'
 import HiraganaTable from './HiraganaTable'
+import VerbConjugationTable from './VerbConjugationTable'
 import AdSenseUnit from './AdSenseUnit'
 import { isAdFreeMember } from '../ads'
 
@@ -53,8 +54,9 @@ export default function GrammarLibrary() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-      {/* 히라가나 표 — 목록 화면에서는 접힌 상태 */}
+      {/* 참고자료 — 오십음도 + 동사 그룹별 활용표 (목록 화면에서는 접힌 상태) */}
       <HiraganaTable defaultOpen={false} />
+      <VerbConjugationTable defaultOpen={false} />
 
       {/* 안내 */}
       <div style={{

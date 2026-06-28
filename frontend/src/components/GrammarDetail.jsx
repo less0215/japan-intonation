@@ -4,6 +4,7 @@ import WordBookmarkButton from './WordBookmarkButton'
 import RubyText from './RubyText'
 import RichExampleBox from './RichExampleBox'
 import HiraganaTable from './HiraganaTable'
+import VerbConjugationTable from './VerbConjugationTable'
 import AdSenseUnit from './AdSenseUnit'
 import { isAdFreeMember } from '../ads'
 
@@ -44,7 +45,7 @@ export default function GrammarDetail({ pattern }) {
             </p>
           </div>
           {pattern.explanation && (
-            <p style={{ margin: '14px 0 0', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.7 }}>
+            <p style={{ margin: '14px 0 0', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
               {pattern.explanation}
             </p>
           )}
@@ -86,19 +87,18 @@ export default function GrammarDetail({ pattern }) {
       {/* TODO: 전용 in-feed 슬롯 생성 후 교체 */}
       {!isAdFreeMember() && <AdSenseUnit slot="2450758307" style={{ margin: '12px 0' }} />}
 
-      {/* 히라가나 오십음도 — 상세 페이지에서는 펼친 상태 */}
+      {/* 참고자료 — 오십음도 + 동사 그룹별 활용표 */}
       <HiraganaTable defaultOpen={true} />
+      <VerbConjugationTable defaultOpen={false} />
 
-      {/* 문법 목록으로 — 위아래 여백 확보 */}
-      <div style={{ margin: '20px 0 44px', display: 'flex' }}>
-        <button
-          onClick={() => navigate('/grammar')}
-          className="particle-nav-btn"
-          style={{ width: '100%', height: 52 }}
-        >
-          다른 문법 보기 →
-        </button>
-      </div>
+      {/* 문법 목록으로 — 부모 gap(16)로 위 간격 통일, 아래만 살짝 여유 */}
+      <button
+        onClick={() => navigate('/grammar')}
+        className="particle-nav-btn"
+        style={{ width: '100%', height: 52, marginBottom: 8 }}
+      >
+        다른 문법 보기 →
+      </button>
 
     </div>
   )

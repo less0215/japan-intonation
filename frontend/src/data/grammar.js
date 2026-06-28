@@ -425,7 +425,7 @@ export const GRAMMAR = [
     usages: [
       {
         type: 'basic',
-        meaning: '~가 아닙니다',
+        meaning: '~가 아니에요',
         example: {
           kr: '저는 회사원이 아니에요.',
           jp: '私(わたし)は会社員(かいしゃいん)じゃないです。',
@@ -436,7 +436,7 @@ export const GRAMMAR = [
       },
       {
         type: 'basic',
-        meaning: '~가 아닙니다',
+        meaning: '~가 아니에요',
         example: {
           kr: '오늘은 휴일이 아니에요.',
           jp: '今日(きょう)は休日(きゅうじつ)じゃないです。',
@@ -447,7 +447,7 @@ export const GRAMMAR = [
       },
       {
         type: 'applied',
-        meaning: '~가 아닙니다',
+        meaning: '~가 아니에요',
         example: {
           kr: '여기는 우리 회사가 아니에요.',
           jp: 'ここはうちの会社(かいしゃ)じゃないです',
@@ -535,7 +535,7 @@ export const GRAMMAR = [
     usages: [
       {
         type: 'basic',
-        meaning: '~가 아니었습니다',
+        meaning: '~가 아니었어요',
         example: {
           kr: '그 사람은 회사원이 아니었어요.',
           jp: 'その人(ひと)は会社員(かいしゃいん)じゃなかったです。',
@@ -546,7 +546,7 @@ export const GRAMMAR = [
       },
       {
         type: 'basic',
-        meaning: '~가 아니었습니다',
+        meaning: '~가 아니었어요',
         example: {
           kr: '어제는 휴일이 아니었어요.',
           jp: '昨日(きのう)は休日(きゅうじつ)じゃなかったです。',
@@ -557,7 +557,7 @@ export const GRAMMAR = [
       },
       {
         type: 'applied',
-        meaning: '~가 아니었습니다',
+        meaning: '~가 아니었어요',
         example: {
           kr: '거기는 제 학교가 아니었어요.',
           jp: 'そこは私(わたし)の学校(がっこう)じゃなかったです。',
@@ -598,7 +598,7 @@ export const GRAMMAR = [
       },
       {
         type: 'basic',
-        meaning: '〜합니다',
+        meaning: '〜해요',
         example: {
           kr: '친구와 같이 밥을 먹어요.',
           jp: '友達(ともだち)と一緒(いっしょ)にご飯(はん)を食(た)べます',
@@ -658,7 +658,7 @@ export const GRAMMAR = [
       },
       {
         type: 'basic',
-        meaning: '〜하지 않습니다',
+        meaning: '〜하지 않아요',
         example: {
           kr: '오늘은 회사에 가지 않아요.',
           jp: '今日(きょう)は会社(かいしゃ)に行(い)きません。',
@@ -674,7 +674,7 @@ export const GRAMMAR = [
       },
       {
         type: 'applied',
-        meaning: '〜하지 않습니다',
+        meaning: '〜하지 않아요',
         example: {
           kr: '그 영화는 보지 않아요.',
           jp: 'その映画(えいが)は見(み)ません。',
@@ -712,7 +712,7 @@ export const GRAMMAR = [
       },
       {
         type: 'basic',
-        meaning: '〜했습니다',
+        meaning: '〜했어요',
         example: {
           kr: '도쿄에서 사진을 많이 찍었어요.',
           jp: '東京(とうきょう)で写真(しゃしん)をたくさん撮(と)りました。',
@@ -730,7 +730,7 @@ export const GRAMMAR = [
       },
       {
         type: 'applied',
-        meaning: '〜했습니다',
+        meaning: '〜했어요',
         example: {
           kr: '어제 그 책을 다 읽었어요.',
           jp: '昨日(きのう)その本(ほん)を全部(ぜんぶ)読(よ)みました',
@@ -2072,7 +2072,7 @@ export const GRAMMAR = [
     usages: [
       {
         type: 'basic',
-        meaning: '~할 작정이다',
+        meaning: '~할 생각이다',
         example: {
           kr: '내일 친구를 만날 생각이에요.',
           jp: '明日(あした)、友達(ともだち)に会(あ)うつもりです。',
@@ -2089,7 +2089,7 @@ export const GRAMMAR = [
       },
       {
         type: 'basic',
-        meaning: '~할 작정이다',
+        meaning: '~할 생각이다',
         example: {
           kr: '올해는 일본어 책을 읽을 생각이에요.',
           jp: '今年(ことし)は日本語(にほんご)の本(ほん)を読(よ)むつもりです',
@@ -2109,7 +2109,7 @@ export const GRAMMAR = [
       },
       {
         type: 'applied',
-        meaning: '~할 작정이다',
+        meaning: '~하지 않을 작정이다',
         example: {
           kr: '오늘은 영화를 보지 않을 작정이에요.',
           jp: '今日(きょう)は映画(えいが)を見(み)ないつもりです',
@@ -4485,7 +4485,7 @@ export const GRAMMAR = [
       },
       {
         type: 'basic',
-        meaning: '~만 (그것뿐)',
+        meaning: '막 ~한 참 (방금)',
         example: {
           kr: '방금 막 밥을 먹었어요.',
           jp: 'たった今(いま)、ご飯(はん)を食(た)べました。',

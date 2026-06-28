@@ -282,14 +282,21 @@ Fields:
 - "part_of_speech": e.g. 명사/동사/형용사/부사/조사/조동사/문법 패턴/명사+조사/동사+보조동사/기타
 - "conjugation_steps": null for uninflected chunks; array for conjugated/pattern chunks
   Each step: {"step": <int>, "form": <Japanese>, "label": <Korean label>, "note": <Korean explanation>}
-  · 기본형 step의 note에는 그 동사가 몇 그룹인지 꼭 밝히세요: 1그룹(5단, godan) / 2그룹(1단, ichidan) / 3그룹(불규칙: する·来る).
-  · 형태가 파생될 때(특히 가능형·수동·사역·て형·ない형·ます형 등)는 "왜 그 형태가 되는지" 만드는 규칙을 한 줄로 쉽게 설명하세요. 단순히 "X의 가능형"이라고만 하지 말고, 어디를 어떻게 바꿨는지 보여주세요.
-  · 가능형(잠재형) 규칙은 그룹마다 다르니 정확히 적용:
-      - 1그룹(5단): 어미 う단 → え단 + る   (言う→言える, 飲む→飲める, 書く→書ける, 待つ→待てる)
-      - 2그룹(1단): 어미 る를 떼고 + られる   (食べる→食べられる, 見る→見られる)
-      - 3그룹(불규칙): する→できる,  来る(くる)→来られる(こられる)
-    예) 言える step note: "言う는 1그룹(5단) 동사라 끝의 う를 え로 바꾸고 る를 붙여 가능형이 돼요: 言う→言える(말할 수 있어요). 2그룹은 る→られる, 3그룹은 する→できる로 형태가 달라요."
-    (가능형 言える·食べられる는 그 자체가 2그룹처럼 활용해요 → 부정형은 끝 る를 떼고 ない: 言える→言えない(말할 수 없어요).)
+  핵심: 동사·형용사가 변형될 때마다 ① 기본형 step에서 **몇 그룹인지** 밝히고, ② 각 변형 step에서 **그 그룹의 규칙으로 어디를 떼고 무엇을 붙였는지**를 한 줄로 쉽게 보여주세요. "X의 て형"처럼 이름만 말하지 말고 실제 변형 과정을 설명. (가능형만이 아니라 모든 활용에 똑같이 적용.)
+  동사 그룹: 1그룹(5단)=어미가 う단(う·く·ぐ·す·つ·ぬ·ぶ·む·る) / 2그룹(1단)=い단·え단 소리 + る(食べる·見る·寝る) / 3그룹(불규칙)=する·来る(くる).
+  ※ 아래 표에서 **이 chunk에 실제로 나온 형태만** 골라 설명하세요(전부 나열 금지). 규칙은 정확히 적용:
+   · ます형(정중): 1그룹 う단→い단+ます(飲む→飲みます) / 2그룹 る떼고+ます(食べる→食べます) / する→します, 来る→来ます(きます)
+   · て형: 1그룹 음편[う·つ·る→って(買う→買って) / ぬ·ぶ·む→んで(飲む→飲んで) / く→いて(書く→書いて)·ぐ→いで(泳ぐ→泳いで) / す→して(話す→話して), 예외 行く→行って] / 2그룹 る떼고+て(食べる→食べて) / する→して, 来る→来て(きて)
+   · た형(과거): て형과 같은 음편에서 て→た·で→だ (買った·飲んだ·書いた·話した / 食べた / した·来た)
+   · ない형(부정): 1그룹 う단→あ단+ない(飲む→飲まない, 단 어미 う는 わ로: 言う→言わない) / 2그룹 る떼고+ない(食べる→食べない) / する→しない, 来る→来ない(こない)
+   · 가능형: 1그룹 う단→え단+る(言う→言える) / 2그룹 る떼고+られる(食べる→食べられる) / する→できる, 来る→来られる(こられる)
+   · 수동·존경(られる): 1그룹 う단→あ단+れる(言う→言われる) / 2그룹 る떼고+られる(食べる→食べられる) / する→される, 来る→来られる(こられる)
+   · 사역(させる): 1그룹 う단→あ단+せる(飲む→飲ませる) / 2그룹 る떼고+させる(食べる→食べさせる) / する→させる, 来る→来させる(こさせる)
+   · 의지형(권유 〜よう): 1그룹 う단→お단+う(飲む→飲もう) / 2그룹 る떼고+よう(食べる→食べよう) / する→しよう, 来る→来よう(こよう)
+   · 가정형(〜ば): 1그룹 う단→え단+ば(飲む→飲めば) / 2그룹 る떼고+れば(食べる→食べれば) / すれば, 来れば(くれば)
+   · 명령형: 1그룹 う단→え단(飲む→飲め) / 2그룹 る떼고+ろ(食べる→食べろ) / しろ(せよ), 来い(こい)
+   · い형용사: 〜い→어간+く(부사·おいしく)·〜くない(부정)·〜かった(과거).  な형용사: 어간+だ·어간+な(명사수식)·어간+じゃない(부정).
+  ※ 가능형·수동형(言える·食べられる 등)은 만들어진 뒤 그 자체가 2그룹처럼 활용해요 → 부정은 끝 る를 떼고 ない(言える→言えない: 말할 수 없어요).
 - "note": a SHORT, beginner-friendly Korean explanation. Assume the learner JUST started — can read hiragana but knows almost no grammar. The goal is not "the form changed" but "you can actually USE this." Fill note whenever the chunk is NOT self-evident:
     • archaic/literary words or special readings (吾輩, 候, 가나 불규칙 등) → explain simply + the common modern word (吾輩 → 보통은 私를 씀).
     • FREQUENT grammar patterns / set forms (〜ています, 〜たい, 〜たことがある, 〜なければならない, 〜ことができる, 〜てしまう, 〜ようにする, だ・です・である, 〜ている, 〜から·〜ので 등) → explain the MEANING and HOW TO MAKE/USE it in plain Korean, with a tiny worked example showing the transformation. e.g. 〜ています → "지금 진행 중이거나 상태가 이어짐(~하고 있습니다). 만드는 법: 동사를 て형으로 바꾸고 + います. 食べる(먹다)→食べて+います→食べています(먹고 있습니다)." e.g. である → "'~이다'의 딱딱한 문어체(글·설명문에 자주). 회화의 だ/です보다 격식 있음. 명사+である. 猫である(고양이다)."
@@ -322,7 +329,8 @@ _breakdown_cache: dict[str, list] = {}
 # 분해 캐시 버전 — BREAKDOWN_PROMPT(풀이 등) 바꾸면 올려서 옛 캐시 자동 무효화
 # v5: 장음 규칙 え단+い→테- 추가
 # v6: 쉬운 풀이 말투 해요체(반말 금지) + 활용 단계에 동사 그룹·가능형 규칙(그룹별) 설명
-_BD_CACHE_VER = "v6"
+# v7: 활용 설명 전체 활용(て·た·ない·ます·수동·사역·의지·가정·명령+형용사)로 그룹별 규칙 일반화
+_BD_CACHE_VER = "v7"
 # 번역/발음 캐시 버전 — TRANSLATION_PROMPT(후리가나·한글발음 규칙) 바꾸면 올려서 옛 캐시 자동 무효화
 # v4: 한글 독음 띄어쓰기 규칙을 모든 톤(특히 비즈니스 敬語)에 명시 → 붙어 나오던 옛 캐시 무효화
 # v5: 장음 え단+い→'-' (予定→요테-, 学生→가쿠세-) + 둘째 모라는 '-'로만 대체(이/우 중복 제거)
@@ -3622,8 +3630,8 @@ def get_config():
 
 class ConfigUpdateRequest(BaseModel):
     admin_phone: str
-    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
-    key: str
+    key: str = ""           # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
+    setting_key: str        # 변경할 설정 이름(AD_CONFIG_DEFAULTS 중 하나)
     value: str
 
 @app.post("/admin/config")
@@ -3631,12 +3639,12 @@ def update_config(req: ConfigUpdateRequest):
     """관리자 전용 — 앱 설정값 변경(광고 빈도 등). 변경 즉시 모든 앱에 반영(재빌드 불필요)."""
     if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
-    if req.key not in AD_CONFIG_DEFAULTS:
+    if req.setting_key not in AD_CONFIG_DEFAULTS:
         raise HTTPException(status_code=400, detail=f"허용되지 않은 키입니다. 가능: {list(AD_CONFIG_DEFAULTS)}")
     db = SessionLocal()
     try:
-        _set_setting(db, req.key, req.value)
-        return {"ok": True, "key": req.key, "value": req.value}
+        _set_setting(db, req.setting_key, req.value)
+        return {"ok": True, "setting_key": req.setting_key, "value": req.value}
     finally:
         db.close()
 

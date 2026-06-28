@@ -41,6 +41,14 @@ export default function SurveyPage({ onLogin, onSubRefresh }) {
   const total = QUESTIONS.length
   const answeredReq = REQUIRED.filter(id => filled(ans[id])).length
   const allRequired = answeredReq === REQUIRED.length
+  // '기타/그 외'를 골랐다면 직접입력 텍스트도 채워야 완료(빈 응답 방지)
+  const otherComplete = QUESTIONS.every(q => {
+    if (!q.otherOpt) return true
+    const v = ans[q.id]
+    const chose = Array.isArray(v) ? v.includes(q.otherOpt) : v === q.otherOpt
+    return !chose || !!other[q.id]?.trim()
+  })
+  const canSubmit = allRequired && otherComplete
   const progress = Math.round((answeredReq / REQUIRED.length) * 100)
 
   // 노출 문항 수 = 위에서부터 '연속으로' 답한 문항 + 1 → 한 번에 하나씩만 등장/제거
@@ -84,6 +92,7 @@ export default function SurveyPage({ onLogin, onSubRefresh }) {
 
   async function submit() {
     if (sending || !allRequired) return
+    if (!otherComplete) { setErr('‘기타’를 선택하셨다면 내용을 입력해 주세요.'); return }
     if (!user?.user_id) { onLogin?.(); return }
     setSending(true); setErr('')
     const payload = { ...ans }
@@ -207,9 +216,10 @@ export default function SurveyPage({ onLogin, onSubRefresh }) {
                 플러스 7일은 로그인 후 적용돼요.
               </p>
             )}
+            {!otherComplete && <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--text-3)', textAlign: 'center' }}>‘기타’를 선택하셨다면 내용을 입력해 주세요.</p>}
             {err && <p style={{ margin: '0 0 8px', fontSize: 12.5, color: 'var(--danger)', textAlign: 'center', fontWeight: 500 }}>{err}</p>}
-            <button onClick={submit} disabled={sending}
-              style={{ width: '100%', height: 52, borderRadius: 14, background: PRIMARY, color: 'var(--on-primary)', border: 'none', fontSize: 15.5, fontWeight: 700, cursor: sending ? 'default' : 'pointer', fontFamily: 'inherit', opacity: sending ? 0.6 : 1 }}>
+            <button onClick={submit} disabled={sending || !otherComplete}
+              style={{ width: '100%', height: 52, borderRadius: 14, background: PRIMARY, color: 'var(--on-primary)', border: 'none', fontSize: 15.5, fontWeight: 700, cursor: (sending || !otherComplete) ? 'default' : 'pointer', fontFamily: 'inherit', opacity: (sending || !otherComplete) ? 0.6 : 1 }}>
               {sending ? '적용 중…' : user?.user_id ? '제출하고 플러스 7일 받기' : '로그인하고 7일 받기'}
             </button>
           </div>

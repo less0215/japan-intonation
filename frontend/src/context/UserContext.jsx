@@ -93,8 +93,14 @@ export function UserProvider({ children }) {
         if (!res.ok || !alive) return
         const d = await res.json()
         if (!alive) return
-        if (Array.isArray(d.words))    setSavedWords(d.words)
-        if (Array.isArray(d.examples)) setSavedExamples(d.examples)
+        // 서버 응답으로 덮어쓰지 않고 merge — 동기화 응답을 기다리는 동안 추가/저장한 로컬 항목이 사라지지 않게.
+        const mergeServer = (prev, server) => {
+          const ids = new Set(server.map(x => String(x.id)))
+          const localOnly = prev.filter(x => !ids.has(String(x.id)))
+          return [...localOnly, ...server].sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || ''))
+        }
+        if (Array.isArray(d.words))    setSavedWords(prev => mergeServer(prev, d.words))
+        if (Array.isArray(d.examples)) setSavedExamples(prev => mergeServer(prev, d.examples))
       } catch { /* 오프라인 등 — 로컬 유지 */ }
     })()
     return () => { alive = false }

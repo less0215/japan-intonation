@@ -3572,10 +3572,11 @@ def set_min_version(req: SetMinVersionRequest):
 # /admin/config 로 바꾸면 즉시 모든 앱 반영(앱 재빌드 불필요). 새 모델·테이블 없음(중복 정의 금지).
 AD_CONFIG_DEFAULTS = {
     "ads_enabled":    "1",    # 전체 광고 on/off (0/1)
-    "ad_first":       "3",    # 일반 번역 N번째 완료 시 첫 전면광고
+    "ad_first":       "5",    # 일반 번역 N번째 완료 시 첫 전면광고
     "ad_every":       "6",    # 이후 N회마다
     "ad_min_gap_sec": "45",   # 전면광고 최소 간격(초)
     "photo_ad":       "1",    # 사진 번역 닫을 때 전면광고 (0/1)
+    "photo_ad_first": "2",    # 사진 번역 N번째부터 전면광고(1번째는 체험·광고 없음)
 }
 
 @app.get("/config")
@@ -3602,6 +3603,7 @@ def get_config():
         "every":       max(1, gi("ad_every")),
         "min_gap_sec": max(0, gi("ad_min_gap_sec")),
         "photo":       str(cfg.get("photo_ad", "1")) == "1",
+        "photo_first": max(1, gi("photo_ad_first")),
     }}
 
 

@@ -1013,10 +1013,12 @@ _GEN_CONFIG = genai.types.GenerateContentConfig(
 
 # 사진(OCR) 전용 설정 — media_resolution HIGH로 이미지 해상도를 올려
 # 작고 빽빽한 글자 인식 정확도 + bounding box 정밀도를 높인다.
+# thinking_budget=-1(동적 추론): 메뉴처럼 곁라벨·뱃지·각주가 많은 빽빽한 이미지에서
+#   '눈에 띄는 항목만 뽑고 멈추는' 현상을 줄여 전체 텍스트를 빠짐없이 청크로 나누게 한다(인식 범위 ↑).
 # SDK 버전에 따라 media_resolution 미지원일 수 있어 방어적으로 생성(미지원 시 기본 설정 폴백).
 try:
     _IMG_GEN_CONFIG = genai.types.GenerateContentConfig(
-        thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
+        thinking_config=genai.types.ThinkingConfig(thinking_budget=-1),
         response_mime_type="application/json",
         temperature=0,
         media_resolution=genai.types.MediaResolution.MEDIA_RESOLUTION_HIGH,
@@ -1552,11 +1554,11 @@ A Korean learner photographed real-world Japanese. Do ALL of the following in on
 1) DETECT the material type and read in its CORRECT reading order:
    - "book": vertical (縦書き) book/novel page → columns RIGHT to LEFT, top to bottom.
    - "manga": 漫画 / webtoon → panels and balloons RIGHT to LEFT, top to bottom; vertical text in balloons.
-   - "menu": restaurant/cafe menu → items top to bottom.
+   - "menu": restaurant/cafe menu → read top to bottom. Capture EVERY Japanese element, not only the main item names: also small side/option labels (toppings, syrups, milk, shots — e.g. トリプルショット, クラシックシロップ, フォームミルク), size/temperature badges (ホット/アイス, カフェインレス), section headers, and footnotes/disclaimers (※…). Each is its own chunk.
    - "sign": signboard, notice, label, or package → natural order (usually left to right).
    - "general": plain horizontal text → left to right, top to bottom.
 {HINT}
-2) Read ALL the Japanese text visible in the image — EVERY line/column, completely, in the correct reading order. Read each character CAREFULLY and faithfully — do NOT guess or auto-correct an unclear character into a more common word; transcribe what is ACTUALLY printed (watch easily-confused kana/kanji). Do NOT stop after the first few lines, do NOT pick only the prominent ones, and do NOT summarize the body. Then split everything you read into reading CHUNKS: each chunk is ONE natural meaning unit (a sentence or a clause), kept in reading order. A full page commonly has 10-25 chunks — include them ALL (up to 30). Do NOT split one sentence into tiny fragments, and do NOT merge unrelated sentences.
+2) Read ALL the Japanese text visible in the image — EVERY line/column, completely, in the correct reading order. Read each character CAREFULLY and faithfully — do NOT guess or auto-correct an unclear character into a more common word; transcribe what is ACTUALLY printed (watch easily-confused kana/kanji). Do NOT stop after the first few lines, do NOT pick only the prominent ones, and do NOT summarize the body. This INCLUDES small and peripheral text — side/option labels, captions, badges/stamps, section headers, and footnotes/disclaimers — not only the large headings. Then split everything you read into reading CHUNKS: each chunk is ONE natural meaning unit (a sentence, a clause, or a single label), kept in reading order. A dense page commonly has 15-30 chunks — include them ALL (up to 40). Do NOT split one sentence into tiny fragments, and do NOT merge unrelated sentences.
 
 3) For INFORMATION-type material ("book", prose "general", long "sign" notices), write a SHORT, NATURAL Korean summary (1-2 sentences) of the WHOLE content so the reader grasps the gist at a glance. For "menu", "manga", or short signs where a summary is not meaningful, set summary to "".
 
@@ -1679,7 +1681,7 @@ def analyze_image(req: AnalyzeImageRequest, request: Request):
                             detail="사진에서 일본어를 찾지 못했어요. 글자가 또렷하게 나오도록 다시 찍어주세요.")
 
     out_chunks: list[PhotoChunk] = []
-    for i, c in enumerate((data.get("chunks") or [])[:30]):
+    for i, c in enumerate((data.get("chunks") or [])[:40]):
         jp = (c.get("japanese") or "").strip()
         if not jp:
             continue

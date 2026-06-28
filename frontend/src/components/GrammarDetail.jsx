@@ -40,14 +40,22 @@ export default function GrammarDetail({ pattern }) {
         <div className="section">
           <div>
             <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: PRIMARY, letterSpacing: 0.3 }}>접속</p>
-            <p style={{ margin: '6px 0 0', fontSize: 15, fontWeight: 600, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP', sans-serif" }}>
-              {pattern.connection}
-            </p>
+            <div style={{ margin: '6px 0 0', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {pattern.connection.split(/\s*\/\s*/).filter(Boolean).map((c, i) => (
+                <p key={i} style={{ margin: 0, fontSize: 14.5, fontWeight: 600, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.55 }}>
+                  {c.trim()}
+                </p>
+              ))}
+            </div>
           </div>
           {pattern.explanation && (
-            <p style={{ margin: '14px 0 0', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
-              {pattern.explanation}
-            </p>
+            <div style={{ margin: '14px 0 0', display: 'flex', flexDirection: 'column', gap: 9 }}>
+              {pattern.explanation.split(/\n+|(?<=[.!?。])\s+/).map(s => s.trim()).filter(Boolean).map((s, i) => (
+                <p key={i} style={{ margin: 0, fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.7 }}>
+                  {s}
+                </p>
+              ))}
+            </div>
           )}
         </div>
       </div>

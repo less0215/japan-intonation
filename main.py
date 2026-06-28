@@ -28,6 +28,7 @@ app = FastAPI(
     title="Korean → Japanese Accent Analyzer",
     description="한국어 문장을 일본어로 번역하고 Gemini 기반 악센트 배열을 반환하는 API",
     version="2.0.0",
+    docs_url=None, redoc_url=None, openapi_url=None,   # 보안: API 문서·스키마 비공개(엔드포인트 목록 노출 차단)
 )
 
 # CORS 설정 — 모든 출처 허용 (public API, 인증 불필요)
@@ -1787,6 +1788,7 @@ def subscription_status(user_id: int):
 
 class GrantSubRequest(BaseModel):
     admin_phone: str
+    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
     user_id: int | None = None    # user_id 또는 phone 중 하나로 지정
     phone: str | None = None      # 리뷰 이벤트: 번호로 바로 지급(가입자 자동 조회)
     plan: str = "plus"            # plus | pro
@@ -1797,7 +1799,7 @@ def admin_grant_sub(req: GrantSubRequest):
     """관리자 전용 — 특정 회원에게 무상으로 플러스/프로 구독을 지급(또는 테스트).
     결제 없이 Subscription 행을 직접 생성한다. billing_key 없음(자동갱신 X).
     리뷰 이벤트: phone + plan=plus + period=monthly 로 '플러스 1개월' 지급."""
-    if not is_admin_phone(req.admin_phone):
+    if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     if req.plan not in ("plus", "pro"):
         raise HTTPException(status_code=400, detail="plan은 plus 또는 pro여야 해요.")
@@ -1925,13 +1927,14 @@ def survey_submit(req: SurveySubmitRequest):
 
 class ResetSurveyRequest(BaseModel):
     admin_phone: str
+    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
     phone: str
 
 @app.post("/admin/reset-survey")
 def admin_reset_survey(req: ResetSurveyRequest):
     """관리자 전용 — 특정 회원의 설문 참여 기록 + 설문 지급(7일) 구독을 초기화(테스트 재참여용).
     실결제(IAP) 구독은 건드리지 않음(customer_key='survey7d'만 삭제)."""
-    if not is_admin_phone(req.admin_phone):
+    if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     db = SessionLocal()
     try:
@@ -1951,7 +1954,7 @@ def admin_reset_survey(req: ResetSurveyRequest):
 # ── 인앱 결제(RevenueCat) 웹훅 ─────────────────────────────────
 # RevenueCat → 구매/갱신/취소/만료 이벤트 → Subscription 갱신(서버 enforcement: 광고제거·무제한·한도).
 # RevenueCat 대시보드 Integrations → Webhooks 에 URL + Authorization 헤더(아래 값) 등록.
-REVENUECAT_WEBHOOK_AUTH = "tickjapan-rc-wh-7c2e9a"
+REVENUECAT_WEBHOOK_AUTH = os.getenv("REVENUECAT_WEBHOOK_AUTH")   # 환경변수 전용(하드코딩 제거). 미설정 시 웹훅 전부 거부(fail-closed).
 
 # ── 전환 퍼널 적재 헬퍼 ──────────────────────────
 # 플랜 가격(원) — 매출 집계 fallback (RevenueCat 웹훅에 price 없거나 0일 때)
@@ -2064,6 +2067,7 @@ def get_messages(user_id: int):
 
 class SendMessageRequest(BaseModel):
     admin_phone: str
+    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
     title: str
     body: str
     audience: str = "all"   # 'all' 또는 특정 user_id
@@ -2073,7 +2077,7 @@ class SendMessageRequest(BaseModel):
 @app.post("/admin/send-message")
 def admin_send_message(req: SendMessageRequest):
     """관리자 전용 — 메시지함에 메시지 발송(전체 공지 또는 특정 회원)."""
-    if not is_admin_phone(req.admin_phone):
+    if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     if not req.title.strip() or not req.body.strip():
         raise HTTPException(status_code=400, detail="제목과 내용을 입력해 주세요.")
@@ -2094,13 +2098,14 @@ def admin_send_message(req: SendMessageRequest):
 
 class PinMessageRequest(BaseModel):
     admin_phone: str
+    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
     message_id: int
     pinned: bool = True
 
 @app.post("/admin/pin-message")
 def admin_pin_message(req: PinMessageRequest):
     """관리자 전용 — 메시지 고정/해제. 고정 메시지는 메시지함 최상단에 노출."""
-    if not is_admin_phone(req.admin_phone):
+    if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     db = SessionLocal()
     try:
@@ -2116,12 +2121,13 @@ def admin_pin_message(req: PinMessageRequest):
 
 class DeleteMessageRequest(BaseModel):
     admin_phone: str
+    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
     message_id: int
 
 @app.post("/admin/delete-message")
 def admin_delete_message(req: DeleteMessageRequest):
     """관리자 전용 — 메시지 비활성화(회수). 전체 회원 메시지함에서 사라짐."""
-    if not is_admin_phone(req.admin_phone):
+    if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     db = SessionLocal()
     try:
@@ -2137,12 +2143,13 @@ def admin_delete_message(req: DeleteMessageRequest):
 
 class DeleteUserRequest(BaseModel):
     admin_phone: str
+    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
     user_id: int
 
 @app.post("/admin/delete-user")
 def admin_delete_user(req: DeleteUserRequest):
     """관리자 전용 — 특정 계정과 연관 데이터(구독·저장)를 삭제. 테스트 계정 정리용."""
-    if not is_admin_phone(req.admin_phone):
+    if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     db = SessionLocal()
     try:
@@ -2162,7 +2169,7 @@ def admin_delete_user(req: DeleteUserRequest):
 
 
 # 무제한 회원 조회용 관리 토큰 (개인정보 노출 방지)
-FAST_ADMIN_KEY = "tickjapan-admin-9f3a2b"
+FAST_ADMIN_KEY = os.getenv("FAST_ADMIN_KEY")   # 환경변수 전용(하드코딩 제거). 미설정 시 모든 관리 접근 차단(fail-closed).
 
 @app.get("/fast-unlimited")
 def fast_unlimited_list(key: str = ""):
@@ -3475,12 +3482,13 @@ def app_version():
 
 class SetMinVersionRequest(BaseModel):
     admin_phone: str
+    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
     min_required: str
 
 @app.post("/admin/set-min-version")
 def set_min_version(req: SetMinVersionRequest):
     """관리자 전용 — 강제 업데이트 최소버전 변경(앱 출시 없이 서버에서 즉시 적용)."""
-    if not is_admin_phone(req.admin_phone):
+    if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     v = req.min_required.strip()
     db = SessionLocal()
@@ -3535,13 +3543,14 @@ def get_config():
 
 class ConfigUpdateRequest(BaseModel):
     admin_phone: str
+    key: str = ""   # 보안: 전화번호 + 관리자 키(env) 둘 다 일치해야 통과
     key: str
     value: str
 
 @app.post("/admin/config")
 def update_config(req: ConfigUpdateRequest):
     """관리자 전용 — 앱 설정값 변경(광고 빈도 등). 변경 즉시 모든 앱에 반영(재빌드 불필요)."""
-    if not is_admin_phone(req.admin_phone):
+    if not is_admin_phone(req.admin_phone) or req.key != FAST_ADMIN_KEY:
         raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
     if req.key not in AD_CONFIG_DEFAULTS:
         raise HTTPException(status_code=400, detail=f"허용되지 않은 키입니다. 가능: {list(AD_CONFIG_DEFAULTS)}")

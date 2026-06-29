@@ -10,6 +10,7 @@ import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidComingSoonBanner from './components/AndroidComingSoonBanner'
+import StudyVideoDemo from './components/StudyVideoDemo'
 import QuotaWall from './components/QuotaWall'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
@@ -1106,6 +1107,7 @@ export default function App() {
           <Route path="/onomatope/:id" element={<OnomatopeDetailPage />} />
           <Route path="/live"        element={<LiveCamLibrary />} />
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
+          <Route path="/study-demo"  element={<StudyVideoDemo />} />
           <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="/messages"    element={<MessageInbox />} />
           <Route path="/survey"      element={<SurveyPage onLogin={handleLoginClick} onSubRefresh={() => setSubTick(t => t + 1)} />} />

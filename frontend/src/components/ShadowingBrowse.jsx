@@ -122,15 +122,10 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
 
       <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10} onOpen={setSel} ratings={ratings} ranked />
 
-      {isTab && TAG_GROUPS.map(g => (
+      {/* 주제 카테고리 (홈·탭 공통). JLPT 레벨은 카드 칩으로만 참고 */}
+      {TAG_GROUPS.map(g => (
         <Row key={g.tag} title={g.label} items={STUDY_CATALOG.filter(v => v.tags.includes(g.tag))} onOpen={setSel} ratings={ratings} />
       ))}
-
-      {ORDER.map(lv => {
-        const items = STUDY_CATALOG.filter(v => v.lv === lv)
-        if (!items.length) return null
-        return <Row key={lv} title={`${lv} · ${LV_LABEL[lv]} (${items.length}편)`} items={items} onOpen={setSel} ratings={ratings} />
-      })}
 
       {!isLoggedIn && <p style={{ textAlign: 'center', fontSize: 11.5, color: 'var(--text-3,#9aa0a6)', margin: '4px 0 2px' }}>로그인하면 ‘시청 중’·‘좋아요 기반 추천’이 나와요</p>}
       <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3,#9aa0a6)', margin: '4px 0 2px' }}>실제 일본어 TEDx 20편 · 레벨/주제는 임시 추정 · 학습은 현재 데모 1편</p>

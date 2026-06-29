@@ -16,12 +16,20 @@ export default function SavesPage({ onSelectHistory }) {
   const [selected, setSelected] = useState([])   // 선택된 id 배열
   const navigate = useNavigate()
 
+  // 영상 학습(쉐도잉) 저장 — 프로토타입 localStorage
+  const lsArr = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]') } catch { return [] } }
+  const [studyLines, setStudyLines] = useState(() => lsArr('tickjapan_study_saved_lines'))
+  const [studyWords, setStudyWords] = useState(() => lsArr('tickjapan_study_saved_words'))
+  const removeStudyLine = (s) => setStudyLines(prev => { const n = prev.filter(x => !(x.idx === s.idx && x.vid === s.vid)); try { localStorage.setItem('tickjapan_study_saved_lines', JSON.stringify(n)) } catch {} return n })
+  const removeStudyWord = (w) => setStudyWords(prev => { const n = prev.filter(x => `${x.w}|${x.reading}` !== `${w.w}|${w.reading}`); try { localStorage.setItem('tickjapan_study_saved_words', JSON.stringify(n)) } catch {} return n })
+
   // 문법 저장은 category 'grammar' → 별도 '문법' 탭으로 분리(단어 탭에선 제외)
   const grammarWords = savedWords.filter(w => w.category === 'grammar')
   const plainWords = savedWords.filter(w => w.category !== 'grammar')
   const list = seg === 'history' ? translationHistory
     : seg === 'words' ? plainWords
     : seg === 'grammar' ? grammarWords
+    : seg === 'shadow' ? []
     : savedExamples
   // 탭 전환 시 선택/편집 초기화
   useEffect(() => { setSelected([]); setEditMode(false) }, [seg])
@@ -113,7 +121,8 @@ export default function SavesPage({ onSelectHistory }) {
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        <button style={segStyle(seg === 'history')}  onClick={() => setSeg('history')}>번역 기록</button>
+        <button style={segStyle(seg === 'history')}  onClick={() => setSeg('history')}>번역</button>
+        <button style={segStyle(seg === 'shadow')}   onClick={() => setSeg('shadow')}>쉐도잉</button>
         <button style={segStyle(seg === 'words')}    onClick={() => setSeg('words')}>단어</button>
         <button style={segStyle(seg === 'grammar')}  onClick={() => setSeg('grammar')}>문법</button>
         <button style={segStyle(seg === 'examples')} onClick={() => setSeg('examples')}>예문</button>
@@ -134,7 +143,44 @@ export default function SavesPage({ onSelectHistory }) {
         </div>
       )}
 
-      {list.length === 0
+      {seg === 'shadow' ? (
+        (studyLines.length === 0 && studyWords.length === 0)
+          ? empty('저장한 영상 문장·단어가 없어요. 쉐도잉에서 북마크해 보세요.')
+          : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {studyLines.length > 0 && (
+                <div>
+                  <p style={{ margin: '0 2px 7px', fontSize: 12.5, fontWeight: 700, color: 'var(--text-2)' }}>저장한 문장 ({studyLines.length})</p>
+                  <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, overflow: 'hidden' }}>
+                    {studyLines.map((s, i) => (
+                      <div key={`${s.vid}-${s.idx}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: i === studyLines.length - 1 ? 'none' : '1px solid var(--bd)' }}>
+                        <button onClick={() => navigate('/study-demo')} style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                          <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.jp}</p>
+                          <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.kr}</p>
+                        </button>
+                        <button onClick={() => removeStudyLine(s)} aria-label="삭제" style={{ border: 'none', background: 'transparent', color: 'var(--text-3)', fontSize: 17, cursor: 'pointer', flexShrink: 0 }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {studyWords.length > 0 && (
+                <div>
+                  <p style={{ margin: '0 2px 7px', fontSize: 12.5, fontWeight: 700, color: 'var(--text-2)' }}>저장한 단어 ({studyWords.length})</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                    {studyWords.map((w, i) => (
+                      <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 10, border: '1px solid var(--bd)', background: 'var(--surface)', fontSize: 13 }}>
+                        <b style={{ fontFamily: "'Noto Sans JP', sans-serif", color: 'var(--text-strong)' }}>{w.w}</b>
+                        <span style={{ color: 'var(--text-3)' }}>{w.ko}</span>
+                        <button onClick={() => removeStudyWord(w)} aria-label="삭제" style={{ border: 'none', background: 'transparent', color: 'var(--text-3)', fontSize: 14, cursor: 'pointer', padding: 0, marginLeft: 2 }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+      ) : list.length === 0
         ? empty(seg === 'history' ? '저장된 번역 기록이 없어요.' : seg === 'words' ? '저장한 단어가 없어요.' : seg === 'grammar' ? '저장한 문법이 없어요.' : '저장한 예문이 없어요.')
         : <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, overflow: 'hidden' }}>{rows}</div>}
     </>

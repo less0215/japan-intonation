@@ -962,10 +962,7 @@ export default function App() {
               height="30"
               style={{ verticalAlign: '-8px', marginRight: '6px' }}
             />
-            틱재팬{' '}
-            <span style={{ fontWeight: 400, color: 'var(--text-3)', fontSize: '14px' }}>
-              일본어 번역기
-            </span>
+            틱재팬
           </h1>
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>

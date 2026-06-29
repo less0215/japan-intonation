@@ -20,6 +20,8 @@ const SHOW_KEYS = typeof window !== 'undefined' && window.matchMedia
 
 const ORDER = ['N5', 'N4', 'N3', 'N2', 'N1']
 const JLPT = { N5: '#1D9E75', N4: '#3B9AE1', N3: '#E0A91B', N2: '#E8772E', N1: '#D9534F' }
+// JLPT는 참고용 — 칩/배지는 중립(흑백), 분량 바만 회색 램프(밝음=쉬움→어두움=어려움)로 구분
+const BARGREY = { N5: '#c4cbd1', N4: '#9aa3ac', N3: '#727c86', N2: '#525b64', N1: '#363d45' }
 const LV_LABEL = { N5: '입문', N4: '초급', N3: '중급', N2: '중상급', N1: '상급' }
 const jcolor = (lv) => JLPT[lv] || '#9aa5b1'
 const hasKanji = (s) => /[一-鿿々〆]/.test(s || '')
@@ -232,15 +234,14 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const cur = activeIdx >= 0 ? lines[activeIdx] : null
   const openPop = (w, lineIdx) => setPopWord({ word: w, lineIdx })
   const blurStyle = (on) => ({ filter: on ? 'blur(6px)' : 'none', userSelect: on ? 'none' : 'auto', transition: 'filter 0.15s' })
-  const ov = jcolor(stat.overall)
 
   // ── 공유 블록 ──────────────────────────────────────
   const bannerBlock = (
     <>
-      <div data-tour="level" style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderRadius: 16, background: `${ov}14`, border: `1px solid ${ov}44` }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 54, padding: '6px 0', borderRadius: 12, background: ov, color: '#fff', lineHeight: 1, boxShadow: `0 4px 12px ${ov}55` }}>
-          <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.92 }}>JLPT</span>
-          <span style={{ fontSize: 21, fontWeight: 900, marginTop: 3 }}>{stat.overall}</span>
+      <div data-tour="level" style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 52, padding: '6px 0', borderRadius: 12, border: '1px solid var(--bd)', color: 'var(--text-2)', lineHeight: 1 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.7 }}>JLPT</span>
+          <span style={{ fontSize: 20, fontWeight: 900, marginTop: 3, color: 'var(--text-1)' }}>{stat.overall}</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--text-strong)', wordBreak: 'keep-all' }}>이 영상은 JLPT {stat.overall} 수준이에요</p>
@@ -258,13 +259,13 @@ export default function StudyVideoDemo({ isPlus = false }) {
           )}
           <div style={{ borderTop: '1px solid var(--bd)', paddingTop: 12 }}>
             <p style={{ margin: '0 0 9px', fontSize: 12.5, color: 'var(--text-2)', wordBreak: 'keep-all' }}>
-              <b style={{ color: 'var(--text-strong)' }}>난이도 집계</b> — 등장 단어 {stat.total}개 중 <b style={{ color: ov }}>{stat.covPct}%가 {stat.overall} 이하</b>라 권장 <b style={{ color: ov }}>{stat.overall} ({LV_LABEL[stat.overall]})</b>
+              <b style={{ color: 'var(--text-strong)' }}>난이도 집계</b> — 등장 단어 {stat.total}개 중 <b style={{ color: 'var(--text-strong)' }}>{stat.covPct}%가 {stat.overall} 이하</b>라 권장 <b style={{ color: 'var(--text-strong)' }}>{stat.overall} ({LV_LABEL[stat.overall]})</b>
             </p>
             <div style={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden' }}>
-              {ORDER.map(lv => stat.counts[lv] > 0 && (<div key={lv} title={`${lv} ${stat.counts[lv]}`} style={{ width: `${stat.counts[lv] / stat.total * 100}%`, background: jcolor(lv) }} />))}
+              {ORDER.map(lv => stat.counts[lv] > 0 && (<div key={lv} title={`${lv} ${stat.counts[lv]}`} style={{ width: `${stat.counts[lv] / stat.total * 100}%`, background: BARGREY[lv] }} />))}
             </div>
             <div style={{ display: 'flex', gap: 11, flexWrap: 'wrap', marginTop: 9, fontSize: 11, color: 'var(--text-3)' }}>
-              {ORDER.map(lv => (<span key={lv} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: jcolor(lv), display: 'inline-block' }} />{lv} {stat.counts[lv]}</span>))}
+              {ORDER.map(lv => (<span key={lv} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: BARGREY[lv], display: 'inline-block' }} />{lv} {stat.counts[lv]}</span>))}
               <span style={{ opacity: 0.7 }}>· JLPT는 추정치</span>
             </div>
           </div>
@@ -303,8 +304,6 @@ export default function StudyVideoDemo({ isPlus = false }) {
         </span>
         <button onClick={cycleCap} style={chip(capMode !== 'off')}>영상자막 · {CAP_LABEL[capMode]}{SHOW_KEYS && <KeyHint>C</KeyHint>}</button>
         <button onClick={() => setShowWords(v => !v)} style={chip(showWords)}>단어 {showWords ? '끄기' : '켜기'}</button>
-        <span style={{ flex: 1 }} />
-        <button data-tour="saved" onClick={() => setPanel('saved')} style={{ ...chip(false), fontWeight: 700 }}>⭐ 저장함 {savedLines.length + savedWords.length}</button>
       </div>
     </>
   )
@@ -326,7 +325,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 9 }}>
                 {ln.words.map((w, wi) => (
                   <button key={wi} onClick={(e) => { e.stopPropagation(); openPop(w, i) }} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 9, border: '1px solid var(--bd)', background: 'var(--surface)', cursor: 'pointer', fontSize: 12.5, color: 'var(--text-2)', fontFamily: "'Noto Sans JP', sans-serif" }}>
-                    {w.w}<span style={{ fontSize: 9, fontWeight: 800, color: jcolor(w.jlpt) }}>{w.jlpt || '·'}</span>
+                    {w.w}<span style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-3)' }}>{w.jlpt || '·'}</span>
                   </button>
                 ))}
               </div>
@@ -351,14 +350,14 @@ export default function StudyVideoDemo({ isPlus = false }) {
           {ORDER.map(lv => vocab.byLevel[lv].length > 0 && (
             <div key={lv} style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '0 0 8px' }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: jcolor(lv), padding: '2px 9px', borderRadius: 7 }}>{lv}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--bg)', background: 'var(--text-2)', padding: '2px 9px', borderRadius: 7 }}>{lv}</span>
                 <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{LV_LABEL[lv]} · {vocab.byLevel[lv].length}개</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 7 }}>
                 {vocab.byLevel[lv].map((w, i) => {
                   const ws = isWordSaved(w)
                   return (
-                    <div key={i} onClick={() => openPop(w, w.lineIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 11, border: `1px solid ${jcolor(lv)}44`, background: `${jcolor(lv)}10`, cursor: 'pointer' }}>
+                    <div key={i} onClick={() => openPop(w, w.lineIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 11, border: '1px solid var(--bd)', background: 'var(--surface)', cursor: 'pointer' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ lineHeight: 1.3 }}><Furi w={w.w} reading={w.reading} size={14.5} /></div>
                         <div style={{ fontSize: 11.5, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.ko}</div>
@@ -398,7 +397,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
           <Sheet onClose={() => setPopWord(null)} scrim={0.34} maxH="70vh" z={4600} wide={isWide}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
               <Furi w={w.w} reading={w.reading} size={27} />
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: jcolor(w.jlpt), padding: '3px 9px', borderRadius: 7 }}>{w.jlpt || 'JLPT 외'}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--bg)', background: 'var(--text-2)', padding: '3px 9px', borderRadius: 7 }}>{w.jlpt || 'JLPT 외'}</span>
             </div>
             <p style={{ margin: '4px 0 16px', fontSize: 17, color: 'var(--text-1)', fontWeight: 700 }}>{w.ko || '—'}</p>
             {ln && (
@@ -428,34 +427,6 @@ export default function StudyVideoDemo({ isPlus = false }) {
           onOpenWord={(w) => openPop(w, detailIdx)} />
       )}
 
-      {panel === 'saved' && (
-        <Sheet onClose={() => setPanel(null)} scrim={0.44} maxH="80vh" wide={isWide}>
-          <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 12px' }}>저장함</p>
-          <p style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, margin: '4px 0 7px' }}>저장한 문장·예문 ({savedLines.filter(s => s.vid === vid).length})</p>
-          {savedLines.filter(s => s.vid === vid).length === 0 && <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: '0 0 12px', wordBreak: 'keep-all' }}>문장의 북마크를 누르면 여기에 모여요. 누르면 그 장면으로 이동합니다.</p>}
-          {savedLines.filter(s => s.vid === vid).map((s) => (
-            <div key={s.idx} onClick={() => { setPanel(null); seekLine(s.idx) }} style={{ cursor: 'pointer', padding: '10px 12px', borderRadius: 12, background: 'var(--surface)', marginBottom: 7, display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-              <span style={{ fontSize: 10.5, color: PRIMARY, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 2 }}>{fmtT(s.t)}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 13.5, color: 'var(--text-1)' }}>{s.jp}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{s.kr}</div>
-              </div>
-              <button onClick={(e) => { e.stopPropagation(); toggleSaveLine(s.idx) }} style={{ border: 'none', background: 'transparent', color: 'var(--text-3)', fontSize: 16, cursor: 'pointer' }}>×</button>
-            </div>
-          ))}
-          <p style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, margin: '16px 0 7px' }}>어휘장 ({savedWords.length})</p>
-          {savedWords.length === 0 && <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: 0 }}>단어를 누른 뒤 저장하면 모여요.</p>}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-            {savedWords.map((w, i) => (
-              <span key={i} onClick={() => openPop(w, vocab.all.find(v => wkey(v) === wkey(w))?.lineIdx ?? 0)} style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 9, border: `1px solid ${jcolor(w.jlpt)}`, background: `${jcolor(w.jlpt)}1a`, fontSize: 12.5 }}>
-                <b style={{ fontFamily: "'Noto Sans JP', sans-serif", color: 'var(--text-1)' }}>{w.w}</b>
-                <span style={{ color: 'var(--text-3)' }}>{w.ko}</span>
-                <span style={{ fontSize: 9, fontWeight: 800, color: jcolor(w.jlpt) }}>{w.jlpt || '·'}</span>
-              </span>
-            ))}
-          </div>
-        </Sheet>
-      )}
 
       {/* 미리보기 3분 한도 넛징 (비회원·무료회원) */}
       {gated && (
@@ -597,10 +568,10 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev
           {wordsOpen && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
               {ln.words.map((w, wi) => (
-                <button key={wi} onClick={() => onOpenWord(w)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 10, border: `1px solid ${jcolor(w.jlpt)}`, background: `${jcolor(w.jlpt)}1a`, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button key={wi} onClick={() => onOpenWord(w)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 10, border: '1px solid var(--bd)', background: 'var(--surface)', cursor: 'pointer', fontFamily: 'inherit' }}>
                   <Furi w={w.w} reading={w.reading} size={14} />
                   <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{w.ko}</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: jcolor(w.jlpt) }}>{w.jlpt || '·'}</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-3)' }}>{w.jlpt || '·'}</span>
                 </button>
               ))}
             </div>

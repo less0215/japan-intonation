@@ -75,11 +75,17 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const [lvF, setLvF] = useState('all')
   const [durF, setDurF] = useState('all')
   const [hover, setHover] = useState(null)   // { v, rect }
-  const enterT = useRef(); const leaveT = useRef()
+  const [filterOpen, setFilterOpen] = useState(false)
+  const enterT = useRef(); const leaveT = useRef(); const filterRef = useRef()
 
   useEffect(() => { try { localStorage.setItem(LS_RATE, JSON.stringify(ratings)) } catch {} }, [ratings])
   useEffect(() => { try { localStorage.setItem(LS_WATCH, JSON.stringify(watched)) } catch {} }, [watched])
   useEffect(() => { const f = () => setHover(null); window.addEventListener('scroll', f, true); return () => window.removeEventListener('scroll', f, true) }, [])
+  useEffect(() => {
+    if (!filterOpen) return
+    const f = (e) => { if (filterRef.current && !filterRef.current.contains(e.target)) setFilterOpen(false) }
+    document.addEventListener('mousedown', f); return () => document.removeEventListener('mousedown', f)
+  }, [filterOpen])
 
   const rate = (id, v) => setRatings(p => ({ ...p, [id]: p[id] === v ? undefined : v }))
   const start = (id) => { setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); setHover(null); onNavigate('/study-demo') }
@@ -108,9 +114,34 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
       {/* 탭: 헤드카피 + 히어로 + 필터 */}
       {isTab && (
         <>
-          <div style={{ margin: '2px 2px 14px' }}>
-            <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>쉐도잉</p>
-            <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-3,#9aa0a6)', wordBreak: 'keep-all' }}>TED, 영화보다 더 영화 같은 이야기</p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, margin: '2px 2px 14px' }}>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>쉐도잉</p>
+              <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-3,#9aa0a6)', wordBreak: 'keep-all' }}>TED, 영화보다 더 영화 같은 이야기</p>
+            </div>
+            {/* 필터 드롭다운 (레벨·분량) */}
+            <div ref={filterRef} style={{ position: 'relative', flexShrink: 0 }}>
+              <button onClick={() => setFilterOpen(o => !o)} aria-label="필터" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, border: `1px solid ${filtering ? 'var(--text-1,#3a4250)' : 'var(--bd,#e0e5e9)'}`, background: filtering ? 'var(--surface,#f1f5f8)' : 'transparent', color: filtering ? 'var(--text-strong,#1f2937)' : 'var(--text-2,#5b6470)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
+                필터{filtering ? ` · ${filtered.length}` : ''}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: filterOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }}><polyline points="6 9 12 15 18 9" /></svg>
+              </button>
+              {filterOpen && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 60, width: 248, background: 'var(--bg,#fff)', border: '1px solid var(--bd,#e0e5e9)', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.18)', padding: '13px 14px' }}>
+                  <p style={{ margin: '0 0 7px', fontSize: 11, fontWeight: 800, color: 'var(--text-3,#9aa0a6)', letterSpacing: '.02em' }}>레벨</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <button onClick={() => setLvF('all')} style={fchip(lvF === 'all')}>전체</button>
+                    {LEVELS.map(lv => <button key={lv} onClick={() => setLvF(lv)} style={fchip(lvF === lv)}>{lv}</button>)}
+                  </div>
+                  <p style={{ margin: '13px 0 7px', fontSize: 11, fontWeight: 800, color: 'var(--text-3,#9aa0a6)', letterSpacing: '.02em' }}>분량</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <button onClick={() => setDurF('all')} style={fchip(durF === 'all')}>전체</button>
+                    {DURS.map(d => <button key={d.k} onClick={() => setDurF(d.k)} style={fchip(durF === d.k)}>{d.label}</button>)}
+                  </div>
+                  {filtering && <button onClick={() => { setLvF('all'); setDurF('all') }} style={{ marginTop: 13, width: '100%', height: 34, borderRadius: 9, border: '1px solid var(--bd,#e0e5e9)', background: 'transparent', color: 'var(--text-2,#5b6470)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>필터 초기화</button>}
+                </div>
+              )}
+            </div>
           </div>
           <button className="ted-card" onClick={() => setSel(f)} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0, marginBottom: 18 }}>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', maxHeight: '46vh', borderRadius: 16, overflow: 'hidden', background: '#000' }}>
@@ -124,17 +155,6 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
               </div>
             </div>
           </button>
-
-          {/* 필터 (레벨·분량) */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginBottom: 20 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3,#9aa0a6)', marginRight: 2 }}>레벨</span>
-            <button onClick={() => setLvF('all')} style={fchip(lvF === 'all')}>전체</button>
-            {LEVELS.map(lv => <button key={lv} onClick={() => setLvF(lv)} style={fchip(lvF === lv)}>{lv}</button>)}
-            <span style={{ width: 1, height: 16, background: 'var(--bd,#e0e5e9)', margin: '0 4px' }} />
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3,#9aa0a6)', marginRight: 2 }}>분량</span>
-            <button onClick={() => setDurF('all')} style={fchip(durF === 'all')}>전체</button>
-            {DURS.map(d => <button key={d.k} onClick={() => setDurF(d.k)} style={fchip(durF === d.k)}>{d.label}</button>)}
-          </div>
         </>
       )}
 

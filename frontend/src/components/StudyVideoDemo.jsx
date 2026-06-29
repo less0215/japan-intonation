@@ -64,6 +64,7 @@ export default function StudyVideoDemo() {
   const headRef = useRef(null)
   const activeRef = useRef(-1)
   const loopRef = useRef(-1)
+  const detailRef = useRef(null)   // 시트 열림 여부/대상 (키보드 핸들러에서 최신값)
   const [activeIdx, setActiveIdx] = useState(-1)
   const [loopIdx, setLoopIdx] = useState(-1)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -126,6 +127,12 @@ export default function StudyVideoDemo() {
     if (loopRef.current === i) { loopRef.current = -1; setLoopIdx(-1) }
     else { loopRef.current = i; setLoopIdx(i); seekLine(i) }
   }
+  // 문장 상세 시트에서 이전/다음 — 시트 내용 + 영상이 함께 그 문장으로 이동
+  const detailGo = (delta) => {
+    const i = detailRef.current; if (i == null) return
+    const ni = Math.min(lines.length - 1, Math.max(0, i + delta))
+    setDetailIdx(ni); seekLine(ni)
+  }
   const stepRate = (dir) => setRateIdx(prev => { const n = Math.min(RATES.length - 1, Math.max(0, prev + dir)); const p = playerRef.current; if (p && p.setPlaybackRate) p.setPlaybackRate(RATES[n]); return n })
   const cycleRate = () => setRateIdx(prev => { const n = (prev + 1) % RATES.length; const p = playerRef.current; if (p && p.setPlaybackRate) p.setPlaybackRate(RATES[n]); return n })
 
@@ -179,14 +186,15 @@ export default function StudyVideoDemo() {
   }, [])
 
   useEffect(() => { const el = lineRefs.current[activeIdx]; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, [activeIdx])
+  useEffect(() => { detailRef.current = detailIdx }, [detailIdx])
 
   useEffect(() => {
     const onKey = (e) => {
       const tag = (e.target && e.target.tagName) || ''
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return
       switch (e.key) {
-        case 'a': case 'A': case 'ArrowLeft': e.preventDefault(); goPrev(); break
-        case 'd': case 'D': case 'ArrowRight': e.preventDefault(); goNext(); break
+        case 'a': case 'A': case 'ArrowLeft': e.preventDefault(); detailRef.current != null ? detailGo(-1) : goPrev(); break
+        case 'd': case 'D': case 'ArrowRight': e.preventDefault(); detailRef.current != null ? detailGo(1) : goNext(); break
         case 's': case 'S': e.preventDefault(); replay(); break
         case 'r': case 'R': e.preventDefault(); toggleLoop(); break
         case 'h': case 'H': e.preventDefault(); setHideKr(v => !v); break
@@ -214,7 +222,10 @@ export default function StudyVideoDemo() {
 
       {/* 헤더 */}
       <div style={{ padding: '6px 16px 12px' }}>
-        <span style={{ fontSize: 11.5, fontWeight: 800, color: PRIMARY, letterSpacing: 0.2 }}>영상 학습 · 프로토타입</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11.5, fontWeight: 800, color: PRIMARY, letterSpacing: 0.2 }}>영상 학습 · 프로토타입</span>
+          <button onClick={startTour} style={{ ...ghostBtn(false), height: 28, fontSize: 11.5, borderColor: PRIMARY, color: PRIMARY, flexShrink: 0 }}>❓ 사용법</button>
+        </div>
         <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-strong)', margin: '6px 0 3px', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.32, wordBreak: 'keep-all' }}>{data.title}</p>
         <p style={{ fontSize: 13.5, color: 'var(--text-3)', margin: '0 0 12px' }}>{data.titleKr}</p>
 
@@ -229,9 +240,6 @@ export default function StudyVideoDemo() {
             <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-2)', wordBreak: 'keep-all' }}>{LV_LABEL[stat.overall]} · 등장 단어의 {stat.covPct}%가 {stat.overall} 이하</p>
           </div>
           <button onClick={() => setOpenSummary(v => !v)} style={{ ...ghostBtn(openSummary), flexShrink: 0 }}>요약 {openSummary ? '▲' : '▼'}</button>
-        </div>
-        <div style={{ textAlign: 'right', marginTop: 8 }}>
-          <button onClick={startTour} style={{ ...ghostBtn(false), height: 30, borderColor: PRIMARY, color: PRIMARY }}>❓ 사용법 가이드</button>
         </div>
 
         {openSummary && (
@@ -387,6 +395,8 @@ export default function StudyVideoDemo() {
       {detailIdx != null && (
         <SentenceDetail ln={lines[detailIdx]} saved={isLineSaved(detailIdx)} isPlaying={isPlaying} isLooping={loopIdx === detailIdx}
           onClose={() => setDetailIdx(null)}
+          onPrev={() => detailGo(-1)}
+          onNext={() => detailGo(1)}
           onPlayLine={() => seekLine(detailIdx)}
           onLoopLine={() => loopThisLine(detailIdx)}
           onTogglePlay={togglePlay}
@@ -442,7 +452,7 @@ function Sheet({ onClose, scrim = 0.4, maxH = '80vh', children }) {
 }
 
 // ── 문장 상세 — 문장 분해 최우선(자동 로드), 미니 재생 컨트롤, 단어 펼치기 ──
-function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPlayLine, onLoopLine, onTogglePlay, onToggleSave, onOpenWord }) {
+function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPrev, onNext, onPlayLine, onLoopLine, onTogglePlay, onToggleSave, onOpenWord }) {
   const [bd, setBd] = useState(null)
   const [state, setState] = useState('loading')
   const [wordsOpen, setWordsOpen] = useState(false)
@@ -462,12 +472,8 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPlayLine, 
     return () => { c = true }
   }, [ln.jp])
 
-  const mini = (label, on, fn) => (
-    <button onClick={fn} style={{ flex: 1, height: 34, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, border: `1px solid ${on ? PRIMARY : 'var(--bd)'}`, background: on ? `${PRIMARY}18` : 'transparent', color: on ? PRIMARY : 'var(--text-1)' }}>{label}</button>
-  )
-
   return (
-    <Sheet onClose={onClose} scrim={0.22} maxH="72vh">
+    <Sheet onClose={onClose} scrim={0.22} maxH="74vh">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <span style={{ fontSize: 11, color: PRIMARY, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>문장 분석 · {fmtT(ln.t)}</span>
         <button onClick={onToggleSave} aria-label="문장 북마크" style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', padding: 4 }}><Bookmark filled={saved} color={saved ? GREEN : 'var(--text-3)'} /></button>
@@ -476,11 +482,13 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPlayLine, 
       <div style={{ lineHeight: 1.6 }}><RubyText text={ln.furigana_html} fontSize={20} /></div>
       <p style={{ margin: '6px 0 12px', fontSize: 14.5, color: 'var(--text-2)' }}>{ln.kr}</p>
 
-      {/* 미니 재생 컨트롤 — 시트를 닫지 않고 영상 듣기/반복 (영상은 위에 계속 보임) */}
-      <div style={{ display: 'flex', gap: 7, marginBottom: 16 }}>
-        {mini(isPlaying ? '⏸ 정지' : '▶ 재생', false, onTogglePlay)}
-        {mini('↺ 이 문장', false, onPlayLine)}
-        {mini('⟳ 반복', isLooping, onLoopLine)}
+      {/* 미니 컨트롤 (작은 단축키 표시) — 시트 닫지 않고 이동·재생·반복, 영상은 위에 계속 보임 */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        <MiniCtl glyph="⏮" label="이전" k="A" onClick={onPrev} />
+        <MiniCtl glyph={isPlaying ? '⏸' : '▶'} label={isPlaying ? '정지' : '재생'} k="Space" onClick={onTogglePlay} />
+        <MiniCtl glyph="↺" label="다시" k="S" onClick={onPlayLine} />
+        <MiniCtl glyph="⟳" label="반복" k="R" on={isLooping} onClick={onLoopLine} />
+        <MiniCtl glyph="⏭" label="다음" k="D" onClick={onNext} />
       </div>
 
       {/* 문장 분해 — 가장 돋보이게(자동 로드) */}
@@ -613,4 +621,13 @@ function sheetBtn(active) {
 }
 function KeyHint({ children }) {
   return <span style={{ marginLeft: 4, fontSize: 9, padding: '1px 4px', borderRadius: 4, background: 'var(--bd)', color: 'var(--text-3)', fontWeight: 700 }}>{children}</span>
+}
+function MiniCtl({ glyph, label, k, on, onClick }) {
+  return (
+    <button onClick={onClick} aria-label={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, height: 48, borderRadius: 11, cursor: 'pointer', fontFamily: 'inherit', border: `1px solid ${on ? PRIMARY : 'var(--bd)'}`, background: on ? `${PRIMARY}18` : 'transparent', color: on ? PRIMARY : 'var(--text-1)' }}>
+      <span style={{ fontSize: 15, lineHeight: 1 }}>{glyph}</span>
+      <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1 }}>{label}</span>
+      {SHOW_KEYS && <span style={{ fontSize: 8.5, opacity: 0.5, lineHeight: 1 }}>{k}</span>}
+    </button>
+  )
 }

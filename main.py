@@ -3213,6 +3213,38 @@ def breakdown(req: BreakdownRequest, request: Request):
     return result
 
 
+# ── 영상 학습(자막 번역) — 일본어 자막 줄 → 한국어 + 후리가나 (유튜브 학습 프로토타입) ──
+STUDY_TRANSLATE_PROMPT = """You translate Japanese subtitle lines into Korean for Korean learners of Japanese.
+You are given a numbered list of Japanese subtitle lines. For EACH line, output two fields:
+- "furigana_html": the SAME Japanese line, with each KANJI word immediately followed by its reading in half-width (parentheses), HIRAGANA only. If you remove every "(...)", the result MUST equal the original line exactly. Leave kana/katakana/punctuation as-is. Example: 私(わたし)はおもちゃの開発者(かいはつしゃ)です
+- "korean": a natural, fluent Korean translation of that line (자연스러운 한국어, 번역투 금지; 의미 우선).
+Keep the SAME order and the SAME number of items. Respond with ONLY valid JSON:
+{"lines":[{"furigana_html":"...","korean":"..."}, ...]}
+"""
+
+class StudyTranslateRequest(BaseModel):
+    lines: list[str] = []
+
+@app.post("/study/translate")
+def study_translate(req: StudyTranslateRequest, request: Request):
+    """자막 줄 목록(일본어) → 줄별 {일본어, 후리가나_html, 한국어}. 영상 학습 프로토타입용."""
+    rate_guard(request)
+    lines = [(l or "").strip() for l in (req.lines or []) if (l or "").strip()][:150]
+    if not lines:
+        return {"lines": []}
+    numbered = "\n".join(f"{i+1}. {l}" for i, l in enumerate(lines))
+    data = _call_gemini_json(f"{STUDY_TRANSLATE_PROMPT}\n\nLines:\n{numbered}")
+    out = data.get("lines") if isinstance(data, dict) else None
+    if not isinstance(out, list):
+        raise HTTPException(status_code=502, detail="번역 응답 형식 오류")
+    res = []
+    for i, l in enumerate(lines):
+        item = out[i] if (i < len(out) and isinstance(out[i], dict)) else {}
+        fh = _clean_furigana_html(item.get("furigana_html") or "", l)
+        res.append({"jp": l, "furigana_html": fh, "korean": (item.get("korean") or "")})
+    return {"lines": res}
+
+
 # (구 /accent 엔드포인트 제거 — OJAD 기반이었고 프론트 미사용. 악센트는 /analyze의 Gemini 출력 사용)
 
 

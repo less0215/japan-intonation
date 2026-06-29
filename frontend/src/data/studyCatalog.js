@@ -1,8 +1,36 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 100편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 1편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 4편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
+ {
+  "id": "VDtCA2GPw4k",
+  "jp": "なんとかなる〜見えない大きな壁を乗りこえるには〜",
+  "kr": "어떻게든 된다 - 보이지 않는 큰 벽을 넘어서려면",
+  "ev": "TEDxKagoshima",
+  "dur": "9:11",
+  "lv": "N3",
+  "tags": [
+   "동기부여",
+   "도전",
+   "극복"
+  ],
+  "ready": true
+ },
+ {
+  "id": "Ibw0yLy8h20",
+  "jp": "古神道に伝わる日本語の秘密",
+  "kr": "고신토에 전해지는 일본어의 비밀",
+  "ev": "TEDxHimi",
+  "dur": "9:33",
+  "lv": "N1",
+  "tags": [
+   "언어",
+   "일본어",
+   "전통"
+  ],
+  "ready": true
+ },
  {
   "id": "ldybnuFxdiQ",
   "jp": "新しいアイデアのつくり方",
@@ -14,6 +42,20 @@ export const STUDY_CATALOG = [
    "비즈니스",
    "창의성",
    "아이디어"
+  ],
+  "ready": true
+ },
+ {
+  "id": "z7YPFk7oecU",
+  "jp": "やりたいことを見つけるための3つのヒント",
+  "kr": "하고 싶은 일을 찾는 세 가지 힌트",
+  "ev": "TEDxYouth@Sapporo",
+  "dur": "6:25",
+  "lv": "N4",
+  "tags": [
+   "동기부여",
+   "꿈",
+   "자기계발"
   ],
   "ready": true
  },
@@ -119,19 +161,6 @@ export const STUDY_CATALOG = [
    "동기부여",
    "꿈",
    "주체성"
-  ]
- },
- {
-  "id": "VDtCA2GPw4k",
-  "jp": "なんとかなる〜見えない大きな壁を乗りこえるには〜",
-  "kr": "어떻게든 된다 - 보이지 않는 큰 벽을 넘어서려면",
-  "ev": "TEDxKagoshima",
-  "dur": "9:11",
-  "lv": "N3",
-  "tags": [
-   "동기부여",
-   "도전",
-   "극복"
   ]
  },
  {
@@ -340,19 +369,6 @@ export const STUDY_CATALOG = [
    "언어",
    "말의 힘",
    "소통"
-  ]
- },
- {
-  "id": "Ibw0yLy8h20",
-  "jp": "古神道に伝わる日本語の秘密",
-  "kr": "고신토에 전해지는 일본어의 비밀",
-  "ev": "TEDxHimi",
-  "dur": "9:33",
-  "lv": "N1",
-  "tags": [
-   "언어",
-   "일본어",
-   "전통"
   ]
  },
  {
@@ -738,19 +754,6 @@ export const STUDY_CATALOG = [
   "tags": [
    "교육",
    "지역"
-  ]
- },
- {
-  "id": "z7YPFk7oecU",
-  "jp": "やりたいことを見つけるための3つのヒント",
-  "kr": "하고 싶은 일을 찾는 세 가지 힌트",
-  "ev": "TEDxYouth@Sapporo",
-  "dur": "6:25",
-  "lv": "N4",
-  "tags": [
-   "동기부여",
-   "꿈",
-   "자기계발"
   ]
  },
  {

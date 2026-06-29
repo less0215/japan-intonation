@@ -37,9 +37,9 @@ export const STUDY_TOP10 = TOP_IDS.map(id => STUDY_CATALOG.find(v => v.id === id
 // 주제별 카테고리 (쉐도잉 탭 행 구성용)
 export const TAG_GROUPS = [
   { tag: '동기부여', label: '눈에 보석이 박힌 사람들' },
-  { tag: '언어', label: '일본어가 들리기 시작할 때' },
+  { tag: '언어', label: '언어를 향유하는 사람들' },
   { tag: '비즈니스', label: '일잘러가 되고 싶다면' },
   { tag: '인생', label: '여운이 남는 이야기' },
   { tag: '과학', label: '앞서 가는 사람들' },
-  { tag: '문화', label: '도쿄의 공기까지' },
+  { tag: '문화', label: '문화, AI는 경험할 수 없는 것' },
 ]

@@ -12,6 +12,7 @@ import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidComingSoonBanner from './components/AndroidComingSoonBanner'
 import StudyVideoDemo from './components/StudyVideoDemo'
 import HomeDemo from './components/HomeDemo'
+import TedShadowingHome from './components/TedShadowingHome'
 import QuotaWall from './components/QuotaWall'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
@@ -1234,66 +1235,8 @@ export default function App() {
                       </svg>
                     </button>
                   )}
-                  {/* 지금 일본 날씨는? — 도시별 라이브캠 (앱 다운로드 바로 아래) */}
-                  <div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '0 2px 9px' }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1,#8a9197)' }}>지금 일본 날씨는?</span>
-                    <button onClick={() => navigate('/live')} style={{ background: 'none', border: 'none', fontSize: 12, color: '#5CA9CE', cursor: 'pointer', fontFamily: 'inherit' }}>전체 ›</button>
-                  </div>
-                  {/* 우→좌 자동 흐름 마퀴 (호버 시 일시정지) */}
-                  <div style={{ overflow: 'hidden', margin: '0 -2px', paddingBottom: 2 }}>
-                    <div className="lc-marquee" style={{ display: 'flex', gap: 9, width: 'max-content' }}>
-                      {[...LIVECAMS, ...LIVECAMS].map((c, i) => (
-                        <button key={`${c.id}-${i}`} onClick={() => navigate(`/live/${c.id}`)} style={{ flex: '0 0 230px', textAlign: 'left', background: 'var(--card-bg,#fff)', border: '1px solid var(--card-bd,#eef1f3)', borderRadius: 15, padding: 0, cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden' }}>
-                          <div style={{ width: '100%', height: 128, backgroundColor: '#11161b', backgroundImage: `url('https://i.ytimg.com/vi/${c.videoId}/hqdefault.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                            <span style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><polygon points="9 7 9 17 17 12" /></svg>
-                            </span>
-                            <span style={{ position: 'absolute', top: 8, left: 8, fontSize: 9, fontWeight: 700, color: '#fff', background: '#e24b4a', borderRadius: 4, padding: '1px 5px', letterSpacing: '0.3px' }}>LIVE</span>
-                          </div>
-                          <div style={{ padding: '10px 12px 12px' }}>
-                            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-1,#3a4250)' }}>{c.city} <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-3,#9aa0a6)' }}>{c.cityJp}</span></p>
-                            <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-3,#9aa0a6)' }}>{c.spot}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <style>{`@keyframes lcflow{from{transform:translateX(0)}to{transform:translateX(-50%)}}.lc-marquee{animation:lcflow 120s linear infinite}.lc-marquee:hover{animation-play-state:paused}@media (prefers-reduced-motion:reduce){.lc-marquee{animation:none}}`}</style>
-                  </div>
-                  {/* 학습 콘텐츠 — 가로 스크롤 카드 (전체는 학습 탭) */}
-                  <div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '0 2px 9px' }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1,#8a9197)' }}>학습 콘텐츠</span>
-                    <button onClick={() => navigate('/verbs')} style={{ background: 'none', border: 'none', fontSize: 12, color: '#5CA9CE', cursor: 'pointer', fontFamily: 'inherit' }}>전체 ›</button>
-                  </div>
-                  <div style={{ display: 'flex', gap: 9, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2, margin: '0 -2px' }}>
-                    {[
-                      { jp: '法', label: '핵심 문법', sub: '패턴 모아보기', path: '/grammar' },
-                      { jp: '動', label: '동사',      sub: 'TOP 100',     path: '/verbs' },
-                      { jp: 'い', label: 'い형용사',  sub: 'TOP 100',     path: '/adj-i' },
-                      { jp: 'な', label: 'な형용사',  sub: 'TOP 100',     path: '/adj-na' },
-                      { jp: '名', label: '명사',      sub: 'TOP 100',     path: '/noun' },
-                      { jp: '助', label: '조사',      sub: 'TOP 10',      path: '/particles' },
-                      { jp: '音', label: '의성어·의태어', sub: 'JLPT별', path: '/onomatope' },
-                    ].map(c => (
-                      <button key={c.path} onClick={() => navigate(c.path)} style={{ flex: '0 0 112px', textAlign: 'left', background: 'var(--surface,#fff)', border: '1px solid var(--bd,#eef1f3)', borderRadius: 13, padding: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--accent-soft,#f0f6fa)', color: '#5CA9CE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 500 }}>{c.jp}</div>
-                        <p style={{ margin: '8px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--text-1,#4b5563)' }}>{c.label}</p>
-                        <p style={{ margin: '1px 0 0', fontSize: 10.5, color: 'var(--text-3,#9aa0a6)' }}>{c.sub}</p>
-                      </button>
-                    ))}
-                  </div>
-                  </div>
-
-                  {/* 오늘의 학습 */}
-                  <div>
-                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--text-1,#8a9197)', margin: '0 2px 9px' }}>오늘의 학습</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {dailyVerb    && <DailyVerbCard    verb={dailyVerb}       onNavigate={navigate} />}
-                    {dailyGrammar && <DailyGrammarCard grammar={dailyGrammar} onNavigate={navigate} />}
-                  </div>
-                  </div>
+                  {/* TED 쉐도잉으로 배우는 일본어 (넷플릭스식 — 라이브캠/학습콘텐츠/오늘의학습 대체) */}
+                  <TedShadowingHome onNavigate={navigate} />
                   {/* 학습 콘텐츠 영역 하단 광고 (웹 전용) */}
                   {!subAdFree && <AdSenseUnit slot="2450758307" style={{ marginTop: 4 }} />}
                 </>

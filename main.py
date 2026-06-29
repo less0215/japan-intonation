@@ -1311,7 +1311,7 @@ RATE_PER_MIN  = 40     # 분당 LLM 호출 상한(번역+분해+톤+TTS 합산)
 RATE_PER_HOUR = 600    # 시간당 상한
 # 일일 번역(analyze) 상한 — 웹 API 비용 방어. 앱(platform=='app')은 광고로 충당하므로 면제.
 GUEST_PER_DAY    = 20   # 웹 비회원 IP당 일일 (300→50→20, 무수익(AdSense OFF) 비용 누수 절감; 앱은 무제한)
-WEB_USER_PER_DAY = 80   # 웹 로그인 회원당 일일 (200→80; 앱으로 유도, 무인증 가입=무제한 구멍 차단)
+WEB_USER_PER_DAY = 40   # 웹 로그인 회원당 일일 (200→80→40; 앱으로 유도, 무인증 가입=무제한 구멍 차단)
 MAX_INPUT_CHARS  = 300  # 1회 번역 입력 길이 상한(긴 페이로드 비용 방어)
 
 _rate_buckets: dict[str, "_deque"] = {}   # key → 최근 1시간 타임스탬프
@@ -1375,7 +1375,7 @@ def rate_guard(request: Request, user_id: int | None = None, count_daily: bool =
 # 사진 번역 — 공개(베타). 플랜별 일일 한도(비용·악용 방지).
 # 비용 근거: 사진(고해상도+페이지 출력) ≈ 빠른번역의 5배 → 빠른번역 한도를 ÷5로 비례 축소.
 # (빠른 번역: 무료 15/5h, Plus 200/일, Pro 무제한 → 사진: 무료 5, Plus 40, Pro 무제한)
-PHOTO_LIMITS = {"free": 5, "plus": 40, "pro": 100}   # pro는 consume_photo_quota에서 early-return(무제한), 값은 미사용
+PHOTO_LIMITS = {"guest": 1, "free": 5, "plus": 40, "pro": 100}   # guest=비회원, free=로그인 무료회원 / pro는 early-return(무제한)
 _photo_daily: dict[str, list] = {}   # key → [date_kst, count] (인메모리 소프트캡, KST 자정 리셋)
 
 def consume_photo_quota(db, user_id, anon_id, request):
@@ -1392,7 +1392,9 @@ def consume_photo_quota(db, user_id, anon_id, request):
         plan = "plus"
     if plan == "pro":
         return  # 프로: 사진 번역 무제한
-    limit = PHOTO_LIMITS.get(plan, PHOTO_LIMITS["free"])
+    # 무료는 비회원(guest)/로그인 회원(free) 구분: 비회원 1회, 회원 5회
+    tier = "guest" if (plan == "free" and not user_id) else plan
+    limit = PHOTO_LIMITS.get(tier, PHOTO_LIMITS["free"])
     key = f"u:{user_id}" if user_id else (f"a:{anon_id}" if anon_id else f"ip:{_client_ip(request)}")
     today = time.strftime("%Y-%m-%d", time.gmtime(time.time() + 9 * 3600))
     d = _photo_daily.get(key)
@@ -1400,7 +1402,8 @@ def consume_photo_quota(db, user_id, anon_id, request):
         d = [today, 0]
         _photo_daily[key] = d
     if d[1] >= limit:
-        hint = " 플러스·프로에서 더 많이 이용할 수 있어요." if plan == "free" else ""
+        hint = (" 로그인하면 하루 5회까지 이용할 수 있어요." if tier == "guest"
+                else " 플러스·프로에서 더 많이 이용할 수 있어요." if plan == "free" else "")
         raise HTTPException(status_code=429,
             detail=f"오늘 사진 번역 {limit}회를 모두 사용했어요.{hint} 내일 다시 이용해 주세요.")
     d[1] += 1

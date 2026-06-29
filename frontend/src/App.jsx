@@ -12,7 +12,7 @@ import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidComingSoonBanner from './components/AndroidComingSoonBanner'
 import StudyVideoDemo from './components/StudyVideoDemo'
 import HomeDemo from './components/HomeDemo'
-import TedShadowingHome from './components/TedShadowingHome'
+import ShadowingBrowse from './components/ShadowingBrowse'
 import QuotaWall from './components/QuotaWall'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
@@ -1113,6 +1113,7 @@ export default function App() {
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
           <Route path="/study-demo"  element={<StudyVideoDemo />} />
           <Route path="/home-demo"   element={<HomeDemo />} />
+          <Route path="/shadowing"   element={<ShadowingBrowse variant="tab" isLoggedIn={!!user} userName={user?.name} onNavigate={navigate} />} />
           <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="/messages"    element={<MessageInbox />} />
           <Route path="/survey"      element={<SurveyPage onLogin={handleLoginClick} onSubRefresh={() => setSubTick(t => t + 1)} />} />
@@ -1235,8 +1236,8 @@ export default function App() {
                       </svg>
                     </button>
                   )}
-                  {/* TED 쉐도잉으로 배우는 일본어 (넷플릭스식 — 라이브캠/학습콘텐츠/오늘의학습 대체) */}
-                  <TedShadowingHome onNavigate={navigate} />
+                  {/* 쉐도잉 (넷플릭스식 — 라이브캠/학습콘텐츠/오늘의학습 대체) */}
+                  <ShadowingBrowse variant="home" isLoggedIn={!!user} userName={user?.name} onNavigate={navigate} />
                   {/* 학습 콘텐츠 영역 하단 광고 (웹 전용) */}
                   {!subAdFree && <AdSenseUnit slot="2450758307" style={{ marginTop: 4 }} />}
                 </>

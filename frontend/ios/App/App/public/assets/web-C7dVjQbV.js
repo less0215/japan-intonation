@@ -1,0 +1,1 @@
+import{W as e}from"./index-LTn-4m_u.js";class t extends e{async getStatus(){return{status:"authorized"}}async requestPermission(){return{status:"authorized"}}async getPluginVersion(){return{version:"web"}}}export{t as AppTrackingTransparencyWeb};

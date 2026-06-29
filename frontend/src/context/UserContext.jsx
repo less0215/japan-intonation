@@ -198,8 +198,21 @@ export function UserProvider({ children }) {
     setTranslationHistory(prev => ids ? prev.filter(h => !ids.includes(h.id)) : [])
   }, [])
 
+  /* 로그아웃 — 계정에 묶인 기기 로컬 데이터를 전부 비운다(다른 사람이 이 기기로 로그인해도 이전 사용자 저장이 안 보이게).
+     단어·예문은 서버 동기화라 재로그인 시 복원됨. 쉐도잉(프로토타입 localStorage)은 직접 제거. */
+  const logout = useCallback(() => {
+    setUser(null)
+    setSavedWords([])
+    setSavedExamples([])
+    setTranslationHistory([])
+    for (const k of ['tickjapan_study_saved_videos', 'tickjapan_study_saved_lines', 'tickjapan_study_saved_words', 'tickjapan_study_ratings', 'tickjapan_study_watched']) {
+      try { localStorage.removeItem(k) } catch {}
+    }
+    try { window.dispatchEvent(new Event('tickjapan:logout')) } catch {}
+  }, [])
+
   return (
-    <UserContext.Provider value={{ user, setUser, saveResult, savedWords, isWordSaved, toggleSaveWord, savedExamples, isExampleSaved, toggleSaveExample, translationHistory, addToHistory, removeHistoryItem, removeHistoryItems, clearHistory, removeWords, removeExamples }}>
+    <UserContext.Provider value={{ user, setUser, logout, saveResult, savedWords, isWordSaved, toggleSaveWord, savedExamples, isExampleSaved, toggleSaveExample, translationHistory, addToHistory, removeHistoryItem, removeHistoryItems, clearHistory, removeWords, removeExamples }}>
       {children}
     </UserContext.Provider>
   )

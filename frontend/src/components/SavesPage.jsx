@@ -26,6 +26,12 @@ export default function SavesPage({ onSelectHistory }) {
   const removeStudyWord = (w) => setStudyWords(prev => { const n = prev.filter(x => `${x.w}|${x.reading}` !== `${w.w}|${w.reading}`); try { localStorage.setItem('tickjapan_study_saved_words', JSON.stringify(n)) } catch {} return n })
   const removeStudyVid = (id) => setStudyVids(prev => { const n = prev.filter(x => x !== id); try { localStorage.setItem('tickjapan_study_saved_videos', JSON.stringify(n)) } catch {} return n })
   const savedVideos = studyVids.map(id => STUDY_CATALOG.find(v => v.id === id)).filter(Boolean)
+  // 로그아웃 시 쉐도잉 저장 목록 즉시 비우기(이 화면이 떠 있어도 갱신)
+  useEffect(() => {
+    const onLogout = () => { setStudyVids([]); setStudyLines([]); setStudyWords([]) }
+    window.addEventListener('tickjapan:logout', onLogout)
+    return () => window.removeEventListener('tickjapan:logout', onLogout)
+  }, [])
 
   // 문법 저장은 category 'grammar' → 별도 '문법' 탭으로 분리(단어 탭에선 제외)
   const grammarWords = savedWords.filter(w => w.category === 'grammar')

@@ -331,7 +331,7 @@ async function scheduleFastResetNotification(resetSec) {
 export default function App() {
   const location  = useLocation()
   const navigate  = useNavigate()
-  const { user, setUser, saveResult, addToHistory } = useUser()
+  const { user, setUser, logout, saveResult, addToHistory } = useUser()
 
   const tab = location.pathname.startsWith('/grammar')   ? 'grammar'
             : location.pathname.startsWith('/verbs')     ? 'verbs'
@@ -860,7 +860,7 @@ export default function App() {
   }
 
   function handleLogout() {
-    setUser(null)
+    logout()
   }
 
   // ATT 사전 안내 시트 표시 여부 판단 (앱 + 아직 안 물음 + notDetermined)

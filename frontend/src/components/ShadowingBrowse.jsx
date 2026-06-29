@@ -11,6 +11,7 @@ const LEVELS = ['N4', 'N3', 'N2', 'N1']
 const DURS = [{ k: 'short', label: '~10분' }, { k: 'mid', label: '10~20분' }, { k: 'long', label: '20분+' }]
 const LS_RATE = 'tickjapan_study_ratings'
 const LS_WATCH = 'tickjapan_study_watched'
+const LS_VIDS = 'tickjapan_study_saved_videos'
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } }
 const thumb = (id) => `https://img.youtube.com/vi/${id}/hqdefault.jpg`
 const CAN_HOVER = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(hover:hover) and (pointer:fine)').matches : false
@@ -30,6 +31,7 @@ function Card({ v, onOpen, rating, onHover, onLeave }) {
         <img src={thumb(v.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
         <span style={{ position: 'absolute', top: 7, right: 7 }}><LvOnThumb lv={v.lv} /></span>
         <span style={{ position: 'absolute', bottom: 7, right: 7, fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '1px 5px', borderRadius: 4 }}>{v.dur}</span>
+        {v.ready && <span style={{ position: 'absolute', bottom: 7, left: 7, fontSize: 9.5, fontWeight: 800, color: '#111', background: 'rgba(255,255,255,0.92)', padding: '1px 6px', borderRadius: 4 }}>▶ 학습</span>}
         {rating === 'up' && <span style={{ position: 'absolute', top: 7, left: 7, display: 'flex', color: '#fff', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}><Thumb filled size={14} /></span>}
       </div>
       <p style={{ margin: '6px 2px 0', fontSize: 12.5, fontWeight: 700, color: 'var(--text-1,#3a4250)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.kr}</p>
@@ -47,6 +49,7 @@ function RankCard({ v, rank, onOpen, onHover, onLeave }) {
           <img src={thumb(v.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           <span style={{ position: 'absolute', top: 6, right: 6 }}><LvOnThumb lv={v.lv} /></span>
           <span style={{ position: 'absolute', bottom: 6, right: 6, fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '1px 5px', borderRadius: 4 }}>{v.dur}</span>
+          {v.ready && <span style={{ position: 'absolute', bottom: 6, left: 6, fontSize: 9.5, fontWeight: 800, color: '#111', background: 'rgba(255,255,255,0.92)', padding: '1px 6px', borderRadius: 4 }}>▶ 학습</span>}
         </div>
         <p style={{ margin: '5px 2px 0', fontSize: 12, fontWeight: 700, color: 'var(--text-1,#3a4250)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.kr}</p>
       </div>
@@ -76,10 +79,13 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const [durF, setDurF] = useState('all')
   const [hover, setHover] = useState(null)   // { v, rect }
   const [filterOpen, setFilterOpen] = useState(false)
+  const [savedVids, setSavedVids] = useState(() => load(LS_VIDS, []))
+  const [comingSoon, setComingSoon] = useState(null)   // 학습 스크립트 미준비 영상
   const enterT = useRef(); const leaveT = useRef(); const filterRef = useRef()
 
   useEffect(() => { try { localStorage.setItem(LS_RATE, JSON.stringify(ratings)) } catch {} }, [ratings])
   useEffect(() => { try { localStorage.setItem(LS_WATCH, JSON.stringify(watched)) } catch {} }, [watched])
+  useEffect(() => { try { localStorage.setItem(LS_VIDS, JSON.stringify(savedVids)) } catch {} }, [savedVids])
   useEffect(() => { const f = () => setHover(null); window.addEventListener('scroll', f, true); return () => window.removeEventListener('scroll', f, true) }, [])
   useEffect(() => {
     if (!filterOpen) return
@@ -88,7 +94,13 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   }, [filterOpen])
 
   const rate = (id, v) => setRatings(p => ({ ...p, [id]: p[id] === v ? undefined : v }))
-  const start = (id) => { setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); setHover(null); onNavigate('/study-demo') }
+  const start = (id) => {
+    const v = STUDY_CATALOG.find(x => x.id === id)
+    if (v && !v.ready) { setSel(null); setHover(null); setComingSoon(v); return }
+    setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); setHover(null); onNavigate('/study-demo')
+  }
+  const isVidSaved = (id) => savedVids.includes(id)
+  const toggleVid = (id) => setSavedVids(p => p.includes(id) ? p.filter(x => x !== id) : [id, ...p])
 
   const onHover = (v, el) => { clearTimeout(leaveT.current); clearTimeout(enterT.current); const rect = el.getBoundingClientRect(); enterT.current = setTimeout(() => setHover({ v, rect }), 480) }
   const onLeave = () => { clearTimeout(enterT.current); leaveT.current = setTimeout(() => setHover(null), 160) }
@@ -206,6 +218,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
                 <button onClick={() => start(v.id)} aria-label="시작" style={pvCircle(true)}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20" /></svg></button>
                 <button onClick={() => rate(v.id, 'up')} aria-label="좋아요" style={pvCircle(false, ratings[v.id] === 'up')}><Thumb filled={ratings[v.id] === 'up'} size={16} /></button>
+                <button onClick={() => toggleVid(v.id)} aria-label="저장" style={pvCircle(false, isVidSaved(v.id))}><Bookmark filled={isVidSaved(v.id)} size={16} /></button>
                 <span style={{ flex: 1 }} />
                 <button onClick={() => setSel(v)} aria-label="상세" style={pvCircle(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg></button>
               </div>
@@ -241,11 +254,27 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                 <button onClick={() => rate(sel.id, 'up')} style={rateBtn(ratings[sel.id] === 'up')}><Thumb filled={ratings[sel.id] === 'up'} /> 좋아요</button>
                 <button onClick={() => rate(sel.id, 'down')} style={rateBtn(ratings[sel.id] === 'down')}><Thumb down filled={ratings[sel.id] === 'down'} /> 별로</button>
+                <button onClick={() => toggleVid(sel.id)} style={rateBtn(isVidSaved(sel.id))}><Bookmark filled={isVidSaved(sel.id)} size={17} /> {isVidSaved(sel.id) ? '저장됨' : '저장'}</button>
               </div>
-              <button onClick={() => start(sel.id)} style={{ width: '100%', height: 50, marginTop: 10, borderRadius: 14, border: 'none', background: 'var(--text-strong,#1f2937)', color: 'var(--bg,#fff)', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20" /></svg> 쉐도잉 시작
+              <button onClick={() => start(sel.id)} style={{ width: '100%', height: 50, marginTop: 10, borderRadius: 14, border: sel.ready ? 'none' : '1px solid var(--bd,#d7dde2)', background: sel.ready ? 'var(--text-strong,#1f2937)' : 'transparent', color: sel.ready ? 'var(--bg,#fff)' : 'var(--text-2,#5b6470)', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                {sel.ready
+                  ? <><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20" /></svg> 쉐도잉 시작</>
+                  : <>🛠️ 학습 스크립트 준비 중</>}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 학습 스크립트 미준비 안내 */}
+      {comingSoon && (
+        <div onClick={() => setComingSoon(null)} style={{ position: 'fixed', inset: 0, zIndex: 4600, background: 'rgba(12,18,24,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'tjFadeS .18s ease' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, background: 'var(--bg,#fff)', borderRadius: 20, padding: '24px 22px', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+            <div style={{ fontSize: 34, marginBottom: 8 }}>🛠️</div>
+            <p style={{ margin: 0, fontSize: 16.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>학습 스크립트를 준비 중이에요</p>
+            <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.6, color: 'var(--text-2,#5b6470)', wordBreak: 'keep-all' }}>〈{comingSoon.kr}〉은 타임라인 자막·후리가나·단어장이 아직 준비되지 않았어요. 영상은 모아두고, 가장 먼저 완성된 영상으로 지금 체험해 보세요.</p>
+            <button onClick={() => { setComingSoon(null); onNavigate('/study-demo') }} style={{ width: '100%', height: 46, marginTop: 18, borderRadius: 13, border: 'none', background: 'var(--text-strong,#1f2937)', color: 'var(--bg,#fff)', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>완성된 영상으로 체험하기</button>
+            <button onClick={() => { const id = comingSoon.id; setComingSoon(null); toggleVid(id) }} style={{ width: '100%', height: 42, marginTop: 8, borderRadius: 13, border: '1px solid var(--bd,#d7dde2)', background: 'transparent', color: 'var(--text-2,#5b6470)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{isVidSaved(comingSoon.id) ? '저장됨 ✓' : '이 영상 저장해두기'}</button>
           </div>
         </div>
       )}
@@ -261,6 +290,13 @@ function pvCircle(primary, active) {
 }
 function rateBtn(on) {
   return { flex: 1, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700, border: `1px solid ${on ? 'var(--text-2,#5b6470)' : 'var(--bd,#e6ebef)'}`, background: on ? 'var(--surface,#f1f5f8)' : 'transparent', color: on ? 'var(--text-strong,#1f2937)' : 'var(--text-3,#9aa0a6)' }
+}
+function Bookmark({ filled, size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  )
 }
 function Thumb({ down, filled, size = 18 }) {
   return (

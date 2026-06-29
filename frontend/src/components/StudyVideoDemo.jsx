@@ -28,6 +28,9 @@ const hasKanji = (s) => /[一-鿿々〆]/.test(s || '')
 
 const LS_LINES = 'tickjapan_study_saved_lines'
 const LS_WORDS = 'tickjapan_study_saved_words'
+const LS_VIDS = 'tickjapan_study_saved_videos'
+const LS_RATE = 'tickjapan_study_ratings'
+const LS_TOUR_OFF = 'tickjapan_study_tour_off'   // 사용자가 '다시 보지 않기' 누른 경우만 set
 const lsLoad = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]') } catch { return [] } }
 const lsSave = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} }
 
@@ -91,17 +94,27 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const [openVocab, setOpenVocab] = useState(false)
   const [savedLines, setSavedLines] = useState(() => lsLoad(LS_LINES))
   const [savedWords, setSavedWords] = useState(() => lsLoad(LS_WORDS))
+  const [savedVids, setSavedVids] = useState(() => lsLoad(LS_VIDS))
   const [panel, setPanel] = useState(null)
   const [popWord, setPopWord] = useState(null)
   const [detailIdx, setDetailIdx] = useState(null)
   const [tour, setTour] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [ratings, setRatings] = useState(() => { try { return JSON.parse(localStorage.getItem(LS_RATE) || '{}') } catch { return {} } })
 
   useEffect(() => { const f = () => setIsWide(window.innerWidth >= 900); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f) }, [])
   useEffect(() => lsSave(LS_LINES, savedLines), [savedLines])
   useEffect(() => lsSave(LS_WORDS, savedWords), [savedWords])
-  useEffect(() => { try { if (!localStorage.getItem('tickjapan_study_onboarded')) { const id = setTimeout(() => setTour(true), 700); return () => clearTimeout(id) } } catch {} }, [])
+  useEffect(() => lsSave(LS_VIDS, savedVids), [savedVids])
+  const vidSaved = savedVids.includes(vid)
+  const toggleSaveVid = () => setSavedVids(prev => prev.includes(vid) ? prev.filter(x => x !== vid) : [vid, ...prev])
+  useEffect(() => { try { localStorage.setItem(LS_RATE, JSON.stringify(ratings)) } catch {} }, [ratings])
+  const rating = ratings[vid]
+  const rateVid = (v) => setRatings(prev => ({ ...prev, [vid]: prev[vid] === v ? undefined : v }))
+  // 사용법 가이드: '다시 보지 않기'를 누르지 않는 한 진입 때마다 자동 표시
+  useEffect(() => { try { if (!localStorage.getItem(LS_TOUR_OFF)) { const id = setTimeout(() => setTour(true), 600); return () => clearTimeout(id) } } catch {} }, [])
   const startTour = () => { window.scrollTo({ top: 0 }); setTour(true) }
-  const closeTour = () => { setTour(false); try { localStorage.setItem('tickjapan_study_onboarded', '1') } catch {} }
+  const closeTour = (dontShowAgain) => { setTour(false); if (dontShowAgain) { try { localStorage.setItem(LS_TOUR_OFF, '1') } catch {} } }
 
   const stat = useMemo(() => {
     const counts = { N5: 0, N4: 0, N3: 0, N2: 0, N1: 0 }
@@ -296,15 +309,41 @@ export default function StudyVideoDemo({ isPlus = false }) {
         <CtrlBtn label="반복" sub="R" glyph="⟳" onClick={toggleLoop} active={loopIdx >= 0} showKey tour="loop" />
         <CtrlBtn label="다음" sub="D" glyph="⏭" onClick={goNext} showKey />
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 7, marginTop: 8 }}>
-        <button data-tour="rate" onClick={cycleRate} style={chip(false)}><span style={{ fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span> 배속{SHOW_KEYS && <KeyHint>Z/X</KeyHint>}</button>
-        <span data-tour="hide" style={{ display: 'inline-flex', gap: 7 }}>
-          <button onClick={() => setHideJp(v => !v)} style={chip(hideJp)}>{hideJp ? '일본어 보기' : '일본어 가리기'}{SHOW_KEYS && <KeyHint>J</KeyHint>}</button>
-          <button onClick={() => setHideKr(v => !v)} style={chip(hideKr)}>{hideKr ? '한국어 보기' : '한국어 가리기'}{SHOW_KEYS && <KeyHint>H</KeyHint>}</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+        <span data-tour="hide" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 4px 3px 10px', borderRadius: 11, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)', marginRight: 2 }}>가리기</span>
+          <button onClick={() => setHideJp(v => !v)} style={segChip(hideJp)} title="일본어 가리기 (J)"><EyeIcon off={hideJp} /> 일</button>
+          <button onClick={() => setHideKr(v => !v)} style={segChip(hideKr)} title="한국어 가리기 (H)"><EyeIcon off={hideKr} /> 한</button>
         </span>
-        <button onClick={cycleCap} style={chip(capMode !== 'off')}>영상자막 · {CAP_LABEL[capMode]}{SHOW_KEYS && <KeyHint>C</KeyHint>}</button>
-        <button onClick={() => setShowWords(v => !v)} style={chip(showWords)}>단어 {showWords ? '끄기' : '켜기'}</button>
+        <span style={{ flex: 1 }} />
+        <button data-tour="rate" onClick={cycleRate} style={chip(rateIdx !== 2)} title="재생 속도 (Z 느리게 / X 빠르게)"><span style={{ fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span></button>
+        <button onClick={() => setSettingsOpen(true)} style={chip(false)} aria-label="표시 설정" title="자막·단어 표시 설정">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+        </button>
       </div>
+      {settingsOpen && (
+        <div onClick={() => setSettingsOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 5200, background: 'rgba(10,15,20,0.4)', display: 'flex', alignItems: isWide ? 'center' : 'flex-end', justifyContent: 'center', animation: 'tjFade .16s ease' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 380, background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: isWide ? 18 : '20px 20px 0 0', padding: '18px 18px 22px', boxShadow: '0 -10px 40px rgba(0,0,0,0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--text-strong)' }}>표시 설정</p>
+              <button onClick={() => setSettingsOpen(false)} style={{ border: 'none', background: 'transparent', color: 'var(--text-3)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+            <p style={{ margin: '0 0 7px', fontSize: 12, fontWeight: 700, color: 'var(--text-3)' }}>영상 위 자막</p>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+              {CAP_ORDER.map(m => <button key={m} onClick={() => setCapMode(m)} style={{ ...segChip(capMode === m), flex: 1, height: 36, justifyContent: 'center' }}>{CAP_LABEL[m]}</button>)}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--text-strong)' }}>스크립트 단어장</p>
+                <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-3)' }}>각 문장 아래 단어 표시</p>
+              </div>
+              <button onClick={() => setShowWords(v => !v)} style={{ width: 50, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer', background: showWords ? PRIMARY : 'var(--bd)', position: 'relative', transition: 'background .15s' }}>
+                <span style={{ position: 'absolute', top: 3, left: showWords ? 25 : 3, width: 22, height: 22, borderRadius: '50%', background: '#fff', transition: 'left .15s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 
@@ -380,10 +419,19 @@ export default function StudyVideoDemo({ isPlus = false }) {
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: 11.5, fontWeight: 800, color: PRIMARY, letterSpacing: 0.2 }}>영상 학습 · 프로토타입</span>
-        <button onClick={startTour} style={{ ...ghostBtn(false), height: 28, fontSize: 11.5, borderColor: PRIMARY, color: PRIMARY, flexShrink: 0 }}>❓ 사용법</button>
+        <button onClick={startTour} style={{ ...ghostBtn(false), height: 28, fontSize: 11.5, color: 'var(--text-3)', flexShrink: 0 }}>❔ 사용법</button>
       </div>
       <p style={{ fontSize: isWide ? 23 : 20, fontWeight: 800, color: 'var(--text-strong)', margin: '6px 0 3px', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.32, wordBreak: 'keep-all' }}>{data.title}</p>
       <p style={{ fontSize: isWide ? 14.5 : 13.5, color: 'var(--text-3)', margin: 0 }}>{data.titleKr}</p>
+      {/* 액션: 좋아요 · 별로 · 저장 */}
+      <div style={{ display: 'flex', gap: 7, marginTop: 11 }}>
+        <ActionBtn active={rating === 'up'} onClick={() => rateVid('up')} label="좋아요"
+          path="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+        <ActionBtn active={rating === 'down'} onClick={() => rateVid('down')} label="별로" flip
+          path="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+        <ActionBtn active={vidSaved} onClick={toggleSaveVid} label={vidSaved ? '저장됨' : '저장'}
+          path="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+      </div>
     </>
   )
 
@@ -596,6 +644,7 @@ const TOUR_STEPS = [
 function StudyOnboarding({ steps, onClose }) {
   const [i, setI] = useState(0)
   const [rect, setRect] = useState(null)
+  const [dontShow, setDontShow] = useState(false)
   const step = steps[i]
   useLayoutEffect(() => {
     const sel = `[data-tour="${step.sel}"]`
@@ -609,7 +658,7 @@ function StudyOnboarding({ steps, onClose }) {
   }, [i])
 
   const last = i === steps.length - 1
-  const next = () => { if (last) onClose(); else setI(v => v + 1) }
+  const next = () => { if (last) onClose(dontShow); else setI(v => v + 1) }
   const prev = () => setI(v => Math.max(0, v - 1))
 
   const vw = typeof window !== 'undefined' ? window.innerWidth : 360
@@ -638,8 +687,12 @@ function StudyOnboarding({ steps, onClose }) {
         </div>
         <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: 'var(--text-strong)', wordBreak: 'keep-all' }}>{step.title}</p>
         <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.62, color: 'var(--text-2)', wordBreak: 'keep-all' }}>{step.desc}</p>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 12, color: 'var(--text-3)', marginBottom: 11, userSelect: 'none' }}>
+          <input type="checkbox" checked={dontShow} onChange={e => setDontShow(e.target.checked)} style={{ accentColor: PRIMARY, width: 15, height: 15, cursor: 'pointer' }} />
+          다시 보지 않기
+        </label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>건너뛰기</button>
+          <button onClick={() => onClose(dontShow)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>건너뛰기</button>
           <span style={{ flex: 1 }} />
           {i > 0 && <button onClick={prev} style={{ ...ghostBtn(false), height: 38 }}>이전</button>}
           <button onClick={next} style={{ height: 38, padding: '0 18px', borderRadius: 11, border: 'none', background: PRIMARY, color: '#fff', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 6px 16px ${PRIMARY}55` }}>{last ? '시작하기' : '다음'}</button>
@@ -661,6 +714,22 @@ function CtrlBtn({ label, sub, glyph, onClick, primary, active, showKey, tour })
 }
 function chip(active) {
   return { display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 12px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', border: `1px solid ${active ? PRIMARY : 'var(--bd)'}`, background: active ? `${PRIMARY}18` : 'var(--surface)', color: active ? PRIMARY : 'var(--text-1)', transition: 'background 0.14s' }
+}
+function segChip(active) {
+  return { display: 'inline-flex', alignItems: 'center', gap: 4, height: 28, padding: '0 10px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', border: 'none', background: active ? PRIMARY : 'transparent', color: active ? '#fff' : 'var(--text-2)', transition: 'background 0.14s' }
+}
+function EyeIcon({ off }) {
+  return off
+    ? <svg width="12.5" height="12.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+    : <svg width="12.5" height="12.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+}
+function ActionBtn({ active, onClick, label, path, flip }) {
+  return (
+    <button onClick={onClick} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 40, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, border: `1px solid ${active ? PRIMARY : 'var(--bd)'}`, background: active ? `${PRIMARY}14` : 'var(--surface)', color: active ? PRIMARY : 'var(--text-2)', transition: 'background 0.14s, border-color 0.14s' }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ transform: flip ? 'rotate(180deg)' : 'none' }}><path d={path} /></svg>
+      {label}
+    </button>
+  )
 }
 function ghostBtn(active) {
   return { display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 13px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap', border: `1px solid ${active ? PRIMARY : 'var(--bd)'}`, background: active ? `${PRIMARY}14` : 'transparent', color: active ? PRIMARY : 'var(--text-2)' }

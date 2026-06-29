@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import PageSEO from './PageSEO'
+import { STUDY_CATALOG } from '../data/studyCatalog'
 
 /* 저장 탭 — 번역 기록 / 저장 단어 / 저장 예문
  * - 리스트형(유려한 간격), 편집 모드에서 우측 체크박스로 다중/전체 삭제
@@ -20,8 +21,11 @@ export default function SavesPage({ onSelectHistory }) {
   const lsArr = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]') } catch { return [] } }
   const [studyLines, setStudyLines] = useState(() => lsArr('tickjapan_study_saved_lines'))
   const [studyWords, setStudyWords] = useState(() => lsArr('tickjapan_study_saved_words'))
+  const [studyVids, setStudyVids] = useState(() => lsArr('tickjapan_study_saved_videos'))
   const removeStudyLine = (s) => setStudyLines(prev => { const n = prev.filter(x => !(x.idx === s.idx && x.vid === s.vid)); try { localStorage.setItem('tickjapan_study_saved_lines', JSON.stringify(n)) } catch {} return n })
   const removeStudyWord = (w) => setStudyWords(prev => { const n = prev.filter(x => `${x.w}|${x.reading}` !== `${w.w}|${w.reading}`); try { localStorage.setItem('tickjapan_study_saved_words', JSON.stringify(n)) } catch {} return n })
+  const removeStudyVid = (id) => setStudyVids(prev => { const n = prev.filter(x => x !== id); try { localStorage.setItem('tickjapan_study_saved_videos', JSON.stringify(n)) } catch {} return n })
+  const savedVideos = studyVids.map(id => STUDY_CATALOG.find(v => v.id === id)).filter(Boolean)
 
   // 문법 저장은 category 'grammar' → 별도 '문법' 탭으로 분리(단어 탭에선 제외)
   const grammarWords = savedWords.filter(w => w.category === 'grammar')
@@ -144,10 +148,30 @@ export default function SavesPage({ onSelectHistory }) {
       )}
 
       {seg === 'shadow' ? (
-        (studyLines.length === 0 && studyWords.length === 0)
-          ? empty('저장한 영상 문장·단어가 없어요. 쉐도잉에서 북마크해 보세요.')
+        (savedVideos.length === 0 && studyLines.length === 0 && studyWords.length === 0)
+          ? empty('저장한 영상·문장·단어가 없어요. 쉐도잉에서 북마크해 보세요.')
           : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {savedVideos.length > 0 && (
+                <div>
+                  <p style={{ margin: '0 2px 7px', fontSize: 12.5, fontWeight: 700, color: 'var(--text-2)' }}>저장한 영상 ({savedVideos.length})</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
+                    {savedVideos.map(v => (
+                      <div key={v.id} style={{ position: 'relative' }}>
+                        <button onClick={() => navigate('/study-demo')} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                          <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
+                            <img src={`https://img.youtube.com/vi/${v.id}/hqdefault.jpg`} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <span style={{ position: 'absolute', bottom: 6, right: 6, fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '1px 5px', borderRadius: 4 }}>{v.dur}</span>
+                          </div>
+                          <p style={{ margin: '6px 2px 0', fontSize: 12.5, fontWeight: 700, color: 'var(--text-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.kr}</p>
+                          <p style={{ margin: '1px 2px 0', fontSize: 11, color: 'var(--text-3)', fontFamily: "'Noto Sans JP', sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.jp}</p>
+                        </button>
+                        <button onClick={() => removeStudyVid(v.id)} aria-label="삭제" style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: 15, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {studyLines.length > 0 && (
                 <div>
                   <p style={{ margin: '0 2px 7px', fontSize: 12.5, fontWeight: 700, color: 'var(--text-2)' }}>저장한 문장 ({studyLines.length})</p>

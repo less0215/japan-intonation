@@ -1375,7 +1375,7 @@ def rate_guard(request: Request, user_id: int | None = None, count_daily: bool =
 # 사진 번역 — 공개(베타). 플랜별 일일 한도(비용·악용 방지).
 # 비용 근거: 사진(고해상도+페이지 출력) ≈ 빠른번역의 5배 → 빠른번역 한도를 ÷5로 비례 축소.
 # (빠른 번역: 무료 15/5h, Plus 200/일, Pro 무제한 → 사진: 무료 5, Plus 40, Pro 무제한)
-PHOTO_LIMITS = {"guest": 1, "free": 5, "plus": 40, "pro": 100}   # guest=비회원, free=로그인 무료회원 / pro는 early-return(무제한)
+PHOTO_LIMITS = {"guest": 3, "free": 5, "plus": 40, "pro": 100}   # guest=비회원, free=로그인 무료회원 / pro는 early-return(무제한)
 _photo_daily: dict[str, list] = {}   # key → [date_kst, count] (인메모리 소프트캡, KST 자정 리셋)
 
 def consume_photo_quota(db, user_id, anon_id, request):

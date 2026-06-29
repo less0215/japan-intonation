@@ -9,6 +9,7 @@ import SignupModal from './components/SignupModal'
 import AttPrePrompt from './components/AttPrePrompt'
 import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
+import AndroidComingSoonBanner from './components/AndroidComingSoonBanner'
 import QuotaWall from './components/QuotaWall'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
 import AdSenseUnit from './components/AdSenseUnit'
@@ -294,6 +295,10 @@ function DailyVerbCard({ verb, onNavigate }) {
 
 /* 네이티브 앱 환경 여부 */
 const isApp = window.Capacitor?.isNativePlatform?.() ?? false
+// 웹 플랫폼 세분화 — 앱 유도/비용통제용. iOS는 앱이 있어 강하게 유도, 안드로이드는 앱 출시 전(7월)이라 안내만.
+const _UA = typeof navigator !== 'undefined' ? (navigator.userAgent || '') : ''
+const isIOSWeb = !isApp && (/iPhone|iPad|iPod/.test(_UA) || (/Macintosh/.test(_UA) && (navigator.maxTouchPoints || 0) > 1))
+const isAndroidWeb = !isApp && /Android/.test(_UA)
 
 /* 빠른 번역 충전 완료 로컬 알림 예약 (앱 전용)
  * - 한도 소진 시 호출 → resetSec(초) 뒤에 "다시 사용 가능" 알림
@@ -355,7 +360,7 @@ export default function App() {
   // 앱 보상형 광고: 팝업 상태({mode}) + 이번 세션 광고 시청 완료 여부(앱 재시작 시 초기화)
   const [adPopup, setAdPopup] = useState(null)
   const [adNotice, setAdNotice] = useState(false)   // 일반 번역 일정 횟수마다 전면 광고 사전 팝업
-  const [webFastNotice, setWebFastNotice] = useState(false)   // 웹에서 빠른 번역 시도 → 앱 안내
+  const [appOnlyFeature, setAppOnlyFeature] = useState(null)   // 웹에서 앱 전용 기능 시도 → 안내 ('fast' | 'photo')
   const [subAdFree, setSubAdFree] = useState(false)           // 유료 구독(백엔드) OR 인앱구매(RevenueCat) → 광고 제거
   const [subInfo, setSubInfo] = useState(null)                // /subscription 응답 { plan, expires_at, fast_unlimited, ad_free }
   const [subTick, setSubTick] = useState(0)                   // 추천인 코드 적용 등 구독 변경 후 /subscription 재조회 트리거
@@ -495,8 +500,8 @@ export default function App() {
       track('fast_enabled', { web: true, sub: true })
       return
     }
-    // 그 외(비구독 웹): 비용 누수 방지 — 앱 전용 안내
-    setWebFastNotice(true)
+    // 그 외(비구독 웹): 비용 누수 방지 — 앱 전용 안내(안드로이드는 출시 예정 안내)
+    setAppOnlyFeature('fast')
     track('fast_web_blocked')
   }
 
@@ -775,6 +780,8 @@ export default function App() {
   // 사진 번역 (관리자 베타) — 사진 → 클라 리사이즈 → /analyze-image → 기존 결과 카드 그대로 표시.
   // 인쇄물 유형(도서 세로쓰기·만화·메뉴판 등)은 서버가 자동 분류해 유형별 읽기 순서로 인식.
   async function handlePhoto(file) {
+    // iOS 웹은 앱이 있으니 비싼 기능(사진 번역)은 앱으로 유도(비용 누수 방지). 안드로이드·데스크톱 웹은 그대로.
+    if (isIOSWeb) { setAppOnlyFeature('photo'); track('photo_web_blocked', { os: 'ios' }); return }
     setLoading(true)
     setError(null)
     setResult(null)
@@ -1359,20 +1366,34 @@ export default function App() {
           onClose={() => { setFastUpsell(false); track('fast_upsell_dismiss') }}
         />
       )}
-      {/* 웹에서 빠른 번역 시도 → 앱 전용 안내 */}
-      {webFastNotice && (
-        <div onClick={() => setWebFastNotice(false)} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 300, maxWidth: '90vw', background: 'var(--surface)', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
-            <div style={{ width: 50, height: 50, borderRadius: 14, background: '#eef7fc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="#5CA9CE"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+      {/* 웹에서 앱 전용 기능(빠른번역·iOS 사진번역) 시도 → 안내. 안드로이드는 7월 출시 예정 안내. */}
+      {appOnlyFeature && (() => {
+        const label = appOnlyFeature === 'photo' ? '사진 번역' : '빠른 번역'
+        const close = () => setAppOnlyFeature(null)
+        return (
+          <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: 300, maxWidth: '90vw', background: 'var(--surface)', borderRadius: 18, padding: '22px 20px 16px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+              <div style={{ width: 50, height: 50, borderRadius: 14, background: '#eef7fc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#5CA9CE"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+              </div>
+              {isAndroidWeb ? (
+                <>
+                  <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)' }}>안드로이드 앱, 곧 출시돼요</p>
+                  <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}><b>{label}</b>은 <b>7월 초 출시</b> 예정인<br />안드로이드 앱에서 이용할 수 있어요.<br />조금만 기다려 주세요!</p>
+                  <button onClick={close} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>확인</button>
+                </>
+              ) : (
+                <>
+                  <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)' }}>{label}은 앱에서 만나요</p>
+                  <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>더 쾌적한 <b>{label}</b>은<br />틱재팬 앱에서 무료로 이용할 수 있어요.</p>
+                  <button onClick={() => { close(); track('download_cta_click', { from: `web_${appOnlyFeature}` }); navigate(`/download?from=web_${appOnlyFeature}`) }} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>앱 다운로드</button>
+                  <button onClick={close} style={{ width: '100%', height: 38, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>닫기</button>
+                </>
+              )}
             </div>
-            <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: 'var(--text-strong)' }}>빠른 번역은 앱에서 만나요</p>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>더 빠르고 자연스러운 <b>빠른 번역</b>은<br />틱재팬 앱에서 무료로 이용할 수 있어요.</p>
-            <button onClick={() => { setWebFastNotice(false); track('download_cta_click', { from: 'web_fast' }); navigate('/download?from=web_fast') }} style={{ width: '100%', height: 48, border: 'none', borderRadius: 13, background: '#5CA9CE', color: '#fff', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>앱 다운로드</button>
-            <button onClick={() => setWebFastNotice(false)} style={{ width: '100%', height: 38, marginTop: 4, background: 'none', border: 'none', fontSize: 12.5, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>그냥 일반 번역 쓸게요</button>
           </div>
-        </div>
-      )}
+        )
+      })()}
       {/* 일반 번역 일정 횟수마다 전면 광고 사전 팝업 (앱 전용) */}
       {adNotice && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,30,40,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -1385,6 +1406,8 @@ export default function App() {
       )}
       {/* 첫 방문 앱 다운로드 유도 — 웹 + 다운로드 페이지 아님 */}
       {!isApp && !isDownload && <AppDownloadPromo onDownload={() => navigate('/download')} />}
+      {/* 안드로이드 웹 — 앱 7월 출시 예정 안내 배너 */}
+      {isAndroidWeb && !isDownload && <AndroidComingSoonBanner />}
       {/* 안드로이드 출시 시 알림 신청 회원에게 노출 (현재 플래그 OFF) */}
       <AndroidLaunchPopup />
       {showDeleteAccount && user && (

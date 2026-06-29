@@ -1310,8 +1310,8 @@ from collections import deque as _deque
 RATE_PER_MIN  = 40     # 분당 LLM 호출 상한(번역+분해+톤+TTS 합산)
 RATE_PER_HOUR = 600    # 시간당 상한
 # 일일 번역(analyze) 상한 — 웹 API 비용 방어. 앱(platform=='app')은 광고로 충당하므로 면제.
-GUEST_PER_DAY    = 50   # 웹 비회원 IP당 일일 (기존 300 → 하향)
-WEB_USER_PER_DAY = 200  # 웹 로그인 회원당 일일 (무인증 가입=무제한 구멍 차단; 일반 학습자엔 충분히 여유)
+GUEST_PER_DAY    = 20   # 웹 비회원 IP당 일일 (300→50→20, 무수익(AdSense OFF) 비용 누수 절감; 앱은 무제한)
+WEB_USER_PER_DAY = 80   # 웹 로그인 회원당 일일 (200→80; 앱으로 유도, 무인증 가입=무제한 구멍 차단)
 MAX_INPUT_CHARS  = 300  # 1회 번역 입력 길이 상한(긴 페이로드 비용 방어)
 
 _rate_buckets: dict[str, "_deque"] = {}   # key → 최근 1시간 타임스탬프

@@ -1,28 +1,31 @@
 /* 쉐도잉 브라우즈 (넷플릭스식) — 홈 섹션(variant='home') + 쉐도잉 탭(variant='tab') 공용.
- * 고정 행: 시청 중(로그인)·좋아요 비슷(로그인)·인기 TOP10(전체)·레벨별·주제별(탭).
- * 제목=한국어 위/일본어 아래(한국 타겟). 레벨칩·시작 버튼=흑백 심플. 평가/시청=localStorage.
- * 모든 학습 → /study-demo (영상별 전체 학습은 파이프라인 필요, 현재 데모 1편). */
-import { useEffect, useState } from 'react'
+ * 홈: TOP10 최상단 + 개인화(로그인) + 주제 카테고리. 헤드카피·히어로·필터는 탭에만.
+ * 탭: 헤드카피 + 히어로 + 필터(레벨·분량) + 개인화 + TOP10 + 주제.
+ * 데스크톱 카드 호버 → 음소거 자동재생 미리보기 + 정보(넷플릭스식). 제목=한국어 위/일본어 아래.
+ * 평가/시청=localStorage. 모든 학습 → /study-demo. */
+import { useEffect, useRef, useState } from 'react'
 import { STUDY_CATALOG, STUDY_FEATURED, STUDY_TOP10, TAG_GROUPS } from '../data/studyCatalog'
 
 const LV_LABEL = { N5: '입문', N4: '초급', N3: '중급', N2: '중상급', N1: '상급' }
-const ORDER = ['N4', 'N3', 'N2', 'N1']
+const LEVELS = ['N4', 'N3', 'N2', 'N1']
+const DURS = [{ k: 'short', label: '~10분' }, { k: 'mid', label: '10~20분' }, { k: 'long', label: '20분+' }]
 const LS_RATE = 'tickjapan_study_ratings'
 const LS_WATCH = 'tickjapan_study_watched'
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } }
 const thumb = (id) => `https://img.youtube.com/vi/${id}/hqdefault.jpg`
+const CAN_HOVER = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(hover:hover) and (pointer:fine)').matches : false
+const durSec = (d) => { const [m, s] = (d || '0:0').split(':').map(Number); return (m || 0) * 60 + (s || 0) }
 
-// 흑백 레벨 배지 — 썸네일 위(반투명 흑+흰테), 페이지 위(아웃라인)
 function LvOnThumb({ lv }) {
   return <span style={{ fontSize: 9.5, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.45)', padding: '1px 6px', borderRadius: 5 }}>{lv}</span>
 }
-function LvPlain({ lv, withLabel }) {
-  return <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-1,#3a4250)', border: '1px solid var(--bd,#d7dde2)', padding: '2px 8px', borderRadius: 6 }}>{lv}{withLabel ? ` · ${LV_LABEL[lv]}` : ''}</span>
-}
 
-function Card({ v, onOpen, rating }) {
+function Card({ v, onOpen, rating, onHover, onLeave }) {
   return (
-    <button className="ted-card" onClick={() => onOpen(v)} style={{ flex: '0 0 174px', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0 }}>
+    <button className="ted-card" onClick={() => onOpen(v)}
+      onMouseEnter={CAN_HOVER ? (e) => onHover(v, e.currentTarget) : undefined}
+      onMouseLeave={CAN_HOVER ? onLeave : undefined}
+      style={{ flex: '0 0 174px', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0 }}>
       <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
         <img src={thumb(v.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
         <span style={{ position: 'absolute', top: 7, right: 7 }}><LvOnThumb lv={v.lv} /></span>
@@ -35,11 +38,11 @@ function Card({ v, onOpen, rating }) {
   )
 }
 
-function RankCard({ v, rank, onOpen }) {
+function RankCard({ v, rank, onOpen, onHover, onLeave }) {
   return (
     <button className="ted-card" onClick={() => onOpen(v)} style={{ flex: '0 0 226px', display: 'flex', alignItems: 'flex-end', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0 }}>
       <span style={{ flex: '0 0 58px', fontSize: 82, fontWeight: 900, lineHeight: 0.8, color: 'transparent', WebkitTextStroke: '2px var(--text-3,#b9c2cc)', marginRight: -6, fontFamily: 'Arial, sans-serif' }}>{rank}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0 }} onMouseEnter={CAN_HOVER ? (e) => onHover(v, e.currentTarget) : undefined} onMouseLeave={CAN_HOVER ? onLeave : undefined}>
         <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
           <img src={thumb(v.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           <span style={{ position: 'absolute', top: 6, right: 6 }}><LvOnThumb lv={v.lv} /></span>
@@ -51,15 +54,15 @@ function RankCard({ v, rank, onOpen }) {
   )
 }
 
-function Row({ title, items, onOpen, ratings, ranked }) {
+function Row({ title, items, onOpen, ratings, ranked, onHover, onLeave }) {
   if (!items || !items.length) return null
   return (
-    <div style={{ marginBottom: 22 }}>
+    <div style={{ marginBottom: 24 }}>
       <p style={{ margin: '0 2px 9px', fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>{title}</p>
       <div style={{ display: 'flex', gap: ranked ? 4 : 10, overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -2px', padding: '0 2px 4px' }}>
         {items.map((v, i) => ranked
-          ? <RankCard key={v.id} v={v} rank={i + 1} onOpen={onOpen} />
-          : <Card key={v.id} v={v} onOpen={onOpen} rating={ratings[v.id]} />)}
+          ? <RankCard key={v.id} v={v} rank={i + 1} onOpen={onOpen} onHover={onHover} onLeave={onLeave} />
+          : <Card key={v.id} v={v} onOpen={onOpen} rating={ratings[v.id]} onHover={onHover} onLeave={onLeave} />)}
       </div>
     </div>
   )
@@ -69,12 +72,20 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const [ratings, setRatings] = useState(() => load(LS_RATE, {}))
   const [watched, setWatched] = useState(() => load(LS_WATCH, []))
   const [sel, setSel] = useState(null)
+  const [lvF, setLvF] = useState('all')
+  const [durF, setDurF] = useState('all')
+  const [hover, setHover] = useState(null)   // { v, rect }
+  const enterT = useRef(); const leaveT = useRef()
 
   useEffect(() => { try { localStorage.setItem(LS_RATE, JSON.stringify(ratings)) } catch {} }, [ratings])
   useEffect(() => { try { localStorage.setItem(LS_WATCH, JSON.stringify(watched)) } catch {} }, [watched])
+  useEffect(() => { const f = () => setHover(null); window.addEventListener('scroll', f, true); return () => window.removeEventListener('scroll', f, true) }, [])
 
   const rate = (id, v) => setRatings(p => ({ ...p, [id]: p[id] === v ? undefined : v }))
-  const start = (id) => { setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); onNavigate('/study-demo') }
+  const start = (id) => { setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); setHover(null); onNavigate('/study-demo') }
+
+  const onHover = (v, el) => { clearTimeout(leaveT.current); clearTimeout(enterT.current); const rect = el.getBoundingClientRect(); enterT.current = setTimeout(() => setHover({ v, rect }), 480) }
+  const onLeave = () => { clearTimeout(enterT.current); leaveT.current = setTimeout(() => setHover(null), 160) }
 
   const byId = (id) => STUDY_CATALOG.find(v => v.id === id)
   const watchedV = watched.map(byId).filter(Boolean)
@@ -84,56 +95,115 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const similar = likedV ? STUDY_CATALOG.filter(v => v.id !== likedV.id && !disliked.has(v.id) && (v.lv === likedV.lv || v.tags.some(t => likedV.tags.includes(t)))).slice(0, 12) : []
   const f = STUDY_FEATURED
   const isTab = variant === 'tab'
+  const filtering = isTab && (lvF !== 'all' || durF !== 'all')
+  const durOk = (v) => durF === 'all' || (durF === 'short' ? durSec(v.dur) <= 600 : durF === 'mid' ? (durSec(v.dur) > 600 && durSec(v.dur) <= 1200) : durSec(v.dur) > 1200)
+  const filtered = STUDY_CATALOG.filter(v => (lvF === 'all' || v.lv === lvF) && durOk(v))
+
+  const rowProps = { onOpen: setSel, ratings, onHover, onLeave }
 
   return (
     <div>
-      <style>{`.ted-card{transition:transform .18s ease}@media (hover:hover){.ted-card:hover{transform:scale(1.045)}}`}</style>
+      <style>{`.ted-card{transition:transform .18s ease}@media (hover:hover){.ted-card:hover{transform:scale(1.045)}}@keyframes tjFadeS{from{opacity:0}to{opacity:1}}@keyframes tjUpS{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}@keyframes tjPv{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}`}</style>
 
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: isTab ? '2px 2px 14px' : '2px 2px 12px' }}>
-        <div>
-          <p style={{ margin: 0, fontSize: isTab ? 20 : 17, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>쉐도잉</p>
-          <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-3,#9aa0a6)', wordBreak: 'keep-all' }}>TED, 영화보다 더 영화 같은 이야기</p>
-        </div>
-        {!isTab && <button onClick={() => onNavigate('/shadowing')} style={{ border: 'none', background: 'none', color: 'var(--text-2,#5b6470)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>전체보기 ›</button>}
-      </div>
-
-      {/* 탭: 오늘의 추천 히어로 */}
+      {/* 탭: 헤드카피 + 히어로 + 필터 */}
       {isTab && (
-        <button className="ted-card" onClick={() => setSel(f)} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0, marginBottom: 24 }}>
-          <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', maxHeight: '46vh', borderRadius: 16, overflow: 'hidden', background: '#000' }}>
-            <img src={thumb(f.id)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0) 55%)' }} />
-            <span style={{ position: 'absolute', top: 12, left: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.5)', padding: '3px 10px', borderRadius: 20 }}>오늘의 추천</span>
-            <span style={{ position: 'absolute', top: 12, right: 12 }}><LvOnThumb lv={f.lv} /></span>
-            <div style={{ position: 'absolute', left: 16, right: 16, bottom: 14 }}>
-              <p style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}>{f.kr}</p>
-              <p style={{ margin: '3px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.82)', fontFamily: "'Noto Sans JP', sans-serif" }}>{f.jp} · {f.ev} · {f.dur}</p>
+        <>
+          <div style={{ margin: '2px 2px 14px' }}>
+            <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>쉐도잉</p>
+            <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-3,#9aa0a6)', wordBreak: 'keep-all' }}>TED, 영화보다 더 영화 같은 이야기</p>
+          </div>
+          <button className="ted-card" onClick={() => setSel(f)} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0, marginBottom: 18 }}>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', maxHeight: '46vh', borderRadius: 16, overflow: 'hidden', background: '#000' }}>
+              <img src={thumb(f.id)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0) 55%)' }} />
+              <span style={{ position: 'absolute', top: 12, left: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.5)', padding: '3px 10px', borderRadius: 20 }}>오늘의 추천</span>
+              <span style={{ position: 'absolute', top: 12, right: 12 }}><LvOnThumb lv={f.lv} /></span>
+              <div style={{ position: 'absolute', left: 16, right: 16, bottom: 14 }}>
+                <p style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}>{f.kr}</p>
+                <p style={{ margin: '3px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.82)', fontFamily: "'Noto Sans JP', sans-serif" }}>{f.jp} · {f.ev} · {f.dur}</p>
+              </div>
+            </div>
+          </button>
+
+          {/* 필터 (레벨·분량) */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginBottom: 20 }}>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3,#9aa0a6)', marginRight: 2 }}>레벨</span>
+            <button onClick={() => setLvF('all')} style={fchip(lvF === 'all')}>전체</button>
+            {LEVELS.map(lv => <button key={lv} onClick={() => setLvF(lv)} style={fchip(lvF === lv)}>{lv}</button>)}
+            <span style={{ width: 1, height: 16, background: 'var(--bd,#e0e5e9)', margin: '0 4px' }} />
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3,#9aa0a6)', marginRight: 2 }}>분량</span>
+            <button onClick={() => setDurF('all')} style={fchip(durF === 'all')}>전체</button>
+            {DURS.map(d => <button key={d.k} onClick={() => setDurF(d.k)} style={fchip(durF === d.k)}>{d.label}</button>)}
+          </div>
+        </>
+      )}
+
+      {/* 필터 결과 (탭, 필터 활성) */}
+      {filtering ? (
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '0 2px 12px' }}>
+            <p style={{ margin: 0, fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>필터 결과 · {filtered.length}편</p>
+            <button onClick={() => { setLvF('all'); setDurF('all') }} style={{ border: 'none', background: 'none', color: 'var(--text-2,#5b6470)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>초기화</button>
+          </div>
+          {filtered.length === 0
+            ? <p style={{ fontSize: 13, color: 'var(--text-3,#9aa0a6)', textAlign: 'center', padding: '24px 0' }}>조건에 맞는 영상이 없어요. 필터를 바꿔보세요.</p>
+            : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
+                {filtered.map(v => <Card key={v.id} v={v} onOpen={setSel} rating={ratings[v.id]} onHover={onHover} onLeave={onLeave} />)}
+              </div>}
+        </div>
+      ) : (
+        <>
+          {/* 홈: TOP10 최상단 */}
+          {!isTab && <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10} ranked {...rowProps} />}
+
+          {isLoggedIn && watchedV.length > 0 && <Row title={`${userName || '회원'}님이 시청 중인 콘텐츠`} items={watchedV} {...rowProps} />}
+          {isLoggedIn && likedV && similar.length > 0 && <Row title={`‘좋아요’한 〈${likedV.kr}〉과 비슷한 콘텐츠`} items={similar} {...rowProps} />}
+
+          {/* 탭: TOP10 (개인화 다음) */}
+          {isTab && <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10} ranked {...rowProps} />}
+
+          {/* 주제 카테고리 (홈·탭 공통) */}
+          {TAG_GROUPS.map(g => <Row key={g.tag} title={g.label} items={STUDY_CATALOG.filter(v => v.tags.includes(g.tag))} {...rowProps} />)}
+        </>
+      )}
+
+      {!isLoggedIn && <p style={{ textAlign: 'center', fontSize: 11.5, color: 'var(--text-3,#9aa0a6)', margin: '6px 0 2px' }}>로그인하면 ‘시청 중’·‘좋아요 기반 추천’이 나와요</p>}
+
+      {/* 데스크톱 호버 미리보기 (자동재생 + 정보) */}
+      {hover && (() => {
+        const { v, rect } = hover
+        const vw = window.innerWidth
+        const W = Math.min(330, Math.max(rect.width + 56, 300))
+        const left = Math.max(8, Math.min(rect.left + rect.width / 2 - W / 2, vw - W - 8))
+        const top = Math.max(8, rect.top - 30)
+        return (
+          <div style={{ position: 'fixed', left, top, width: W, zIndex: 4200, borderRadius: 12, overflow: 'hidden', background: 'var(--bg,#fff)', boxShadow: '0 18px 48px rgba(0,0,0,0.45)', animation: 'tjPv .16s ease' }}
+            onMouseEnter={() => clearTimeout(leaveT.current)} onMouseLeave={onLeave}>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000' }}>
+              <iframe title="preview" src={`https://www.youtube.com/embed/${v.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&loop=1&playlist=${v.id}`} allow="autoplay" frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+            </div>
+            <div style={{ padding: '11px 13px 13px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
+                <button onClick={() => start(v.id)} aria-label="시작" style={pvCircle(true)}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20" /></svg></button>
+                <button onClick={() => rate(v.id, 'up')} aria-label="좋아요" style={pvCircle(false, ratings[v.id] === 'up')}><Thumb filled={ratings[v.id] === 'up'} size={16} /></button>
+                <span style={{ flex: 1 }} />
+                <button onClick={() => setSel(v)} aria-label="상세" style={pvCircle(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg></button>
+              </div>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>{v.kr}</p>
+              <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-3,#9aa0a6)', fontFamily: "'Noto Sans JP', sans-serif" }}>{v.jp}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-1,#3a4250)', border: '1px solid var(--bd,#d7dde2)', padding: '1px 7px', borderRadius: 5 }}>{v.lv} · {LV_LABEL[v.lv]}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--text-3,#9aa0a6)' }}>{v.dur}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--text-3,#9aa0a6)' }}>· {v.tags.join(' · ')}</span>
+              </div>
             </div>
           </div>
-        </button>
-      )}
-
-      {isLoggedIn && watchedV.length > 0 && (
-        <Row title={`${userName || '회원'}님이 시청 중인 콘텐츠`} items={watchedV} onOpen={setSel} ratings={ratings} />
-      )}
-      {isLoggedIn && likedV && similar.length > 0 && (
-        <Row title={`‘좋아요’한 〈${likedV.kr}〉과 비슷한 콘텐츠`} items={similar} onOpen={setSel} ratings={ratings} />
-      )}
-
-      <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10} onOpen={setSel} ratings={ratings} ranked />
-
-      {/* 주제 카테고리 (홈·탭 공통). JLPT 레벨은 카드 칩으로만 참고 */}
-      {TAG_GROUPS.map(g => (
-        <Row key={g.tag} title={g.label} items={STUDY_CATALOG.filter(v => v.tags.includes(g.tag))} onOpen={setSel} ratings={ratings} />
-      ))}
-
-      {!isLoggedIn && <p style={{ textAlign: 'center', fontSize: 11.5, color: 'var(--text-3,#9aa0a6)', margin: '4px 0 2px' }}>로그인하면 ‘시청 중’·‘좋아요 기반 추천’이 나와요</p>}
-      <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3,#9aa0a6)', margin: '4px 0 2px' }}>실제 일본어 TEDx 20편 · 레벨/주제는 임시 추정 · 학습은 현재 데모 1편</p>
+        )
+      })()}
 
       {/* 상세 시트 */}
       {sel && (
         <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, zIndex: 4500, background: 'rgba(12,18,24,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', animation: 'tjFadeS .18s ease' }}>
-          <style>{`@keyframes tjFadeS{from{opacity:0}to{opacity:1}}@keyframes tjUpS{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}`}</style>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', background: 'var(--bg,#fff)', borderRadius: '22px 22px 0 0', boxShadow: '0 -12px 44px rgba(0,0,0,0.3)', animation: 'tjUpS .3s cubic-bezier(.16,1,.3,1)' }}>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000' }}>
               <img src={thumb(sel.id)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '22px 22px 0 0' }} />
@@ -145,11 +215,9 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
               <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>{sel.kr}</p>
               <p style={{ margin: '4px 0 0', fontSize: 13.5, color: 'var(--text-2,#5b6470)', fontFamily: "'Noto Sans JP', sans-serif" }}>{sel.jp}</p>
               <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-3,#9aa0a6)' }}>{sel.ev} · {sel.dur}</p>
-
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
                 {sel.tags.map(t => <span key={t} style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-2,#5b6470)', background: 'var(--surface,#f1f5f8)', border: '1px solid var(--bd,#e6ebef)', padding: '4px 10px', borderRadius: 20 }}>{t}</span>)}
               </div>
-
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                 <button onClick={() => rate(sel.id, 'up')} style={rateBtn(ratings[sel.id] === 'up')}><Thumb filled={ratings[sel.id] === 'up'} /> 좋아요</button>
                 <button onClick={() => rate(sel.id, 'down')} style={rateBtn(ratings[sel.id] === 'down')}><Thumb down filled={ratings[sel.id] === 'down'} /> 별로</button>
@@ -165,6 +233,12 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   )
 }
 
+function fchip(on) {
+  return { padding: '5px 11px', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', border: `1px solid ${on ? 'var(--text-1,#3a4250)' : 'var(--bd,#e0e5e9)'}`, background: on ? 'var(--text-strong,#1f2937)' : 'transparent', color: on ? 'var(--bg,#fff)' : 'var(--text-2,#5b6470)' }
+}
+function pvCircle(primary, active) {
+  return { width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontFamily: 'inherit', border: primary ? 'none' : `1.5px solid ${active ? 'var(--text-1,#3a4250)' : 'var(--bd,#d7dde2)'}`, background: primary ? 'var(--text-strong,#1f2937)' : 'transparent', color: primary ? 'var(--bg,#fff)' : (active ? 'var(--text-strong,#1f2937)' : 'var(--text-2,#5b6470)') }
+}
 function rateBtn(on) {
   return { flex: 1, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700, border: `1px solid ${on ? 'var(--text-2,#5b6470)' : 'var(--bd,#e6ebef)'}`, background: on ? 'var(--surface,#f1f5f8)' : 'transparent', color: on ? 'var(--text-strong,#1f2937)' : 'var(--text-3,#9aa0a6)' }
 }

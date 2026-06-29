@@ -1,7 +1,7 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 100편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 17편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 19편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
  {
   "id": "6I122CKUrpA",
@@ -56,6 +56,20 @@ export const STUDY_CATALOG = [
    "인생",
    "자기계발",
    "정보"
+  ],
+  "ready": true
+ },
+ {
+  "id": "jaTVVvow9Mg",
+  "jp": "アンパンマンから学ぶ人生の意味",
+  "kr": "호빵맨에게 배우는 인생의 의미",
+  "ev": "TEDxICU",
+  "dur": "18:11",
+  "lv": "N3",
+  "tags": [
+   "인생",
+   "삶",
+   "가치관"
   ],
   "ready": true
  },
@@ -209,6 +223,20 @@ export const STUDY_CATALOG = [
    "과학",
    "기술",
    "도전"
+  ],
+  "ready": true
+ },
+ {
+  "id": "QfWHSXXL0LU",
+  "jp": "コマの奇跡　〜信じる力が生んだ物語〜",
+  "kr": "팽이의 기적 - 믿는 힘이 만든 이야기",
+  "ev": "TEDxHimi",
+  "dur": "14:54",
+  "lv": "N3",
+  "tags": [
+   "동기부여",
+   "도전",
+   "열정"
   ],
   "ready": true
  },
@@ -433,19 +461,6 @@ export const STUDY_CATALOG = [
    "인생",
    "인간관계",
    "삶"
-  ]
- },
- {
-  "id": "jaTVVvow9Mg",
-  "jp": "アンパンマンから学ぶ人生の意味",
-  "kr": "호빵맨에게 배우는 인생의 의미",
-  "ev": "TEDxICU",
-  "dur": "18:11",
-  "lv": "N3",
-  "tags": [
-   "인생",
-   "삶",
-   "가치관"
   ]
  },
  {
@@ -1022,19 +1037,6 @@ export const STUDY_CATALOG = [
   "tags": [
    "문화",
    "지역"
-  ]
- },
- {
-  "id": "QfWHSXXL0LU",
-  "jp": "コマの奇跡　〜信じる力が生んだ物語〜",
-  "kr": "팽이의 기적 - 믿는 힘이 만든 이야기",
-  "ev": "TEDxHimi",
-  "dur": "14:54",
-  "lv": "N3",
-  "tags": [
-   "동기부여",
-   "도전",
-   "열정"
   ]
  },
  {

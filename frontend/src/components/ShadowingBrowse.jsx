@@ -238,16 +238,16 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
       {sel && (
         <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, zIndex: 4500, background: 'rgba(12,18,24,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', animation: 'tjFadeS .18s ease' }}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', background: 'var(--bg,#fff)', borderRadius: '22px 22px 0 0', boxShadow: '0 -12px 44px rgba(0,0,0,0.3)', animation: 'tjUpS .3s cubic-bezier(.16,1,.3,1)' }}>
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000' }}>
-              <img src={thumb(sel.id)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '22px 22px 0 0' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0) 55%)', borderRadius: '22px 22px 0 0' }} />
-              <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.45)', padding: '2px 9px', borderRadius: 6 }}>{sel.lv} · {LV_LABEL[sel.lv]}</span>
-              <span style={{ position: 'absolute', bottom: 12, right: 12, fontSize: 11.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 6 }}>{sel.dur}</span>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: '22px 22px 0 0', overflow: 'hidden' }}>
+              <iframe title="preview" src={`https://www.youtube.com/embed/${sel.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&loop=1&playlist=${sel.id}`} allow="autoplay" frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+              <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.45)', padding: '2px 9px', borderRadius: 6, pointerEvents: 'none' }}>{sel.lv} · {LV_LABEL[sel.lv]}</span>
+              <span style={{ position: 'absolute', bottom: 12, right: 12, fontSize: 11.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.65)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'none' }}>{sel.dur}</span>
             </div>
             <div style={{ padding: '16px 18px 24px' }}>
               <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>{sel.kr}</p>
               <p style={{ margin: '4px 0 0', fontSize: 13.5, color: 'var(--text-2,#5b6470)', fontFamily: "'Noto Sans JP', sans-serif" }}>{sel.jp}</p>
               <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-3,#9aa0a6)' }}>{sel.ev} · {sel.dur}</p>
+              {sel.desc && <p style={{ margin: '11px 0 0', fontSize: 13, lineHeight: 1.62, color: 'var(--text-2,#5b6470)', wordBreak: 'keep-all' }}>{sel.desc}</p>}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
                 {sel.tags.map(t => <span key={t} style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-2,#5b6470)', background: 'var(--surface,#f1f5f8)', border: '1px solid var(--bd,#e6ebef)', padding: '4px 10px', borderRadius: 20 }}>{t}</span>)}
               </div>

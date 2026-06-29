@@ -13,6 +13,8 @@ import { STUDY_DEMO } from '../data/studyDemo'
 import { STUDY_DATA } from '../data/studyData'
 
 const PRIMARY = '#5CA9CE'
+const IS_APP = typeof window !== 'undefined' && (window.Capacitor?.isNativePlatform?.() ?? false)
+const STICKY_TOP = IS_APP ? 'max(env(safe-area-inset-top, 0px), 56px)' : 0   // 앱: 상태바(노치/다이내믹아일랜드) 아래로
 const GREEN = '#1D9E75'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 const RATES = [0.5, 0.75, 1, 1.25, 1.5]
@@ -48,6 +50,20 @@ function loadYT() {
   return _ytPromise
 }
 function fmtT(s) { const m = Math.floor(s / 60), ss = Math.floor(s % 60); return `${m}:${String(ss).padStart(2, '0')}` }
+
+// 재생 컨트롤 — 블랙앤화이트 라인 아이콘 (currentColor)
+function Ico({ name, size = 19 }) {
+  const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  switch (name) {
+    case 'prev': return <svg {...p}><polygon points="18 6 18 18 9.5 12" /><line x1="6.5" y1="6" x2="6.5" y2="18" /></svg>
+    case 'next': return <svg {...p}><polygon points="6 6 6 18 14.5 12" /><line x1="17.5" y1="6" x2="17.5" y2="18" /></svg>
+    case 'play': return <svg {...p}><polygon points="7 5 19 12 7 19" /></svg>
+    case 'pause': return <svg {...p}><line x1="9" y1="5" x2="9" y2="19" /><line x1="15" y1="5" x2="15" y2="19" /></svg>
+    case 'replay': return <svg {...p}><polyline points="3 4 3 9 8 9" /><path d="M4.2 14a8 8 0 1 0 1.1-7.2L3 9" /></svg>
+    case 'loop': return <svg {...p}><polyline points="17 2 21 6 17 10" /><path d="M3 11.5V10a4 4 0 0 1 4-4h14" /><polyline points="7 22 3 18 7 14" /><path d="M21 12.5V14a4 4 0 0 1-4 4H3" /></svg>
+    default: return null
+  }
+}
 
 function Furi({ w, reading, size = 16 }) {
   const f = { fontFamily: "'Noto Sans JP', sans-serif", fontSize: size }
@@ -306,11 +322,11 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const controlsBlock = (
     <>
       <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, marginTop: 10 }}>
-        <CtrlBtn label="이전" sub="A" glyph="⏮" onClick={goPrev} showKey />
-        <CtrlBtn label="다시" sub="S" glyph="↺" onClick={replay} showKey />
-        <CtrlBtn label={isPlaying ? '정지' : '재생'} sub="Space" glyph={isPlaying ? '⏸' : '▶'} onClick={togglePlay} primary showKey tour="play" />
-        <CtrlBtn label="반복" sub="R" glyph="⟳" onClick={toggleLoop} active={loopIdx >= 0} showKey tour="loop" />
-        <CtrlBtn label="다음" sub="D" glyph="⏭" onClick={goNext} showKey />
+        <CtrlBtn label="이전" sub="A" icon="prev" onClick={goPrev} showKey />
+        <CtrlBtn label="다시" sub="S" icon="replay" onClick={replay} showKey />
+        <CtrlBtn label={isPlaying ? '정지' : '재생'} sub="Space" icon={isPlaying ? 'pause' : 'play'} onClick={togglePlay} primary showKey tour="play" />
+        <CtrlBtn label="반복" sub="R" icon="loop" onClick={toggleLoop} active={loopIdx >= 0} showKey tour="loop" />
+        <CtrlBtn label="다음" sub="D" icon="next" onClick={goNext} showKey />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
         <span data-tour="hide" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 4px 3px 10px', borderRadius: 11, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
@@ -529,7 +545,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
         {titleBlock}
         <div style={{ marginTop: 12 }}>{bannerBlock}</div>
       </div>
-      <div ref={headRef} style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', padding: '0 10px 10px' }}>
+      <div ref={headRef} style={{ position: 'sticky', top: STICKY_TOP, zIndex: 10, background: 'var(--bg)', padding: '6px 10px 10px' }}>
         {videoBlock}
         {controlsBlock}
       </div>
@@ -579,25 +595,22 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev
       <p style={{ margin: '6px 0 12px', fontSize: 14.5, color: 'var(--text-2)' }}>{ln.kr}</p>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        <MiniCtl glyph="⏮" label="이전" k="A" onClick={onPrev} />
-        <MiniCtl glyph={isPlaying ? '⏸' : '▶'} label={isPlaying ? '정지' : '재생'} k="Space" onClick={onTogglePlay} />
-        <MiniCtl glyph="↺" label="다시" k="S" onClick={onPlayLine} />
-        <MiniCtl glyph="⟳" label="반복" k="R" on={isLooping} onClick={onLoopLine} />
-        <MiniCtl glyph="⏭" label="다음" k="D" onClick={onNext} />
+        <MiniCtl icon="prev" label="이전" k="A" onClick={onPrev} />
+        <MiniCtl icon={isPlaying ? 'pause' : 'play'} label={isPlaying ? '정지' : '재생'} k="Space" onClick={onTogglePlay} />
+        <MiniCtl icon="replay" label="다시" k="S" onClick={onPlayLine} />
+        <MiniCtl icon="loop" label="반복" k="R" on={isLooping} onClick={onLoopLine} />
+        <MiniCtl icon="next" label="다음" k="D" onClick={onNext} />
       </div>
 
       {/* 문장 분해 — 수동 실행 */}
       <div style={{ border: `1.5px solid ${PRIMARY}`, borderRadius: 15, overflow: 'hidden' }}>
         <div style={{ background: `${PRIMARY}14`, padding: '12px 15px', borderBottom: `1px solid ${PRIMARY}33` }}>
-          <p style={{ margin: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--text-strong)' }}>📝 문장 분해</p>
-          <p style={{ margin: '3px 0 0', fontSize: 11.5, color: 'var(--text-3)' }}>왜 이렇게 만들어졌을까 — 단어·문법·활용 원리를 쉽게</p>
+          <p style={{ margin: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--text-strong)' }}>문장 분해</p>
+          <p style={{ margin: '3px 0 0', fontSize: 11.5, color: 'var(--text-3)' }}>왜 이렇게 만들어졌을까? 단어·문법을 알기 쉽게 풀이!</p>
         </div>
         <div style={{ padding: '14px 15px' }}>
           {state === 'idle' && (
-            <>
-              <button onClick={load} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: PRIMARY, color: '#fff', fontWeight: 800, fontSize: 14.5, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 6px 16px ${PRIMARY}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>📝 문장 분해 보기</button>
-              <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--text-3)', textAlign: 'center' }}>누르면 단어·문법·활용 원리를 풀어드려요</p>
-            </>
+            <button onClick={load} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: PRIMARY, color: '#fff', fontWeight: 800, fontSize: 14.5, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 6px 16px ${PRIMARY}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>문장 분해 보기</button>
           )}
           {state === 'loading' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 0' }}>
@@ -705,10 +718,10 @@ function StudyOnboarding({ steps, onClose }) {
 }
 
 // ── 보조 컴포넌트/스타일 ──────────────────────────────
-function CtrlBtn({ label, sub, glyph, onClick, primary, active, showKey, tour }) {
+function CtrlBtn({ label, sub, icon, onClick, primary, active, showKey, tour }) {
   return (
-    <button onClick={onClick} aria-label={label} data-tour={tour} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '9px 2px 6px', borderRadius: 13, cursor: 'pointer', fontFamily: 'inherit', border: `1px solid ${active ? PRIMARY : (primary ? 'transparent' : 'var(--bd)')}`, background: active ? `${PRIMARY}18` : (primary ? PRIMARY : 'var(--surface)'), color: primary ? '#fff' : (active ? PRIMARY : 'var(--text-1)'), boxShadow: primary ? `0 6px 16px ${PRIMARY}44` : 'none', transition: 'background 0.14s, border-color 0.14s' }}>
-      <span style={{ fontSize: 17, lineHeight: 1 }}>{glyph}</span>
+    <button onClick={onClick} aria-label={label} data-tour={tour} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '9px 2px 6px', borderRadius: 13, cursor: 'pointer', fontFamily: 'inherit', border: `1px solid ${active ? PRIMARY : (primary ? 'transparent' : 'var(--bd)')}`, background: active ? `${PRIMARY}18` : (primary ? PRIMARY : 'var(--surface)'), color: primary ? '#fff' : (active ? PRIMARY : 'var(--text-1)'), boxShadow: primary ? `0 6px 16px ${PRIMARY}44` : 'none', transition: 'background 0.14s, border-color 0.14s' }}>
+      <Ico name={icon} size={19} />
       <span style={{ fontSize: 11, fontWeight: 700 }}>{label}</span>
       {showKey && SHOW_KEYS && <span style={{ fontSize: 9, opacity: 0.55, lineHeight: 1 }}>{sub}</span>}
     </button>
@@ -742,10 +755,10 @@ function sheetBtn(active) {
 function KeyHint({ children }) {
   return <span style={{ marginLeft: 4, fontSize: 9, padding: '1px 4px', borderRadius: 4, background: 'var(--bd)', color: 'var(--text-3)', fontWeight: 700 }}>{children}</span>
 }
-function MiniCtl({ glyph, label, k, on, onClick }) {
+function MiniCtl({ icon, label, k, on, onClick }) {
   return (
-    <button onClick={onClick} aria-label={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, height: 48, borderRadius: 11, cursor: 'pointer', fontFamily: 'inherit', border: `1px solid ${on ? PRIMARY : 'var(--bd)'}`, background: on ? `${PRIMARY}18` : 'transparent', color: on ? PRIMARY : 'var(--text-1)' }}>
-      <span style={{ fontSize: 15, lineHeight: 1 }}>{glyph}</span>
+    <button onClick={onClick} aria-label={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, height: 48, borderRadius: 11, cursor: 'pointer', fontFamily: 'inherit', border: `1px solid ${on ? PRIMARY : 'var(--bd)'}`, background: on ? `${PRIMARY}18` : 'transparent', color: on ? PRIMARY : 'var(--text-1)' }}>
+      <Ico name={icon} size={17} />
       <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1 }}>{label}</span>
       {SHOW_KEYS && <span style={{ fontSize: 8.5, opacity: 0.5, lineHeight: 1 }}>{k}</span>}
     </button>

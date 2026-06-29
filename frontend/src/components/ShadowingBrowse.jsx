@@ -9,6 +9,11 @@ import { STUDY_CATALOG, STUDY_FEATURED, STUDY_TOP10, TAG_GROUPS } from '../data/
 const LV_LABEL = { N5: '입문', N4: '초급', N3: '중급', N2: '중상급', N1: '상급' }
 const LEVELS = ['N4', 'N3', 'N2', 'N1']
 const DURS = [{ k: 'short', label: '~10분' }, { k: 'mid', label: '10~20분' }, { k: 'long', label: '20분+' }]
+const WHY_TED = [
+  { t: '부담 없는 길이 · 풍부한 선택지', d: '드라마·영화 한 편은 너무 길어 반복하기 어렵죠(같은 걸 계속 보면 지루하고요). TED는 짧으면 5분, 강연 수도 많아 내 취향에 맞는 영상을 꼭 찾을 수 있어요.' },
+  { t: '탄탄한 구조 · 명확한 메시지', d: '연사들은 자신의 연구·책을 바탕으로 발표해 논리가 탄탄하고, 정해진 시간 안에 말하다 보니 내용이 밀도 있어요.' },
+  { t: '사고방식 · 표현력까지', d: '말하는 방식과 논리적 사고를 함께 익히고, 불특정 다수 앞 강연이라 지엽적인 표현 없이 올바른 표현을 배울 수 있어요.' },
+]
 const LS_RATE = 'tickjapan_study_ratings'
 const LS_WATCH = 'tickjapan_study_watched'
 const LS_VIDS = 'tickjapan_study_saved_videos'
@@ -81,6 +86,8 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const [filterOpen, setFilterOpen] = useState(false)
   const [savedVids, setSavedVids] = useState(() => load(LS_VIDS, []))
   const [comingSoon, setComingSoon] = useState(null)   // 학습 스크립트 미준비 영상
+  const [whyOpen, setWhyOpen] = useState(() => { try { return !localStorage.getItem('tickjapan_shadow_why') } catch { return true } })   // 첫 진입엔 펼침
+  const toggleWhy = () => setWhyOpen(o => { const n = !o; if (!n) { try { localStorage.setItem('tickjapan_shadow_why', '1') } catch {} } return n })
   const enterT = useRef(); const leaveT = useRef(); const filterRef = useRef()
 
   useEffect(() => { try { localStorage.setItem(LS_RATE, JSON.stringify(ratings)) } catch {} }, [ratings])
@@ -167,6 +174,26 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
               </div>
             </div>
           </button>
+          {/* 왜 TED 쉐도잉? — 첫 진입엔 펼침, 이후 접힘(누르면 다시) */}
+          <div style={{ marginBottom: 18, border: '1px solid var(--bd,#e0e5e9)', borderRadius: 14, overflow: 'hidden', background: 'var(--surface,#f7f9fb)' }}>
+            <button onClick={toggleWhy} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '13px 15px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>왜 TED로 쉐도잉할까요?<span style={{ fontWeight: 500, color: 'var(--text-3,#9aa0a6)', fontSize: 12 }}> · 5분이면 충분</span></span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3,#9aa0a6)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform .18s' }}><polyline points="6 9 12 15 18 9" /></svg>
+            </button>
+            {whyOpen && (
+              <div style={{ padding: '0 15px 16px', display: 'flex', flexDirection: 'column', gap: 13 }}>
+                {WHY_TED.map((w, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 10 }}>
+                    <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: 'var(--text-strong,#1f2937)', color: 'var(--bg,#fff)', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>{i + 1}</span>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>{w.t}</p>
+                      <p style={{ margin: '3px 0 0', fontSize: 12.5, lineHeight: 1.6, color: 'var(--text-2,#5b6470)', wordBreak: 'keep-all' }}>{w.d}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       )}
 

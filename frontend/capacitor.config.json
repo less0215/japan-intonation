@@ -3,6 +3,7 @@
   "appName": "TickJapan",
   "webDir": "dist",
   "server": {
-    "iosScheme": "https"
+    "iosScheme": "https",
+    "hostname": "www.tickjapan.com"
   }
 }

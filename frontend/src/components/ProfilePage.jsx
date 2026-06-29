@@ -80,6 +80,8 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* 광고 제거 · 플러스 — 하단 탭에서 프로필 목록으로 이동 (상단 배너 미노출 시 표시) */}
+        {(fastUnlimited || isApp) && <Row icon="M12 3l1.9 4.6L18.5 9l-4.6 1.4L12 15l-1.9-4.6L5.5 9l4.6-1.4L12 3z" label={fastUnlimited ? '구독 관리' : '광고 제거 · 플러스'} onClick={() => navigate('/plans')} />}
         {/* 추천인 코드 — 메뉴 행, 탭하면 입력란 펼침(웹·앱 공통) */}
         <ReferralCodeCard user={user} fastUnlimited={fastUnlimited} onLogin={onLogin} onApplied={onSubRefresh} />
         <Row icon="M4 4h16v16H4z M4 6l8 6 8-6" label="문의하기" onClick={() => { window.location.href = 'mailto:mgz.less@tickjapan.com?subject=[틱재팬] 문의' }} />

@@ -133,7 +133,7 @@ export default function SubscriptionPage() {
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-strong)' }}>무료</span>
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)' }}>₩0</span>
         </div>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.55 }}>번역·학습·라이브캠·저장까지 전부 무료로. 광고가 함께 표시돼요.</p>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.55 }}>번역·단어·문법·저장까지 전부 무료로. TED 쉐도잉은 3분 미리보기. 광고가 함께 표시돼요.</p>
       </div>
 
       {/* 플러스 (추천) */}
@@ -155,6 +155,7 @@ export default function SubscriptionPage() {
           {p.plus.save && <span style={{ fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>· {p.plus.save}</span>}
         </div>
         <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)', fontWeight: 600 }}><Check color={PRIMARY} />TED 쉐도잉 학습 무제한 <span style={{ fontSize: 11.5, color: 'var(--text-3)', fontWeight: 400 }}>· 후리가나·단어장·문장분해</span></li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />광고 완전 제거</li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />빠른 번역 하루 200회 <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>· 사실상 무제한</span></li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />사진 번역 하루 40회</li>
@@ -176,7 +177,7 @@ export default function SubscriptionPage() {
         </p>
         {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {['광고 완전 제거', '빠른 번역 무제한', '사진 번역 무제한', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (
+          {['TED 쉐도잉 학습 무제한', '광고 완전 제거', '빠른 번역 무제한', '사진 번역 무제한', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (
             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-1)' }}><Check color="var(--success)" />{f}</li>
           ))}
         </ul>

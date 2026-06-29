@@ -1,8 +1,22 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 200편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 23편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 25편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
+ {
+  "id": "cjtmDEG-B7U",
+  "jp": "人生の価値は、何を得るかではなく、何を残すかにある",
+  "kr": "인생의 가치는 무엇을 얻느냐가 아니라 무엇을 남기느냐에 있다",
+  "ev": "TEDxHimi",
+  "dur": "16:11",
+  "lv": "N2",
+  "tags": [
+   "인생",
+   "가치관",
+   "삶"
+  ],
+  "ready": true
+ },
  {
   "id": "6I122CKUrpA",
   "jp": "「私にはできない」の抜け出し方",
@@ -98,6 +112,20 @@ export const STUDY_CATALOG = [
    "인생",
    "삶",
    "가치관"
+  ],
+  "ready": true
+ },
+ {
+  "id": "4jfcE8u9KOM",
+  "jp": "感動を創造する言葉の伝え方",
+  "kr": "감동을 만드는 말의 전달법",
+  "ev": "TEDxMeijiUniversity",
+  "dur": "19:08",
+  "lv": "N2",
+  "tags": [
+   "언어",
+   "말의 힘",
+   "소통"
   ],
   "ready": true
  },
@@ -390,19 +418,6 @@ export const STUDY_CATALOG = [
   ]
  },
  {
-  "id": "cjtmDEG-B7U",
-  "jp": "人生の価値は、何を得るかではなく、何を残すかにある",
-  "kr": "인생의 가치는 무엇을 얻느냐가 아니라 무엇을 남기느냐에 있다",
-  "ev": "TEDxHimi",
-  "dur": "16:11",
-  "lv": "N2",
-  "tags": [
-   "인생",
-   "가치관",
-   "삶"
-  ]
- },
- {
   "id": "TifRK5DhtBo",
   "jp": "「夢」から「自分ごと」へ",
   "kr": "'꿈'에서 '내 일'로",
@@ -530,19 +545,6 @@ export const STUDY_CATALOG = [
    "인생",
    "행복",
    "삶"
-  ]
- },
- {
-  "id": "4jfcE8u9KOM",
-  "jp": "感動を創造する言葉の伝え方",
-  "kr": "감동을 만드는 말의 전달법",
-  "ev": "TEDxMeijiUniversity",
-  "dur": "19:08",
-  "lv": "N2",
-  "tags": [
-   "언어",
-   "말의 힘",
-   "소통"
   ]
  },
  {

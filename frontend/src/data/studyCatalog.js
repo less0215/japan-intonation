@@ -1,7 +1,7 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 100편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 14편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 17편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
  {
   "id": "6I122CKUrpA",
@@ -28,6 +28,20 @@ export const STUDY_CATALOG = [
    "동기부여",
    "도전",
    "극복"
+  ],
+  "ready": true
+ },
+ {
+  "id": "axi9QkYy7ng",
+  "jp": "流されない生き方",
+  "kr": "휩쓸리지 않는 삶",
+  "ev": "TEDxGlobisU",
+  "dur": "18:07",
+  "lv": "N3",
+  "tags": [
+   "인생",
+   "가치관",
+   "삶"
   ],
   "ready": true
  },
@@ -158,6 +172,19 @@ export const STUDY_CATALOG = [
   "ready": true
  },
  {
+  "id": "G6ypXVO_Fm0",
+  "jp": "シン・ニホン",
+  "kr": "신(新) 일본",
+  "ev": "TEDxTokyo",
+  "dur": "11:56",
+  "lv": "N2",
+  "tags": [
+   "사회",
+   "미래"
+  ],
+  "ready": true
+ },
+ {
   "id": "0AcgOEew7ys",
   "jp": "こどもに学ぶ 明るい未来の作り方",
   "kr": "아이에게 배우는 밝은 미래 만드는 법",
@@ -168,6 +195,20 @@ export const STUDY_CATALOG = [
    "교육",
    "아이",
    "미래"
+  ],
+  "ready": true
+ },
+ {
+  "id": "EUh5Ssc_VaE",
+  "jp": "テクノロジーに足りないものへの挑戦",
+  "kr": "기술에 부족한 것을 향한 도전",
+  "ev": "TEDxHimi",
+  "dur": "13:40",
+  "lv": "N2",
+  "tags": [
+   "과학",
+   "기술",
+   "도전"
   ],
   "ready": true
  },
@@ -327,19 +368,6 @@ export const STUDY_CATALOG = [
    "과학",
    "자연",
    "연구"
-  ]
- },
- {
-  "id": "axi9QkYy7ng",
-  "jp": "流されない生き方",
-  "kr": "휩쓸리지 않는 삶",
-  "ev": "TEDxGlobisU",
-  "dur": "18:07",
-  "lv": "N3",
-  "tags": [
-   "인생",
-   "가치관",
-   "삶"
   ]
  },
  {
@@ -871,18 +899,6 @@ export const STUDY_CATALOG = [
   ]
  },
  {
-  "id": "G6ypXVO_Fm0",
-  "jp": "シン・ニホン",
-  "kr": "신(新) 일본",
-  "ev": "TEDxTokyo",
-  "dur": "11:56",
-  "lv": "N2",
-  "tags": [
-   "사회",
-   "미래"
-  ]
- },
- {
   "id": "U1nzCJMLL5o",
   "jp": "若者の可能性を引き出す魔法",
   "kr": "젊은이의 가능성을 끌어내는 마법",
@@ -969,19 +985,6 @@ export const STUDY_CATALOG = [
    "과학",
    "기술",
    "사회"
-  ]
- },
- {
-  "id": "EUh5Ssc_VaE",
-  "jp": "テクノロジーに足りないものへの挑戦",
-  "kr": "기술에 부족한 것을 향한 도전",
-  "ev": "TEDxHimi",
-  "dur": "13:40",
-  "lv": "N2",
-  "tags": [
-   "과학",
-   "기술",
-   "도전"
   ]
  },
  {

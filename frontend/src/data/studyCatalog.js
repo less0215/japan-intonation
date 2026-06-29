@@ -1,7 +1,7 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 100편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 11편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 14편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
  {
   "id": "6I122CKUrpA",
@@ -28,6 +28,20 @@ export const STUDY_CATALOG = [
    "동기부여",
    "도전",
    "극복"
+  ],
+  "ready": true
+ },
+ {
+  "id": "Mfu3c29soHw",
+  "jp": "人生を変えるための情報との向き合い方",
+  "kr": "인생을 바꾸는 정보와 마주하는 법",
+  "ev": "TEDxUTokyo",
+  "dur": "17:27",
+  "lv": "N2",
+  "tags": [
+   "인생",
+   "자기계발",
+   "정보"
   ],
   "ready": true
  },
@@ -88,6 +102,20 @@ export const STUDY_CATALOG = [
   "ready": true
  },
  {
+  "id": "8c6Jhx8r7is",
+  "jp": "EVデロリアンが未来は自分の手で作れることを教えてくれた",
+  "kr": "전기 들로리안이 미래는 내 손으로 만들 수 있다고 가르쳐줬다",
+  "ev": "TEDxHimi",
+  "dur": "14:46",
+  "lv": "N2",
+  "tags": [
+   "과학",
+   "기술",
+   "미래"
+  ],
+  "ready": true
+ },
+ {
   "id": "XLdsjpec854",
   "jp": "食へのイメージと多様性",
   "kr": "음식에 대한 이미지와 다양성",
@@ -126,6 +154,20 @@ export const STUDY_CATALOG = [
    "동기부여",
    "꿈",
    "자기계발"
+  ],
+  "ready": true
+ },
+ {
+  "id": "0AcgOEew7ys",
+  "jp": "こどもに学ぶ 明るい未来の作り方",
+  "kr": "아이에게 배우는 밝은 미래 만드는 법",
+  "ev": "TEDxFukuoka",
+  "dur": "13:12",
+  "lv": "N3",
+  "tags": [
+   "교육",
+   "아이",
+   "미래"
   ],
   "ready": true
  },
@@ -311,19 +353,6 @@ export const STUDY_CATALOG = [
    "인생",
    "가치관",
    "삶"
-  ]
- },
- {
-  "id": "Mfu3c29soHw",
-  "jp": "人生を変えるための情報との向き合い方",
-  "kr": "인생을 바꾸는 정보와 마주하는 법",
-  "ev": "TEDxUTokyo",
-  "dur": "17:27",
-  "lv": "N2",
-  "tags": [
-   "인생",
-   "자기계발",
-   "정보"
   ]
  },
  {
@@ -664,19 +693,6 @@ export const STUDY_CATALOG = [
   ]
  },
  {
-  "id": "8c6Jhx8r7is",
-  "jp": "EVデロリアンが未来は自分の手で作れることを教えてくれた",
-  "kr": "전기 들로리안이 미래는 내 손으로 만들 수 있다고 가르쳐줬다",
-  "ev": "TEDxHimi",
-  "dur": "14:46",
-  "lv": "N2",
-  "tags": [
-   "과학",
-   "기술",
-   "미래"
-  ]
- },
- {
   "id": "uKNPEVtUOZQ",
   "jp": "箱根の花柳界、残すべき伝統",
   "kr": "하코네의 화류계, 지켜야 할 전통",
@@ -889,19 +905,6 @@ export const STUDY_CATALOG = [
    "과학",
    "기술",
    "소통"
-  ]
- },
- {
-  "id": "0AcgOEew7ys",
-  "jp": "こどもに学ぶ 明るい未来の作り方",
-  "kr": "아이에게 배우는 밝은 미래 만드는 법",
-  "ev": "TEDxFukuoka",
-  "dur": "13:12",
-  "lv": "N3",
-  "tags": [
-   "교육",
-   "아이",
-   "미래"
   ]
  },
  {

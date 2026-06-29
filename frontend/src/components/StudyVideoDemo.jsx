@@ -219,8 +219,8 @@ export default function StudyVideoDemo() {
           </div>
           <button onClick={() => setOpenSummary(v => !v)} style={{ ...subBtn(openSummary), fontWeight: 700, flexShrink: 0 }}>요약 {openSummary ? '▲' : '▼'}</button>
         </div>
-        <div style={{ textAlign: 'right', marginTop: 5 }}>
-          <button onClick={startTour} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>사용법 다시 보기</button>
+        <div style={{ textAlign: 'right', marginTop: 6 }}>
+          <button onClick={startTour} style={{ ...subBtn(false), height: 28, fontSize: 12, fontWeight: 700, borderColor: PRIMARY, color: PRIMARY }}>❓ 사용법 가이드</button>
         </div>
 
         {openSummary && (

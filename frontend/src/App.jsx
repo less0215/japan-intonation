@@ -1111,7 +1111,7 @@ export default function App() {
           <Route path="/onomatope/:id" element={<OnomatopeDetailPage />} />
           <Route path="/live"        element={<LiveCamLibrary />} />
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
-          <Route path="/study-demo"  element={<StudyVideoDemo />} />
+          <Route path="/study-demo"  element={<StudyVideoDemo isPlus={subAdFree} />} />
           <Route path="/home-demo"   element={<HomeDemo />} />
           <Route path="/shadowing"   element={<ShadowingBrowse variant="tab" isLoggedIn={!!user} userName={user?.name} onNavigate={navigate} />} />
           <Route path="/plans"       element={<SubscriptionPage />} />

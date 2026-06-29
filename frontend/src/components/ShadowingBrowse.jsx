@@ -22,7 +22,7 @@ function Card({ v, onOpen, rating }) {
         <img src={thumb(v.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
         <span style={{ position: 'absolute', top: 7, right: 7, fontSize: 9.5, fontWeight: 800, color: '#fff', background: JLPT[v.lv], padding: '1px 6px', borderRadius: 5 }}>{v.lv}</span>
         <span style={{ position: 'absolute', bottom: 7, right: 7, fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '1px 5px', borderRadius: 4 }}>{v.dur}</span>
-        {rating === 'up' && <span style={{ position: 'absolute', top: 7, left: 7, fontSize: 11 }}>👍</span>}
+        {rating === 'up' && <span style={{ position: 'absolute', top: 7, left: 7, display: 'flex', color: '#fff', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}><Thumb filled size={14} /></span>}
       </div>
       <p style={{ margin: '6px 2px 0', fontSize: 12.5, fontWeight: 600, color: 'var(--text-1,#3a4250)', fontFamily: "'Noto Sans JP', sans-serif", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.jp}</p>
       <p style={{ margin: '1px 2px 0', fontSize: 11, color: 'var(--text-3,#9aa0a6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.kr}</p>
@@ -162,8 +162,8 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
 
               {/* 평가 + 시작 */}
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                <button onClick={() => rate(sel.id, 'up')} style={rateBtn(ratings[sel.id] === 'up', GREEN)}>👍 좋아요</button>
-                <button onClick={() => rate(sel.id, 'down')} style={rateBtn(ratings[sel.id] === 'down', '#D9534F')}>👎 별로</button>
+                <button onClick={() => rate(sel.id, 'up')} style={rateBtn(ratings[sel.id] === 'up')}><Thumb filled={ratings[sel.id] === 'up'} /> 좋아요</button>
+                <button onClick={() => rate(sel.id, 'down')} style={rateBtn(ratings[sel.id] === 'down')}><Thumb down filled={ratings[sel.id] === 'down'} /> 별로</button>
               </div>
               <button onClick={() => start(sel.id)} style={{ width: '100%', height: 50, marginTop: 10, borderRadius: 14, border: 'none', background: PRIMARY, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 8px 20px ${PRIMARY}44` }}>▶ 쉐도잉 시작</button>
             </div>
@@ -174,6 +174,13 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   )
 }
 
-function rateBtn(on, color) {
-  return { flex: 1, height: 42, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700, border: `1px solid ${on ? color : 'var(--bd,#e6ebef)'}`, background: on ? `${color}1a` : 'transparent', color: on ? color : 'var(--text-2,#5b6470)' }
+function rateBtn(on) {
+  return { flex: 1, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700, border: `1px solid ${on ? 'var(--text-2,#5b6470)' : 'var(--bd,#e6ebef)'}`, background: on ? 'var(--surface,#f1f5f8)' : 'transparent', color: on ? 'var(--text-strong,#1f2937)' : 'var(--text-3,#9aa0a6)' }
+}
+function Thumb({ down, filled, size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ transform: down ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
+      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+    </svg>
+  )
 }

@@ -6,6 +6,7 @@
  * 요약 펼치기 + 영상 난이도(JLPT 집계) + 단어장. 첫 사용 가이드(스포트라이트+프로그래스).
  * UI 톤: 토스풍. 저장=localStorage(프로토타입). */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import RubyText from './RubyText'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
 import { STUDY_DEMO } from '../data/studyDemo'
@@ -56,7 +57,12 @@ function Bookmark({ filled, color, size = 18 }) {
   )
 }
 
-export default function StudyVideoDemo() {
+const PREVIEW_LIMIT = 180  // 비회원·무료회원 미리보기 3분 (플러스↑ 무제한)
+export default function StudyVideoDemo({ isPlus = false }) {
+  const navigate = useNavigate()
+  const [gated, setGated] = useState(false)
+  const isPlusRef = useRef(isPlus)
+  useEffect(() => { isPlusRef.current = isPlus }, [isPlus])
   const data = STUDY_DEMO
   const vid = data.videoId
   const lines = data.lines
@@ -113,6 +119,7 @@ export default function StudyVideoDemo() {
   const seekLine = (i) => {
     const p = playerRef.current
     if (!p || !p.seekTo || i < 0 || i >= lines.length) return
+    if (!isPlus && lines[i].t >= PREVIEW_LIMIT) { setGated(true); return }
     p.seekTo(Math.max(0, lines[i].t - 0.15), true)
     if (p.playVideo) p.playVideo()
     activeRef.current = i; setActiveIdx(i)
@@ -121,7 +128,12 @@ export default function StudyVideoDemo() {
   const goPrev = () => seekLine(Math.max(0, (activeRef.current < 0 ? 0 : activeRef.current) - 1))
   const goNext = () => seekLine(Math.min(lines.length - 1, (activeRef.current < 0 ? -1 : activeRef.current) + 1))
   const replay = () => seekLine(activeRef.current < 0 ? 0 : activeRef.current)
-  const togglePlay = () => { const p = playerRef.current; if (!p || !p.getPlayerState) return; if (p.getPlayerState() === 1) p.pauseVideo(); else p.playVideo() }
+  const togglePlay = () => {
+    const p = playerRef.current; if (!p || !p.getPlayerState) return
+    if (p.getPlayerState() === 1) { p.pauseVideo(); return }
+    if (!isPlus) { let t = 0; try { t = p.getCurrentTime() } catch {}; if (t >= PREVIEW_LIMIT) { setGated(true); return } }
+    p.playVideo()
+  }
   const toggleLoop = () => {
     if (loopRef.current >= 0) { loopRef.current = -1; setLoopIdx(-1) }
     else { const i = activeRef.current < 0 ? 0 : activeRef.current; loopRef.current = i; setLoopIdx(i); seekLine(i) }
@@ -166,6 +178,7 @@ export default function StudyVideoDemo() {
               const p = playerRef.current
               if (!p || !p.getCurrentTime) return
               let t; try { t = p.getCurrentTime() } catch { return }
+              if (!isPlusRef.current && t >= PREVIEW_LIMIT && p.getPlayerState && p.getPlayerState() === 1) { try { p.pauseVideo() } catch {}; setGated(true) }
               let idx = -1
               for (let i = 0; i < lines.length; i++) { if (lines[i].t <= t + 0.15) idx = i; else break }
               const li = loopRef.current
@@ -439,6 +452,19 @@ export default function StudyVideoDemo() {
             ))}
           </div>
         </Sheet>
+      )}
+
+      {/* 미리보기 3분 한도 넛징 (비회원·무료회원) */}
+      {gated && (
+        <div onClick={() => setGated(false)} style={{ position: 'fixed', inset: 0, zIndex: 5000, background: 'rgba(10,15,20,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 22, animation: 'tjFade 0.18s ease' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 20, padding: '24px 22px', boxShadow: '0 24px 60px rgba(0,0,0,0.42)', textAlign: 'center', animation: 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' }}>
+            <div style={{ fontSize: 32, marginBottom: 6 }}>🎬</div>
+            <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 800, color: 'var(--text-strong)' }}>미리보기는 여기까지예요</p>
+            <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-2)', wordBreak: 'keep-all' }}>무료는 <b style={{ color: PRIMARY }}>3분</b>까지 볼 수 있어요. <b style={{ color: 'var(--text-1)' }}>플러스</b>가 되면 <b style={{ color: 'var(--text-1)' }}>광고 없이</b> 원하는 영상을 <b style={{ color: 'var(--text-1)' }}>마음껏</b> 볼 수 있어요.</p>
+            <button onClick={() => { setGated(false); navigate('/plans?from=shadowing_preview') }} style={{ width: '100%', height: 50, borderRadius: 14, border: 'none', background: 'linear-gradient(145deg,#6fb6d6,#5CA9CE 55%,#4f96bb)', color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 8px 20px ${PRIMARY}55` }}>플러스로 무제한 보기</button>
+            <button onClick={() => setGated(false)} style={{ marginTop: 10, background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>나중에</button>
+          </div>
+        </div>
       )}
 
       {tour && <StudyOnboarding steps={TOUR_STEPS} onClose={closeTour} />}

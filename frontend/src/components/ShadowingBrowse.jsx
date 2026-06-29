@@ -60,8 +60,8 @@ function RankCard({ v, rank, onOpen, onHover, onLeave }) {
 function Row({ title, items, onOpen, ratings, ranked, onHover, onLeave }) {
   if (!items || !items.length) return null
   return (
-    <div style={{ marginBottom: 18 }}>
-      <p style={{ margin: '0 2px 4px', fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>{title}</p>
+    <div style={{ marginBottom: 36 }}>
+      <p style={{ margin: '0 2px 7px', fontSize: 15.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>{title}</p>
       <div style={{ display: 'flex', gap: ranked ? 4 : 10, overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -2px', padding: '0 2px 4px' }}>
         {items.map((v, i) => ranked
           ? <RankCard key={v.id} v={v} rank={i + 1} onOpen={onOpen} onHover={onHover} onLeave={onLeave} />

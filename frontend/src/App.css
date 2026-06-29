@@ -1472,3 +1472,9 @@ html[data-theme="dark"] .menu-item:hover { background: var(--surface-2); }
     scroll-behavior: auto !important;
   }
 }
+
+/* ── 영상 학습(/study-demo) 데스크톱 — 헤더·푸터·콘텐츠를 와이드로 맞춰 영상 레이아웃과 조화 ── */
+@media (min-width: 900px) {
+  .page--study .container { max-width: 1240px; padding-left: 24px; padding-right: 24px; }
+  .page--study .bottom-nav { max-width: 1240px; padding-left: 24px; padding-right: 24px; }
+}

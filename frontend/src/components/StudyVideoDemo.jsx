@@ -262,9 +262,9 @@ export default function StudyVideoDemo() {
       ...(isWide ? { width: '100%', aspectRatio: '16 / 9', maxHeight: '60vh' } : { aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))' }) }}>
       <div id="yt-player-demo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
       {showCap && cur && (
-        <div style={{ position: 'absolute', left: '50%', bottom: '8%', transform: 'translateX(-50%)', maxWidth: '92%', padding: '8px 15px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
-          <div style={{ lineHeight: 1.5, ...blurStyle(hideJp) }}><RubyText text={cur.furigana_html} fontSize={isWide ? 18 : 16} /></div>
-          <p style={{ margin: '2px 0 0', fontSize: isWide ? 14 : 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4, ...blurStyle(hideKr) }}>{cur.kr}</p>
+        <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
+          <div style={{ lineHeight: 1.45, ...blurStyle(hideJp) }}><RubyText text={cur.furigana_html} fontSize={16} /></div>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4, ...blurStyle(hideKr) }}>{cur.kr}</p>
         </div>
       )}
     </div>
@@ -448,23 +448,21 @@ export default function StudyVideoDemo() {
   // ── 데스크톱: 2단(좌 영상 고정 + 우 스크립트) ──────
   if (isWide) {
     return (
-      <div style={{ marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)' }}>
+      <div style={{ padding: '8px 0 36px' }}>
         {styleTag}
-        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '12px 28px 40px' }}>
-          <div style={{ marginBottom: 16 }}>{titleBlock}</div>
-          <div style={{ display: 'flex', flexDirection: 'row', gap: 28, alignItems: 'stretch' }}>
-            <div style={{ flex: '1.35 1 0', minWidth: 0 }}>
-              <div ref={headRef} style={{ position: 'sticky', top: 14, alignSelf: 'flex-start' }}>
-                <div style={{ marginBottom: 12 }}>{bannerBlock}</div>
-                {videoBlock}
-                {controlsBlock}
-              </div>
+        <div style={{ marginBottom: 16 }}>{titleBlock}</div>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 28, alignItems: 'stretch' }}>
+          <div style={{ flex: '1.7 1 0', minWidth: 0 }}>
+            <div ref={headRef} style={{ position: 'sticky', top: 14, alignSelf: 'flex-start' }}>
+              <div style={{ marginBottom: 12 }}>{bannerBlock}</div>
+              {videoBlock}
+              {controlsBlock}
             </div>
-            <div style={{ flex: '1 1 0', minWidth: 360, maxWidth: 560 }}>
-              <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-2)', margin: '2px 0 8px' }}>스크립트 <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>· 문장을 누르면 분해·단어를 봐요</span></p>
-              {transcriptBlock}
-              {vocabBlock}
-            </div>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: 340, maxWidth: 480 }}>
+            <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-2)', margin: '2px 0 8px' }}>스크립트 <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>· 문장을 누르면 분해·단어를 봐요</span></p>
+            {transcriptBlock}
+            {vocabBlock}
           </div>
         </div>
         {sheets}

@@ -943,9 +943,11 @@ export default function App() {
   const isGrammarDetail = /^\/grammar\/.+/.test(location.pathname)
   /* 다운로드 페이지 — 탭 네비게이션 숨김(깔끔한 랜딩) */
   const isDownload = location.pathname.startsWith('/download')
+  /* 영상 학습 — 데스크톱에서 헤더·푸터·콘텐츠를 와이드로 맞춤(2단 영상 레이아웃과 조화) */
+  const isStudy = location.pathname.startsWith('/study-demo')
 
   return (
-    <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}`}>
+    <div className={`${hasContent || isWordTab ? 'page' : 'page page--center'}${isApp ? ' is-app' : ''}${isStudy ? ' page--study' : ''}`}>
       <UpdateGate />
       <div className="container">
 

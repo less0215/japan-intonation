@@ -91,8 +91,8 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
 
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: isTab ? '2px 2px 14px' : '2px 2px 12px' }}>
         <div>
-          <p style={{ margin: 0, fontSize: isTab ? 20 : 17, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>{isTab ? '쉐도잉' : '당신이 찾고 있던 유익하고 짧은 쉐도잉'}</p>
-          <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-3,#9aa0a6)' }}>TED 영상으로, 내 레벨에 맞게 · 전부 공식 TEDx</p>
+          <p style={{ margin: 0, fontSize: isTab ? 20 : 17, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>쉐도잉</p>
+          <p style={{ margin: '3px 0 0', fontSize: 12.5, color: 'var(--text-3,#9aa0a6)', wordBreak: 'keep-all' }}>TED, 영화보다 더 영화 같은 이야기</p>
         </div>
         {!isTab && <button onClick={() => onNavigate('/shadowing')} style={{ border: 'none', background: 'none', color: 'var(--text-2,#5b6470)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>전체보기 ›</button>}
       </div>

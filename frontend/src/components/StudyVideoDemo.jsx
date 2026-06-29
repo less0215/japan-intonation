@@ -1,9 +1,10 @@
 /* 영상 학습 프로토타입 (/study-demo) — 유튜브 임베드 + 타임라인 자막(일본어 후리가나 / 한국어).
+ * 반응형: PC=2단(좌 영상 고정 + 우 스크립트), 모바일=세로 스택(영상 상단 고정).
  * 영상 위 자막 오버레이 + 현재 줄 하이라이트·자동 스크롤. 시드=studyDemo.js.
- * 쉐도잉 단축키 + 컨트롤 바. 일/한 가리기(작문·받아쓰기), 단어 칩(JLPT), 단어 시트.
- * 문장 클릭 → 바텀시트(문장 분해 최우선·자동로드 = /breakdown 캐시, 미니 재생 컨트롤, 단어 펼치기, 북마크).
- * 요약 펼치기 + 영상 난이도(JLPT 집계) + 하단 단어장. 첫 사용 가이드(스포트라이트+프로그래스).
- * UI 톤: 토스풍(여백·큰 타이포·소프트 카드·명확한 1차 CTA), 색만 브랜드 틸(#5CA9CE). 저장=localStorage(프로토타입). */
+ * 쉐도잉 단축키 + 컨트롤. 일/한 가리기, 단어 칩(JLPT), 단어 시트.
+ * 문장 클릭 → 시트: 문장 분해는 '보기' 버튼으로 수동 실행(/breakdown 캐시, 문장당 최초 1회만 비용).
+ * 요약 펼치기 + 영상 난이도(JLPT 집계) + 단어장. 첫 사용 가이드(스포트라이트+프로그래스).
+ * UI 톤: 토스풍. 저장=localStorage(프로토타입). */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import RubyText from './RubyText'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
@@ -64,7 +65,8 @@ export default function StudyVideoDemo() {
   const headRef = useRef(null)
   const activeRef = useRef(-1)
   const loopRef = useRef(-1)
-  const detailRef = useRef(null)   // 시트 열림 여부/대상 (키보드 핸들러에서 최신값)
+  const detailRef = useRef(null)
+  const [isWide, setIsWide] = useState(typeof window !== 'undefined' ? window.innerWidth >= 900 : false)
   const [activeIdx, setActiveIdx] = useState(-1)
   const [loopIdx, setLoopIdx] = useState(-1)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -83,6 +85,7 @@ export default function StudyVideoDemo() {
   const [detailIdx, setDetailIdx] = useState(null)
   const [tour, setTour] = useState(false)
 
+  useEffect(() => { const f = () => setIsWide(window.innerWidth >= 900); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f) }, [])
   useEffect(() => lsSave(LS_LINES, savedLines), [savedLines])
   useEffect(() => lsSave(LS_WORDS, savedWords), [savedWords])
   useEffect(() => { try { if (!localStorage.getItem('tickjapan_study_onboarded')) { const id = setTimeout(() => setTour(true), 700); return () => clearTimeout(id) } } catch {} }, [])
@@ -127,7 +130,6 @@ export default function StudyVideoDemo() {
     if (loopRef.current === i) { loopRef.current = -1; setLoopIdx(-1) }
     else { loopRef.current = i; setLoopIdx(i); seekLine(i) }
   }
-  // 문장 상세 시트에서 이전/다음 — 시트 내용 + 영상이 함께 그 문장으로 이동
   const detailGo = (delta) => {
     const i = detailRef.current; if (i == null) return
     const ni = Math.min(lines.length - 1, Math.max(0, i + delta))
@@ -216,161 +218,168 @@ export default function StudyVideoDemo() {
   const blurStyle = (on) => ({ filter: on ? 'blur(6px)' : 'none', userSelect: on ? 'none' : 'auto', transition: 'filter 0.15s' })
   const ov = jcolor(stat.overall)
 
-  return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '6px 0 24px' }}>
-      <style>{`@keyframes tjFade{from{opacity:0}to{opacity:1}}@keyframes tjUp{from{transform:translateY(34px);opacity:.5}to{transform:translateY(0);opacity:1}}@keyframes tjRing{0%,100%{box-shadow:0 0 0 3px ${PRIMARY}55,0 8px 30px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 6px ${PRIMARY}33,0 8px 30px rgba(0,0,0,.45)}}`}</style>
-
-      {/* 헤더 */}
-      <div style={{ padding: '6px 10px 12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11.5, fontWeight: 800, color: PRIMARY, letterSpacing: 0.2 }}>영상 학습 · 프로토타입</span>
-          <button onClick={startTour} style={{ ...ghostBtn(false), height: 28, fontSize: 11.5, borderColor: PRIMARY, color: PRIMARY, flexShrink: 0 }}>❓ 사용법</button>
+  // ── 공유 블록 ──────────────────────────────────────
+  const bannerBlock = (
+    <>
+      <div data-tour="level" style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderRadius: 16, background: `${ov}14`, border: `1px solid ${ov}44` }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 54, padding: '6px 0', borderRadius: 12, background: ov, color: '#fff', lineHeight: 1, boxShadow: `0 4px 12px ${ov}55` }}>
+          <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.92 }}>JLPT</span>
+          <span style={{ fontSize: 21, fontWeight: 900, marginTop: 3 }}>{stat.overall}</span>
         </div>
-        <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-strong)', margin: '6px 0 3px', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.32, wordBreak: 'keep-all' }}>{data.title}</p>
-        <p style={{ fontSize: 13.5, color: 'var(--text-3)', margin: '0 0 12px' }}>{data.titleKr}</p>
-
-        {/* 난이도 배너 */}
-        <div data-tour="level" style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderRadius: 16, background: `${ov}14`, border: `1px solid ${ov}44` }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 54, padding: '6px 0', borderRadius: 12, background: ov, color: '#fff', lineHeight: 1, boxShadow: `0 4px 12px ${ov}55` }}>
-            <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.92 }}>JLPT</span>
-            <span style={{ fontSize: 21, fontWeight: 900, marginTop: 3 }}>{stat.overall}</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--text-strong)', wordBreak: 'keep-all' }}>이 영상은 JLPT {stat.overall} 수준이에요</p>
-            <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-2)', wordBreak: 'keep-all' }}>{LV_LABEL[stat.overall]} · 등장 단어의 {stat.covPct}%가 {stat.overall} 이하</p>
-          </div>
-          <button onClick={() => setOpenSummary(v => !v)} style={{ ...ghostBtn(openSummary), flexShrink: 0 }}>요약 {openSummary ? '▲' : '▼'}</button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--text-strong)', wordBreak: 'keep-all' }}>이 영상은 JLPT {stat.overall} 수준이에요</p>
+          <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-2)', wordBreak: 'keep-all' }}>{LV_LABEL[stat.overall]} · 등장 단어의 {stat.covPct}%가 {stat.overall} 이하</p>
         </div>
-
-        {openSummary && (
-          <div style={{ marginTop: 10, padding: 16, borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--bd)', animation: 'tjFade 0.2s ease' }}>
-            <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.7, color: 'var(--text-1)', wordBreak: 'keep-all' }}>{data.summary}</p>
-            {data.points && (
-              <ul style={{ margin: '0 0 14px', paddingLeft: 18, color: 'var(--text-2)' }}>
-                {data.points.map((p, i) => <li key={i} style={{ fontSize: 13, lineHeight: 1.75, wordBreak: 'keep-all' }}>{p}</li>)}
-              </ul>
-            )}
-            <div style={{ borderTop: '1px solid var(--bd)', paddingTop: 12 }}>
-              <p style={{ margin: '0 0 9px', fontSize: 12.5, color: 'var(--text-2)', wordBreak: 'keep-all' }}>
-                <b style={{ color: 'var(--text-strong)' }}>난이도 집계</b> — 등장 단어 {stat.total}개 중 <b style={{ color: ov }}>{stat.covPct}%가 {stat.overall} 이하</b>라 권장 <b style={{ color: ov }}>{stat.overall} ({LV_LABEL[stat.overall]})</b>
-              </p>
-              <div style={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden' }}>
-                {ORDER.map(lv => stat.counts[lv] > 0 && (<div key={lv} title={`${lv} ${stat.counts[lv]}`} style={{ width: `${stat.counts[lv] / stat.total * 100}%`, background: jcolor(lv) }} />))}
-              </div>
-              <div style={{ display: 'flex', gap: 11, flexWrap: 'wrap', marginTop: 9, fontSize: 11, color: 'var(--text-3)' }}>
-                {ORDER.map(lv => (<span key={lv} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: jcolor(lv), display: 'inline-block' }} />{lv} {stat.counts[lv]}</span>))}
-                <span style={{ opacity: 0.7 }}>· JLPT는 추정치</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <button onClick={() => setOpenSummary(v => !v)} style={{ ...ghostBtn(openSummary), flexShrink: 0 }}>요약 {openSummary ? '▲' : '▼'}</button>
       </div>
-
-      {/* 영상 + 컨트롤 — 상단 고정 */}
-      <div ref={headRef} style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', padding: '0 10px 10px' }}>
-        <div style={{ position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))', boxShadow: '0 6px 22px rgba(0,0,0,0.18)' }}>
-          <div id="yt-player-demo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
-          {showCap && cur && (
-            <div style={{ position: 'absolute', left: '50%', bottom: '8%', transform: 'translateX(-50%)', maxWidth: '92%', padding: '8px 15px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
-              <div style={{ lineHeight: 1.5, ...blurStyle(hideJp) }}><RubyText text={cur.furigana_html} fontSize={16} /></div>
-              <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4, ...blurStyle(hideKr) }}>{cur.kr}</p>
-            </div>
+      {openSummary && (
+        <div style={{ marginTop: 10, padding: 16, borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--bd)', animation: 'tjFade 0.2s ease' }}>
+          <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.7, color: 'var(--text-1)', wordBreak: 'keep-all' }}>{data.summary}</p>
+          {data.points && (
+            <ul style={{ margin: '0 0 14px', paddingLeft: 18, color: 'var(--text-2)' }}>
+              {data.points.map((p, i) => <li key={i} style={{ fontSize: 13, lineHeight: 1.75, wordBreak: 'keep-all' }}>{p}</li>)}
+            </ul>
           )}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, marginTop: 10 }}>
-          <CtrlBtn label="이전" sub="A" glyph="⏮" onClick={goPrev} showKey />
-          <CtrlBtn label="다시" sub="S" glyph="↺" onClick={replay} showKey />
-          <CtrlBtn label={isPlaying ? '정지' : '재생'} sub="Space" glyph={isPlaying ? '⏸' : '▶'} onClick={togglePlay} primary showKey tour="play" />
-          <CtrlBtn label="반복" sub="R" glyph="⟳" onClick={toggleLoop} active={loopIdx >= 0} showKey tour="loop" />
-          <CtrlBtn label="다음" sub="D" glyph="⏭" onClick={goNext} showKey />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 7, marginTop: 8 }}>
-          <button data-tour="rate" onClick={cycleRate} style={chip(false)}><span style={{ fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span> 배속{SHOW_KEYS && <KeyHint>Z/X</KeyHint>}</button>
-          <span data-tour="hide" style={{ display: 'inline-flex', gap: 7 }}>
-            <button onClick={() => setHideJp(v => !v)} style={chip(hideJp)}>{hideJp ? '일본어 보기' : '일본어 가리기'}{SHOW_KEYS && <KeyHint>J</KeyHint>}</button>
-            <button onClick={() => setHideKr(v => !v)} style={chip(hideKr)}>{hideKr ? '한국어 보기' : '한국어 가리기'}{SHOW_KEYS && <KeyHint>H</KeyHint>}</button>
-          </span>
-          <button onClick={() => setShowCap(v => !v)} style={chip(showCap)}>{showCap ? '영상자막 끄기' : '영상자막 켜기'}{SHOW_KEYS && <KeyHint>C</KeyHint>}</button>
-          <button onClick={() => setShowWords(v => !v)} style={chip(showWords)}>단어 {showWords ? '끄기' : '켜기'}</button>
-          <span style={{ flex: 1 }} />
-          <button data-tour="saved" onClick={() => setPanel('saved')} style={{ ...chip(false), fontWeight: 700 }}>⭐ 저장함 {savedLines.length + savedWords.length}</button>
-        </div>
-      </div>
-
-      {/* 타임라인 스크립트 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '4px 4px 0' }}>
-        {lines.map((ln, i) => {
-          const on = i === activeIdx
-          const saved = isLineSaved(i)
-          return (
-            <div key={i} ref={el => (lineRefs.current[i] = el)} onClick={() => setDetailIdx(i)}
-              data-tour={i === 0 ? 'line' : undefined}
-              style={{ position: 'relative', cursor: 'pointer', padding: '12px 40px 12px 8px', borderRadius: 14, scrollMarginTop: headH + 14, background: on ? `${PRIMARY}16` : 'transparent', boxShadow: on ? `inset 3px 0 0 ${PRIMARY}` : 'none', transition: 'background 0.18s' }}>
-              <div style={{ fontSize: 10.5, color: on ? PRIMARY : 'var(--text-3)', marginBottom: 4, fontVariantNumeric: 'tabular-nums', fontWeight: on ? 700 : 400 }}>{fmtT(ln.t)}</div>
-              <div style={blurStyle(hideJp)}><RubyText text={ln.furigana_html} fontSize={15.5} /></div>
-              <p style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.5, color: on ? 'var(--text-1)' : 'var(--text-2)', ...blurStyle(hideKr) }}>{ln.kr}</p>
-
-              {showWords && on && ln.words && ln.words.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 9 }}>
-                  {ln.words.map((w, wi) => (
-                    <button key={wi} onClick={(e) => { e.stopPropagation(); openPop(w, i) }} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 9, border: '1px solid var(--bd)', background: 'var(--surface)', cursor: 'pointer', fontSize: 12.5, color: 'var(--text-2)', fontFamily: "'Noto Sans JP', sans-serif" }}>
-                      {w.w}<span style={{ fontSize: 9, fontWeight: 800, color: jcolor(w.jlpt) }}>{w.jlpt || '·'}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <button onClick={(e) => { e.stopPropagation(); toggleSaveLine(i) }} aria-label="문장 북마크" data-tour={i === 0 ? 'bookmark' : undefined}
-                style={{ position: 'absolute', top: 10, right: 9, width: 32, height: 32, borderRadius: 9, cursor: 'pointer', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Bookmark filled={saved} color={saved ? GREEN : 'var(--text-3)'} />
-              </button>
+          <div style={{ borderTop: '1px solid var(--bd)', paddingTop: 12 }}>
+            <p style={{ margin: '0 0 9px', fontSize: 12.5, color: 'var(--text-2)', wordBreak: 'keep-all' }}>
+              <b style={{ color: 'var(--text-strong)' }}>난이도 집계</b> — 등장 단어 {stat.total}개 중 <b style={{ color: ov }}>{stat.covPct}%가 {stat.overall} 이하</b>라 권장 <b style={{ color: ov }}>{stat.overall} ({LV_LABEL[stat.overall]})</b>
+            </p>
+            <div style={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden' }}>
+              {ORDER.map(lv => stat.counts[lv] > 0 && (<div key={lv} title={`${lv} ${stat.counts[lv]}`} style={{ width: `${stat.counts[lv] / stat.total * 100}%`, background: jcolor(lv) }} />))}
             </div>
-          )
-        })}
-      </div>
-
-      {/* 하단 — 이 영상 단어장 */}
-      <div style={{ marginTop: 18, padding: '0 10px' }}>
-        <button onClick={() => setOpenVocab(v => !v)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', border: '1px solid var(--bd)', background: 'var(--surface)', color: 'var(--text-1)', fontSize: 14, fontWeight: 700 }}>
-          <span>📚 이 영상 단어장 · {vocab.count}단어</span><span style={{ color: 'var(--text-3)' }}>{openVocab ? '▲' : '▼'}</span>
-        </button>
-        {openVocab && (
-          <div style={{ marginTop: 10, animation: 'tjFade 0.2s ease' }}>
-            {ORDER.map(lv => vocab.byLevel[lv].length > 0 && (
-              <div key={lv} style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '0 0 8px' }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: jcolor(lv), padding: '2px 9px', borderRadius: 7 }}>{lv}</span>
-                  <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{LV_LABEL[lv]} · {vocab.byLevel[lv].length}개</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 7 }}>
-                  {vocab.byLevel[lv].map((w, i) => {
-                    const ws = isWordSaved(w)
-                    return (
-                      <div key={i} onClick={() => openPop(w, w.lineIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 11, border: `1px solid ${jcolor(lv)}44`, background: `${jcolor(lv)}10`, cursor: 'pointer' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ lineHeight: 1.3 }}><Furi w={w.w} reading={w.reading} size={14.5} /></div>
-                          <div style={{ fontSize: 11.5, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.ko}</div>
-                        </div>
-                        <button onClick={(e) => { e.stopPropagation(); toggleSaveWord(w) }} aria-label="단어 저장" style={{ border: 'none', background: 'transparent', display: 'flex', cursor: 'pointer' }}>
-                          <Bookmark filled={ws} color={ws ? GREEN : 'var(--text-3)'} size={15} />
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
+            <div style={{ display: 'flex', gap: 11, flexWrap: 'wrap', marginTop: 9, fontSize: 11, color: 'var(--text-3)' }}>
+              {ORDER.map(lv => (<span key={lv} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><i style={{ width: 9, height: 9, borderRadius: 3, background: jcolor(lv), display: 'inline-block' }} />{lv} {stat.counts[lv]}</span>))}
+              <span style={{ opacity: 0.7 }}>· JLPT는 추정치</span>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </>
+  )
 
-      {/* 단어 시트 */}
+  const videoBlock = (
+    <div style={{ position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', boxShadow: '0 6px 22px rgba(0,0,0,0.18)',
+      ...(isWide ? { width: '100%', aspectRatio: '16 / 9', maxHeight: '60vh' } : { aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))' }) }}>
+      <div id="yt-player-demo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+      {showCap && cur && (
+        <div style={{ position: 'absolute', left: '50%', bottom: '8%', transform: 'translateX(-50%)', maxWidth: '92%', padding: '8px 15px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
+          <div style={{ lineHeight: 1.5, ...blurStyle(hideJp) }}><RubyText text={cur.furigana_html} fontSize={isWide ? 18 : 16} /></div>
+          <p style={{ margin: '2px 0 0', fontSize: isWide ? 14 : 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4, ...blurStyle(hideKr) }}>{cur.kr}</p>
+        </div>
+      )}
+    </div>
+  )
+
+  const controlsBlock = (
+    <>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, marginTop: 10 }}>
+        <CtrlBtn label="이전" sub="A" glyph="⏮" onClick={goPrev} showKey />
+        <CtrlBtn label="다시" sub="S" glyph="↺" onClick={replay} showKey />
+        <CtrlBtn label={isPlaying ? '정지' : '재생'} sub="Space" glyph={isPlaying ? '⏸' : '▶'} onClick={togglePlay} primary showKey tour="play" />
+        <CtrlBtn label="반복" sub="R" glyph="⟳" onClick={toggleLoop} active={loopIdx >= 0} showKey tour="loop" />
+        <CtrlBtn label="다음" sub="D" glyph="⏭" onClick={goNext} showKey />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 7, marginTop: 8 }}>
+        <button data-tour="rate" onClick={cycleRate} style={chip(false)}><span style={{ fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span> 배속{SHOW_KEYS && <KeyHint>Z/X</KeyHint>}</button>
+        <span data-tour="hide" style={{ display: 'inline-flex', gap: 7 }}>
+          <button onClick={() => setHideJp(v => !v)} style={chip(hideJp)}>{hideJp ? '일본어 보기' : '일본어 가리기'}{SHOW_KEYS && <KeyHint>J</KeyHint>}</button>
+          <button onClick={() => setHideKr(v => !v)} style={chip(hideKr)}>{hideKr ? '한국어 보기' : '한국어 가리기'}{SHOW_KEYS && <KeyHint>H</KeyHint>}</button>
+        </span>
+        <button onClick={() => setShowCap(v => !v)} style={chip(showCap)}>{showCap ? '영상자막 끄기' : '영상자막 켜기'}{SHOW_KEYS && <KeyHint>C</KeyHint>}</button>
+        <button onClick={() => setShowWords(v => !v)} style={chip(showWords)}>단어 {showWords ? '끄기' : '켜기'}</button>
+        <span style={{ flex: 1 }} />
+        <button data-tour="saved" onClick={() => setPanel('saved')} style={{ ...chip(false), fontWeight: 700 }}>⭐ 저장함 {savedLines.length + savedWords.length}</button>
+      </div>
+    </>
+  )
+
+  const transcriptBlock = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {!isWide && <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '2px 4px 4px' }}>문장을 누르면 분해·단어를 자세히 볼 수 있어요</p>}
+      {lines.map((ln, i) => {
+        const on = i === activeIdx
+        const saved = isLineSaved(i)
+        return (
+          <div key={i} ref={el => (lineRefs.current[i] = el)} onClick={() => setDetailIdx(i)}
+            data-tour={i === 0 ? 'line' : undefined}
+            style={{ position: 'relative', cursor: 'pointer', padding: '12px 40px 12px 12px', borderRadius: 14, scrollMarginTop: (isWide ? 14 : headH + 14), background: on ? `${PRIMARY}16` : 'transparent', boxShadow: on ? `inset 3px 0 0 ${PRIMARY}` : 'none', transition: 'background 0.18s' }}>
+            <div style={{ fontSize: 10.5, color: on ? PRIMARY : 'var(--text-3)', marginBottom: 4, fontVariantNumeric: 'tabular-nums', fontWeight: on ? 700 : 400 }}>{fmtT(ln.t)}</div>
+            <div style={blurStyle(hideJp)}><RubyText text={ln.furigana_html} fontSize={15.5} /></div>
+            <p style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.5, color: on ? 'var(--text-1)' : 'var(--text-2)', ...blurStyle(hideKr) }}>{ln.kr}</p>
+            {showWords && on && ln.words && ln.words.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 9 }}>
+                {ln.words.map((w, wi) => (
+                  <button key={wi} onClick={(e) => { e.stopPropagation(); openPop(w, i) }} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 9, border: '1px solid var(--bd)', background: 'var(--surface)', cursor: 'pointer', fontSize: 12.5, color: 'var(--text-2)', fontFamily: "'Noto Sans JP', sans-serif" }}>
+                    {w.w}<span style={{ fontSize: 9, fontWeight: 800, color: jcolor(w.jlpt) }}>{w.jlpt || '·'}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <button onClick={(e) => { e.stopPropagation(); toggleSaveLine(i) }} aria-label="문장 북마크" data-tour={i === 0 ? 'bookmark' : undefined}
+              style={{ position: 'absolute', top: 10, right: 9, width: 32, height: 32, borderRadius: 9, cursor: 'pointer', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Bookmark filled={saved} color={saved ? GREEN : 'var(--text-3)'} />
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
+
+  const vocabBlock = (
+    <div style={{ marginTop: 18 }}>
+      <button onClick={() => setOpenVocab(v => !v)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', border: '1px solid var(--bd)', background: 'var(--surface)', color: 'var(--text-1)', fontSize: 14, fontWeight: 700 }}>
+        <span>📚 이 영상 단어장 · {vocab.count}단어</span><span style={{ color: 'var(--text-3)' }}>{openVocab ? '▲' : '▼'}</span>
+      </button>
+      {openVocab && (
+        <div style={{ marginTop: 10, animation: 'tjFade 0.2s ease' }}>
+          {ORDER.map(lv => vocab.byLevel[lv].length > 0 && (
+            <div key={lv} style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '0 0 8px' }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: jcolor(lv), padding: '2px 9px', borderRadius: 7 }}>{lv}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{LV_LABEL[lv]} · {vocab.byLevel[lv].length}개</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 7 }}>
+                {vocab.byLevel[lv].map((w, i) => {
+                  const ws = isWordSaved(w)
+                  return (
+                    <div key={i} onClick={() => openPop(w, w.lineIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 11, border: `1px solid ${jcolor(lv)}44`, background: `${jcolor(lv)}10`, cursor: 'pointer' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ lineHeight: 1.3 }}><Furi w={w.w} reading={w.reading} size={14.5} /></div>
+                        <div style={{ fontSize: 11.5, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.ko}</div>
+                      </div>
+                      <button onClick={(e) => { e.stopPropagation(); toggleSaveWord(w) }} aria-label="단어 저장" style={{ border: 'none', background: 'transparent', display: 'flex', cursor: 'pointer' }}>
+                        <Bookmark filled={ws} color={ws ? GREEN : 'var(--text-3)'} size={15} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
+  const titleBlock = (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 11.5, fontWeight: 800, color: PRIMARY, letterSpacing: 0.2 }}>영상 학습 · 프로토타입</span>
+        <button onClick={startTour} style={{ ...ghostBtn(false), height: 28, fontSize: 11.5, borderColor: PRIMARY, color: PRIMARY, flexShrink: 0 }}>❓ 사용법</button>
+      </div>
+      <p style={{ fontSize: isWide ? 23 : 20, fontWeight: 800, color: 'var(--text-strong)', margin: '6px 0 3px', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.32, wordBreak: 'keep-all' }}>{data.title}</p>
+      <p style={{ fontSize: isWide ? 14.5 : 13.5, color: 'var(--text-3)', margin: 0 }}>{data.titleKr}</p>
+    </>
+  )
+
+  const styleTag = <style>{`@keyframes tjFade{from{opacity:0}to{opacity:1}}@keyframes tjUp{from{transform:translateY(34px);opacity:.5}to{transform:translateY(0);opacity:1}}@keyframes tjPop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}@keyframes tjRing{0%,100%{box-shadow:0 0 0 3px ${PRIMARY}55,0 8px 30px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 6px ${PRIMARY}33,0 8px 30px rgba(0,0,0,.45)}}`}</style>
+
+  const sheets = (
+    <>
       {popWord && (() => {
         const w = popWord.word, li = popWord.lineIdx, ln = lines[li], lnSaved = isLineSaved(li)
         return (
-          <Sheet onClose={() => setPopWord(null)} scrim={0.34} maxH="70vh" z={4600}>
+          <Sheet onClose={() => setPopWord(null)} scrim={0.34} maxH="70vh" z={4600} wide={isWide}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
               <Furi w={w.w} reading={w.reading} size={27} />
               <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: jcolor(w.jlpt), padding: '3px 9px', borderRadius: 7 }}>{w.jlpt || 'JLPT 외'}</span>
@@ -391,9 +400,8 @@ export default function StudyVideoDemo() {
         )
       })()}
 
-      {/* 문장 상세 시트 */}
       {detailIdx != null && (
-        <SentenceDetail ln={lines[detailIdx]} saved={isLineSaved(detailIdx)} isPlaying={isPlaying} isLooping={loopIdx === detailIdx}
+        <SentenceDetail ln={lines[detailIdx]} saved={isLineSaved(detailIdx)} isPlaying={isPlaying} isLooping={loopIdx === detailIdx} wide={isWide}
           onClose={() => setDetailIdx(null)}
           onPrev={() => detailGo(-1)}
           onNext={() => detailGo(1)}
@@ -404,9 +412,8 @@ export default function StudyVideoDemo() {
           onOpenWord={(w) => openPop(w, detailIdx)} />
       )}
 
-      {/* 저장함 시트 */}
       {panel === 'saved' && (
-        <Sheet onClose={() => setPanel(null)} scrim={0.44} maxH="80vh">
+        <Sheet onClose={() => setPanel(null)} scrim={0.44} maxH="80vh" wide={isWide}>
           <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 12px' }}>저장함</p>
           <p style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, margin: '4px 0 7px' }}>저장한 문장·예문 ({savedLines.filter(s => s.vid === vid).length})</p>
           {savedLines.filter(s => s.vid === vid).length === 0 && <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: '0 0 12px', wordBreak: 'keep-all' }}>문장의 북마크를 누르면 여기에 모여요. 누르면 그 장면으로 이동합니다.</p>}
@@ -435,26 +442,71 @@ export default function StudyVideoDemo() {
       )}
 
       {tour && <StudyOnboarding steps={TOUR_STEPS} onClose={closeTour} />}
+    </>
+  )
+
+  // ── 데스크톱: 2단(좌 영상 고정 + 우 스크립트) ──────
+  if (isWide) {
+    return (
+      <div style={{ marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)' }}>
+        {styleTag}
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '12px 28px 40px' }}>
+          <div style={{ marginBottom: 16 }}>{titleBlock}</div>
+          <div style={{ display: 'flex', flexDirection: 'row', gap: 28, alignItems: 'stretch' }}>
+            <div style={{ flex: '1.35 1 0', minWidth: 0 }}>
+              <div ref={headRef} style={{ position: 'sticky', top: 14, alignSelf: 'flex-start' }}>
+                <div style={{ marginBottom: 12 }}>{bannerBlock}</div>
+                {videoBlock}
+                {controlsBlock}
+              </div>
+            </div>
+            <div style={{ flex: '1 1 0', minWidth: 360, maxWidth: 560 }}>
+              <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-2)', margin: '2px 0 8px' }}>스크립트 <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>· 문장을 누르면 분해·단어를 봐요</span></p>
+              {transcriptBlock}
+              {vocabBlock}
+            </div>
+          </div>
+        </div>
+        {sheets}
+      </div>
+    )
+  }
+
+  // ── 모바일: 세로 스택(영상 상단 고정) ───────────────
+  return (
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '6px 0 24px' }}>
+      {styleTag}
+      <div style={{ padding: '6px 10px 12px' }}>
+        {titleBlock}
+        <div style={{ marginTop: 12 }}>{bannerBlock}</div>
+      </div>
+      <div ref={headRef} style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', padding: '0 10px 10px' }}>
+        {videoBlock}
+        {controlsBlock}
+      </div>
+      <div style={{ padding: '4px 4px 0' }}>{transcriptBlock}</div>
+      <div style={{ padding: '0 10px' }}>{vocabBlock}</div>
+      {sheets}
     </div>
   )
 }
 
-// ── 바텀시트 (토스풍: 아래에서 슬라이드 업, 라이트 스크림 → 영상 보면서 단축키 사용 가능) ──
-function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, children }) {
+// ── 바텀시트(모바일) / 센터 모달(PC) ──────────────────
+function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, wide = false, children }) {
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: z, background: `rgba(12,18,24,${scrim})`, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', animation: 'tjFade 0.18s ease' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 640, maxHeight: maxH, overflowY: 'auto', background: 'var(--bg)', borderRadius: '22px 22px 0 0', padding: '8px 18px 26px', boxShadow: '0 -12px 44px rgba(0,0,0,0.32)', animation: 'tjUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
-        <div style={{ width: 38, height: 4, borderRadius: 2, background: 'var(--bd)', margin: '2px auto 16px' }} />
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: z, background: `rgba(12,18,24,${scrim})`, display: 'flex', alignItems: wide ? 'center' : 'flex-end', justifyContent: 'center', padding: wide ? 24 : 0, animation: 'tjFade 0.18s ease' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: wide ? 560 : 640, maxHeight: wide ? '86vh' : maxH, overflowY: 'auto', background: 'var(--bg)', borderRadius: wide ? 20 : '22px 22px 0 0', padding: wide ? '20px 20px 22px' : '8px 18px 26px', boxShadow: '0 -12px 44px rgba(0,0,0,0.32)', animation: wide ? 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' : 'tjUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
+        {!wide && <div style={{ width: 38, height: 4, borderRadius: 2, background: 'var(--bd)', margin: '2px auto 16px' }} />}
         {children}
       </div>
     </div>
   )
 }
 
-// ── 문장 상세 — 문장 분해 최우선(자동 로드), 미니 재생 컨트롤, 단어 펼치기 ──
-function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPrev, onNext, onPlayLine, onLoopLine, onTogglePlay, onToggleSave, onOpenWord }) {
+// ── 문장 상세 — 분해는 '보기' 버튼으로 수동 실행 ──────
+function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev, onNext, onPlayLine, onLoopLine, onTogglePlay, onToggleSave, onOpenWord }) {
   const [bd, setBd] = useState(null)
-  const [state, setState] = useState('loading')
+  const [state, setState] = useState('idle')   // idle → 사용자가 '문장 분해 보기' 누르면 loading
   const [wordsOpen, setWordsOpen] = useState(false)
 
   const load = () => {
@@ -464,16 +516,11 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPrev, onNe
       .then(d => { setBd(d.breakdown ?? []); setState('done') })
       .catch(() => setState('error'))
   }
-  useEffect(() => { let c = false; setState('loading'); setBd(null)
-    fetch(`${API_URL}/breakdown`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ japanese: ln.jp }) })
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then(d => { if (!c) { setBd(d.breakdown ?? []); setState('done') } })
-      .catch(() => { if (!c) setState('error') })
-    return () => { c = true }
-  }, [ln.jp])
+  // 문장이 바뀌면 분해 초기화(자동 호출 안 함)
+  useEffect(() => { setState('idle'); setBd(null); setWordsOpen(false) }, [ln.jp])
 
   return (
-    <Sheet onClose={onClose} scrim={0.22} maxH="74vh">
+    <Sheet onClose={onClose} scrim={0.22} maxH="74vh" wide={wide}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <span style={{ fontSize: 11, color: PRIMARY, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>문장 분석 · {fmtT(ln.t)}</span>
         <button onClick={onToggleSave} aria-label="문장 북마크" style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', padding: 4 }}><Bookmark filled={saved} color={saved ? GREEN : 'var(--text-3)'} /></button>
@@ -482,7 +529,6 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPrev, onNe
       <div style={{ lineHeight: 1.6 }}><RubyText text={ln.furigana_html} fontSize={20} /></div>
       <p style={{ margin: '6px 0 12px', fontSize: 14.5, color: 'var(--text-2)' }}>{ln.kr}</p>
 
-      {/* 미니 컨트롤 (작은 단축키 표시) — 시트 닫지 않고 이동·재생·반복, 영상은 위에 계속 보임 */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
         <MiniCtl glyph="⏮" label="이전" k="A" onClick={onPrev} />
         <MiniCtl glyph={isPlaying ? '⏸' : '▶'} label={isPlaying ? '정지' : '재생'} k="Space" onClick={onTogglePlay} />
@@ -491,26 +537,31 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPrev, onNe
         <MiniCtl glyph="⏭" label="다음" k="D" onClick={onNext} />
       </div>
 
-      {/* 문장 분해 — 가장 돋보이게(자동 로드) */}
+      {/* 문장 분해 — 수동 실행 */}
       <div style={{ border: `1.5px solid ${PRIMARY}`, borderRadius: 15, overflow: 'hidden' }}>
         <div style={{ background: `${PRIMARY}14`, padding: '12px 15px', borderBottom: `1px solid ${PRIMARY}33` }}>
           <p style={{ margin: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--text-strong)' }}>📝 문장 분해</p>
           <p style={{ margin: '3px 0 0', fontSize: 11.5, color: 'var(--text-3)' }}>왜 이렇게 만들어졌을까 — 단어·문법·활용 원리를 쉽게</p>
         </div>
-        <div style={{ padding: '13px 15px' }}>
+        <div style={{ padding: '14px 15px' }}>
+          {state === 'idle' && (
+            <>
+              <button onClick={load} style={{ width: '100%', height: 48, borderRadius: 12, border: 'none', background: PRIMARY, color: '#fff', fontWeight: 800, fontSize: 14.5, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 6px 16px ${PRIMARY}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>📝 문장 분해 보기</button>
+              <p style={{ margin: '9px 0 0', fontSize: 11.5, color: 'var(--text-3)', textAlign: 'center' }}>누르면 단어·문법·활용 원리를 풀어드려요</p>
+            </>
+          )}
           {state === 'loading' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 0' }}>
               <span className="spinner" style={{ width: 15, height: 15, borderTopColor: PRIMARY, borderColor: `${PRIMARY}33` }} />
               <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>문장을 분해하는 중...</span>
             </div>
           )}
-          {state === 'error' && <button onClick={load} style={{ height: 34, padding: '0 14px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', border: '1px solid var(--bd)', background: 'transparent', color: 'var(--text-2)' }}>다시 시도</button>}
+          {state === 'error' && <button onClick={load} style={{ height: 38, padding: '0 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', border: '1px solid var(--bd)', background: 'transparent', color: 'var(--text-2)' }}>다시 시도</button>}
           {state === 'done' && bd && bd.length > 0 && (<><BreakdownTable breakdown={bd} showDetail /><BreakdownCards breakdown={bd} showDetail /></>)}
           {state === 'done' && (!bd || bd.length === 0) && <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-3)' }}>이 문장은 분해 결과가 없어요.</p>}
         </div>
       </div>
 
-      {/* 단어 — 펼치면 보기 */}
       {ln.words && ln.words.length > 0 && (
         <div style={{ marginTop: 14 }}>
           <button onClick={() => setWordsOpen(v => !v)} style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', border: 'none', borderTop: '1px solid var(--bd)', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}>
@@ -533,14 +584,14 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, onClose, onPrev, onNe
   )
 }
 
-// ── 첫 사용 가이드 (대상만 또렷, 주변 블러+딤, 프로그래스) ──
+// ── 첫 사용 가이드 ────────────────────────────────────
 const TOUR_STEPS = [
   { sel: 'level', title: '이 영상의 난이도', desc: '영상에 나온 단어로 JLPT 레벨을 추정했어요. ‘요약’에서 줄거리와 난이도 분석도 볼 수 있어요.' },
   { sel: 'play', title: '재생', desc: '재생하면 자막이 문장마다 따라 강조돼요. 스페이스바로도 돼요.' },
   { sel: 'loop', title: '문장 반복', desc: '한 문장을 반복 재생해 따라 말해보세요. 이전·다시·다음은 A·S·D 키예요.' },
   { sel: 'rate', title: '배속', desc: '익숙해질 때까지 천천히 들어요. Z 느리게, X 빠르게.' },
   { sel: 'hide', title: '일본어·한국어 가리기', desc: '일본어를 가리면 작문 연습, 한국어를 가리면 받아쓰기. 번갈아 해보세요.' },
-  { sel: 'line', title: '문장을 누르면 자세히', desc: '문장을 누르면 문장 분해와 단어 레벨이 펼쳐져요. 히라가나만 알아도 이해되게 풀어드려요.' },
+  { sel: 'line', title: '문장을 누르면 자세히', desc: '문장을 누르면 문장 분해와 단어 레벨을 볼 수 있어요. 히라가나만 알아도 이해되게 풀어드려요.' },
   { sel: 'bookmark', title: '북마크로 저장', desc: '마음에 든 문장은 북마크하세요. 저장함에서 다시 보고 그 장면으로 이동해요.' },
 ]
 

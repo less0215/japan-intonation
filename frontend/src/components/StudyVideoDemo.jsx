@@ -6,10 +6,11 @@
  * 참고 UX: Language Reactor / Migaku / Yomitan. 저장은 프로토타입이라 localStorage. */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import RubyText from './RubyText'
-import { ExampleAnalysis } from './BreakdownPanel'
+import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
 import { STUDY_DEMO } from '../data/studyDemo'
 
 const PRIMARY = '#5CA9CE'
+const API_URL = 'https://japan-intonation-production.up.railway.app'
 const RATES = [0.5, 0.75, 1, 1.25, 1.5]
 const SHOW_KEYS = typeof window !== 'undefined' && window.matchMedia
   ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : false
@@ -374,47 +375,14 @@ export default function StudyVideoDemo() {
         )
       })()}
 
-      {/* 문장 상세 — 단어별 레벨 + 문장 분해(왜 이렇게 만들어졌나) */}
-      {detailIdx != null && (() => {
-        const ln = lines[detailIdx], dSaved = isLineSaved(detailIdx)
-        return (
-          <div onClick={() => setDetailIdx(null)} style={backdrop}>
-            <div onClick={e => e.stopPropagation()} style={{ ...card, maxWidth: 480, maxHeight: '86vh', overflowY: 'auto', textAlign: 'left' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 10.5, color: PRIMARY, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>문장 분석 · {fmtT(ln.t)}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <button onClick={() => toggleSaveLine(detailIdx)} aria-label="문장 북마크" style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', padding: 4 }}><Bookmark filled={dSaved} color={dSaved ? '#1D9E75' : 'var(--text-3)'} /></button>
-                  <button onClick={() => setDetailIdx(null)} style={{ border: 'none', background: 'transparent', fontSize: 22, color: 'var(--text-3)', cursor: 'pointer' }}>×</button>
-                </div>
-              </div>
-
-              <div style={{ lineHeight: 1.6 }}><RubyText text={ln.furigana_html} fontSize={19} /></div>
-              <p style={{ margin: '5px 0 12px', fontSize: 14, color: 'var(--text-2)' }}>{ln.kr}</p>
-
-              <button onClick={() => { setDetailIdx(null); seekLine(detailIdx) }} style={{ width: '100%', height: 42, borderRadius: 11, border: 'none', background: PRIMARY, color: '#fff', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14 }}>▶ 이 장면부터 재생</button>
-
-              {ln.words && ln.words.length > 0 && (
-                <>
-                  <p style={{ margin: '0 0 7px', fontSize: 12.5, fontWeight: 700, color: 'var(--text-strong)' }}>이 문장의 단어 (JLPT)</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
-                    {ln.words.map((w, wi) => (
-                      <button key={wi} onClick={() => openPop(w, detailIdx)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 9px', borderRadius: 9, border: `1px solid ${jcolor(w.jlpt)}`, background: `${jcolor(w.jlpt)}1a`, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <Furi w={w.w} reading={w.reading} size={14} />
-                        <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{w.ko}</span>
-                        <span style={{ fontSize: 9, fontWeight: 800, color: jcolor(w.jlpt) }}>{w.jlpt || '·'}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {/* 문장 분해 (단어 단위 + 히라가나 + 한글발음 + 뜻 + 품사 + 활용 원리) */}
-              <p style={{ margin: '14px 0 0', fontSize: 12.5, fontWeight: 700, color: 'var(--text-strong)' }}>문장 분해 · 왜 이렇게 만들어졌을까</p>
-              <ExampleAnalysis japaneseText={ln.jp} />
-            </div>
-          </div>
-        )
-      })()}
+      {/* 문장 상세 — 문장 분해(최우선) + 재생(보조) + 단어(펼치기) */}
+      {detailIdx != null && (
+        <SentenceDetail ln={lines[detailIdx]} saved={isLineSaved(detailIdx)}
+          onClose={() => setDetailIdx(null)}
+          onSeek={() => { setDetailIdx(null); seekLine(detailIdx) }}
+          onToggleSave={() => toggleSaveLine(detailIdx)}
+          onOpenWord={(w) => openPop(w, detailIdx)} />
+      )}
 
       {/* 저장함 */}
       {panel === 'saved' && (
@@ -517,6 +485,89 @@ function StudyOnboarding({ steps, onClose }) {
           {i > 0 && <button onClick={prev} style={{ ...subBtn(false), height: 36 }}>이전</button>}
           <button onClick={next} style={{ height: 36, padding: '0 16px', borderRadius: 10, border: 'none', background: PRIMARY, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{last ? '시작하기' : '다음'}</button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 문장 상세 — 문장 분해를 가장 돋보이게(자동 로드), 재생은 보조, 단어는 펼치기 ──
+function SentenceDetail({ ln, saved, onClose, onSeek, onToggleSave, onOpenWord }) {
+  const [bd, setBd] = useState(null)
+  const [state, setState] = useState('loading')
+  const [wordsOpen, setWordsOpen] = useState(false)
+
+  const load = () => {
+    setState('loading')
+    fetch(`${API_URL}/breakdown`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ japanese: ln.jp }) })
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(d => { setBd(d.breakdown ?? []); setState('done') })
+      .catch(() => setState('error'))
+  }
+  useEffect(() => { let c = false; setState('loading'); setBd(null)
+    fetch(`${API_URL}/breakdown`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ japanese: ln.jp }) })
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(d => { if (!c) { setBd(d.breakdown ?? []); setState('done') } })
+      .catch(() => { if (!c) setState('error') })
+    return () => { c = true }
+  }, [ln.jp])
+
+  return (
+    <div onClick={onClose} style={backdrop}>
+      <div onClick={e => e.stopPropagation()} style={{ ...card, maxWidth: 480, maxHeight: '88vh', overflowY: 'auto', textAlign: 'left' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontSize: 10.5, color: PRIMARY, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>문장 분석 · {fmtT(ln.t)}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={onToggleSave} aria-label="문장 북마크" style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', padding: 4 }}><Bookmark filled={saved} color={saved ? '#1D9E75' : 'var(--text-3)'} /></button>
+            <button onClick={onClose} style={{ border: 'none', background: 'transparent', fontSize: 22, color: 'var(--text-3)', cursor: 'pointer' }}>×</button>
+          </div>
+        </div>
+
+        <div style={{ lineHeight: 1.6 }}><RubyText text={ln.furigana_html} fontSize={19} /></div>
+        <p style={{ margin: '5px 0 10px', fontSize: 14, color: 'var(--text-2)' }}>{ln.kr}</p>
+
+        {/* 보조 — 이 장면부터 재생 (인식만 되게) */}
+        <button onClick={onSeek} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 12px', borderRadius: 9, border: '1px solid var(--bd)', background: 'transparent', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14 }}>▶ 이 장면부터 재생</button>
+
+        {/* 최우선 — 문장 분해 (모달 열면 자동 로드) */}
+        <div style={{ border: `1.5px solid ${PRIMARY}`, borderRadius: 13, overflow: 'hidden' }}>
+          <div style={{ background: `${PRIMARY}14`, padding: '11px 14px', borderBottom: `1px solid ${PRIMARY}33` }}>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--text-strong)' }}>📝 문장 분해</p>
+            <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-3)' }}>왜 이렇게 만들어졌을까 — 단어·문법·활용 원리를 쉽게</p>
+          </div>
+          <div style={{ padding: '12px 14px' }}>
+            {state === 'loading' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+                <span className="spinner" style={{ width: 15, height: 15, borderTopColor: PRIMARY, borderColor: `${PRIMARY}33` }} />
+                <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>문장을 분해하는 중...</span>
+              </div>
+            )}
+            {state === 'error' && (
+              <button onClick={load} style={{ height: 34, padding: '0 14px', borderRadius: 9, fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', border: '1.5px solid var(--bd)', background: 'transparent', color: 'var(--text-2)' }}>다시 시도</button>
+            )}
+            {state === 'done' && bd && bd.length > 0 && (<><BreakdownTable breakdown={bd} showDetail /><BreakdownCards breakdown={bd} showDetail /></>)}
+            {state === 'done' && (!bd || bd.length === 0) && <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-3)' }}>이 문장은 분해 결과가 없어요.</p>}
+          </div>
+        </div>
+
+        {/* 단어 — 펼치면 볼 수 있게 (기본 접힘) */}
+        {ln.words && ln.words.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <button onClick={() => setWordsOpen(v => !v)} style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', border: 'none', borderTop: '1px solid var(--bd)', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--text-2)', fontSize: 12.5, fontWeight: 600 }}>
+              <span>이 문장의 단어 {ln.words.length}개 (JLPT)</span><span>{wordsOpen ? '▲' : '▼'}</span>
+            </button>
+            {wordsOpen && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                {ln.words.map((w, wi) => (
+                  <button key={wi} onClick={() => onOpenWord(w)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 9px', borderRadius: 9, border: `1px solid ${jcolor(w.jlpt)}`, background: `${jcolor(w.jlpt)}1a`, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <Furi w={w.w} reading={w.reading} size={14} />
+                    <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{w.ko}</span>
+                    <span style={{ fontSize: 9, fontWeight: 800, color: jcolor(w.jlpt) }}>{w.jlpt || '·'}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

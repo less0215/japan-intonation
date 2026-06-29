@@ -1,7 +1,7 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 200편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 19편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 21편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
  {
   "id": "6I122CKUrpA",
@@ -32,11 +32,39 @@ export const STUDY_CATALOG = [
   "ready": true
  },
  {
+  "id": "SaalrFGgTIw",
+  "jp": "すべてを失って気づいた、幸せに生きるために大切なこと",
+  "kr": "모든 것을 잃고 깨달은, 행복하게 살기 위해 소중한 것",
+  "ev": "TEDxNagoyaU",
+  "dur": "17:02",
+  "lv": "N3",
+  "tags": [
+   "인생",
+   "행복",
+   "삶"
+  ],
+  "ready": true
+ },
+ {
   "id": "axi9QkYy7ng",
   "jp": "流されない生き方",
   "kr": "휩쓸리지 않는 삶",
   "ev": "TEDxGlobisU",
   "dur": "18:07",
+  "lv": "N3",
+  "tags": [
+   "인생",
+   "가치관",
+   "삶"
+  ],
+  "ready": true
+ },
+ {
+  "id": "alM-g--UJt4",
+  "jp": "受け入れるという生き方",
+  "kr": "받아들인다는 삶의 방식",
+  "ev": "TEDxNagoyaU",
+  "dur": "17:57",
   "lv": "N3",
   "tags": [
    "인생",
@@ -373,19 +401,6 @@ export const STUDY_CATALOG = [
   ]
  },
  {
-  "id": "SaalrFGgTIw",
-  "jp": "すべてを失って気づいた、幸せに生きるために大切なこと",
-  "kr": "모든 것을 잃고 깨달은, 행복하게 살기 위해 소중한 것",
-  "ev": "TEDxNagoyaU",
-  "dur": "17:02",
-  "lv": "N3",
-  "tags": [
-   "인생",
-   "행복",
-   "삶"
-  ]
- },
- {
   "id": "pWgzPl7payE",
   "jp": "自然の中の見えない繋がりを探して",
   "kr": "자연 속 보이지 않는 연결을 찾아서",
@@ -396,19 +411,6 @@ export const STUDY_CATALOG = [
    "과학",
    "자연",
    "연구"
-  ]
- },
- {
-  "id": "alM-g--UJt4",
-  "jp": "受け入れるという生き方",
-  "kr": "받아들인다는 삶의 방식",
-  "ev": "TEDxNagoyaU",
-  "dur": "17:57",
-  "lv": "N3",
-  "tags": [
-   "인생",
-   "가치관",
-   "삶"
   ]
  },
  {

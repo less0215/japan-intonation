@@ -6,10 +6,11 @@
  * 요약 펼치기 + 영상 난이도(JLPT 집계) + 단어장. 첫 사용 가이드(스포트라이트+프로그래스).
  * UI 톤: 토스풍. 저장=localStorage(프로토타입). */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import RubyText from './RubyText'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
 import { STUDY_DEMO } from '../data/studyDemo'
+import { STUDY_DATA } from '../data/studyData'
 
 const PRIMARY = '#5CA9CE'
 const GREEN = '#1D9E75'
@@ -65,10 +66,12 @@ function Bookmark({ filled, color, size = 18 }) {
 const PREVIEW_LIMIT = 180  // 비회원·무료회원 미리보기 3분 (플러스↑ 무제한)
 export default function StudyVideoDemo({ isPlus = false }) {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [gated, setGated] = useState(false)
   const isPlusRef = useRef(isPlus)
   useEffect(() => { isPlusRef.current = isPlus }, [isPlus])
-  const data = STUDY_DEMO
+  const vParam = searchParams.get('v')
+  const data = (vParam && STUDY_DATA[vParam]) || STUDY_DEMO
   const vid = data.videoId
   const lines = data.lines
   const playerRef = useRef(null)
@@ -687,12 +690,11 @@ function StudyOnboarding({ steps, onClose }) {
         </div>
         <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: 'var(--text-strong)', wordBreak: 'keep-all' }}>{step.title}</p>
         <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.62, color: 'var(--text-2)', wordBreak: 'keep-all' }}>{step.desc}</p>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 12, color: 'var(--text-3)', marginBottom: 11, userSelect: 'none' }}>
-          <input type="checkbox" checked={dontShow} onChange={e => setDontShow(e.target.checked)} style={{ accentColor: PRIMARY, width: 15, height: 15, cursor: 'pointer' }} />
-          다시 보지 않기
-        </label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={() => onClose(dontShow)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>건너뛰기</button>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 12, color: 'var(--text-3)', userSelect: 'none' }}>
+            <input type="checkbox" checked={dontShow} onChange={e => setDontShow(e.target.checked)} style={{ accentColor: PRIMARY, width: 15, height: 15, cursor: 'pointer' }} />
+            다시 보지 않기
+          </label>
           <span style={{ flex: 1 }} />
           {i > 0 && <button onClick={prev} style={{ ...ghostBtn(false), height: 38 }}>이전</button>}
           <button onClick={next} style={{ height: 38, padding: '0 18px', borderRadius: 11, border: 'none', background: PRIMARY, color: '#fff', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 6px 16px ${PRIMARY}55` }}>{last ? '시작하기' : '다음'}</button>

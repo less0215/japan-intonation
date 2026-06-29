@@ -26,7 +26,7 @@ function Card({ v, onOpen, rating, onHover, onLeave }) {
     <button className="ted-card" onClick={() => onOpen(v)}
       onMouseEnter={CAN_HOVER ? (e) => onHover(v, e.currentTarget) : undefined}
       onMouseLeave={CAN_HOVER ? onLeave : undefined}
-      style={{ flex: '0 0 174px', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0 }}>
+      style={{ flex: '0 0 174px', width: 174, maxWidth: 174, minWidth: 0, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0 }}>
       <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
         <img src={thumb(v.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
         <span style={{ position: 'absolute', top: 7, right: 7 }}><LvOnThumb lv={v.lv} /></span>
@@ -42,9 +42,9 @@ function Card({ v, onOpen, rating, onHover, onLeave }) {
 
 function RankCard({ v, rank, onOpen, onHover, onLeave }) {
   return (
-    <button className="ted-card" onClick={() => onOpen(v)} style={{ flex: '0 0 226px', display: 'flex', alignItems: 'flex-end', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0 }}>
+    <button className="ted-card" onClick={() => onOpen(v)} style={{ flex: '0 0 226px', width: 226, maxWidth: 226, minWidth: 0, display: 'flex', alignItems: 'flex-end', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0 }}>
       <span style={{ flex: '0 0 58px', fontSize: 82, fontWeight: 900, lineHeight: 0.8, color: 'transparent', WebkitTextStroke: '2px var(--text-3,#b9c2cc)', marginRight: -6, fontFamily: 'Arial, sans-serif' }}>{rank}</span>
-      <div style={{ flex: 1, minWidth: 0 }} onMouseEnter={CAN_HOVER ? (e) => onHover(v, e.currentTarget) : undefined} onMouseLeave={CAN_HOVER ? onLeave : undefined}>
+      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }} onMouseEnter={CAN_HOVER ? (e) => onHover(v, e.currentTarget) : undefined} onMouseLeave={CAN_HOVER ? onLeave : undefined}>
         <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
           <img src={thumb(v.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           <span style={{ position: 'absolute', top: 6, right: 6 }}><LvOnThumb lv={v.lv} /></span>
@@ -60,8 +60,8 @@ function RankCard({ v, rank, onOpen, onHover, onLeave }) {
 function Row({ title, items, onOpen, ratings, ranked, onHover, onLeave }) {
   if (!items || !items.length) return null
   return (
-    <div style={{ marginBottom: 24 }}>
-      <p style={{ margin: '0 2px 9px', fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>{title}</p>
+    <div style={{ marginBottom: 18 }}>
+      <p style={{ margin: '0 2px 4px', fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>{title}</p>
       <div style={{ display: 'flex', gap: ranked ? 4 : 10, overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -2px', padding: '0 2px 4px' }}>
         {items.map((v, i) => ranked
           ? <RankCard key={v.id} v={v} rank={i + 1} onOpen={onOpen} onHover={onHover} onLeave={onLeave} />
@@ -97,7 +97,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const start = (id) => {
     const v = STUDY_CATALOG.find(x => x.id === id)
     if (v && !v.ready) { setSel(null); setHover(null); setComingSoon(v); return }
-    setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); setHover(null); onNavigate('/study-demo')
+    setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); setHover(null); onNavigate('/study-demo?v=' + id)
   }
   const isVidSaved = (id) => savedVids.includes(id)
   const toggleVid = (id) => setSavedVids(p => p.includes(id) ? p.filter(x => x !== id) : [id, ...p])

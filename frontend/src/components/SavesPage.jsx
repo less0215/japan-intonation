@@ -158,7 +158,7 @@ export default function SavesPage({ onSelectHistory }) {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
                     {savedVideos.map(v => (
                       <div key={v.id} style={{ position: 'relative' }}>
-                        <button onClick={() => navigate('/study-demo')} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                        <button onClick={() => navigate('/study-demo?v=' + v.id)} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
                           <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
                             <img src={`https://img.youtube.com/vi/${v.id}/hqdefault.jpg`} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                             <span style={{ position: 'absolute', bottom: 6, right: 6, fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '1px 5px', borderRadius: 4 }}>{v.dur}</span>
@@ -178,7 +178,7 @@ export default function SavesPage({ onSelectHistory }) {
                   <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, overflow: 'hidden' }}>
                     {studyLines.map((s, i) => (
                       <div key={`${s.vid}-${s.idx}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: i === studyLines.length - 1 ? 'none' : '1px solid var(--bd)' }}>
-                        <button onClick={() => navigate('/study-demo')} style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                        <button onClick={() => navigate('/study-demo?v=' + s.vid)} style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
                           <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.jp}</p>
                           <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.kr}</p>
                         </button>

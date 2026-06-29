@@ -1878,7 +1878,7 @@ def admin_grant_sub(req: GrantSubRequest):
 # 키=코드(대문자), 값=집계용 라벨(인플루언서/캠페인). 코드 추가·변경·삭제는 여기만 수정.
 # ⚠️ 아래 TICKJAPAN1MONTH 는 테스트용 샘플 — 실제 배포(인플루언서 전달) 전 실제 코드로 교체할 것.
 REFERRAL_CODES = {
-    "TICKJAPAN1MONTH": "샘플(테스트용)",
+    "TAEX": "taex.free (인스타 협업)",
 }
 
 class ReferralRedeemRequest(BaseModel):
@@ -1919,6 +1919,33 @@ def referral_redeem(req: ReferralRedeemRequest):
             pass
         return {"ok": True, "plan": "plus", "period": "monthly",
                 "expires_at": sub.expires_at.isoformat()}
+    finally:
+        db.close()
+
+
+@app.get("/admin/referrals")
+def admin_referrals(key: str = ""):
+    """관리자 — 추천 코드별 사용 집계 + 최근 사용 내역(인플루언서 정산·증명용)."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리 토큰이 필요합니다.")
+    db = SessionLocal()
+    try:
+        rows = db.query(ReferralRedemption).order_by(ReferralRedemption.redeemed_at.desc()).all()
+        by_code: dict[str, int] = {}
+        for r in rows:
+            by_code[r.code] = by_code.get(r.code, 0) + 1
+        codes = [{"code": c, "label": lbl, "count": by_code.get(c, 0)} for c, lbl in REFERRAL_CODES.items()]
+        for c, cnt in by_code.items():                       # 폐기/미등록 코드도 기록 있으면 노출
+            if c not in REFERRAL_CODES:
+                codes.append({"code": c, "label": "(폐기/미등록 코드)", "count": cnt})
+        codes.sort(key=lambda x: x["count"], reverse=True)
+        names = {u.id: u.name for u in db.query(User).filter(
+            User.id.in_([r.user_id for r in rows[:50]] or [0])).all()}
+        recent = [{"code": r.code, "user_id": r.user_id,
+                   "name": names.get(r.user_id) or f"#{r.user_id}",
+                   "redeemed_at": r.redeemed_at.isoformat() if r.redeemed_at else None}
+                  for r in rows[:50]]
+        return {"total": len(rows), "codes": codes, "recent": recent}
     finally:
         db.close()
 

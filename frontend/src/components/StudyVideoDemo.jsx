@@ -1,7 +1,7 @@
 /* 영상 학습 프로토타입 (/study-demo) — 유튜브 임베드 + 타임라인 자막(일본어 후리가나 / 한국어).
- * 줄 클릭 → 해당 시점으로 점프, 재생 중 현재 줄 하이라이트·자동 스크롤. 시드 데이터=studyDemo.js.
- * 쉐도잉 단축키(웹) + 컨트롤 바(웹·앱 공용): 이전/다음/다시/반복(루프)/재생·정지/배속/뜻가리기. */
-import { useEffect, useRef, useState } from 'react'
+ * 영상 위 자막 오버레이(현재 문장) + 줄 클릭 점프 + 현재 줄 하이라이트·자동 스크롤. 시드=studyDemo.js.
+ * 쉐도잉 단축키(웹) + 컨트롤 바(웹·앱 공용): 이전/다음/다시/반복(루프)/재생·정지/배속/뜻가리기/영상자막. */
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import RubyText from './RubyText'
 import { STUDY_DEMO } from '../data/studyDemo'
 
@@ -31,13 +31,16 @@ export default function StudyVideoDemo() {
   const lines = data.lines
   const playerRef = useRef(null)
   const lineRefs = useRef([])
-  const activeRef = useRef(-1)       // 현재 재생 줄 (핸들러에서 최신값 읽기용)
-  const loopRef = useRef(-1)         // 반복(루프) 대상 줄 인덱스, -1=off
+  const headRef = useRef(null)          // 고정 헤더(영상+컨트롤) — 높이 측정용
+  const activeRef = useRef(-1)          // 현재 재생 줄 (핸들러에서 최신값 읽기용)
+  const loopRef = useRef(-1)            // 반복(루프) 대상 줄 인덱스, -1=off
   const [activeIdx, setActiveIdx] = useState(-1)
   const [loopIdx, setLoopIdx] = useState(-1)
   const [isPlaying, setIsPlaying] = useState(false)
   const [rateIdx, setRateIdx] = useState(2)   // 1.0배
   const [hideKr, setHideKr] = useState(false)
+  const [showCap, setShowCap] = useState(true)   // 영상 위 자막 오버레이
+  const [headH, setHeadH] = useState(0)          // 고정 헤더 높이 → 자동 스크롤 보정
 
   // ── 플레이어 제어 헬퍼 ───────────────────────────────
   const seekLine = (i) => {
@@ -103,10 +106,19 @@ export default function StudyVideoDemo() {
     return () => { cancelled = true; if (timer) clearInterval(timer) }
   }, [])
 
-  // 현재 줄 자동 스크롤
+  // 고정 헤더 높이 추적(영상 크기·기기 회전 대응) → 자동 스크롤 보정값
+  useLayoutEffect(() => {
+    const measure = () => { if (headRef.current) setHeadH(headRef.current.getBoundingClientRect().height) }
+    measure()
+    const ro = new ResizeObserver(measure); if (headRef.current) ro.observe(headRef.current)
+    window.addEventListener('resize', measure)
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure) }
+  }, [])
+
+  // 현재 줄 자동 스크롤 — 고정 헤더 바로 아래로 (가려지지 않게)
   useEffect(() => {
     const el = lineRefs.current[activeIdx]
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [activeIdx])
 
   // ── 키보드 단축키 (웹) ───────────────────────────────
@@ -120,6 +132,7 @@ export default function StudyVideoDemo() {
         case 's': case 'S': e.preventDefault(); replay(); break
         case 'r': case 'R': e.preventDefault(); toggleLoop(); break
         case 'h': case 'H': e.preventDefault(); setHideKr(v => !v); break
+        case 'c': case 'C': e.preventDefault(); setShowCap(v => !v); break
         case 'z': case 'Z': e.preventDefault(); stepRate(-1); break
         case 'x': case 'X': e.preventDefault(); stepRate(1); break
         case ' ': e.preventDefault(); togglePlay(); break
@@ -130,6 +143,8 @@ export default function StudyVideoDemo() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const cur = activeIdx >= 0 ? lines[activeIdx] : null
+
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '8px 0 90px' }}>
       <div style={{ padding: '4px 4px 12px' }}>
@@ -138,10 +153,30 @@ export default function StudyVideoDemo() {
         <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>{data.titleKr}</p>
       </div>
 
-      {/* 유튜브 플레이어 + 컨트롤 바 — 상단 고정(sticky): 자막이 스크롤돼도 화자 모습 유지 */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', paddingBottom: 8 }}>
-        <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', borderRadius: 14, overflow: 'hidden', background: '#000' }}>
+      {/* 영상 + 컨트롤 바 — 상단 고정(sticky) */}
+      <div ref={headRef} style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', paddingBottom: 8 }}>
+        {/* 영상(높이 제한: 화면에 맞춰 자막 공간 확보) + 자막 오버레이 */}
+        <div style={{
+          position: 'relative', margin: '0 auto', borderRadius: 14, overflow: 'hidden', background: '#000',
+          aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%',
+          height: 'min(44vh, calc((min(100vw, 720px) - 8px) * 0.5625))',
+        }}>
           <div id="yt-player-demo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+          {/* 영상 위 자막 오버레이 — 클릭은 영상으로 통과(pointer-events:none) */}
+          {showCap && cur && (
+            <div style={{
+              position: 'absolute', left: '50%', bottom: '8%', transform: 'translateX(-50%)',
+              maxWidth: '92%', padding: '7px 14px', borderRadius: 10, textAlign: 'center',
+              background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(2px)', color: '#fff',
+              pointerEvents: 'none',
+            }}>
+              <div style={{ lineHeight: 1.5 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>
+              <p style={{
+                margin: '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4,
+                filter: hideKr ? 'blur(5px)' : 'none', transition: 'filter 0.15s',
+              }}>{cur.kr}</p>
+            </div>
+          )}
         </div>
 
         {/* 컨트롤 바 (웹·앱 공용) */}
@@ -153,21 +188,23 @@ export default function StudyVideoDemo() {
           <CtrlBtn label="다음" sub="D" glyph="⏭" onClick={goNext} showKey />
         </div>
 
-        {/* 보조 컨트롤 — 배속 / 뜻 가리기 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+        {/* 보조 컨트롤 */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
           <button onClick={cycleRate} style={subBtn(false)}>
             <span style={{ fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span> 배속{SHOW_KEYS && <KeyHint>Z/X</KeyHint>}
           </button>
           <button onClick={() => setHideKr(v => !v)} style={subBtn(hideKr)}>
             {hideKr ? '뜻 보기' : '뜻 가리기'}{SHOW_KEYS && <KeyHint>H</KeyHint>}
           </button>
-          <span style={{ flex: 1 }} />
+          <button onClick={() => setShowCap(v => !v)} style={subBtn(showCap)}>
+            {showCap ? '영상자막 끄기' : '영상자막 켜기'}{SHOW_KEYS && <KeyHint>C</KeyHint>}
+          </button>
           {loopIdx >= 0 && <span style={{ fontSize: 11, color: PRIMARY, fontWeight: 700 }}>🔁 {fmtT(lines[loopIdx].t)} 반복 중</span>}
         </div>
 
         {SHOW_KEYS && (
           <p style={{ margin: '7px 4px 0', fontSize: 11, color: 'var(--text-3)' }}>
-            단축키 · <b>A</b>/<b>D</b> 이전·다음 · <b>S</b> 다시 · <b>R</b> 반복 · <b>Space</b> 재생 · <b>Z/X</b> 배속 · <b>H</b> 뜻
+            단축키 · <b>A</b>/<b>D</b> 이전·다음 · <b>S</b> 다시 · <b>R</b> 반복 · <b>Space</b> 재생 · <b>Z/X</b> 배속 · <b>H</b> 뜻 · <b>C</b> 영상자막
           </p>
         )}
       </div>
@@ -180,6 +217,7 @@ export default function StudyVideoDemo() {
             <div key={i} ref={el => (lineRefs.current[i] = el)} onClick={() => seekLine(i)}
               style={{
                 cursor: 'pointer', padding: '10px 12px', borderRadius: 10,
+                scrollMarginTop: headH + 14,   // 고정 헤더에 가리지 않도록 보정
                 background: on ? 'var(--primary-tint)' : 'transparent',
                 borderLeft: `3px solid ${on ? PRIMARY : 'transparent'}`,
                 transition: 'background 0.15s',
@@ -202,7 +240,6 @@ export default function StudyVideoDemo() {
 
 // ── 컨트롤 버튼들 ──────────────────────────────────────
 function CtrlBtn({ label, sub, glyph, onClick, primary, active, showKey }) {
-  const accent = active || primary
   return (
     <button onClick={onClick} aria-label={label} style={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',

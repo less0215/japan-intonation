@@ -1321,7 +1321,7 @@ export default function App() {
       {showQuotaWall && (
         <QuotaWall
           isLoggedIn={!!user}
-          onDownload={() => { track('quota_wall_download'); setShowQuotaWall(false); navigate('/download') }}
+          onUpgrade={() => { track('quota_wall_upgrade'); setShowQuotaWall(false); navigate('/plans?from=quota_wall') }}
           onLogin={() => { setShowQuotaWall(false); setSignupMode('login'); setShowSignup(true) }}
           onClose={() => setShowQuotaWall(false)}
         />

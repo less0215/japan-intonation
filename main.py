@@ -1358,9 +1358,9 @@ def rate_guard(request: Request, user_id: int | None = None, count_daily: bool =
                 d = [today, 0]
                 _guest_daily[key] = d
             if d[1] >= cap:
-                msg = ("오늘 웹 무료 번역 한도에 도달했어요. 앱에서 무제한으로 이어서 이용해 주세요."
+                msg = ("오늘 웹 무료 번역 한도에 도달했어요. 플러스 회원이 되시면 광고와 제약 없이 이용 가능합니다."
                        if user_id else
-                       "오늘 무료 번역을 많이 사용했어요. 로그인하거나 앱에서 이어서 이용해 주세요.")
+                       "오늘 무료 번역 한도에 도달했어요. 로그인하거나 플러스 회원이 되시면 더 이용할 수 있어요.")
                 raise HTTPException(status_code=429, detail=msg)
             d[1] += 1
 

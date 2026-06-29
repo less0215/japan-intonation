@@ -4,7 +4,7 @@ import { useState } from 'react'
  * 밋밋한 에러 대신 "앱(광고 보고 무제한)·로그인"으로 자연스럽게 유도. */
 const PRIMARY = '#5CA9CE'
 
-export default function QuotaWall({ isLoggedIn, onDownload, onLogin, onClose }) {
+export default function QuotaWall({ isLoggedIn, onUpgrade, onLogin, onClose }) {
   const [why, setWhy] = useState(false)
 
   return (
@@ -31,20 +31,20 @@ export default function QuotaWall({ isLoggedIn, onDownload, onLogin, onClose }) 
 
         {/* 헤드·서브 */}
         <p style={{ fontSize: 18, fontWeight: 700, margin: '0 0 7px', color: 'var(--text-strong)' }}>
-          오늘 무료 번역을 다 썼어요
+          오늘 웹 무료 번역 한도에 도달했어요
         </p>
         <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: '0 0 16px', lineHeight: 1.6 }}>
-          내일 다시 무료로 쓸 수 있어요. 지금 이어서 쓰려면 앱에서 <b style={{ fontWeight: 600, color: 'var(--text-1)' }}>무제한</b>으로 이용하세요.
+          <b style={{ fontWeight: 600, color: 'var(--text-1)' }}>플러스 회원</b>이 되시면 광고와 제약 없이 이용 가능합니다.
         </p>
 
-        {/* 주 CTA — 앱 다운로드 */}
-        <button onClick={onDownload} style={{
+        {/* 주 CTA — 요금제(플러스) 페이지로 이동 */}
+        <button onClick={onUpgrade} style={{
           width: '100%', height: 50, borderRadius: 14, border: 'none',
           background: 'linear-gradient(145deg,#6fb6d6 0%,#5CA9CE 55%,#4f96bb 100%)',
           color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           boxShadow: '0 8px 20px rgba(92,169,206,0.35)',
         }}>
-          앱 다운로드하고 계속하기
+          플러스로 무제한 이용하기
         </button>
 
         {/* 보조 CTA — 게스트는 로그인 유도(웹 로그인 한도가 더 큼) */}

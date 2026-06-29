@@ -17,7 +17,9 @@ function splitOkurigana(kanji, reading) {
   return { base: k, baseReading: r, suffix: kanji.slice(k.length) }
 }
 
-const RUBY_REGEX = /([^\s()（）]+?)\(([^)）]+)\)/g
+/* 후리가나 루비는 괄호 안이 '히라가나 읽기'일 때만 적용.
+ * 원문에 들어 있는 리터럴 괄호(예: "(ヨハネ1:12)", "(株)")는 읽기가 아니므로 그대로 평문 표시. */
+const RUBY_REGEX = /([^\s()（）]+?)\(([ぁ-ゖー]+)\)/g
 
 export default function RubyText({ text, fontSize = 15, fontWeight = 500 }) {
   const parts = []

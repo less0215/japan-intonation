@@ -1656,10 +1656,13 @@ def _clean_furigana_html(fh: str, jp: str) -> str:
     if not fh:
         return jp
     fh = fh.replace('（', '(').replace('）', ')')
-    readings = re.findall(r'\(([^)]*)\)', fh)
-    if not readings or any(not _HIRA_READING.match(r or '') for r in readings):
-        return jp
-    if re.sub(r'\([^)]*\)', '', fh).replace(' ', '') != (jp or '').replace(' ', ''):
+    # 후리가나 읽기 = 한자 뒤 (히라가나). 비(非)히라가나 괄호는 원문 리터럴(예: "(ヨハネ1:12)", "(株)")로 보고 그대로 둔다.
+    # (옛 로직은 리터럴 괄호 1개만 있어도 문장 전체 후리가나를 폐기 → 인용·숫자 든 문장에서 루비 사라짐 버그)
+    hira_readings = re.findall(r'\(([ぁ-ゖー]+)\)', fh)
+    if not hira_readings:
+        return jp   # 유효한 후리가나 읽기가 하나도 없으면 평문
+    # 히라가나 읽기 괄호만 떼었을 때 원문과 같아야 정상(리터럴 괄호는 jp에도 그대로 존재)
+    if re.sub(r'\(([ぁ-ゖー]+)\)', '', fh).replace(' ', '') != (jp or '').replace(' ', ''):
         return jp
     return fh
 

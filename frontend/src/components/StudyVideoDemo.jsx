@@ -221,7 +221,7 @@ export default function StudyVideoDemo() {
       <style>{`@keyframes tjFade{from{opacity:0}to{opacity:1}}@keyframes tjUp{from{transform:translateY(34px);opacity:.5}to{transform:translateY(0);opacity:1}}@keyframes tjRing{0%,100%{box-shadow:0 0 0 3px ${PRIMARY}55,0 8px 30px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 6px ${PRIMARY}33,0 8px 30px rgba(0,0,0,.45)}}`}</style>
 
       {/* 헤더 */}
-      <div style={{ padding: '6px 16px 12px' }}>
+      <div style={{ padding: '6px 10px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11.5, fontWeight: 800, color: PRIMARY, letterSpacing: 0.2 }}>영상 학습 · 프로토타입</span>
           <button onClick={startTour} style={{ ...ghostBtn(false), height: 28, fontSize: 11.5, borderColor: PRIMARY, color: PRIMARY, flexShrink: 0 }}>❓ 사용법</button>
@@ -267,7 +267,7 @@ export default function StudyVideoDemo() {
       </div>
 
       {/* 영상 + 컨트롤 — 상단 고정 */}
-      <div ref={headRef} style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', padding: '0 12px 10px' }}>
+      <div ref={headRef} style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', padding: '0 10px 10px' }}>
         <div style={{ position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))', boxShadow: '0 6px 22px rgba(0,0,0,0.18)' }}>
           <div id="yt-player-demo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
           {showCap && cur && (
@@ -300,14 +300,14 @@ export default function StudyVideoDemo() {
       </div>
 
       {/* 타임라인 스크립트 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '4px 8px 0' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '4px 4px 0' }}>
         {lines.map((ln, i) => {
           const on = i === activeIdx
           const saved = isLineSaved(i)
           return (
             <div key={i} ref={el => (lineRefs.current[i] = el)} onClick={() => setDetailIdx(i)}
               data-tour={i === 0 ? 'line' : undefined}
-              style={{ position: 'relative', cursor: 'pointer', padding: '12px 42px 12px 13px', borderRadius: 14, scrollMarginTop: headH + 14, background: on ? `${PRIMARY}16` : 'transparent', boxShadow: on ? `inset 3px 0 0 ${PRIMARY}` : 'none', transition: 'background 0.18s' }}>
+              style={{ position: 'relative', cursor: 'pointer', padding: '12px 40px 12px 8px', borderRadius: 14, scrollMarginTop: headH + 14, background: on ? `${PRIMARY}16` : 'transparent', boxShadow: on ? `inset 3px 0 0 ${PRIMARY}` : 'none', transition: 'background 0.18s' }}>
               <div style={{ fontSize: 10.5, color: on ? PRIMARY : 'var(--text-3)', marginBottom: 4, fontVariantNumeric: 'tabular-nums', fontWeight: on ? 700 : 400 }}>{fmtT(ln.t)}</div>
               <div style={blurStyle(hideJp)}><RubyText text={ln.furigana_html} fontSize={15.5} /></div>
               <p style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.5, color: on ? 'var(--text-1)' : 'var(--text-2)', ...blurStyle(hideKr) }}>{ln.kr}</p>
@@ -332,7 +332,7 @@ export default function StudyVideoDemo() {
       </div>
 
       {/* 하단 — 이 영상 단어장 */}
-      <div style={{ marginTop: 18, padding: '0 16px' }}>
+      <div style={{ marginTop: 18, padding: '0 10px' }}>
         <button onClick={() => setOpenVocab(v => !v)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', border: '1px solid var(--bd)', background: 'var(--surface)', color: 'var(--text-1)', fontSize: 14, fontWeight: 700 }}>
           <span>📚 이 영상 단어장 · {vocab.count}단어</span><span style={{ color: 'var(--text-3)' }}>{openVocab ? '▲' : '▼'}</span>
         </button>
@@ -370,7 +370,7 @@ export default function StudyVideoDemo() {
       {popWord && (() => {
         const w = popWord.word, li = popWord.lineIdx, ln = lines[li], lnSaved = isLineSaved(li)
         return (
-          <Sheet onClose={() => setPopWord(null)} scrim={0.34} maxH="70vh">
+          <Sheet onClose={() => setPopWord(null)} scrim={0.34} maxH="70vh" z={4600}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
               <Furi w={w.w} reading={w.reading} size={27} />
               <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: jcolor(w.jlpt), padding: '3px 9px', borderRadius: 7 }}>{w.jlpt || 'JLPT 외'}</span>
@@ -440,9 +440,9 @@ export default function StudyVideoDemo() {
 }
 
 // ── 바텀시트 (토스풍: 아래에서 슬라이드 업, 라이트 스크림 → 영상 보면서 단축키 사용 가능) ──
-function Sheet({ onClose, scrim = 0.4, maxH = '80vh', children }) {
+function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, children }) {
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 4000, background: `rgba(12,18,24,${scrim})`, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', animation: 'tjFade 0.18s ease' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: z, background: `rgba(12,18,24,${scrim})`, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', animation: 'tjFade 0.18s ease' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 640, maxHeight: maxH, overflowY: 'auto', background: 'var(--bg)', borderRadius: '22px 22px 0 0', padding: '8px 18px 26px', boxShadow: '0 -12px 44px rgba(0,0,0,0.32)', animation: 'tjUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
         <div style={{ width: 38, height: 4, borderRadius: 2, background: 'var(--bd)', margin: '2px auto 16px' }} />
         {children}

@@ -637,8 +637,8 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev
 const TOUR_STEPS = [
   { sel: 'level', title: '이 영상의 난이도', desc: '영상에 나온 단어로 JLPT 레벨을 추정했어요. ‘요약’에서 줄거리와 난이도 분석도 볼 수 있어요.' },
   { sel: 'play', title: '재생', desc: '재생하면 자막이 문장마다 따라 강조돼요. 스페이스바로도 돼요.' },
-  { sel: 'loop', title: '문장 반복', desc: '한 문장을 반복 재생해 따라 말해보세요. 이전·다시·다음은 A·S·D 키예요.' },
-  { sel: 'rate', title: '배속', desc: '익숙해질 때까지 천천히 들어요. Z 느리게, X 빠르게.' },
+  { sel: 'loop', title: '문장 반복', desc: '한 문장을 반복 재생해 따라 말해보세요.\n이전·다시·다음은 A·S·D 키예요.' },
+  { sel: 'rate', title: '배속', desc: '익숙해질 때까지 천천히 들어요.\nZ 느리게, X 빠르게.' },
   { sel: 'hide', title: '일본어·한국어 가리기', desc: '일본어를 가리면 작문 연습, 한국어를 가리면 받아쓰기. 번갈아 해보세요.' },
   { sel: 'line', title: '문장을 누르면 자세히', desc: '문장을 누르면 문장 분해와 단어 레벨을 볼 수 있어요. 히라가나만 알아도 이해되게 풀어드려요.' },
   { sel: 'bookmark', title: '북마크로 저장', desc: '마음에 든 문장은 북마크하세요. 저장함에서 다시 보고 그 장면으로 이동해요.' },
@@ -689,7 +689,7 @@ function StudyOnboarding({ steps, onClose }) {
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', flexShrink: 0 }}>{i + 1}/{steps.length}</span>
         </div>
         <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: 'var(--text-strong)', wordBreak: 'keep-all' }}>{step.title}</p>
-        <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.62, color: 'var(--text-2)', wordBreak: 'keep-all' }}>{step.desc}</p>
+        <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.62, color: 'var(--text-2)', wordBreak: 'keep-all', whiteSpace: 'pre-line' }}>{step.desc}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 12, color: 'var(--text-3)', userSelect: 'none' }}>
             <input type="checkbox" checked={dontShow} onChange={e => setDontShow(e.target.checked)} style={{ accentColor: PRIMARY, width: 15, height: 15, cursor: 'pointer' }} />

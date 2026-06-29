@@ -1,7 +1,7 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 200편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 21편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 23편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
  {
   "id": "6I122CKUrpA",
@@ -186,6 +186,20 @@ export const STUDY_CATALOG = [
   "ready": true
  },
  {
+  "id": "FRD8W6RTl7o",
+  "jp": "愛情料理が世界の子供を救う",
+  "kr": "사랑이 담긴 요리가 세계의 아이들을 구한다",
+  "ev": "TEDxHimi",
+  "dur": "19:11",
+  "lv": "N3",
+  "tags": [
+   "문화",
+   "음식",
+   "아이"
+  ],
+  "ready": true
+ },
+ {
   "id": "2ialVwDvQsQ",
   "jp": "私たち消費者がフードロスに立ち向かう方法",
   "kr": "우리 소비자가 음식물 쓰레기에 맞서는 방법",
@@ -293,6 +307,20 @@ export const STUDY_CATALOG = [
    "사회",
    "공동체",
    "재해"
+  ],
+  "ready": true
+ },
+ {
+  "id": "hcsvzyIv9ro",
+  "jp": "ローカルマーケティングをグローバル化する",
+  "kr": "로컬 마케팅을 글로벌화하다",
+  "ev": "TEDxSapporoSalon",
+  "dur": "17:58",
+  "lv": "N2",
+  "tags": [
+   "비즈니스",
+   "마케팅",
+   "지역"
   ],
   "ready": true
  },
@@ -747,19 +775,6 @@ export const STUDY_CATALOG = [
   "tags": [
    "문화",
    "전통"
-  ]
- },
- {
-  "id": "FRD8W6RTl7o",
-  "jp": "愛情料理が世界の子供を救う",
-  "kr": "사랑이 담긴 요리가 세계의 아이들을 구한다",
-  "ev": "TEDxHimi",
-  "dur": "19:11",
-  "lv": "N3",
-  "tags": [
-   "문화",
-   "음식",
-   "아이"
   ]
  },
  {
@@ -1298,19 +1313,6 @@ export const STUDY_CATALOG = [
    "사회",
    "환경",
    "지속가능성"
-  ]
- },
- {
-  "id": "hcsvzyIv9ro",
-  "jp": "ローカルマーケティングをグローバル化する",
-  "kr": "로컬 마케팅을 글로벌화하다",
-  "ev": "TEDxSapporoSalon",
-  "dur": "17:58",
-  "lv": "N2",
-  "tags": [
-   "비즈니스",
-   "마케팅",
-   "지역"
   ]
  },
  {

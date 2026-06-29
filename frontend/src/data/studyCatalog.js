@@ -36,10 +36,10 @@ export const STUDY_TOP10 = TOP_IDS.map(id => STUDY_CATALOG.find(v => v.id === id
 
 // 주제별 카테고리 (쉐도잉 탭 행 구성용)
 export const TAG_GROUPS = [
-  { tag: '동기부여', label: '🔥 동기부여 · 도전' },
-  { tag: '언어', label: '🗣 언어 · 발음' },
-  { tag: '비즈니스', label: '💼 비즈니스 · 커뮤니케이션' },
-  { tag: '인생', label: '🌱 인생 · 철학' },
-  { tag: '과학', label: '🔬 과학 · 미래' },
-  { tag: '문화', label: '🎎 일본 문화' },
+  { tag: '동기부여', label: '오늘, 한 걸음 더' },
+  { tag: '언어', label: '일본어가 들리기 시작할 때' },
+  { tag: '비즈니스', label: '일에 바로 써먹는' },
+  { tag: '인생', label: '오래 곱씹게 되는 이야기' },
+  { tag: '과학', label: '내일을 먼저 엿보다' },
+  { tag: '문화', label: '도쿄의 공기까지' },
 ]

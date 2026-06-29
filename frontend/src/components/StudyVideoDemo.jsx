@@ -79,7 +79,10 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const [rateIdx, setRateIdx] = useState(2)
   const [hideKr, setHideKr] = useState(false)
   const [hideJp, setHideJp] = useState(false)
-  const [showCap, setShowCap] = useState(true)
+  const [capMode, setCapMode] = useState('both')   // 영상 오버레이 자막: both | jp | kr | off
+  const CAP_ORDER = ['both', 'jp', 'kr', 'off']
+  const CAP_LABEL = { both: '일+한', jp: '일본어', kr: '한국어', off: '끔' }
+  const cycleCap = () => setCapMode(m => CAP_ORDER[(CAP_ORDER.indexOf(m) + 1) % CAP_ORDER.length])
   const [showWords, setShowWords] = useState(true)
   const [headH, setHeadH] = useState(0)
   const [openSummary, setOpenSummary] = useState(false)
@@ -214,7 +217,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
         case 'r': case 'R': e.preventDefault(); toggleLoop(); break
         case 'h': case 'H': e.preventDefault(); setHideKr(v => !v); break
         case 'j': case 'J': e.preventDefault(); setHideJp(v => !v); break
-        case 'c': case 'C': e.preventDefault(); setShowCap(v => !v); break
+        case 'c': case 'C': e.preventDefault(); cycleCap(); break
         case 'z': case 'Z': e.preventDefault(); stepRate(-1); break
         case 'x': case 'X': e.preventDefault(); stepRate(1); break
         case ' ': e.preventDefault(); togglePlay(); break
@@ -274,10 +277,10 @@ export default function StudyVideoDemo({ isPlus = false }) {
     <div style={{ position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', boxShadow: '0 6px 22px rgba(0,0,0,0.18)',
       ...(isWide ? { width: '100%', aspectRatio: '16 / 9', maxHeight: '60vh' } : { aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))' }) }}>
       <div id="yt-player-demo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
-      {showCap && cur && (
+      {capMode !== 'off' && cur && (
         <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
-          <div style={{ lineHeight: 1.45, ...blurStyle(hideJp) }}><RubyText text={cur.furigana_html} fontSize={16} /></div>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4, ...blurStyle(hideKr) }}>{cur.kr}</p>
+          {(capMode === 'both' || capMode === 'jp') && <div style={{ lineHeight: 1.45 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>}
+          {(capMode === 'both' || capMode === 'kr') && <p style={{ margin: capMode === 'kr' ? 0 : '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4 }}>{cur.kr}</p>}
         </div>
       )}
     </div>
@@ -298,7 +301,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
           <button onClick={() => setHideJp(v => !v)} style={chip(hideJp)}>{hideJp ? '일본어 보기' : '일본어 가리기'}{SHOW_KEYS && <KeyHint>J</KeyHint>}</button>
           <button onClick={() => setHideKr(v => !v)} style={chip(hideKr)}>{hideKr ? '한국어 보기' : '한국어 가리기'}{SHOW_KEYS && <KeyHint>H</KeyHint>}</button>
         </span>
-        <button onClick={() => setShowCap(v => !v)} style={chip(showCap)}>{showCap ? '영상자막 끄기' : '영상자막 켜기'}{SHOW_KEYS && <KeyHint>C</KeyHint>}</button>
+        <button onClick={cycleCap} style={chip(capMode !== 'off')}>영상자막 · {CAP_LABEL[capMode]}{SHOW_KEYS && <KeyHint>C</KeyHint>}</button>
         <button onClick={() => setShowWords(v => !v)} style={chip(showWords)}>단어 {showWords ? '끄기' : '켜기'}</button>
         <span style={{ flex: 1 }} />
         <button data-tour="saved" onClick={() => setPanel('saved')} style={{ ...chip(false), fontWeight: 700 }}>⭐ 저장함 {savedLines.length + savedWords.length}</button>

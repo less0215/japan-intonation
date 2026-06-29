@@ -1,7 +1,7 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 100편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 8편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 11편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
  {
   "id": "6I122CKUrpA",
@@ -60,6 +60,20 @@ export const STUDY_CATALOG = [
   "ready": true
  },
  {
+  "id": "KqdT9J10rg0",
+  "jp": "世界にないものは、あなたの中にある",
+  "kr": "세상에 없는 것은 당신 안에 있다",
+  "ev": "TEDxHimi",
+  "dur": "15:35",
+  "lv": "N3",
+  "tags": [
+   "동기부여",
+   "창의성",
+   "자기계발"
+  ],
+  "ready": true
+ },
+ {
   "id": "5epBxpAL6P0",
   "jp": "見方を変える、自分が変わる",
   "kr": "보는 방식을 바꾸면 내가 바뀐다",
@@ -70,6 +84,20 @@ export const STUDY_CATALOG = [
    "동기부여",
    "자기계발",
    "관점"
+  ],
+  "ready": true
+ },
+ {
+  "id": "XLdsjpec854",
+  "jp": "食へのイメージと多様性",
+  "kr": "음식에 대한 이미지와 다양성",
+  "ev": "TEDxFukuoka",
+  "dur": "13:39",
+  "lv": "N2",
+  "tags": [
+   "문화",
+   "음식",
+   "다양성"
   ],
   "ready": true
  },
@@ -98,6 +126,20 @@ export const STUDY_CATALOG = [
    "동기부여",
    "꿈",
    "자기계발"
+  ],
+  "ready": true
+ },
+ {
+  "id": "bfhVCnPSwic",
+  "jp": "ホログラフィーと複合現実が変える医療の未来",
+  "kr": "홀로그래피와 혼합현실이 바꾸는 의료의 미래",
+  "ev": "TEDxFukuoka",
+  "dur": "12:02",
+  "lv": "N1",
+  "tags": [
+   "과학",
+   "의료",
+   "기술"
   ],
   "ready": true
  },
@@ -415,19 +457,6 @@ export const STUDY_CATALOG = [
   ]
  },
  {
-  "id": "KqdT9J10rg0",
-  "jp": "世界にないものは、あなたの中にある",
-  "kr": "세상에 없는 것은 당신 안에 있다",
-  "ev": "TEDxHimi",
-  "dur": "15:35",
-  "lv": "N3",
-  "tags": [
-   "동기부여",
-   "창의성",
-   "자기계발"
-  ]
- },
- {
   "id": "zdPIibjiKyg",
   "jp": "私たちはなぜ外国語を学ぶのか？",
   "kr": "우리는 왜 외국어를 배우는가?",
@@ -657,19 +686,6 @@ export const STUDY_CATALOG = [
   "tags": [
    "문화",
    "전통"
-  ]
- },
- {
-  "id": "XLdsjpec854",
-  "jp": "食へのイメージと多様性",
-  "kr": "음식에 대한 이미지와 다양성",
-  "ev": "TEDxFukuoka",
-  "dur": "13:39",
-  "lv": "N2",
-  "tags": [
-   "문화",
-   "음식",
-   "다양성"
   ]
  },
  {
@@ -1156,19 +1172,6 @@ export const STUDY_CATALOG = [
    "과학",
    "의료",
    "사회"
-  ]
- },
- {
-  "id": "bfhVCnPSwic",
-  "jp": "ホログラフィーと複合現実が変える医療の未来",
-  "kr": "홀로그래피와 혼합현실이 바꾸는 의료의 미래",
-  "ev": "TEDxFukuoka",
-  "dur": "12:02",
-  "lv": "N1",
-  "tags": [
-   "과학",
-   "의료",
-   "기술"
   ]
  },
  {

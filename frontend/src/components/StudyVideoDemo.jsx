@@ -69,8 +69,13 @@ export default function StudyVideoDemo() {
   const [panel, setPanel] = useState(null)
   const [popWord, setPopWord] = useState(null)   // { word, lineIdx }
 
+  const [tour, setTour] = useState(false)
+
   useEffect(() => lsSave(LS_LINES, savedLines), [savedLines])
   useEffect(() => lsSave(LS_WORDS, savedWords), [savedWords])
+  useEffect(() => { try { if (!localStorage.getItem('tickjapan_study_onboarded')) { const id = setTimeout(() => setTour(true), 700); return () => clearTimeout(id) } } catch {} }, [])
+  const startTour = () => { window.scrollTo({ top: 0 }); setTour(true) }
+  const closeTour = () => { setTour(false); try { localStorage.setItem('tickjapan_study_onboarded', '1') } catch {} }
 
   // 영상 난이도 = 등장 단어의 JLPT 집계 (쉬움→어려움 누적 80% 도달 레벨)
   const stat = useMemo(() => {
@@ -198,12 +203,20 @@ export default function StudyVideoDemo() {
         <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-strong)', margin: '5px 0 2px', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.3 }}>{data.title}</p>
         <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '0 0 8px' }}>{data.titleKr}</p>
 
-        {/* 영상 레벨 배지 + 요약 펼치기 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 9, background: `${jcolor(stat.overall)}1f`, border: `1px solid ${jcolor(stat.overall)}`, fontSize: 12.5, fontWeight: 800, color: jcolor(stat.overall) }}>
-            이 영상 레벨 · JLPT {stat.overall} <span style={{ fontWeight: 600, color: 'var(--text-2)' }}>{LV_LABEL[stat.overall]}</span>
-          </span>
-          <button onClick={() => setOpenSummary(v => !v)} style={{ ...subBtn(openSummary), fontWeight: 700 }}>요약 · 난이도 {openSummary ? '▲' : '▼'}</button>
+        {/* 영상 난이도 배너 (눈에 띄게) + 요약 펼치기 */}
+        <div data-tour="level" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 13px', borderRadius: 13, background: `${jcolor(stat.overall)}14`, border: `1px solid ${jcolor(stat.overall)}55`, borderLeft: `5px solid ${jcolor(stat.overall)}` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 50, padding: '5px 0', borderRadius: 10, background: jcolor(stat.overall), color: '#fff', lineHeight: 1 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.92 }}>JLPT</span>
+            <span style={{ fontSize: 20, fontWeight: 900, marginTop: 3 }}>{stat.overall}</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong)' }}>이 영상은 JLPT {stat.overall} 수준이에요</p>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-2)' }}>{LV_LABEL[stat.overall]} · 등장 단어의 {stat.covPct}%가 {stat.overall} 이하</p>
+          </div>
+          <button onClick={() => setOpenSummary(v => !v)} style={{ ...subBtn(openSummary), fontWeight: 700, flexShrink: 0 }}>요약 {openSummary ? '▲' : '▼'}</button>
+        </div>
+        <div style={{ textAlign: 'right', marginTop: 5 }}>
+          <button onClick={startTour} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>사용법 다시 보기</button>
         </div>
 
         {/* 요약 + 난이도 집계 (펼침) */}
@@ -252,18 +265,18 @@ export default function StudyVideoDemo() {
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 5, marginTop: 8 }}>
           <CtrlBtn label="이전" sub="A" glyph="⏮" onClick={goPrev} showKey />
           <CtrlBtn label="다시" sub="S" glyph="↺" onClick={replay} showKey />
-          <CtrlBtn label={isPlaying ? '정지' : '재생'} sub="Space" glyph={isPlaying ? '⏸' : '▶'} onClick={togglePlay} primary showKey />
-          <CtrlBtn label="반복" sub="R" glyph="⟳" onClick={toggleLoop} active={loopIdx >= 0} showKey />
+          <CtrlBtn label={isPlaying ? '정지' : '재생'} sub="Space" glyph={isPlaying ? '⏸' : '▶'} onClick={togglePlay} primary showKey tour="play" />
+          <CtrlBtn label="반복" sub="R" glyph="⟳" onClick={toggleLoop} active={loopIdx >= 0} showKey tour="loop" />
           <CtrlBtn label="다음" sub="D" glyph="⏭" onClick={goNext} showKey />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-          <button onClick={cycleRate} style={subBtn(false)}><span style={{ fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span> 배속{SHOW_KEYS && <KeyHint>Z/X</KeyHint>}</button>
-          <button onClick={() => setHideKr(v => !v)} style={subBtn(hideKr)}>{hideKr ? '뜻 보기' : '뜻 가리기'}{SHOW_KEYS && <KeyHint>H</KeyHint>}</button>
+          <button data-tour="rate" onClick={cycleRate} style={subBtn(false)}><span style={{ fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span> 배속{SHOW_KEYS && <KeyHint>Z/X</KeyHint>}</button>
+          <button data-tour="hide" onClick={() => setHideKr(v => !v)} style={subBtn(hideKr)}>{hideKr ? '뜻 보기' : '뜻 가리기'}{SHOW_KEYS && <KeyHint>H</KeyHint>}</button>
           <button onClick={() => setShowCap(v => !v)} style={subBtn(showCap)}>{showCap ? '영상자막 끄기' : '영상자막 켜기'}{SHOW_KEYS && <KeyHint>C</KeyHint>}</button>
-          <button onClick={() => setShowWords(v => !v)} style={subBtn(showWords)}>단어 {showWords ? '끄기' : '켜기'}</button>
+          <button data-tour="words" onClick={() => setShowWords(v => !v)} style={subBtn(showWords)}>단어 {showWords ? '끄기' : '켜기'}</button>
           <span style={{ flex: 1 }} />
-          <button onClick={() => setPanel('saved')} style={{ ...subBtn(false), fontWeight: 700 }}>⭐ 저장함 ({savedLines.length + savedWords.length})</button>
+          <button data-tour="saved" onClick={() => setPanel('saved')} style={{ ...subBtn(false), fontWeight: 700 }}>⭐ 저장함 ({savedLines.length + savedWords.length})</button>
         </div>
       </div>
 
@@ -279,10 +292,11 @@ export default function StudyVideoDemo() {
               <RubyText text={ln.furigana_html} fontSize={15.5} />
               <p style={{ margin: '3px 0 0', fontSize: 13, lineHeight: 1.5, color: on ? 'var(--text-1)' : 'var(--text-2)', filter: hideKr ? 'blur(5px)' : 'none', userSelect: hideKr ? 'none' : 'auto' }}>{ln.kr}</p>
 
-              {showWords && ln.words && ln.words.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 7 }}>
+              {/* 단어 칩 — 현재 재생 줄에만, 중립 톤(시선 분산 방지). 레벨은 작은 색 글자로만 */}
+              {showWords && on && ln.words && ln.words.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 8 }}>
                   {ln.words.map((w, wi) => (
-                    <button key={wi} onClick={(e) => { e.stopPropagation(); openPop(w, i) }} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 8, border: `1px solid ${jcolor(w.jlpt)}`, background: `${jcolor(w.jlpt)}1a`, cursor: 'pointer', fontSize: 12.5, color: 'var(--text-1)', fontFamily: "'Noto Sans JP', sans-serif" }}>
+                    <button key={wi} onClick={(e) => { e.stopPropagation(); openPop(w, i) }} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 8, border: '1px solid var(--bd)', background: 'var(--surface)', cursor: 'pointer', fontSize: 12.5, color: 'var(--text-2)', fontFamily: "'Noto Sans JP', sans-serif" }}>
                       {w.w}<span style={{ fontSize: 9, fontWeight: 800, color: jcolor(w.jlpt) }}>{w.jlpt || '·'}</span>
                     </button>
                   ))}
@@ -395,14 +409,77 @@ export default function StudyVideoDemo() {
           </div>
         </div>
       )}
+
+      {/* 첫 사용 가이드 (스포트라이트) */}
+      {tour && <StudyOnboarding steps={TOUR_STEPS} onClose={closeTour} />}
+    </div>
+  )
+}
+
+// ── 첫 사용 가이드 (대상만 또렷, 주변 블러+딤) ────────
+const TOUR_STEPS = [
+  { sel: 'level', title: '이 영상의 난이도', desc: '영상에 나온 단어를 모아 JLPT 레벨을 추정했어요. ‘요약’을 누르면 줄거리·난이도 분석도 볼 수 있어요.' },
+  { sel: 'play', title: '재생', desc: '재생하면 자막이 문장별로 따라 강조돼요. 스페이스바로도 재생·정지할 수 있어요.' },
+  { sel: 'loop', title: '문장 반복 (쉐도잉)', desc: '한 문장을 계속 반복 재생해요 — 쉐도잉의 핵심! 이전·다시·다음은 A·S·D 키예요.' },
+  { sel: 'rate', title: '배속', desc: '익숙해질 때까지 느리게 들어보세요. Z(느리게)·X(빠르게).' },
+  { sel: 'hide', title: '뜻 가리기', desc: '한국어 뜻을 가리고 받아쓰기·듣기 훈련을 해요. 영상 위 자막은 C로 켜고 끌 수 있어요.' },
+  { sel: 'words', title: '단어 · 저장', desc: '재생 중 문장의 단어를 누르면 뜻·JLPT·예문이 떠요. 단어·예문을 저장하면 ⭐저장함에 모여요.' },
+]
+
+function StudyOnboarding({ steps, onClose }) {
+  const [i, setI] = useState(0)
+  const [rect, setRect] = useState(null)
+  const step = steps[i]
+  useLayoutEffect(() => {
+    const sel = `[data-tour="${step.sel}"]`
+    const el = document.querySelector(sel)
+    if (el) el.scrollIntoView({ block: 'center', behavior: 'auto' })
+    const measure = () => { const e = document.querySelector(sel); if (e) setRect(e.getBoundingClientRect()) }
+    const t = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    window.addEventListener('scroll', measure, true)
+    return () => { clearTimeout(t); window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure, true) }
+  }, [i])
+
+  const last = i === steps.length - 1
+  const next = () => { if (last) onClose(); else setI(v => v + 1) }
+  const prev = () => setI(v => Math.max(0, v - 1))
+
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 360
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 640
+  const pad = 8
+  const r = rect ? { x: Math.max(0, rect.left - pad), y: Math.max(0, rect.top - pad), w: rect.width + pad * 2, h: rect.height + pad * 2 } : null
+  const clip = r ? `path(evenodd, "M0 0H${vw}V${vh}H0Z M${r.x} ${r.y}H${r.x + r.w}V${r.y + r.h}H${r.x}Z")` : undefined
+  const cardW = Math.min(330, vw - 24)
+  const below = r ? (r.y + r.h + 175 < vh) : true
+  const cardLeft = r ? Math.min(Math.max(12, r.x), vw - cardW - 12) : (vw - cardW) / 2
+  const cardTop = r ? (below ? r.y + r.h + 12 : null) : Math.max(40, (vh - 220) / 2)
+  const cardBottom = (r && !below) ? (vh - r.y + 12) : null
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 6000 }}>
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,16,0.55)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', clipPath: clip, transition: 'clip-path 0.25s ease', pointerEvents: 'none' }} />
+      {r && <div style={{ position: 'fixed', left: r.x, top: r.y, width: r.w, height: r.h, borderRadius: 12, border: `2px solid ${PRIMARY}`, boxShadow: `0 0 0 3px ${PRIMARY}55, 0 8px 30px rgba(0,0,0,0.45)`, pointerEvents: 'none', transition: 'all 0.25s ease' }} />}
+      <div onClick={next} style={{ position: 'fixed', inset: 0, pointerEvents: 'auto', cursor: 'pointer' }} />
+      <div onClick={e => e.stopPropagation()} style={{ position: 'fixed', left: cardLeft, top: cardTop ?? undefined, bottom: cardBottom ?? undefined, width: cardW, zIndex: 6002, background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 14, padding: 16, boxShadow: '0 18px 50px rgba(0,0,0,0.45)', pointerEvents: 'auto' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: PRIMARY, marginBottom: 4 }}>{i + 1} / {steps.length}</div>
+        <p style={{ margin: '0 0 5px', fontSize: 15, fontWeight: 800, color: 'var(--text-strong)' }}>{step.title}</p>
+        <p style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.6, color: 'var(--text-2)' }}>{step.desc}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}>건너뛰기</button>
+          <span style={{ flex: 1 }} />
+          {i > 0 && <button onClick={prev} style={{ ...subBtn(false), height: 36 }}>이전</button>}
+          <button onClick={next} style={{ height: 36, padding: '0 16px', borderRadius: 10, border: 'none', background: PRIMARY, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{last ? '시작하기' : '다음'}</button>
+        </div>
+      </div>
     </div>
   )
 }
 
 // ── 보조 컴포넌트/스타일 ──────────────────────────────
-function CtrlBtn({ label, sub, glyph, onClick, primary, active, showKey }) {
+function CtrlBtn({ label, sub, glyph, onClick, primary, active, showKey, tour }) {
   return (
-    <button onClick={onClick} aria-label={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, padding: '7px 2px 5px', borderRadius: 11, cursor: 'pointer', fontFamily: 'inherit', border: `1px solid ${active ? PRIMARY : 'var(--bd)'}`, background: active ? 'var(--primary-tint)' : (primary ? PRIMARY : 'var(--surface)'), color: primary ? '#fff' : (active ? PRIMARY : 'var(--text-1)'), transition: 'background 0.12s, border-color 0.12s' }}>
+    <button onClick={onClick} aria-label={label} data-tour={tour} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, padding: '7px 2px 5px', borderRadius: 11, cursor: 'pointer', fontFamily: 'inherit', border: `1px solid ${active ? PRIMARY : 'var(--bd)'}`, background: active ? 'var(--primary-tint)' : (primary ? PRIMARY : 'var(--surface)'), color: primary ? '#fff' : (active ? PRIMARY : 'var(--text-1)'), transition: 'background 0.12s, border-color 0.12s' }}>
       <span style={{ fontSize: 16, lineHeight: 1 }}>{glyph}</span>
       <span style={{ fontSize: 11, fontWeight: 600 }}>{label}</span>
       {showKey && SHOW_KEYS && <span style={{ fontSize: 9, opacity: 0.6, lineHeight: 1 }}>{sub}</span>}

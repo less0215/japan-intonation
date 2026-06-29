@@ -3245,6 +3245,53 @@ def study_translate(req: StudyTranslateRequest, request: Request):
     return {"lines": res}
 
 
+STUDY_WORDS_PROMPT = """You analyze Japanese subtitle lines for Korean learners studying Japanese.
+You are given a numbered list of Japanese lines. For EACH line, extract its CONTENT words worth studying
+(nouns, verbs, i/na-adjectives, adverbs, and meaningful set expressions/idioms). SKIP bare particles
+(は,が,を,に,へ,と,も,...), standalone copula/auxiliaries, fillers, and punctuation. Keep words in the order
+they appear; no duplicates within a line. For each word output:
+- "w": the word as it appears (the plain dictionary/base form is fine when natural)
+- "reading": full hiragana reading of the whole word
+- "ko": a short Korean meaning (1~3 words)
+- "jlpt": estimated JLPT vocabulary level, one of "N5","N4","N3","N2","N1". Use null for proper nouns or words clearly beyond N1.
+Keep the SAME order and SAME number of lines. Respond with ONLY valid JSON:
+{"lines":[{"words":[{"w":"...","reading":"...","ko":"...","jlpt":"N5"}, ...]}, ...]}
+"""
+
+class StudyWordsRequest(BaseModel):
+    lines: list[str] = []
+
+@app.post("/study/words")
+def study_words(req: StudyWordsRequest, request: Request):
+    """자막 줄 목록(일본어) → 줄별 학습 단어[{w, reading, ko, jlpt}]. 영상 학습 프로토타입용(JLPT 레벨은 추정치)."""
+    rate_guard(request)
+    lines = [(l or "").strip() for l in (req.lines or []) if (l or "").strip()][:150]
+    if not lines:
+        return {"lines": []}
+    numbered = "\n".join(f"{i+1}. {l}" for i, l in enumerate(lines))
+    data = _call_gemini_json(f"{STUDY_WORDS_PROMPT}\n\nLines:\n{numbered}")
+    out = data.get("lines") if isinstance(data, dict) else None
+    if not isinstance(out, list):
+        raise HTTPException(status_code=502, detail="단어 분석 응답 형식 오류")
+    valid = {"N5", "N4", "N3", "N2", "N1"}
+    res = []
+    for i in range(len(lines)):
+        item = out[i] if (i < len(out) and isinstance(out[i], dict)) else {}
+        words = item.get("words") if isinstance(item.get("words"), list) else []
+        clean = []
+        for w in words:
+            if not isinstance(w, dict):
+                continue
+            surf = (w.get("w") or "").strip()
+            if not surf:
+                continue
+            jl = w.get("jlpt")
+            clean.append({"w": surf, "reading": (w.get("reading") or "").strip(),
+                          "ko": (w.get("ko") or "").strip(), "jlpt": jl if jl in valid else None})
+        res.append({"words": clean})
+    return {"lines": res}
+
+
 # (구 /accent 엔드포인트 제거 — OJAD 기반이었고 프론트 미사용. 악센트는 /analyze의 Gemini 출력 사용)
 
 

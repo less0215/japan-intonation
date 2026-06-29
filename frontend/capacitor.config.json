@@ -1,5 +1,8 @@
 {
   "appId": "com.tickjapan.app",
   "appName": "TickJapan",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "iosScheme": "https"
+  }
 }

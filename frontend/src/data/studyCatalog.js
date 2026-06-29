@@ -1,7 +1,7 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 200편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 25편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 27편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
  {
   "id": "cjtmDEG-B7U",
@@ -228,6 +228,20 @@ export const STUDY_CATALOG = [
   "ready": true
  },
  {
+  "id": "tBJFp2Fm90Q",
+  "jp": "日本人の精神とクリエイティブシンキング",
+  "kr": "일본인의 정신과 크리에이티브 싱킹",
+  "ev": "TEDxSannomiya",
+  "dur": "17:42",
+  "lv": "N2",
+  "tags": [
+   "문화",
+   "창의성",
+   "전통"
+  ],
+  "ready": true
+ },
+ {
   "id": "2ialVwDvQsQ",
   "jp": "私たち消費者がフードロスに立ち向かう方法",
   "kr": "우리 소비자가 음식물 쓰레기에 맞서는 방법",
@@ -307,6 +321,20 @@ export const STUDY_CATALOG = [
    "동기부여",
    "도전",
    "열정"
+  ],
+  "ready": true
+ },
+ {
+  "id": "lL8aJE9Xp3Y",
+  "jp": "医療崩壊のすすめ",
+  "kr": "의료 붕괴를 권하다",
+  "ev": "TEDxKagoshima",
+  "dur": "20:37",
+  "lv": "N2",
+  "tags": [
+   "과학",
+   "의료",
+   "사회"
   ],
   "ready": true
  },
@@ -793,19 +821,6 @@ export const STUDY_CATALOG = [
   ]
  },
  {
-  "id": "tBJFp2Fm90Q",
-  "jp": "日本人の精神とクリエイティブシンキング",
-  "kr": "일본인의 정신과 크리에이티브 싱킹",
-  "ev": "TEDxSannomiya",
-  "dur": "17:42",
-  "lv": "N2",
-  "tags": [
-   "문화",
-   "창의성",
-   "전통"
-  ]
- },
- {
   "id": "nlUiqw-jAVQ",
   "jp": "カッコいいファーマーがもっと日本を元気にする！",
   "kr": "멋진 농부가 일본을 더 활기차게 만든다!",
@@ -1186,19 +1201,6 @@ export const STUDY_CATALOG = [
    "과학",
    "연구",
    "호기심"
-  ]
- },
- {
-  "id": "lL8aJE9Xp3Y",
-  "jp": "医療崩壊のすすめ",
-  "kr": "의료 붕괴를 권하다",
-  "ev": "TEDxKagoshima",
-  "dur": "20:37",
-  "lv": "N2",
-  "tags": [
-   "과학",
-   "의료",
-   "사회"
   ]
  },
  {

@@ -217,7 +217,7 @@ export default function StudyVideoDemo() {
   const ov = jcolor(stat.overall)
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '6px 0 96px' }}>
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '6px 0 24px' }}>
       <style>{`@keyframes tjFade{from{opacity:0}to{opacity:1}}@keyframes tjUp{from{transform:translateY(34px);opacity:.5}to{transform:translateY(0);opacity:1}}@keyframes tjRing{0%,100%{box-shadow:0 0 0 3px ${PRIMARY}55,0 8px 30px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 6px ${PRIMARY}33,0 8px 30px rgba(0,0,0,.45)}}`}</style>
 
       {/* 헤더 */}

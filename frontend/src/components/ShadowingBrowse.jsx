@@ -5,7 +5,6 @@
  * 평가/시청=localStorage. 모든 학습 → /study-demo. */
 import { useEffect, useRef, useState } from 'react'
 import { STUDY_CATALOG, STUDY_FEATURED, STUDY_TOP10, TAG_GROUPS } from '../data/studyCatalog'
-import StudyPlaybackFallback from './StudyPlaybackFallback'
 
 const LV_LABEL = { N5: '입문', N4: '초급', N3: '중급', N2: '중상급', N1: '상급' }
 const LEVELS = ['N4', 'N3', 'N2', 'N1']
@@ -266,15 +265,10 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
         <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, zIndex: 4500, background: 'rgba(12,18,24,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', animation: 'tjFadeS .18s ease' }}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', background: 'var(--bg,#fff)', borderRadius: '22px 22px 0 0', boxShadow: '0 -12px 44px rgba(0,0,0,0.3)', animation: 'tjUpS .3s cubic-bezier(.16,1,.3,1)' }}>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: '22px 22px 0 0', overflow: 'hidden' }}>
-              {IS_APP ? (
-                <StudyPlaybackFallback vid={sel.id} />
-              ) : (
-                <>
-                  <iframe title="preview" src={`https://www.youtube-nocookie.com/embed/${sel.id}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
-                  <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.45)', padding: '2px 9px', borderRadius: 6, pointerEvents: 'none' }}>{sel.lv} · {LV_LABEL[sel.lv]}</span>
-                  <span style={{ position: 'absolute', bottom: 12, right: 12, fontSize: 11.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.65)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'none' }}>{sel.dur}</span>
-                </>
-              )}
+              {/* 앱: 실도메인 프록시(live-embed.html)로 음소거 미리보기 인앱 재생(153 회피). 웹: 직접 임베드 */}
+              <iframe title="preview" src={IS_APP ? `https://tickjapan.com/live-embed.html?v=${sel.id}` : `https://www.youtube-nocookie.com/embed/${sel.id}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+              <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.45)', padding: '2px 9px', borderRadius: 6, pointerEvents: 'none' }}>{sel.lv} · {LV_LABEL[sel.lv]}</span>
+              <span style={{ position: 'absolute', bottom: 12, right: 12, fontSize: 11.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.65)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'none' }}>{sel.dur}</span>
             </div>
             <div style={{ padding: '16px 18px 24px' }}>
               <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>{sel.kr}</p>

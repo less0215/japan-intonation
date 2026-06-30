@@ -7,7 +7,6 @@
  * UI 톤: 토스풍. 저장=localStorage(프로토타입). */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import StudyPlaybackFallback from './StudyPlaybackFallback'
 import RubyText from './RubyText'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
 import { STUDY_DEMO } from '../data/studyDemo'
@@ -81,13 +80,10 @@ function Bookmark({ filled, color, size = 18 }) {
 }
 
 const PREVIEW_LIMIT = 60  // 비회원·무료회원 미리보기 1분 (플러스↑ 무제한)
-// YouTube IFrame 오류 코드(2 잘못된 파라미터/5 HTML5/100 없음/101·150 임베드 불가/153 Referer 없음) → 앱에서 웹 폴백
-const YT_FALLBACK_CODES = new Set([2, 5, 100, 101, 150, 153])
 export default function StudyVideoDemo({ isPlus = false }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [gated, setGated] = useState(false)
-  const [showFallback, setShowFallback] = useState(false)   // 앱: 153 등 재생 실패 시 Safari 전환 안내
   const isPlusRef = useRef(isPlus)
   useEffect(() => { isPlusRef.current = isPlus }, [isPlus])
   const vParam = searchParams.get('v')
@@ -95,8 +91,6 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const vid = data.videoId
   const lines = data.lines
   const playerRef = useRef(null)
-  const playerStateRef = useRef('LOADING')   // LOADING → READY | FALLBACK
-  const watchdogRef = useRef(null)
   const lineRefs = useRef([])
   const headRef = useRef(null)
   const activeRef = useRef(-1)
@@ -217,18 +211,9 @@ export default function StudyVideoDemo({ isPlus = false }) {
     ? prev.filter(s => wkey(s) !== wkey(w))
     : [...prev, { w: w.w, reading: w.reading, ko: w.ko, jlpt: w.jlpt }])
 
-  // 앱에서 재생 실패(153 등) 시 Safari 폴백으로 전환 — 멱등, web에서는 호출 안 됨
-  const triggerFallback = () => {
-    if (playerStateRef.current === 'FALLBACK') return
-    playerStateRef.current = 'FALLBACK'
-    if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null }
-    try { playerRef.current?.destroy?.() } catch {}
-    setShowFallback(true)
-  }
-
   // ── 플레이어 init + 폴링 ──────────────────────────
   useEffect(() => {
-    let timer, cancelled = false
+    let timer, cancelled = false, started = false
     // 매 틱: 현재시간(t)으로 1분 게이트·활성 문장·반복 처리 (web/app 공용)
     const tick = () => {
       const p = playerRef.current
@@ -241,15 +226,10 @@ export default function StudyVideoDemo({ isPlus = false }) {
       if (li >= 0) { const endT = lines[li + 1] ? lines[li + 1].t : Infinity; if (t >= endT - 0.12) { try { p.seekTo(lines[li].t, true) } catch {} } idx = li }
       if (idx !== activeRef.current) { activeRef.current = idx; setActiveIdx(idx) }
     }
-    const onReadyStart = () => {
-      if (playerStateRef.current !== 'LOADING') return   // 폴백 후 늦게 온 ready 무시
-      playerStateRef.current = 'READY'
-      if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null }
-      timer = setInterval(tick, 200)
-    }
+    const onReadyStart = () => { if (started) return; started = true; timer = setInterval(tick, 200) }
 
     if (IS_APP) {
-      // 앱: 원격 origin 제어형 플레이어(shadow-player.html)를 iframe으로 띄우고 postMessage로 제어 → 오류 153 회피(라이브캠과 동일 패턴).
+      // 앱: 원격 origin 제어형 플레이어(shadow-player.html)를 iframe으로 띄우고 postMessage로 제어 → 오류 153 회피(라이브캠과 동일 패턴, 장치 검증 완료).
       // playerRef를 동일 API(shim)로 만들어 seekLine/togglePlay/goStart/폴링 로직을 그대로 재사용.
       let cachedT = 0, cachedState = -1
       const send = (msg) => { const f = document.getElementById('yt-player-demo'); try { f?.contentWindow?.postMessage({ src: 'tj-app', ...msg }, '*') } catch {} }
@@ -267,12 +247,9 @@ export default function StudyVideoDemo({ isPlus = false }) {
         if (d.event === 'time') { cachedT = d.t; cachedState = d.state }
         else if (d.event === 'state') { cachedState = d.state; setIsPlaying(d.state === 1) }
         else if (d.event === 'ready') { onReadyStart() }
-        else if (d.event === 'error') { if (YT_FALLBACK_CODES.has(d.code)) triggerFallback() }
       }
       window.addEventListener('message', onMsg)
-      // 원격 페이지 로드+유튜브 준비가 로컬보다 느려 워치독 8초 (영영 ready 안 오면 웹 폴백)
-      watchdogRef.current = setTimeout(() => { if (playerStateRef.current === 'LOADING') triggerFallback() }, 8000)
-      return () => { cancelled = true; window.removeEventListener('message', onMsg); if (timer) clearInterval(timer); if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null } }
+      return () => { cancelled = true; window.removeEventListener('message', onMsg); if (timer) clearInterval(timer) }
     }
 
     // 웹: 현재 origin이 실도메인이라 직접 YT.Player 채택이 정상 동작
@@ -283,7 +260,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
         events: { onStateChange: (e) => setIsPlaying(e.data === 1), onReady: onReadyStart },
       })
     })
-    return () => { cancelled = true; if (timer) clearInterval(timer); if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null } }
+    return () => { cancelled = true; if (timer) clearInterval(timer) }
   }, [])
 
   useLayoutEffect(() => {
@@ -377,13 +354,12 @@ export default function StudyVideoDemo({ isPlus = false }) {
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen frameBorder="0"
         referrerPolicy="strict-origin-when-cross-origin"
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
-      {capMode !== 'off' && cur && !showFallback && (
+      {capMode !== 'off' && cur && (
         <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
           {(capMode === 'both' || capMode === 'jp') && <div style={{ lineHeight: 1.45 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>}
           {(capMode === 'both' || capMode === 'kr') && <p style={{ margin: capMode === 'kr' ? 0 : '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4 }}>{cur.kr}</p>}
         </div>
       )}
-      {showFallback && <StudyPlaybackFallback vid={vid} />}
     </div>
   )
 

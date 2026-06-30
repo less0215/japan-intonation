@@ -156,9 +156,9 @@ export default function SubscriptionPage() {
         </div>
         <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />광고 완전 제거</li>
-          <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />빠른 번역 하루 200회 <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>· 사실상 무제한</span></li>
-          <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />TED 쉐도잉 학습 무제한</li>
           <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />사진 번역 하루 40회</li>
+          <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />빠른 번역 하루 200회</li>
+          <li style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-1)' }}><Check color={PRIMARY} />TED 쉐도잉 학습 무제한</li>
         </ul>
         <button onClick={() => choose('plus')} disabled={!!purchasing} style={{ width: '100%', background: PRIMARY, color: '#fff', border: 'none', borderRadius: 13, padding: '14px', fontSize: 14.5, fontWeight: 600, cursor: purchasing ? 'default' : 'pointer', opacity: purchasing && purchasing !== 'plus' ? 0.6 : 1, fontFamily: 'inherit' }}>{purchasing === 'plus' ? '처리 중…' : '플러스 시작하기'}</button>
       </div>
@@ -176,7 +176,7 @@ export default function SubscriptionPage() {
         </p>
         {p.pro.save && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--warning)', fontWeight: 500 }}>{p.pro.save}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: '11px 0 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {['광고 완전 제거', '빠른 번역 무제한', 'TED 쉐도잉 학습 무제한', '사진 번역 무제한', '이벤트 우선 초대', '신규 기능 우선 이용'].map((f, i) => (
+          {['광고 완전 제거', '사진 번역 하루 무제한', '빠른 번역 하루 무제한', 'TED 쉐도잉 학습 무제한', '이벤트 우선 초대'].map((f, i) => (
             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--text-1)' }}><Check color="var(--success)" />{f}</li>
           ))}
         </ul>

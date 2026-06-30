@@ -31,7 +31,7 @@
       player = new YT.Player('p', {
         videoId: v,
         host: 'https://www.youtube-nocookie.com',
-        playerVars: { enablejsapi: 1, playsinline: 1, rel: 0, modestbranding: 1, cc_load_policy: 0, origin: location.origin },
+        playerVars: { enablejsapi: 1, playsinline: 1, rel: 0, modestbranding: 1, cc_load_policy: 0, fs: 0, origin: location.origin },
         events: {
           onReady: function () { ready = true; post({ event: 'ready' }); },
           onStateChange: function (e) { post({ event: 'state', state: e.data }); },

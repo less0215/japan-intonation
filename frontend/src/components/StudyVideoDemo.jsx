@@ -97,6 +97,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const loopRef = useRef(-1)
   const detailRef = useRef(null)
   const [isWide, setIsWide] = useState(typeof window !== 'undefined' ? window.innerWidth >= 900 : false)
+  const [expanded, setExpanded] = useState(false)   // 확대(유사 전체화면) 모드 — 자막은 영상 아래(ToS 안전)
+  const [isLandscape, setIsLandscape] = useState(typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false)
   const [activeIdx, setActiveIdx] = useState(-1)
   const [loopIdx, setLoopIdx] = useState(-1)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -121,7 +123,13 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [ratings, setRatings] = useState(() => { try { return JSON.parse(localStorage.getItem(LS_RATE) || '{}') } catch { return {} } })
 
-  useEffect(() => { const f = () => setIsWide(window.innerWidth >= 900); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f) }, [])
+  useEffect(() => { const f = () => { setIsWide(window.innerWidth >= 900); setIsLandscape(window.innerWidth > window.innerHeight) }; window.addEventListener('resize', f); window.addEventListener('orientationchange', f); return () => { window.removeEventListener('resize', f); window.removeEventListener('orientationchange', f) } }, [])
+  // 확대 모드에서 뒤로가기(제스처/버튼)면 확대 해제
+  useEffect(() => { if (!expanded) return; const onPop = () => setExpanded(false); window.history.pushState({ exp: 1 }, ''); window.addEventListener('popstate', onPop); return () => { window.removeEventListener('popstate', onPop); if (window.history.state?.exp) window.history.back() } }, [expanded])
+  // 1분 게이트는 확대 모드 위에 안 보이므로, 게이트가 뜨면 확대 해제
+  useEffect(() => { if (gated) setExpanded(false) }, [gated])
+  // 확대 모드 동안 하단 네비/배너 숨김(몰입형) + 배경 스크롤 잠금
+  useEffect(() => { document.body.classList.toggle('study-expanded', expanded); return () => document.body.classList.remove('study-expanded') }, [expanded])
   useEffect(() => lsSave(LS_LINES, savedLines), [savedLines])
   useEffect(() => lsSave(LS_WORDS, savedWords), [savedWords])
   useEffect(() => lsSave(LS_VIDS, savedVids), [savedVids])
@@ -343,21 +351,55 @@ export default function StudyVideoDemo({ isPlus = false }) {
   )
 
   const videoBlock = (
-    <div style={{ position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', boxShadow: '0 6px 22px rgba(0,0,0,0.18)',
-      ...(isWide ? { width: '100%', aspectRatio: '16 / 9', maxHeight: '60vh' } : { aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))' }) }}>
-      {/* 앱: 실도메인 프록시 페이지(shadow-player.html)를 iframe으로 → 유튜브 입장 출처가 정상 웹사이트라 153 회피(라이브캠 검증 패턴). 제어는 postMessage.
-          웹: 현재 origin이 실도메인이라 직접 enablejsapi 임베드를 YT.Player가 채택. */}
-      <iframe id="yt-player-demo" title={data.title}
-        src={IS_APP
-          ? `https://tickjapan.com/shadow-player.html?v=${vid}`
-          : `https://www.youtube.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&widget_referrer=https%3A%2F%2Fwww.tickjapan.com&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
-        allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen frameBorder="0"
-        referrerPolicy="strict-origin-when-cross-origin"
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
-      {capMode !== 'off' && cur && (
-        <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
-          {(capMode === 'both' || capMode === 'jp') && <div style={{ lineHeight: 1.45 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>}
-          {(capMode === 'both' || capMode === 'kr') && <p style={{ margin: capMode === 'kr' ? 0 : '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4 }}>{cur.kr}</p>}
+    <div style={expanded
+      ? { position: 'fixed', inset: 0, zIndex: 6000, background: '#000', display: 'flex', flexDirection: isLandscape ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', gap: isLandscape ? 18 : 14, padding: isLandscape ? '0 14px' : '0' }
+      : { position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', boxShadow: '0 6px 22px rgba(0,0,0,0.18)', ...(isWide ? { width: '100%', aspectRatio: '16 / 9', maxHeight: '60vh' } : { aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))' }) }}>
+      {/* 영상 박스 — iframe은 항상 이 안에 유지(확대 토글 시 언마운트 금지=재생 위치 보존).
+          앱: 실도메인 프록시(shadow-player.html)로 153 회피·postMessage 제어. 웹: 직접 임베드. */}
+      <div style={expanded
+        ? { position: 'relative', flexShrink: 0, aspectRatio: '16 / 9', background: '#000', overflow: 'hidden', borderRadius: isLandscape ? 10 : 0, width: isLandscape ? 'min(62vw, calc(86vh * 16 / 9))' : 'min(100%, calc(64vh * 16 / 9))' }
+        : { position: 'absolute', inset: 0 }}>
+        <iframe id="yt-player-demo" title={data.title}
+          src={IS_APP
+            ? `https://tickjapan.com/shadow-player.html?v=${vid}`
+            : `https://www.youtube.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&widget_referrer=https%3A%2F%2Fwww.tickjapan.com&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen frameBorder="0"
+          referrerPolicy="strict-origin-when-cross-origin"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+        {!expanded && capMode !== 'off' && cur && (
+          <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
+            {(capMode === 'both' || capMode === 'jp') && <div style={{ lineHeight: 1.45 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>}
+            {(capMode === 'both' || capMode === 'kr') && <p style={{ margin: capMode === 'kr' ? 0 : '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4 }}>{cur.kr}</p>}
+          </div>
+        )}
+        {/* 확대/축소 버튼 — 확대 모드에선 자막을 영상 아래/옆에 표시(YouTube ToS: 플레이어 위 오버레이 금지) */}
+        <button onClick={() => setExpanded(v => !v)} aria-label={expanded ? '축소' : '크게 보기'} title={expanded ? '축소' : '크게 보기 (자막 함께)'}
+          style={{ position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 9, border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {expanded
+              ? <><polyline points="4 14 10 14 10 20" /><polyline points="20 10 14 10 14 4" /><line x1="14" y1="10" x2="21" y2="3" /><line x1="3" y1="21" x2="10" y2="14" /></>
+              : <><polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" /><line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" /></>}
+          </svg>
+        </button>
+      </div>
+      {expanded && (
+        <div style={{ ...(isLandscape ? { flex: 1, minWidth: 0, maxWidth: 460, maxHeight: '92vh', overflowY: 'auto' } : { width: '100%', maxWidth: 560, padding: '0 18px' }), display: 'flex', flexDirection: 'column', gap: 14, color: '#fff' }}>
+          <div style={{ textAlign: isLandscape ? 'left' : 'center' }}>
+            {cur ? (<>
+              <div style={blurStyle(hideJp)}><RubyText text={cur.furigana_html} fontSize={isLandscape ? 22 : 19} /></div>
+              <p style={{ margin: '9px 0 0', fontSize: isLandscape ? 15.5 : 14, color: 'rgba(255,255,255,0.82)', lineHeight: 1.5, ...blurStyle(hideKr) }}>{cur.kr}</p>
+            </>) : (
+              <p style={{ margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.55)' }}>재생하면 자막이 여기에 표시돼요</p>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: isLandscape ? 'flex-start' : 'center' }}>
+            {[['prev', '이전', goPrev], ['replay', '다시', replay], [isPlaying ? 'pause' : 'play', isPlaying ? '정지' : '재생', togglePlay], ['loop', '반복', toggleLoop], ['next', '다음', goNext]].map(([ic, lb, fn], i) => (
+              <button key={i} onClick={fn} style={{ flex: isLandscape ? '0 0 auto' : 1, minWidth: 52, height: 46, borderRadius: 11, border: 'none', background: (ic === 'loop' && loopIdx >= 0) ? PRIMARY : 'rgba(255,255,255,0.13)', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <Ico name={ic} size={18} />
+                <span style={{ fontSize: 10.5 }}>{lb}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -377,7 +419,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="6" x2="5" y2="18" /><polyline points="20 6 12 12 20 18" /><polyline points="12 6 6 12 12 18" /></svg>
           <span style={{ marginLeft: 4, fontSize: 11.5, fontWeight: 700 }}>처음</span>
         </button>
-        <span data-tour="hide" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 4px 3px 10px', borderRadius: 11, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
+        <span data-tour="hide" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 4px 0 10px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)', marginRight: 2 }}>가리기</span>
           <button onClick={() => setHideJp(v => !v)} style={segChip(hideJp)} title="일본어 가리기 (J)"><EyeIcon off={hideJp} /> 일</button>
           <button onClick={() => setHideKr(v => !v)} style={segChip(hideKr)} title="한국어 가리기 (H)"><EyeIcon off={hideKr} /> 한</button>
@@ -616,8 +658,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
 // ── 바텀시트(모바일) / 센터 모달(PC) ──────────────────
 function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, wide = false, children }) {
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: z, background: `rgba(12,18,24,${scrim})`, display: 'flex', alignItems: wide ? 'center' : 'flex-end', justifyContent: 'center', padding: wide ? 24 : 0, animation: 'tjFade 0.18s ease' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: wide ? 560 : 640, maxHeight: wide ? '86vh' : maxH, overflowY: 'auto', background: 'var(--bg)', borderRadius: wide ? 20 : '22px 22px 0 0', padding: wide ? '20px 20px 22px' : '8px 18px 26px', boxShadow: '0 -12px 44px rgba(0,0,0,0.32)', animation: wide ? 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' : 'tjUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: z, background: `rgba(12,18,24,${wide ? 0.1 : scrim})`, display: 'flex', alignItems: 'center', justifyContent: wide ? 'flex-end' : 'center', padding: wide ? '16px 18px' : 0, animation: 'tjFade 0.18s ease' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: wide ? 400 : 640, maxHeight: wide ? '92vh' : maxH, overflowY: 'auto', background: 'var(--bg)', border: wide ? '1px solid var(--bd)' : 'none', borderRadius: wide ? 18 : '22px 22px 0 0', padding: wide ? '18px 18px 20px' : '8px 18px 26px', boxShadow: '0 16px 48px rgba(0,0,0,0.4)', animation: wide ? 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' : 'tjUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
         {!wide && <div style={{ width: 38, height: 4, borderRadius: 2, background: 'var(--bd)', margin: '2px auto 16px' }} />}
         {children}
       </div>

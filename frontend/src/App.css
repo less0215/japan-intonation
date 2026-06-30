@@ -52,6 +52,9 @@ body {
   box-shadow: 0 -3px 16px rgba(20, 40, 55, 0.05);
   padding: 6px 8px env(safe-area-inset-bottom, 0px);
 }
+/* 쉐도잉 확대(유사 전체화면) 모드 — 하단 네비 숨김 + 배경 스크롤 잠금 */
+body.study-expanded { overflow: hidden; }
+body.study-expanded .bottom-nav { display: none !important; }
 .bottom-nav-item {
   flex: 1;
   display: flex;

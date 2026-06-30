@@ -296,6 +296,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
 
   useEffect(() => { const el = lineRefs.current[activeIdx]; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, [activeIdx])
   useEffect(() => { detailRef.current = detailIdx }, [detailIdx])
+  // 문장 상세 팝업이 열린 채 재생 중이면, 영상 진행에 맞춰 팝업 내용도 활성 문장으로 동기화(일시정지 땐 수동 고정)
+  useEffect(() => { if (detailIdx != null && isPlaying && activeIdx >= 0 && activeIdx !== detailIdx) setDetailIdx(activeIdx) }, [activeIdx, isPlaying, detailIdx])
 
   useEffect(() => {
     const onKey = (e) => {

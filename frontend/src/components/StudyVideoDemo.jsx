@@ -6,6 +6,7 @@
  * 요약 펼치기 + 영상 난이도(JLPT 집계) + 단어장. 첫 사용 가이드(스포트라이트+프로그래스).
  * UI 톤: 토스풍. 저장=localStorage(프로토타입). */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import RubyText from './RubyText'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
@@ -463,7 +464,28 @@ export default function StudyVideoDemo({ isPlus = false }) {
 
   const transcriptBlock = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {!isWide && <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '2px 4px 4px' }}>문장을 누르면 분해·단어를 자세히 볼 수 있어요</p>}
+      {/* 스크립트 상단: 안내 + PDF 저장(잘 보이도록 상단 배치) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, margin: '2px 4px 8px' }}>
+        {!isWide ? <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>문장을 누르면 분해·단어를 볼 수 있어요</span> : <span />}
+        <button onClick={() => setPrinting(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 11px', borderRadius: 9, border: '1px solid var(--bd)', background: 'var(--surface)', color: 'var(--text-1)', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+          스크립트 PDF
+        </button>
+      </div>
+      {/* 인쇄용 문서 — document.body로 포털(인쇄 시 #root만 숨기면 빈 페이지 없이 스크립트 끝까지만 출력) */}
+      {printing && createPortal(
+        <div className="tj-print" aria-hidden="true">
+          <div className="tj-print-title">{data.title}</div>
+          <div className="tj-print-sub">{data.titleKr}{data.ev ? ` · ${data.ev}` : ''}</div>
+          <div className="tj-print-brand">틱재팬 · TED 쉐도잉 스크립트 · tickjapan.com</div>
+          {(unlimited ? lines : lines.filter(l => l.t < PREVIEW_LIMIT)).map((ln, i) => (
+            <div key={i} className="tj-print-row">
+              <span className="tj-print-t">{fmtT(ln.t)}</span>
+              <div className="tj-print-jp"><RubyText text={ln.furigana_html} fontSize={15} /></div>
+              <div className="tj-print-kr">{ln.kr}</div>
+            </div>
+          ))}
+        </div>, document.body)}
       {lines.map((ln, i) => {
         if (!unlimited && ln.t >= PREVIEW_LIMIT) return null   // 무료: 1분 이후 스크립트 잠금
         const on = i === activeIdx
@@ -531,25 +553,6 @@ export default function StudyVideoDemo({ isPlus = false }) {
                   )
                 })}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-      {/* 스크립트 PDF로 저장 (브라우저 인쇄→PDF) — 보이는 범위(게이트 적용)만 출력 */}
-      <button onClick={() => setPrinting(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 46, marginTop: 12, borderRadius: 13, border: '1px solid var(--bd)', background: 'var(--surface)', color: 'var(--text-1)', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-        스크립트 PDF로 저장
-      </button>
-      {printing && (
-        <div className="tj-print" aria-hidden="true">
-          <div className="tj-print-title">{data.title}</div>
-          <div className="tj-print-sub">{data.titleKr}{data.ev ? ` · ${data.ev}` : ''}</div>
-          <div className="tj-print-brand">틱재팬 · TED 쉐도잉 스크립트 · tickjapan.com</div>
-          {(unlimited ? lines : lines.filter(l => l.t < PREVIEW_LIMIT)).map((ln, i) => (
-            <div key={i} className="tj-print-row">
-              <span className="tj-print-t">{fmtT(ln.t)}</span>
-              <div className="tj-print-jp"><RubyText text={ln.furigana_html} fontSize={15} /></div>
-              <div className="tj-print-kr">{ln.kr}</div>
             </div>
           ))}
         </div>

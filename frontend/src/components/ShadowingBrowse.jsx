@@ -87,7 +87,6 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const [hover, setHover] = useState(null)   // { v, rect }
   const [filterOpen, setFilterOpen] = useState(false)
   const [savedVids, setSavedVids] = useState(() => load(LS_VIDS, []))
-  const [comingSoon, setComingSoon] = useState(null)   // 학습 스크립트 미준비 영상
   const [whyOpen, setWhyOpen] = useState(() => { try { return !localStorage.getItem('tickjapan_shadow_why') } catch { return true } })   // 첫 진입엔 펼침
   const toggleWhy = () => setWhyOpen(o => { const n = !o; if (!n) { try { localStorage.setItem('tickjapan_shadow_why', '1') } catch {} } return n })
   const enterT = useRef(); const leaveT = useRef(); const filterRef = useRef()
@@ -104,8 +103,6 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
 
   const rate = (id, v) => setRatings(p => ({ ...p, [id]: p[id] === v ? undefined : v }))
   const start = (id) => {
-    const v = STUDY_CATALOG.find(x => x.id === id)
-    if (v && !v.ready) { setSel(null); setHover(null); setComingSoon(v); return }
     setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); setHover(null); onNavigate('/study-demo?v=' + id)
   }
   const isVidSaved = (id) => savedVids.includes(id)
@@ -292,28 +289,14 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
                 <button onClick={() => rate(sel.id, 'down')} style={rateBtn(ratings[sel.id] === 'down')}><Thumb down filled={ratings[sel.id] === 'down'} /> 별로</button>
                 <button onClick={() => toggleVid(sel.id)} style={rateBtn(isVidSaved(sel.id))}><Bookmark filled={isVidSaved(sel.id)} size={17} /> {isVidSaved(sel.id) ? '저장됨' : '저장'}</button>
               </div>
-              <button onClick={() => start(sel.id)} style={{ width: '100%', height: 50, marginTop: 10, borderRadius: 14, border: sel.ready ? 'none' : '1px solid var(--bd,#d7dde2)', background: sel.ready ? 'var(--text-strong,#1f2937)' : 'transparent', color: sel.ready ? 'var(--bg,#fff)' : 'var(--text-2,#5b6470)', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                {sel.ready
-                  ? <><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20" /></svg> 쉐도잉 시작</>
-                  : <>🛠️ 학습 스크립트 준비 중</>}
+              <button onClick={() => start(sel.id)} style={{ width: '100%', height: 50, marginTop: 10, borderRadius: 14, border: 'none', background: 'var(--text-strong,#1f2937)', color: 'var(--bg,#fff)', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20" /></svg> 쉐도잉 시작
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 학습 스크립트 미준비 안내 */}
-      {comingSoon && (
-        <div onClick={() => setComingSoon(null)} style={{ position: 'fixed', inset: 0, zIndex: 4600, background: 'rgba(12,18,24,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'tjFadeS .18s ease' }}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, background: 'var(--bg,#fff)', borderRadius: 20, padding: '24px 22px', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
-            <div style={{ fontSize: 34, marginBottom: 8 }}>🛠️</div>
-            <p style={{ margin: 0, fontSize: 16.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>학습 스크립트를 준비 중이에요</p>
-            <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.6, color: 'var(--text-2,#5b6470)', wordBreak: 'keep-all' }}>〈{comingSoon.kr}〉은 타임라인 자막·후리가나·단어장이 아직 준비되지 않았어요. 영상은 모아두고, 가장 먼저 완성된 영상으로 지금 체험해 보세요.</p>
-            <button onClick={() => { setComingSoon(null); onNavigate('/study-demo') }} style={{ width: '100%', height: 46, marginTop: 18, borderRadius: 13, border: 'none', background: 'var(--text-strong,#1f2937)', color: 'var(--bg,#fff)', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>완성된 영상으로 체험하기</button>
-            <button onClick={() => { const id = comingSoon.id; setComingSoon(null); toggleVid(id) }} style={{ width: '100%', height: 42, marginTop: 8, borderRadius: 13, border: '1px solid var(--bd,#d7dde2)', background: 'transparent', color: 'var(--text-2,#5b6470)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{isVidSaved(comingSoon.id) ? '저장됨 ✓' : '이 영상 저장해두기'}</button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

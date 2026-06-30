@@ -11,7 +11,6 @@ import DownloadPage from './components/DownloadPage'
 import AppDownloadPromo from './components/AppDownloadPromo'
 import AndroidComingSoonBanner from './components/AndroidComingSoonBanner'
 import StudyVideoDemo from './components/StudyVideoDemo'
-import HomeDemo from './components/HomeDemo'
 import ShadowingBrowse from './components/ShadowingBrowse'
 import QuotaWall from './components/QuotaWall'
 import AndroidLaunchPopup from './components/AndroidLaunchPopup'
@@ -1109,7 +1108,6 @@ export default function App() {
           <Route path="/live"        element={<LiveCamLibrary />} />
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
           <Route path="/study-demo"  element={<StudyVideoDemo isPlus={subAdFree} />} />
-          <Route path="/home-demo"   element={<HomeDemo />} />
           <Route path="/shadowing"   element={<ShadowingBrowse variant="tab" isLoggedIn={!!user} userName={user?.name} onNavigate={navigate} />} />
           <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="/messages"    element={<MessageInbox />} />

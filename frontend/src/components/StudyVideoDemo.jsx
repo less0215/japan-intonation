@@ -478,7 +478,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const titleBlock = (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 11.5, fontWeight: 800, color: PRIMARY, letterSpacing: 0.2 }}>영상 학습 · 프로토타입</span>
+        <span style={{ fontSize: 11.5, fontWeight: 800, color: PRIMARY, letterSpacing: 0.2 }}>TED 쉐도잉</span>
         <button onClick={startTour} style={{ ...ghostBtn(false), height: 28, fontSize: 11.5, color: 'var(--text-3)', flexShrink: 0 }}>❔ 사용법</button>
       </div>
       <p style={{ fontSize: isWide ? 23 : 20, fontWeight: 800, color: 'var(--text-strong)', margin: '6px 0 3px', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.32, wordBreak: 'keep-all' }}>{data.title}</p>

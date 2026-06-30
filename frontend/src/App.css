@@ -55,6 +55,23 @@ body {
 /* 쉐도잉 확대(유사 전체화면) 모드 — 하단 네비 숨김 + 배경 스크롤 잠금 */
 body.study-expanded { overflow: hidden; }
 body.study-expanded .bottom-nav { display: none !important; }
+
+/* 쉐도잉 스크립트 PDF(인쇄) — 화면에선 화면 밖, 인쇄 땐 전체 */
+.tj-print { position: fixed; left: -99999px; top: 0; width: 760px; color: #111; font-family: 'Noto Sans JP', 'Apple SD Gothic Neo', sans-serif; }
+.tj-print-title { font-size: 20px; font-weight: 800; }
+.tj-print-sub { font-size: 13px; color: #555; margin-top: 3px; }
+.tj-print-brand { font-size: 11px; color: #aaa; margin: 5px 0 16px; }
+.tj-print-row { display: grid; grid-template-columns: 48px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid #eee; break-inside: avoid; }
+.tj-print-t { font-size: 11px; color: #999; }
+.tj-print-jp { font-size: 15px; line-height: 1.65; }
+.tj-print-jp rt { color: #888; }
+.tj-print-kr { grid-column: 2; font-size: 12.5px; color: #555; margin-top: 3px; }
+@media print {
+  body * { visibility: hidden; }
+  .tj-print, .tj-print * { visibility: visible; }
+  .tj-print { position: absolute; left: 0 !important; top: 0; width: 100%; padding: 6px 10px; }
+  .bottom-nav, .ad-banner { display: none !important; }
+}
 .bottom-nav-item {
   flex: 1;
   display: flex;

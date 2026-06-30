@@ -80,16 +80,18 @@ function Bookmark({ filled, color, size = 18 }) {
 }
 
 const PREVIEW_LIMIT = 60  // 비회원·무료회원 미리보기 1분 (플러스↑ 무제한)
+const FREE_FULL_IDS = new Set(['ldybnuFxdiQ'])  // 이 영상만 1분 제한 없이 전체 무료 공개(입문 쉐도잉 출시 영상)
 export default function StudyVideoDemo({ isPlus = false }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [gated, setGated] = useState(false)
-  const isPlusRef = useRef(isPlus)
-  useEffect(() => { isPlusRef.current = isPlus }, [isPlus])
   const vParam = searchParams.get('v')
   const data = (vParam && STUDY_DATA[vParam]) || STUDY_DEMO
   const vid = data.videoId
   const lines = data.lines
+  const unlimited = isPlus || FREE_FULL_IDS.has(vid)   // 플러스 또는 무료개방 영상은 1분 미리보기 제한 없음
+  const unlimitedRef = useRef(unlimited)
+  useEffect(() => { unlimitedRef.current = unlimited }, [unlimited])
   const playerRef = useRef(null)
   const lineRefs = useRef([])
   const headRef = useRef(null)
@@ -99,6 +101,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const [isWide, setIsWide] = useState(typeof window !== 'undefined' ? window.innerWidth >= 900 : false)
   const [expanded, setExpanded] = useState(false)   // 확대(유사 전체화면) 모드 — 자막은 영상 아래(ToS 안전)
   const [isLandscape, setIsLandscape] = useState(typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false)
+  const [printing, setPrinting] = useState(false)   // 스크립트 PDF(인쇄→PDF로 저장)
   const [activeIdx, setActiveIdx] = useState(-1)
   const [loopIdx, setLoopIdx] = useState(-1)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -130,6 +133,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
   useEffect(() => { if (gated) setExpanded(false) }, [gated])
   // 확대 모드 동안 하단 네비/배너 숨김(몰입형) + 배경 스크롤 잠금
   useEffect(() => { document.body.classList.toggle('study-expanded', expanded); return () => document.body.classList.remove('study-expanded') }, [expanded])
+  // PDF: 인쇄용 DOM이 렌더된 뒤 print() → 브라우저 'PDF로 저장'
+  useEffect(() => { if (!printing) return; const t = setTimeout(() => { try { window.print() } catch {} ; setPrinting(false) }, 90); return () => clearTimeout(t) }, [printing])
   useEffect(() => lsSave(LS_LINES, savedLines), [savedLines])
   useEffect(() => lsSave(LS_WORDS, savedWords), [savedWords])
   useEffect(() => lsSave(LS_VIDS, savedVids), [savedVids])
@@ -155,19 +160,19 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const vocab = useMemo(() => {
     const map = new Map()
     lines.forEach((ln, i) => {
-      if (!isPlus && ln.t >= PREVIEW_LIMIT) return   // 무료: 1분 이후 단어는 미집계
+      if (!unlimited && ln.t >= PREVIEW_LIMIT) return   // 무료: 1분 이후 단어는 미집계
       ;(ln.words || []).forEach(w => { const k = `${w.w}|${w.reading}`; if (!map.has(k)) map.set(k, { ...w, lineIdx: i }) })
     })
     const all = [...map.values()]
     const byLevel = {}; ORDER.forEach(lv => { byLevel[lv] = all.filter(w => w.jlpt === lv) })
     return { all, byLevel, count: all.length }
-  }, [isPlus])
+  }, [unlimited])
 
   // ── 플레이어 제어 ─────────────────────────────────
   const seekLine = (i) => {
     const p = playerRef.current
     if (!p || !p.seekTo || i < 0 || i >= lines.length) return
-    if (!isPlus && lines[i].t >= PREVIEW_LIMIT) { setGated(true); return }
+    if (!unlimited && lines[i].t >= PREVIEW_LIMIT) { setGated(true); return }
     p.seekTo(Math.max(0, lines[i].t - 0.15), true)
     if (p.playVideo) p.playVideo()
     activeRef.current = i; setActiveIdx(i)
@@ -187,7 +192,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const togglePlay = () => {
     const p = playerRef.current; if (!p || !p.getPlayerState) return
     if (p.getPlayerState() === 1) { p.pauseVideo(); return }
-    if (!isPlus) { let t = 0; try { t = p.getCurrentTime() } catch {}; if (t >= PREVIEW_LIMIT) { setGated(true); return } }
+    if (!unlimited) { let t = 0; try { t = p.getCurrentTime() } catch {}; if (t >= PREVIEW_LIMIT) { setGated(true); return } }
     p.playVideo()
   }
   const toggleLoop = () => {
@@ -227,7 +232,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
       const p = playerRef.current
       if (!p || !p.getCurrentTime) return
       let t; try { t = p.getCurrentTime() } catch { return }
-      if (!isPlusRef.current && t >= PREVIEW_LIMIT && p.getPlayerState && p.getPlayerState() === 1) { try { p.pauseVideo() } catch {}; setGated(true) }
+      if (!unlimitedRef.current && t >= PREVIEW_LIMIT && p.getPlayerState && p.getPlayerState() === 1) { try { p.pauseVideo() } catch {}; setGated(true) }
       let idx = -1
       for (let i = 0; i < lines.length; i++) { if (lines[i].t <= t + 0.15) idx = i; else break }
       const li = loopRef.current
@@ -460,7 +465,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {!isWide && <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '2px 4px 4px' }}>문장을 누르면 분해·단어를 자세히 볼 수 있어요</p>}
       {lines.map((ln, i) => {
-        if (!isPlus && ln.t >= PREVIEW_LIMIT) return null   // 무료: 1분 이후 스크립트 잠금
+        if (!unlimited && ln.t >= PREVIEW_LIMIT) return null   // 무료: 1분 이후 스크립트 잠금
         const on = i === activeIdx
         const saved = isLineSaved(i)
         return (
@@ -486,7 +491,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
           </div>
         )
       })}
-      {!isPlus && lines.some(l => l.t >= PREVIEW_LIMIT) && (
+      {!unlimited && lines.some(l => l.t >= PREVIEW_LIMIT) && (
         <button onClick={() => navigate('/plans?from=shadowing_script')} style={{ marginTop: 8, width: '100%', textAlign: 'center', cursor: 'pointer', fontFamily: 'inherit', border: '1px solid var(--bd)', background: 'var(--surface)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
           <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong)' }}>무료 미리보기는 1분까지예요</span>
@@ -526,6 +531,25 @@ export default function StudyVideoDemo({ isPlus = false }) {
                   )
                 })}
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {/* 스크립트 PDF로 저장 (브라우저 인쇄→PDF) — 보이는 범위(게이트 적용)만 출력 */}
+      <button onClick={() => setPrinting(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 46, marginTop: 12, borderRadius: 13, border: '1px solid var(--bd)', background: 'var(--surface)', color: 'var(--text-1)', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+        스크립트 PDF로 저장
+      </button>
+      {printing && (
+        <div className="tj-print" aria-hidden="true">
+          <div className="tj-print-title">{data.title}</div>
+          <div className="tj-print-sub">{data.titleKr}{data.ev ? ` · ${data.ev}` : ''}</div>
+          <div className="tj-print-brand">틱재팬 · TED 쉐도잉 스크립트 · tickjapan.com</div>
+          {(unlimited ? lines : lines.filter(l => l.t < PREVIEW_LIMIT)).map((ln, i) => (
+            <div key={i} className="tj-print-row">
+              <span className="tj-print-t">{fmtT(ln.t)}</span>
+              <div className="tj-print-jp"><RubyText text={ln.furigana_html} fontSize={15} /></div>
+              <div className="tj-print-kr">{ln.kr}</div>
             </div>
           ))}
         </div>

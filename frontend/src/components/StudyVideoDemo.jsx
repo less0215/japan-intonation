@@ -207,6 +207,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
       if (cancelled || !YT) return
       playerRef.current = new YT.Player('yt-player-demo', {
         videoId: vid,
+        host: 'https://www.youtube-nocookie.com',   // iOS WKWebView 쿠키/스토리지 차단(ITP)로 인한 오류 153 회피
         playerVars: { rel: 0, modestbranding: 1, cc_load_policy: 0, playsinline: 1 },
         events: {
           onStateChange: (e) => setIsPlaying(e.data === 1),
@@ -674,7 +675,7 @@ function StudyOnboarding({ steps, onClose }) {
   }, [i])
 
   const last = i === steps.length - 1
-  const next = () => { if (last) onClose(dontShow); else setI(v => v + 1) }
+  const next = () => { if (dontShow || last) onClose(dontShow); else setI(v => v + 1) }   // '다시 보지 않기' 체크 시 즉시 종료
   const prev = () => setI(v => Math.max(0, v - 1))
 
   const vw = typeof window !== 'undefined' ? window.innerWidth : 360

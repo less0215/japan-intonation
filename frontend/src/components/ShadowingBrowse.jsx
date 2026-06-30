@@ -177,7 +177,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
           {/* 왜 TED 쉐도잉? — 첫 진입엔 펼침, 이후 접힘(누르면 다시) */}
           <div style={{ marginBottom: 18, border: '1px solid var(--bd,#e0e5e9)', borderRadius: 14, overflow: 'hidden', background: 'var(--surface,#f7f9fb)' }}>
             <button onClick={toggleWhy} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '13px 15px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>왜 TED로 쉐도잉할까요?<span style={{ fontWeight: 500, color: 'var(--text-3,#9aa0a6)', fontSize: 12 }}> · 5분이면 충분</span></span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>왜 TED로 쉐도잉할까요?</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3,#9aa0a6)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform .18s' }}><polyline points="6 9 12 15 18 9" /></svg>
             </button>
             {whyOpen && (
@@ -239,7 +239,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
           <div style={{ position: 'fixed', left, top, width: W, zIndex: 4200, borderRadius: 12, overflow: 'hidden', background: 'var(--bg,#fff)', boxShadow: '0 18px 48px rgba(0,0,0,0.45)', animation: 'tjPv .16s ease' }}
             onMouseEnter={() => clearTimeout(leaveT.current)} onMouseLeave={onLeave}>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000' }}>
-              <iframe title="preview" src={`https://www.youtube.com/embed/${v.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&loop=1&playlist=${v.id}`} allow="autoplay" frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+              <iframe title="preview" src={`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&loop=1&playlist=${v.id}`} allow="autoplay" frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
             </div>
             <div style={{ padding: '11px 13px 13px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
@@ -266,7 +266,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
         <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, zIndex: 4500, background: 'rgba(12,18,24,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', animation: 'tjFadeS .18s ease' }}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', background: 'var(--bg,#fff)', borderRadius: '22px 22px 0 0', boxShadow: '0 -12px 44px rgba(0,0,0,0.3)', animation: 'tjUpS .3s cubic-bezier(.16,1,.3,1)' }}>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: '22px 22px 0 0', overflow: 'hidden' }}>
-              <iframe title="preview" src={`https://www.youtube.com/embed/${sel.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&loop=1&playlist=${sel.id}`} allow="autoplay" frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+              <iframe title="preview" src={`https://www.youtube-nocookie.com/embed/${sel.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&loop=1&playlist=${sel.id}`} allow="autoplay" frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
               <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.45)', padding: '2px 9px', borderRadius: 6, pointerEvents: 'none' }}>{sel.lv} · {LV_LABEL[sel.lv]}</span>
               <span style={{ position: 'absolute', bottom: 12, right: 12, fontSize: 11.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.65)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'none' }}>{sel.dur}</span>
             </div>

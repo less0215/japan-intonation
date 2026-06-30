@@ -3,6 +3,7 @@ import PageSEO from './PageSEO'
 import ReferralCodeCard from './ReferralCodeCard'
 import AdminSection from './AdminSection'
 import AdminMetrics from './AdminMetrics'
+import AdminStudy from './AdminStudy'
 import AdminSurvey from './AdminSurvey'
 import AdminMessages from './AdminMessages'
 import AdminReferrals from './AdminReferrals'
@@ -71,6 +72,7 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
       {user?.is_admin && (
         <>
           <AdminSection title="구독·회원 지표" defaultOpen={true}><AdminMetrics /></AdminSection>
+          <AdminSection title="쉐도잉 분석 (해자)"><AdminStudy /></AdminSection>
           <AdminSection title="설문 결과"><AdminSurvey /></AdminSection>
           <AdminSection title="메시지 관리"><AdminMessages /></AdminSection>
           <AdminSection title="추천 코드"><AdminReferrals /></AdminSection>

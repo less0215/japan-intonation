@@ -17,7 +17,7 @@ from google import genai
 from google.api_core.client_options import ClientOptions
 from google.cloud import texttospeech
 from pydantic import BaseModel
-from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String, Text, create_engine, text as sa_text
+from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String, Text, create_engine, func, text as sa_text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -593,6 +593,20 @@ class SavedBookmark(Base):
     item_id    = Column(String(160), nullable=False)
     payload    = Column(Text, nullable=False)                  # 항목 객체 JSON
     created_at = Column(DateTime, default=now_kst)
+
+
+class StudyEvent(Base):
+    """쉐도잉(TED 학습) 행동 로그 — 영상/문장 단위. '한국 학습자가 어디서 막히고 무엇을 반복하는가'를
+    문장·단어 수준으로 축적하는 자사 데이터(해자). User/SavedResult와 무관한 별도 테이블."""
+    __tablename__ = "study_event"
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    video_id   = Column(String(20), index=True)
+    line_idx   = Column(Integer, nullable=True)            # 문장 인덱스(영상 단위 이벤트는 null)
+    kind       = Column(String(20), index=True)            # start|complete|reach|loop|replay|breakdown|save_line|save_word|rate_up|rate_down
+    user_id    = Column(String(40), nullable=True, index=True)
+    anon_id    = Column(String(64), nullable=True, index=True)
+    meta       = Column(String(120), nullable=True)        # save_word=단어, reach=최대라인, rate=레벨 등
+    created_at = Column(DateTime, default=now_kst, index=True)
 
 
 # SQLite는 check_same_thread 필요, PostgreSQL은 불필요
@@ -3293,6 +3307,87 @@ def study_words(req: StudyWordsRequest, request: Request):
                           "ko": (w.get("ko") or "").strip(), "jlpt": jl if jl in valid else None})
         res.append({"words": clean})
     return {"lines": res}
+
+
+# ── 쉐도잉 행동 로그(해자 데이터) — 수집 + 관리자 집계 ──────────────────
+class StudyEventItem(BaseModel):
+    video_id: str
+    kind: str
+    line_idx: int | None = None
+    meta: str | None = None
+
+class StudyEventsRequest(BaseModel):
+    events: list[StudyEventItem] = []
+    user_id: str | None = None
+    anon_id: str | None = None
+
+@app.post("/study/events")
+def study_events(req: StudyEventsRequest, request: Request):
+    """쉐도잉 학습 이벤트 일괄 수집(영상/문장 단위). 비로그인도 anon_id로 누적."""
+    rate_guard(request)
+    evs = (req.events or [])[:120]
+    if not evs:
+        return {"ok": True, "n": 0}
+    db = SessionLocal()
+    try:
+        n = 0
+        for e in evs:
+            vid = (e.video_id or "").strip()[:20]
+            kind = (e.kind or "").strip()[:20]
+            if not vid or not kind:
+                continue
+            db.add(StudyEvent(video_id=vid, kind=kind, line_idx=e.line_idx,
+                              user_id=((req.user_id or "")[:40] or None),
+                              anon_id=((req.anon_id or "")[:64] or None),
+                              meta=((e.meta or "")[:120] or None)))
+            n += 1
+        db.commit()
+        return {"ok": True, "n": n}
+    finally:
+        db.close()
+
+@app.get("/admin/study-stats")
+def admin_study_stats(key: str = ""):
+    """관리자 — 쉐도잉 분석: 개요 + 영상 랭킹 + 어려운 문장 + 인기 단어."""
+    if key != FAST_ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="관리자만 사용할 수 있어요.")
+    db = SessionLocal()
+    try:
+        def cnt(k):
+            return db.query(func.count(StudyEvent.id)).filter(StudyEvent.kind == k).scalar() or 0
+        starts, completes = cnt("start"), cnt("complete")
+        total = db.query(func.count(StudyEvent.id)).scalar() or 0
+        learners = db.query(func.count(func.distinct(func.coalesce(StudyEvent.user_id, StudyEvent.anon_id)))).scalar() or 0
+        overview = {
+            "events": total, "learners": learners,
+            "sessions": starts, "completes": completes,
+            "completion_rate": round(completes / starts * 100) if starts else 0,
+            "loops": cnt("loop"), "replays": cnt("replay"), "breakdowns": cnt("breakdown"),
+            "saved_lines": cnt("save_line"), "saved_words": cnt("save_word"),
+        }
+        # 영상별 집계
+        per = {}
+        for vid, kind, c in db.query(StudyEvent.video_id, StudyEvent.kind, func.count(StudyEvent.id)).group_by(StudyEvent.video_id, StudyEvent.kind).all():
+            per.setdefault(vid, {})[kind] = c
+        top_videos = sorted(
+            [{"video_id": v, "sessions": d.get("start", 0), "completes": d.get("complete", 0),
+              "completion_rate": round(d.get("complete", 0) / d.get("start", 0) * 100) if d.get("start") else 0,
+              "engage": d.get("loop", 0) + d.get("replay", 0) + d.get("breakdown", 0)} for v, d in per.items()],
+            key=lambda x: (x["sessions"], x["engage"]), reverse=True)[:25]
+        # 어려운 문장 = (영상,문장)별 loop+replay+breakdown 합
+        hard = (db.query(StudyEvent.video_id, StudyEvent.line_idx, func.count(StudyEvent.id))
+                  .filter(StudyEvent.kind.in_(["loop", "replay", "breakdown"]), StudyEvent.line_idx.isnot(None))
+                  .group_by(StudyEvent.video_id, StudyEvent.line_idx)
+                  .order_by(func.count(StudyEvent.id).desc()).limit(30).all())
+        hard_lines = [{"video_id": v, "line_idx": li, "score": c} for v, li, c in hard]
+        # 인기 저장 단어
+        words = (db.query(StudyEvent.meta, func.count(StudyEvent.id))
+                   .filter(StudyEvent.kind == "save_word", StudyEvent.meta.isnot(None))
+                   .group_by(StudyEvent.meta).order_by(func.count(StudyEvent.id).desc()).limit(30).all())
+        top_words = [{"word": w, "n": c} for w, c in words]
+        return {"overview": overview, "top_videos": top_videos, "hard_lines": hard_lines, "top_words": top_words}
+    finally:
+        db.close()
 
 
 # (구 /accent 엔드포인트 제거 — OJAD 기반이었고 프론트 미사용. 악센트는 /analyze의 Gemini 출력 사용)

@@ -18,6 +18,25 @@ const IS_APP = typeof window !== 'undefined' && (window.Capacitor?.isNativePlatf
 const STICKY_TOP = IS_APP ? 'max(env(safe-area-inset-top, 0px), 56px)' : 0   // 앱: 상태바(노치/다이내믹아일랜드) 아래로
 const GREEN = '#1D9E75'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
+
+// ── 쉐도잉 행동 로그(해자 데이터) — 버퍼 후 일괄 전송(sendBeacon) ──
+const _ev = []; let _evT = null
+function tjAnon() { try { let a = localStorage.getItem('tickjapan_anon'); if (!a) { a = 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem('tickjapan_anon', a) } return a } catch { return null } }
+function flushEv() {
+  if (_evT) { clearTimeout(_evT); _evT = null }
+  if (!_ev.length) return
+  const events = _ev.splice(0, _ev.length)
+  let user_id = null; try { user_id = JSON.parse(localStorage.getItem('tickjapan_user') || 'null')?.user_id || null } catch {}
+  const body = JSON.stringify({ events, user_id, anon_id: tjAnon() })
+  try {
+    if (navigator.sendBeacon) navigator.sendBeacon(`${API_URL}/study/events`, new Blob([body], { type: 'application/json' }))
+    else fetch(`${API_URL}/study/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true })
+  } catch {}
+}
+function logEv(video_id, kind, line_idx = null, meta = null) {
+  if (!video_id || !kind) return
+  _ev.push({ video_id, kind, line_idx, meta }); if (_ev.length >= 15) flushEv(); else if (!_evT) _evT = setTimeout(flushEv, 12000)
+}
 const RATES = [0.5, 0.75, 1, 1.25, 1.5]
 const SHOW_KEYS = typeof window !== 'undefined' && window.matchMedia
   ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : false
@@ -99,6 +118,9 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const activeRef = useRef(-1)
   const loopRef = useRef(-1)
   const detailRef = useRef(null)
+  const startedRef = useRef(false)    // 학습 시작 1회 기록
+  const completedRef = useRef(false)  // 완주 1회 기록
+  const maxIdxRef = useRef(-1)        // 최대 도달 문장(이탈 지점)
   const [isWide, setIsWide] = useState(typeof window !== 'undefined' ? window.innerWidth >= 900 : false)
   const [expanded, setExpanded] = useState(false)   // 확대(유사 전체화면) 모드 — 자막은 영상 아래(ToS 안전)
   const [isLandscape, setIsLandscape] = useState(typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false)
@@ -143,7 +165,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const toggleSaveVid = () => setSavedVids(prev => prev.includes(vid) ? prev.filter(x => x !== vid) : [vid, ...prev])
   useEffect(() => { try { localStorage.setItem(LS_RATE, JSON.stringify(ratings)) } catch {} }, [ratings])
   const rating = ratings[vid]
-  const rateVid = (v) => setRatings(prev => ({ ...prev, [vid]: prev[vid] === v ? undefined : v }))
+  const rateVid = (v) => setRatings(prev => { if (prev[vid] !== v) logEv(vid, v === 'up' ? 'rate_up' : 'rate_down'); return { ...prev, [vid]: prev[vid] === v ? undefined : v } })
   // 사용법 가이드: '다시 보지 않기'를 누르지 않는 한 진입 때마다 자동 표시
   useEffect(() => { try { if (!localStorage.getItem(LS_TOUR_OFF)) { const id = setTimeout(() => setTour(true), 600); return () => clearTimeout(id) } } catch {} }, [])
   const startTour = () => { window.scrollTo({ top: 0 }); setTour(true) }
@@ -181,7 +203,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
   }
   const goPrev = () => seekLine(Math.max(0, (activeRef.current < 0 ? 0 : activeRef.current) - 1))
   const goNext = () => seekLine(Math.min(lines.length - 1, (activeRef.current < 0 ? -1 : activeRef.current) + 1))
-  const replay = () => seekLine(activeRef.current < 0 ? 0 : activeRef.current)
+  const replay = () => { const i = activeRef.current < 0 ? 0 : activeRef.current; logEv(vid, 'replay', i); seekLine(i) }
   // 영상 맨 처음으로 되돌아가기 (반복 해제 + 스크립트 상단으로)
   const goStart = () => {
     const p = playerRef.current
@@ -198,11 +220,11 @@ export default function StudyVideoDemo({ isPlus = false }) {
   }
   const toggleLoop = () => {
     if (loopRef.current >= 0) { loopRef.current = -1; setLoopIdx(-1) }
-    else { const i = activeRef.current < 0 ? 0 : activeRef.current; loopRef.current = i; setLoopIdx(i); seekLine(i) }
+    else { const i = activeRef.current < 0 ? 0 : activeRef.current; loopRef.current = i; setLoopIdx(i); seekLine(i); logEv(vid, 'loop', i) }
   }
   const loopThisLine = (i) => {
     if (loopRef.current === i) { loopRef.current = -1; setLoopIdx(-1) }
-    else { loopRef.current = i; setLoopIdx(i); seekLine(i) }
+    else { loopRef.current = i; setLoopIdx(i); seekLine(i); logEv(vid, 'loop', i) }
   }
   const detailGo = (delta) => {
     const i = detailRef.current; if (i == null) return
@@ -216,14 +238,16 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const isLineSaved = (i) => savedLines.some(s => s.vid === vid && s.idx === i)
   const toggleSaveLine = (i) => setSavedLines(prev => {
     if (prev.some(s => s.vid === vid && s.idx === i)) return prev.filter(s => !(s.vid === vid && s.idx === i))
-    const ln = lines[i]
+    const ln = lines[i]; logEv(vid, 'save_line', i)
     return [...prev, { vid, idx: i, t: ln.t, jp: ln.jp, furigana_html: ln.furigana_html, kr: ln.kr }]
   })
   const wkey = (w) => `${w.w}|${w.reading}`
   const isWordSaved = (w) => savedWords.some(s => wkey(s) === wkey(w))
-  const toggleSaveWord = (w) => setSavedWords(prev => prev.some(s => wkey(s) === wkey(w))
-    ? prev.filter(s => wkey(s) !== wkey(w))
-    : [...prev, { w: w.w, reading: w.reading, ko: w.ko, jlpt: w.jlpt }])
+  const toggleSaveWord = (w) => setSavedWords(prev => {
+    if (prev.some(s => wkey(s) === wkey(w))) return prev.filter(s => wkey(s) !== wkey(w))
+    logEv(vid, 'save_word', null, w.w)
+    return [...prev, { w: w.w, reading: w.reading, ko: w.ko, jlpt: w.jlpt }]
+  })
 
   // ── 플레이어 init + 폴링 ──────────────────────────
   useEffect(() => {
@@ -239,6 +263,9 @@ export default function StudyVideoDemo({ isPlus = false }) {
       const li = loopRef.current
       if (li >= 0) { const endT = lines[li + 1] ? lines[li + 1].t : Infinity; if (t >= endT - 0.12) { try { p.seekTo(lines[li].t, true) } catch {} } idx = li }
       if (idx !== activeRef.current) { activeRef.current = idx; setActiveIdx(idx) }
+      // 해자 로그: 최대 도달 문장 + 완주
+      if (idx > maxIdxRef.current) maxIdxRef.current = idx
+      if (idx >= 0 && idx === lines.length - 1 && !completedRef.current) { completedRef.current = true; logEv(vid, 'complete') }
     }
     const onReadyStart = () => { if (started) return; started = true; timer = setInterval(tick, 200) }
 
@@ -287,6 +314,14 @@ export default function StudyVideoDemo({ isPlus = false }) {
 
   useEffect(() => { const el = lineRefs.current[activeIdx]; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, [activeIdx])
   useEffect(() => { detailRef.current = detailIdx }, [detailIdx])
+  // 해자 로그: 학습 시작 1회
+  useEffect(() => { if (isPlaying && !startedRef.current) { startedRef.current = true; logEv(vid, 'start') } }, [isPlaying])
+  // 해자 로그: 백그라운드/이탈 시 전송 + 언마운트 시 최대 도달 문장 기록
+  useEffect(() => {
+    const onHide = () => { if (document.hidden) flushEv() }
+    document.addEventListener('visibilitychange', onHide); window.addEventListener('pagehide', flushEv)
+    return () => { if (maxIdxRef.current >= 0) logEv(vid, 'reach', maxIdxRef.current); flushEv(); document.removeEventListener('visibilitychange', onHide); window.removeEventListener('pagehide', flushEv) }
+  }, [])
   // 문장 상세 팝업이 열린 채 재생 중이면, 영상 진행에 맞춰 팝업 내용도 활성 문장으로 동기화(일시정지 땐 수동 고정)
   useEffect(() => { if (detailIdx != null && isPlaying && activeIdx >= 0 && activeIdx !== detailIdx) setDetailIdx(activeIdx) }, [activeIdx, isPlaying, detailIdx])
 
@@ -617,7 +652,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
           onLoopLine={() => loopThisLine(detailIdx)}
           onTogglePlay={togglePlay}
           onToggleSave={() => toggleSaveLine(detailIdx)}
-          onOpenWord={(w) => openPop(w, detailIdx)} />
+          onOpenWord={(w) => openPop(w, detailIdx)}
+          onBreakdown={() => logEv(vid, 'breakdown', detailIdx)} />
       )}
 
 
@@ -695,12 +731,13 @@ function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, wide = false, ch
 }
 
 // ── 문장 상세 — 분해는 '보기' 버튼으로 수동 실행 ──────
-function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev, onNext, onPlayLine, onLoopLine, onTogglePlay, onToggleSave, onOpenWord }) {
+function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev, onNext, onPlayLine, onLoopLine, onTogglePlay, onToggleSave, onOpenWord, onBreakdown }) {
   const [bd, setBd] = useState(null)
   const [state, setState] = useState('idle')   // idle → 사용자가 '문장 분해 보기' 누르면 loading
   const [wordsOpen, setWordsOpen] = useState(false)
 
   const load = () => {
+    onBreakdown && onBreakdown()
     setState('loading')
     fetch(`${API_URL}/breakdown`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ japanese: ln.jp }) })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })

@@ -329,9 +329,9 @@ export default function StudyVideoDemo({ isPlus = false }) {
           <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--text-strong)', wordBreak: 'keep-all' }}>이 영상은 JLPT {stat.overall} 수준이에요</p>
           <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-2)', wordBreak: 'keep-all' }}>{LV_LABEL[stat.overall]} · 등장 단어의 {stat.covPct}%가 {stat.overall} 이하</p>
         </div>
-        <button onClick={() => setOpenSummary(v => !v)} style={{ ...ghostBtn(openSummary), flexShrink: 0 }}>요약 {openSummary ? '▲' : '▼'}</button>
+        {data.summary && <button onClick={() => setOpenSummary(v => !v)} style={{ ...ghostBtn(openSummary), flexShrink: 0 }}>요약 {openSummary ? '▲' : '▼'}</button>}
       </div>
-      {openSummary && (
+      {openSummary && data.summary && (
         <div style={{ marginTop: 10, padding: 16, borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--bd)', animation: 'tjFade 0.2s ease' }}>
           <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.7, color: 'var(--text-1)', wordBreak: 'keep-all' }}>{data.summary}</p>
           {data.points && (

@@ -1386,7 +1386,8 @@ export const STUDY_CATALOG = [
    "재능",
    "성장",
    "자기계발"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "b3R8G9nHR-s",
@@ -1414,7 +1415,8 @@ export const STUDY_CATALOG = [
    "꿈",
    "예술",
    "미래"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "gx4EmLpqL3k",
@@ -1744,7 +1746,8 @@ export const STUDY_CATALOG = [
    "자신감",
    "자기계발",
    "용기"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "Fnk78pvZT0k",
@@ -1786,7 +1789,8 @@ export const STUDY_CATALOG = [
    "도전",
    "변화",
    "용기"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "vYNGAfcBzz4",
@@ -1828,7 +1832,8 @@ export const STUDY_CATALOG = [
    "곤충",
    "사진",
    "자연"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "BQQVaGi9seQ",
@@ -1884,7 +1889,8 @@ export const STUDY_CATALOG = [
    "다양성",
    "도시",
    "공동체"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "t3MMsIG94cI",

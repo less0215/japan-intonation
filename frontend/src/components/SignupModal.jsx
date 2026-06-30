@@ -3,6 +3,10 @@ import { track } from '../App'
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 
+// 관리자 계정 보호: 이름이 '정봉준'으로 시작하면 추가 인증 코드 요구
+const ADMIN_NAME_PREFIX = '정봉준'
+const ADMIN_EXTRA_CODE = '920322'
+
 function formatPhone(value) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
   if (digits.length < 4) return digits
@@ -15,12 +19,28 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save', title, 
   const [phone, setPhone]     = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
+  const [needCode, setNeedCode] = useState(false)   // 관리자 추가 인증 팝업 표시
+  const [code, setCode]         = useState('')
+  const [codeError, setCodeError] = useState('')
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault()
     if (!name.trim()) return setError('이름을 입력해 주세요.')
     if (phone.replace(/\D/g, '').length < 10) return setError('올바른 휴대폰 번호를 입력해 주세요.')
+    // 관리자 이름(정봉준*)으로 로그인 시도 → 추가 인증 코드 팝업 먼저
+    if (name.trim().startsWith(ADMIN_NAME_PREFIX)) { setError(''); setCode(''); setCodeError(''); setNeedCode(true); return }
+    doSignup()
+  }
 
+  // 추가 인증 코드 확인 → 일치 시 실제 로그인 진행
+  function handleCodeSubmit(e) {
+    e.preventDefault()
+    if (code.trim() !== ADMIN_EXTRA_CODE) { setCodeError('인증 코드가 올바르지 않습니다.'); return }
+    setNeedCode(false); setCodeError('')
+    doSignup()
+  }
+
+  async function doSignup() {
     setLoading(true)
     setError('')
     try {
@@ -43,6 +63,37 @@ export default function SignupModal({ onSuccess, onClose, mode = 'save', title, 
     } finally {
       setLoading(false)
     }
+  }
+
+  // 관리자 추가 인증 코드 팝업
+  if (needCode) {
+    return (
+      <div className="modal-backdrop" onClick={() => setNeedCode(false)}>
+        <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+          <div className="modal-handle" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
+            <p className="modal-title">관리자 인증</p>
+            <p className="modal-subtitle">관리자 계정으로 로그인하려면 추가 인증 코드를 입력해 주세요.</p>
+          </div>
+          <form onSubmit={handleCodeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <input
+              className="modal-input"
+              type="password"
+              inputMode="numeric"
+              placeholder="추가 인증 코드"
+              value={code}
+              onChange={e => { setCode(e.target.value); setCodeError('') }}
+              autoFocus
+            />
+            {codeError && <p style={{ fontSize: 13, color: 'var(--danger)', margin: '0 2px' }}>{codeError}</p>}
+            <button type="submit" className="modal-submit" disabled={loading} style={{ marginTop: 4 }}>
+              {loading ? '처리 중...' : '인증하고 로그인'}
+            </button>
+            <button type="button" onClick={() => setNeedCode(false)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>뒤로</button>
+          </form>
+        </div>
+      </div>
+    )
   }
 
   return (

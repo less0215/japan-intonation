@@ -8,6 +8,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { track } from '../App'
 import RubyText from './RubyText'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
 import { STUDY_DEMO } from '../data/studyDemo'
@@ -35,7 +36,9 @@ function flushEv() {
 }
 function logEv(video_id, kind, line_idx = null, meta = null) {
   if (!video_id || !kind) return
-  _ev.push({ video_id, kind, line_idx, meta }); if (_ev.length >= 15) flushEv(); else if (!_evT) _evT = setTimeout(flushEv, 12000)
+  _ev.push({ video_id, kind, line_idx, meta })
+  try { track('shadow_' + kind, { video_id, line_idx: line_idx ?? undefined, meta: meta ?? undefined }) } catch {}   // GA4(→BigQuery)
+  if (_ev.length >= 15) flushEv(); else if (!_evT) _evT = setTimeout(flushEv, 12000)
 }
 const RATES = [0.5, 0.75, 1, 1.25, 1.5]
 const SHOW_KEYS = typeof window !== 'undefined' && window.matchMedia
@@ -326,26 +329,30 @@ export default function StudyVideoDemo({ isPlus = false }) {
   useEffect(() => { if (detailIdx != null && isPlaying && activeIdx >= 0 && activeIdx !== detailIdx) setDetailIdx(activeIdx) }, [activeIdx, isPlaying, detailIdx])
 
   useEffect(() => {
+    // e.code(물리 키)로 처리 → 한/영 IME 상관없이 작동(e.key는 한글일 때 'ㅁ'/'Process'가 됨)
     const onKey = (e) => {
       const tag = (e.target && e.target.tagName) || ''
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return
-      switch (e.key) {
-        case 'a': case 'A': case 'ArrowLeft': e.preventDefault(); detailRef.current != null ? detailGo(-1) : goPrev(); break
-        case 'd': case 'D': case 'ArrowRight': e.preventDefault(); detailRef.current != null ? detailGo(1) : goNext(); break
-        case 's': case 'S': e.preventDefault(); replay(); break
-        case 'r': case 'R': e.preventDefault(); toggleLoop(); break
-        case 'h': case 'H': e.preventDefault(); setHideKr(v => !v); break
-        case 'j': case 'J': e.preventDefault(); setHideJp(v => !v); break
-        case 'c': case 'C': e.preventDefault(); cycleCap(); break
-        case 'z': case 'Z': e.preventDefault(); stepRate(-1); break
-        case 'x': case 'X': e.preventDefault(); stepRate(1); break
-        case ' ': e.preventDefault(); togglePlay(); break
+      switch (e.code) {
+        case 'KeyA': case 'ArrowLeft': e.preventDefault(); detailRef.current != null ? detailGo(-1) : goPrev(); break
+        case 'KeyD': case 'ArrowRight': e.preventDefault(); detailRef.current != null ? detailGo(1) : goNext(); break
+        case 'KeyS': e.preventDefault(); replay(); break
+        case 'KeyR': e.preventDefault(); toggleLoop(); break
+        case 'KeyH': e.preventDefault(); setHideKr(v => !v); break
+        case 'KeyJ': e.preventDefault(); setHideJp(v => !v); break
+        case 'KeyC': e.preventDefault(); cycleCap(); break
+        case 'KeyZ': e.preventDefault(); stepRate(-1); break
+        case 'KeyX': e.preventDefault(); stepRate(1); break
+        case 'Space': e.preventDefault(); togglePlay(); break
         case 'Escape': setPopWord(null); setPanel(null); setDetailIdx(null); break
         default: break
       }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    // 영상 iframe이 키보드 포커스를 가져가면(클릭/자동) 회수 → 페이지 클릭 없이 바로 단축키 작동
+    const reclaim = () => { const ae = document.activeElement; if (ae && ae.tagName === 'IFRAME') { try { ae.blur() } catch {} ; try { window.focus() } catch {} } }
+    window.addEventListener('blur', reclaim)
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('blur', reclaim) }
   }, [])
 
   const cur = activeIdx >= 0 ? lines[activeIdx] : null

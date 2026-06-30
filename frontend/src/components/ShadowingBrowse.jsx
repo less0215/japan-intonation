@@ -3,8 +3,21 @@
  * 탭: 헤드카피 + 히어로 + 필터(레벨·분량) + 개인화 + TOP10 + 주제.
  * 데스크톱 카드 호버 → 음소거 자동재생 미리보기 + 정보(넷플릭스식). 제목=한국어 위/일본어 아래.
  * 평가/시청=localStorage. 모든 학습 → /study-demo. */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { STUDY_CATALOG, STUDY_FEATURED, STUDY_TOP10, TAG_GROUPS } from '../data/studyCatalog'
+
+const API_URL = 'https://japan-intonation-production.up.railway.app'
+// 좋아요/싫어요를 서버에 기록 → 전역 랭킹(수요)에 즉시 반영
+function logRate(video_id, kind) {
+  try {
+    let user_id = null; try { user_id = JSON.parse(localStorage.getItem('tickjapan_user') || 'null')?.user_id || null } catch {}
+    let anon_id = null; try { anon_id = localStorage.getItem('tickjapan_anon') || null } catch {}
+    const body = JSON.stringify({ events: [{ video_id, kind }], user_id, anon_id })
+    if (navigator.sendBeacon) navigator.sendBeacon(`${API_URL}/study/events`, new Blob([body], { type: 'application/json' }))
+    else fetch(`${API_URL}/study/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true })
+    if (window.gtag) window.gtag('event', 'shadow_' + kind, { video_id })
+  } catch {}
+}
 
 const LV_LABEL = { N5: '입문', N4: '초급', N3: '중급', N2: '중상급', N1: '상급' }
 const LEVELS = ['N4', 'N3', 'N2', 'N1']
@@ -86,6 +99,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const [hover, setHover] = useState(null)   // { v, rect }
   const [filterOpen, setFilterOpen] = useState(false)
   const [savedVids, setSavedVids] = useState(() => load(LS_VIDS, []))
+  const [rankedIds, setRankedIds] = useState(null)   // 서버 인기 랭킹(수요 반영)
   const [whyOpen, setWhyOpen] = useState(() => { try { return !localStorage.getItem('tickjapan_shadow_why') } catch { return true } })   // 첫 진입엔 펼침
   const toggleWhy = () => setWhyOpen(o => { const n = !o; if (!n) { try { localStorage.setItem('tickjapan_shadow_why', '1') } catch {} } return n })
   const enterT = useRef(); const leaveT = useRef(); const filterRef = useRef()
@@ -94,13 +108,17 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   useEffect(() => { try { localStorage.setItem(LS_WATCH, JSON.stringify(watched)) } catch {} }, [watched])
   useEffect(() => { try { localStorage.setItem(LS_VIDS, JSON.stringify(savedVids)) } catch {} }, [savedVids])
   useEffect(() => { const f = () => setHover(null); window.addEventListener('scroll', f, true); return () => window.removeEventListener('scroll', f, true) }, [])
+  useEffect(() => { fetch(`${API_URL}/study/ranking`).then(r => r.ok ? r.json() : null).then(d => setRankedIds(Array.isArray(d?.ids) ? d.ids : [])).catch(() => setRankedIds([])) }, [])
   useEffect(() => {
     if (!filterOpen) return
     const f = (e) => { if (filterRef.current && !filterRef.current.contains(e.target)) setFilterOpen(false) }
     document.addEventListener('mousedown', f); return () => document.removeEventListener('mousedown', f)
   }, [filterOpen])
 
-  const rate = (id, v) => setRatings(p => ({ ...p, [id]: p[id] === v ? undefined : v }))
+  const rate = (id, v) => setRatings(p => {
+    if (p[id] !== v && (v === 'up' || v === 'down')) logRate(id, v === 'up' ? 'rate_up' : 'rate_down')
+    return { ...p, [id]: p[id] === v ? undefined : v }
+  })
   const start = (id) => {
     setWatched(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); setSel(null); setHover(null); onNavigate('/study-demo?v=' + id)
   }
@@ -116,7 +134,23 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const likedIds = Object.keys(ratings).filter(id => ratings[id] === 'up')
   const disliked = new Set(Object.keys(ratings).filter(id => ratings[id] === 'down'))
   const likedV = likedIds.length ? byId(likedIds[likedIds.length - 1]) : null
-  const similar = likedV ? READY.filter(v => v.id !== likedV.id && !disliked.has(v.id) && (v.lv === likedV.lv || v.tags.some(t => likedV.tags.includes(t)))).slice(0, 12) : []
+  // 인기 TOP10 = 서버 랭킹(실수요) 우선, 부족분은 정적 큐레이션으로 보충(데이터 적을 땐 사실상 큐레이션)
+  const top10 = useMemo(() => {
+    const m = new Map(READY.map(v => [v.id, v])); const out = []; const seen = new Set()
+    for (const id of (rankedIds || [])) { const v = m.get(id); if (v && !seen.has(id)) { out.push(v); seen.add(id) } }
+    for (const v of STUDY_TOP10) { if (v.ready && !seen.has(v.id)) { out.push(v); seen.add(v.id) } }
+    return out.slice(0, 10)
+  }, [rankedIds])
+  // 추천 = 내가 '좋아요'한 영상들의 태그/레벨과 겹치는 정도로 점수화(싫어요·이미 좋아요 제외)
+  const similar = (() => {
+    if (!likedIds.length) return []
+    const likedVids = likedIds.map(byId).filter(Boolean)
+    const tagW = {}; likedVids.forEach(v => (v.tags || []).forEach(t => { tagW[t] = (tagW[t] || 0) + 1 }))
+    const lvW = {}; likedVids.forEach(v => { lvW[v.lv] = (lvW[v.lv] || 0) + 1 })
+    return READY.filter(v => !likedIds.includes(v.id) && !disliked.has(v.id))
+      .map(v => ({ v, s: (v.tags || []).reduce((a, t) => a + (tagW[t] || 0), 0) + (lvW[v.lv] || 0) * 0.5 }))
+      .filter(x => x.s > 0).sort((a, b) => b.s - a.s).map(x => x.v).slice(0, 12)
+  })()
   const f = STUDY_FEATURED
   const isTab = variant === 'tab'
   const filtering = isTab && (lvF !== 'all' || durF !== 'all')
@@ -212,13 +246,13 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
       ) : (
         <>
           {/* 홈: TOP10 최상단 */}
-          {!isTab && <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10.filter(v => v.ready)} ranked {...rowProps} />}
+          {!isTab && <Row title="쉐도잉 인기 TOP 10" items={top10} ranked {...rowProps} />}
 
           {isLoggedIn && watchedV.length > 0 && <Row title={`${userName || '회원'}님이 시청 중인 콘텐츠`} items={watchedV} {...rowProps} />}
           {isLoggedIn && likedV && similar.length > 0 && <Row title={`‘좋아요’한 〈${likedV.kr}〉과 비슷한 콘텐츠`} items={similar} {...rowProps} />}
 
           {/* 탭: TOP10 (개인화 다음) */}
-          {isTab && <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10.filter(v => v.ready)} ranked {...rowProps} />}
+          {isTab && <Row title="쉐도잉 인기 TOP 10" items={top10} ranked {...rowProps} />}
 
           {/* 주제 카테고리 (홈·탭 공통) */}
           {TAG_GROUPS.map(g => <Row key={g.tag} title={g.label} items={READY.filter(v => v.tags.includes(g.tag))} {...rowProps} />)}

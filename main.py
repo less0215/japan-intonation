@@ -3346,6 +3346,34 @@ def study_events(req: StudyEventsRequest, request: Request):
     finally:
         db.close()
 
+_study_rank_cache = {"t": 0.0, "ids": []}
+
+@app.get("/study/ranking")
+def study_ranking():
+    """공개 — 최근 14일 행동 기반 인기 영상 랭킹(수요 즉각 반영, 180초 캐시).
+    점수 = 세션 + 완주*2 + (좋아요*3 - 싫어요*2) + (반복·다시·분해)*0.3 + 저장*0.5."""
+    now = time.time()
+    if _study_rank_cache["t"] and now - _study_rank_cache["t"] < 180:
+        return {"ids": _study_rank_cache["ids"]}
+    db = SessionLocal()
+    try:
+        since = now_kst() - datetime.timedelta(days=14)
+        rows = (db.query(StudyEvent.video_id, StudyEvent.kind, func.count(StudyEvent.id))
+                  .filter(StudyEvent.created_at >= since)
+                  .group_by(StudyEvent.video_id, StudyEvent.kind).all())
+        W = {"start": 1.0, "complete": 2.0, "rate_up": 3.0, "rate_down": -2.0,
+             "loop": 0.3, "replay": 0.3, "breakdown": 0.4, "save_word": 0.5, "save_line": 0.5}
+        agg = {}
+        for vid, kind, c in rows:
+            agg.setdefault(vid, 0.0)
+            agg[vid] += W.get(kind, 0.0) * c
+        ids = [v for v, s in sorted(agg.items(), key=lambda x: x[1], reverse=True) if s > 0]
+        _study_rank_cache["t"] = now
+        _study_rank_cache["ids"] = ids
+        return {"ids": ids}
+    finally:
+        db.close()
+
 @app.get("/admin/study-stats")
 def admin_study_stats(key: str = ""):
     """관리자 — 쉐도잉 분석: 개요 + 영상 랭킹 + 어려운 문장 + 인기 단어."""

@@ -133,7 +133,7 @@ export default function SubscriptionPage() {
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-strong)' }}>무료</span>
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)' }}>₩0</span>
         </div>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.55 }}>번역·단어·문법·저장까지 전부 무료로. TED 쉐도잉은 3분 미리보기. 광고가 함께 표시돼요.</p>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.55 }}>번역·단어·문법·저장까지 전부 무료로. TED 쉐도잉은 1분 미리보기. 광고가 함께 표시돼요.</p>
       </div>
 
       {/* 플러스 (추천) */}

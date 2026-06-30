@@ -80,7 +80,7 @@ function Bookmark({ filled, color, size = 18 }) {
   )
 }
 
-const PREVIEW_LIMIT = 180  // 비회원·무료회원 미리보기 3분 (플러스↑ 무제한)
+const PREVIEW_LIMIT = 60  // 비회원·무료회원 미리보기 1분 (플러스↑ 무제한)
 // YouTube IFrame 오류 코드(2 잘못된 파라미터/5 HTML5/100 없음/101·150 임베드 불가/153 Referer 없음) → 앱에서 Safari 폴백
 const YT_FALLBACK_CODES = new Set([2, 5, 100, 101, 150, 153])
 const WEB_STUDY_BASE = 'https://www.tickjapan.com/study-demo'  // 폴백: 실제 원격 사이트(진짜 origin → enablejsapi 정상)
@@ -154,7 +154,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const vocab = useMemo(() => {
     const map = new Map()
     lines.forEach((ln, i) => {
-      if (!isPlus && ln.t >= PREVIEW_LIMIT) return   // 무료: 3분 이후 단어는 미집계
+      if (!isPlus && ln.t >= PREVIEW_LIMIT) return   // 무료: 1분 이후 단어는 미집계
       ;(ln.words || []).forEach(w => { const k = `${w.w}|${w.reading}`; if (!map.has(k)) map.set(k, { ...w, lineIdx: i }) })
     })
     const all = [...map.values()]
@@ -414,7 +414,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {!isWide && <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '2px 4px 4px' }}>문장을 누르면 분해·단어를 자세히 볼 수 있어요</p>}
       {lines.map((ln, i) => {
-        if (!isPlus && ln.t >= PREVIEW_LIMIT) return null   // 무료: 3분 이후 스크립트 잠금
+        if (!isPlus && ln.t >= PREVIEW_LIMIT) return null   // 무료: 1분 이후 스크립트 잠금
         const on = i === activeIdx
         const saved = isLineSaved(i)
         return (
@@ -443,7 +443,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
       {!isPlus && lines.some(l => l.t >= PREVIEW_LIMIT) && (
         <button onClick={() => navigate('/plans?from=shadowing_script')} style={{ marginTop: 8, width: '100%', textAlign: 'center', cursor: 'pointer', fontFamily: 'inherit', border: '1px solid var(--bd)', background: 'var(--surface)', borderRadius: 16, padding: '20px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-          <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong)' }}>무료 미리보기는 3분까지예요</span>
+          <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong)' }}>무료 미리보기는 1분까지예요</span>
           <span style={{ fontSize: 12.5, lineHeight: 1.6, color: 'var(--text-2)', wordBreak: 'keep-all' }}>이후 스크립트와 영상은 한 편을 끝까지 반복하며 익히는 진짜 쉐도잉 — 플러스부터 무제한이에요.</span>
           <span style={{ marginTop: 8, height: 44, padding: '0 22px', borderRadius: 12, background: 'linear-gradient(145deg,#6fb6d6,#5CA9CE 55%,#4f96bb)', color: '#fff', fontSize: 14.5, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 6px 16px ${PRIMARY}55` }}>쉐도잉 무제한 시청</span>
         </button>
@@ -548,12 +548,12 @@ export default function StudyVideoDemo({ isPlus = false }) {
       )}
 
 
-      {/* 미리보기 3분 한도 넛징 (비회원·무료회원) */}
+      {/* 미리보기 1분 한도 넛징 (비회원·무료회원) */}
       {gated && (
         <div onClick={() => setGated(false)} style={{ position: 'fixed', inset: 0, zIndex: 5000, background: 'rgba(10,15,20,0.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 22, animation: 'tjFade 0.18s ease' }}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 20, padding: '24px 22px', boxShadow: '0 24px 60px rgba(0,0,0,0.42)', textAlign: 'center', animation: 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' }}>
             <div style={{ fontSize: 32, marginBottom: 6 }}>🎬</div>
-            <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 800, color: 'var(--text-strong)' }}>무료 미리보기는 3분까지예요</p>
+            <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 800, color: 'var(--text-strong)' }}>무료 미리보기는 1분까지예요</p>
             <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-2)', wordBreak: 'keep-all' }}>마음에 든 영상 하나를 <b style={{ color: 'var(--text-1)' }}>끝까지 반복하며</b> 제대로 익히고 싶다면 — 플러스부터 광고 없이 무제한이에요.</p>
             <button onClick={() => { setGated(false); navigate('/plans?from=shadowing_preview') }} style={{ width: '100%', height: 50, borderRadius: 14, border: 'none', background: 'linear-gradient(145deg,#6fb6d6,#5CA9CE 55%,#4f96bb)', color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 8px 20px ${PRIMARY}55` }}>쉐도잉 무제한 시청</button>
             <button onClick={() => setGated(false)} style={{ marginTop: 10, background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>나중에</button>

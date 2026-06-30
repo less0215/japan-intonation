@@ -1987,7 +1987,8 @@ export const STUDY_CATALOG = [
    "춤",
    "소통",
    "예술"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "XgEsF74IHak",
@@ -2113,7 +2114,8 @@ export const STUDY_CATALOG = [
    "농업",
    "기술",
    "도전"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "pAxxrhXamJs",
@@ -2211,7 +2213,8 @@ export const STUDY_CATALOG = [
    "전통",
    "예술",
    "혁신"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "G239-r5bq1s",
@@ -2253,7 +2256,8 @@ export const STUDY_CATALOG = [
    "꿈",
    "성장",
    "목표"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "DITeGmyhbB8",
@@ -2337,7 +2341,8 @@ export const STUDY_CATALOG = [
    "갱생",
    "범죄",
    "지원"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "z_oRjjuGKV0",

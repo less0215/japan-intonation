@@ -913,6 +913,15 @@ ADMIN_PHONES = {"01033530215"}
 def is_admin_phone(phone: str) -> bool:
     return _norm_phone(phone) in {_norm_phone(p) for p in ADMIN_PHONES}
 
+# 무상 '프로' 무기한 화이트리스트(인플루언서 협업 등) — 만료 없음. 번호는 숫자만(_norm_phone).
+# 협업 인플루언서 추가·삭제는 여기만 수정하면 됨(해당 번호로 가입하면 자동 적용).
+COMP_PRO_PHONES = {
+    "07041300987",   # 김태영 (인플루언서 협업)
+}
+
+def is_comp_pro(phone: str) -> bool:
+    return _norm_phone(phone) in COMP_PRO_PHONES
+
 # 빠른 번역 한도 — 5시간 롤링 윈도우(클로드 방식)
 FAST_WINDOW_LIMIT = 15            # 윈도우당 횟수
 FAST_WINDOW_SEC   = 5 * 3600      # 윈도우 길이(초)
@@ -941,8 +950,8 @@ def get_active_subscription(db, user_id: int):
 
 def _is_unlimited_user(db, user_id: int) -> bool:
     u = db.query(User).filter(User.id == user_id).first()
-    # 화이트리스트 무제한 OR 관리자(모든 제약 해제) OR 유효 구독자(플러스·프로)
-    if u and (is_fast_unlimited(u.phone) or is_admin_phone(u.phone)):
+    # 화이트리스트 무제한 OR 무상 프로 OR 관리자(모든 제약 해제) OR 유효 구독자(플러스·프로)
+    if u and (is_fast_unlimited(u.phone) or is_comp_pro(u.phone) or is_admin_phone(u.phone)):
         return True
     return bool(get_active_subscription(db, user_id))
 
@@ -1405,6 +1414,8 @@ def consume_photo_quota(db, user_id, anon_id, request):
     sub = get_active_subscription(db, user_id) if user_id else None
     if sub and sub.plan in ("plus", "pro"):
         plan = sub.plan
+    elif u and is_comp_pro(u.phone):
+        plan = "pro"
     elif u and is_fast_unlimited(u.phone):
         plan = "plus"
     if plan == "pro":
@@ -1837,6 +1848,10 @@ def subscription_status(user_id: int):
         if s:
             return {"active": True, "plan": s.plan, "period": s.period,
                     "expires_at": s.expires_at.isoformat() if s.expires_at else None,
+                    "ad_free": True, "fast_unlimited": True, "is_admin": admin}
+        if u and is_comp_pro(u.phone):
+            # 무상 '프로' 무기한 화이트리스트(인플루언서 협업) — 만료 없음, 프로 혜택 전부
+            return {"active": True, "plan": "pro", "period": None, "expires_at": None,
                     "ad_free": True, "fast_unlimited": True, "is_admin": admin}
         if privileged:
             # 무제한 화이트리스트(리뷰 이벤트 등)·관리자 → '플러스'로 표기(광고 제거 + 빠른 번역 무제한)
@@ -3675,7 +3690,7 @@ def signup(req: SignupRequest):
             # 다르면 이미 다른 사람이 가입한 번호이므로 차단.
             if existing.name == req.name.strip():
                 return SignupResponse(user_id=existing.id, name=existing.name, is_new=False,
-                                      fast_unlimited=is_fast_unlimited(existing.phone),
+                                      fast_unlimited=(is_fast_unlimited(existing.phone) or is_comp_pro(existing.phone)),
                                       is_admin=is_admin_phone(existing.phone))
             raise HTTPException(
                 status_code=409,
@@ -3695,7 +3710,7 @@ def signup(req: SignupRequest):
             )
         db.refresh(new_user)
         return SignupResponse(user_id=new_user.id, name=new_user.name, is_new=True,
-                              fast_unlimited=is_fast_unlimited(new_user.phone),
+                              fast_unlimited=(is_fast_unlimited(new_user.phone) or is_comp_pro(new_user.phone)),
                               is_admin=is_admin_phone(new_user.phone))
     finally:
         db.close()

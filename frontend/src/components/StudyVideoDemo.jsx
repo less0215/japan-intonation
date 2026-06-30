@@ -7,7 +7,7 @@
  * UI 톤: 토스풍. 저장=localStorage(프로토타입). */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { AppLauncher } from '@capacitor/app-launcher'
+import StudyPlaybackFallback from './StudyPlaybackFallback'
 import RubyText from './RubyText'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
 import { STUDY_DEMO } from '../data/studyDemo'
@@ -81,9 +81,8 @@ function Bookmark({ filled, color, size = 18 }) {
 }
 
 const PREVIEW_LIMIT = 60  // 비회원·무료회원 미리보기 1분 (플러스↑ 무제한)
-// YouTube IFrame 오류 코드(2 잘못된 파라미터/5 HTML5/100 없음/101·150 임베드 불가/153 Referer 없음) → 앱에서 Safari 폴백
+// YouTube IFrame 오류 코드(2 잘못된 파라미터/5 HTML5/100 없음/101·150 임베드 불가/153 Referer 없음) → 앱에서 웹 폴백
 const YT_FALLBACK_CODES = new Set([2, 5, 100, 101, 150, 153])
-const WEB_STUDY_BASE = 'https://www.tickjapan.com/study-demo'  // 폴백: 실제 원격 사이트(진짜 origin → enablejsapi 정상)
 export default function StudyVideoDemo({ isPlus = false }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -348,18 +347,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
           {(capMode === 'both' || capMode === 'kr') && <p style={{ margin: capMode === 'kr' ? 0 : '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4 }}>{cur.kr}</p>}
         </div>
       )}
-      {showFallback && (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 22, textAlign: 'center', background: 'linear-gradient(180deg,#15171b,#0c0d10)', color: '#fff' }}>
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.92 }}><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-          <p style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>앱에서는 이 영상 재생이 제한돼요</p>
-          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'rgba(255,255,255,0.78)', wordBreak: 'keep-all' }}>Safari에서 열면 자막·발음 그대로 끊김 없이 학습할 수 있어요.</p>
-          <button onClick={async () => { try { await AppLauncher.openUrl({ url: `${WEB_STUDY_BASE}?v=${vid}` }) } catch {} }}
-            style={{ marginTop: 4, height: 46, padding: '0 24px', borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 800, color: '#fff', background: 'linear-gradient(145deg,#6fb6d6,#5CA9CE 55%,#4f96bb)', boxShadow: `0 6px 18px ${PRIMARY}66` }}>
-            Safari에서 학습하기
-          </button>
-          <button onClick={() => navigate('/shadowing')} style={{ marginTop: 2, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, color: 'rgba(255,255,255,0.6)' }}>다른 영상 보기</button>
-        </div>
-      )}
+      {showFallback && <StudyPlaybackFallback vid={vid} />}
     </div>
   )
 
@@ -554,7 +542,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, background: 'var(--bg)', border: '1px solid var(--bd)', borderRadius: 20, padding: '24px 22px', boxShadow: '0 24px 60px rgba(0,0,0,0.42)', textAlign: 'center', animation: 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' }}>
             <div style={{ fontSize: 32, marginBottom: 6 }}>🎬</div>
             <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 800, color: 'var(--text-strong)' }}>무료 미리보기는 1분까지예요</p>
-            <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-2)', wordBreak: 'keep-all' }}>마음에 든 영상 하나를 <b style={{ color: 'var(--text-1)' }}>끝까지 반복하며</b> 제대로 익히고 싶다면 — 플러스부터 광고 없이 무제한이에요.</p>
+            <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.65, color: 'var(--text-2)', wordBreak: 'keep-all' }}><b style={{ color: 'var(--text-1)' }}>플러스 회원</b> 이상만 쉐도잉을 제한 없이 무제한으로 볼 수 있어요.</p>
             <button onClick={() => { setGated(false); navigate('/plans?from=shadowing_preview') }} style={{ width: '100%', height: 50, borderRadius: 14, border: 'none', background: 'linear-gradient(145deg,#6fb6d6,#5CA9CE 55%,#4f96bb)', color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 8px 20px ${PRIMARY}55` }}>쉐도잉 무제한 시청</button>
             <button onClick={() => setGated(false)} style={{ marginTop: 10, background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>나중에</button>
           </div>

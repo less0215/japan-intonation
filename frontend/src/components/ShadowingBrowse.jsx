@@ -5,6 +5,7 @@
  * 평가/시청=localStorage. 모든 학습 → /study-demo. */
 import { useEffect, useRef, useState } from 'react'
 import { STUDY_CATALOG, STUDY_FEATURED, STUDY_TOP10, TAG_GROUPS } from '../data/studyCatalog'
+import StudyPlaybackFallback from './StudyPlaybackFallback'
 
 const LV_LABEL = { N5: '입문', N4: '초급', N3: '중급', N2: '중상급', N1: '상급' }
 const LEVELS = ['N4', 'N3', 'N2', 'N1']
@@ -20,6 +21,7 @@ const LS_VIDS = 'tickjapan_study_saved_videos'
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } }
 const thumb = (id) => `https://img.youtube.com/vi/${id}/hqdefault.jpg`
 const CAN_HOVER = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(hover:hover) and (pointer:fine)').matches : false
+const IS_APP = typeof window !== 'undefined' && (window.Capacitor?.isNativePlatform?.() ?? false)
 const durSec = (d) => { const [m, s] = (d || '0:0').split(':').map(Number); return (m || 0) * 60 + (s || 0) }
 
 function LvOnThumb({ lv }) {
@@ -112,17 +114,18 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const onHover = (v, el) => { clearTimeout(leaveT.current); clearTimeout(enterT.current); const rect = el.getBoundingClientRect(); enterT.current = setTimeout(() => setHover({ v, rect }), 480) }
   const onLeave = () => { clearTimeout(enterT.current); leaveT.current = setTimeout(() => setHover(null), 160) }
 
+  const READY = STUDY_CATALOG.filter(v => v.ready)   // 학습 스크립트 준비된 영상만 노출(준비 중은 숨김)
   const byId = (id) => STUDY_CATALOG.find(v => v.id === id)
-  const watchedV = watched.map(byId).filter(Boolean)
+  const watchedV = watched.map(byId).filter(v => v && v.ready)
   const likedIds = Object.keys(ratings).filter(id => ratings[id] === 'up')
   const disliked = new Set(Object.keys(ratings).filter(id => ratings[id] === 'down'))
   const likedV = likedIds.length ? byId(likedIds[likedIds.length - 1]) : null
-  const similar = likedV ? STUDY_CATALOG.filter(v => v.id !== likedV.id && !disliked.has(v.id) && (v.lv === likedV.lv || v.tags.some(t => likedV.tags.includes(t)))).slice(0, 12) : []
+  const similar = likedV ? READY.filter(v => v.id !== likedV.id && !disliked.has(v.id) && (v.lv === likedV.lv || v.tags.some(t => likedV.tags.includes(t)))).slice(0, 12) : []
   const f = STUDY_FEATURED
   const isTab = variant === 'tab'
   const filtering = isTab && (lvF !== 'all' || durF !== 'all')
   const durOk = (v) => durF === 'all' || (durF === 'short' ? durSec(v.dur) <= 600 : durF === 'mid' ? (durSec(v.dur) > 600 && durSec(v.dur) <= 1200) : durSec(v.dur) > 1200)
-  const filtered = STUDY_CATALOG.filter(v => (lvF === 'all' || v.lv === lvF) && durOk(v))
+  const filtered = READY.filter(v => (lvF === 'all' || v.lv === lvF) && durOk(v))
 
   const rowProps = { onOpen: setSel, ratings, onHover, onLeave }
 
@@ -213,16 +216,16 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
       ) : (
         <>
           {/* 홈: TOP10 최상단 */}
-          {!isTab && <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10} ranked {...rowProps} />}
+          {!isTab && <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10.filter(v => v.ready)} ranked {...rowProps} />}
 
           {isLoggedIn && watchedV.length > 0 && <Row title={`${userName || '회원'}님이 시청 중인 콘텐츠`} items={watchedV} {...rowProps} />}
           {isLoggedIn && likedV && similar.length > 0 && <Row title={`‘좋아요’한 〈${likedV.kr}〉과 비슷한 콘텐츠`} items={similar} {...rowProps} />}
 
           {/* 탭: TOP10 (개인화 다음) */}
-          {isTab && <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10} ranked {...rowProps} />}
+          {isTab && <Row title="쉐도잉 인기 TOP 10" items={STUDY_TOP10.filter(v => v.ready)} ranked {...rowProps} />}
 
           {/* 주제 카테고리 (홈·탭 공통) */}
-          {TAG_GROUPS.map(g => <Row key={g.tag} title={g.label} items={STUDY_CATALOG.filter(v => v.tags.includes(g.tag))} {...rowProps} />)}
+          {TAG_GROUPS.map(g => <Row key={g.tag} title={g.label} items={READY.filter(v => v.tags.includes(g.tag))} {...rowProps} />)}
         </>
       )}
 
@@ -266,9 +269,15 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
         <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, zIndex: 4500, background: 'rgba(12,18,24,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', animation: 'tjFadeS .18s ease' }}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', background: 'var(--bg,#fff)', borderRadius: '22px 22px 0 0', boxShadow: '0 -12px 44px rgba(0,0,0,0.3)', animation: 'tjUpS .3s cubic-bezier(.16,1,.3,1)' }}>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: '22px 22px 0 0', overflow: 'hidden' }}>
-              <iframe title="preview" src={`https://www.youtube-nocookie.com/embed/${sel.id}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
-              <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.45)', padding: '2px 9px', borderRadius: 6, pointerEvents: 'none' }}>{sel.lv} · {LV_LABEL[sel.lv]}</span>
-              <span style={{ position: 'absolute', bottom: 12, right: 12, fontSize: 11.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.65)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'none' }}>{sel.dur}</span>
+              {IS_APP ? (
+                <StudyPlaybackFallback vid={sel.id} />
+              ) : (
+                <>
+                  <iframe title="preview" src={`https://www.youtube-nocookie.com/embed/${sel.id}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen frameBorder="0" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+                  <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: 800, color: '#fff', background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.45)', padding: '2px 9px', borderRadius: 6, pointerEvents: 'none' }}>{sel.lv} · {LV_LABEL[sel.lv]}</span>
+                  <span style={{ position: 'absolute', bottom: 12, right: 12, fontSize: 11.5, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.65)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'none' }}>{sel.dur}</span>
+                </>
+              )}
             </div>
             <div style={{ padding: '16px 18px 24px' }}>
               <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>{sel.kr}</p>

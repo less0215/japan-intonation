@@ -205,10 +205,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
     let timer, cancelled = false
     loadYT().then(YT => {
       if (cancelled || !YT) return
+      // 위에서 만든 iframe(allow=encrypted-media, src에 enablejsapi/파라미터 포함)을 YT.Player가 채택 → 제어 API는 그대로
       playerRef.current = new YT.Player('yt-player-demo', {
-        videoId: vid,
-        host: 'https://www.youtube-nocookie.com',   // iOS WKWebView 쿠키/스토리지 차단(ITP)로 인한 오류 153 회피
-        playerVars: { rel: 0, modestbranding: 1, cc_load_policy: 0, playsinline: 1 },
         events: {
           onStateChange: (e) => setIsPlaying(e.data === 1),
           onReady: () => {
@@ -310,7 +308,11 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const videoBlock = (
     <div style={{ position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', boxShadow: '0 6px 22px rgba(0,0,0,0.18)',
       ...(isWide ? { width: '100%', aspectRatio: '16 / 9', maxHeight: '60vh' } : { aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))' }) }}>
-      <div id="yt-player-demo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+      {/* iframe을 직접 만들어 allow에 encrypted-media 포함(YouTube DRM 재생) → YT.Player가 이 iframe을 채택. iOS WKWebView 오류 153 방지 */}
+      <iframe id="yt-player-demo" title={data.title}
+        src={`https://www.youtube-nocookie.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen frameBorder="0"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
       {capMode !== 'off' && cur && (
         <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
           {(capMode === 'both' || capMode === 'jp') && <div style={{ lineHeight: 1.45 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>}

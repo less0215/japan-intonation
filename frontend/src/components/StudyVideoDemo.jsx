@@ -7,6 +7,7 @@
  * UI 톤: 토스풍. 저장=localStorage(프로토타입). */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { AppLauncher } from '@capacitor/app-launcher'
 import RubyText from './RubyText'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
 import { STUDY_DEMO } from '../data/studyDemo'
@@ -80,10 +81,14 @@ function Bookmark({ filled, color, size = 18 }) {
 }
 
 const PREVIEW_LIMIT = 180  // 비회원·무료회원 미리보기 3분 (플러스↑ 무제한)
+// YouTube IFrame 오류 코드(2 잘못된 파라미터/5 HTML5/100 없음/101·150 임베드 불가/153 Referer 없음) → 앱에서 Safari 폴백
+const YT_FALLBACK_CODES = new Set([2, 5, 100, 101, 150, 153])
+const WEB_STUDY_BASE = 'https://www.tickjapan.com/study-demo'  // 폴백: 실제 원격 사이트(진짜 origin → enablejsapi 정상)
 export default function StudyVideoDemo({ isPlus = false }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [gated, setGated] = useState(false)
+  const [showFallback, setShowFallback] = useState(false)   // 앱: 153 등 재생 실패 시 Safari 전환 안내
   const isPlusRef = useRef(isPlus)
   useEffect(() => { isPlusRef.current = isPlus }, [isPlus])
   const vParam = searchParams.get('v')
@@ -91,6 +96,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const vid = data.videoId
   const lines = data.lines
   const playerRef = useRef(null)
+  const playerStateRef = useRef('LOADING')   // LOADING → READY | FALLBACK
+  const watchdogRef = useRef(null)
   const lineRefs = useRef([])
   const headRef = useRef(null)
   const activeRef = useRef(-1)
@@ -203,16 +210,31 @@ export default function StudyVideoDemo({ isPlus = false }) {
     ? prev.filter(s => wkey(s) !== wkey(w))
     : [...prev, { w: w.w, reading: w.reading, ko: w.ko, jlpt: w.jlpt }])
 
+  // 앱에서 재생 실패(153 등) 시 Safari 폴백으로 전환 — 멱등, web에서는 호출 안 됨
+  const triggerFallback = () => {
+    if (playerStateRef.current === 'FALLBACK') return
+    playerStateRef.current = 'FALLBACK'
+    if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null }
+    try { playerRef.current?.destroy?.() } catch {}
+    setShowFallback(true)
+  }
+
   // ── 플레이어 init + 폴링 ──────────────────────────
   useEffect(() => {
     let timer, cancelled = false
     loadYT().then(YT => {
       if (cancelled || !YT) return
-      // 위에서 만든 iframe(allow=encrypted-media, src에 enablejsapi/파라미터 포함)을 YT.Player가 채택 → 제어 API는 그대로
+      // 위 iframe(youtube.com·enablejsapi)을 YT.Player가 채택. host를 iframe 도메인과 일치시켜 제어 채널 origin 불일치 제거
       playerRef.current = new YT.Player('yt-player-demo', {
+        host: 'https://www.youtube.com',
         events: {
           onStateChange: (e) => setIsPlaying(e.data === 1),
+          // 앱: 재생 불가(153 = Referer 없음 등) → Safari 폴백. web은 IS_APP=false라 무시
+          onError: (e) => { if (IS_APP && YT_FALLBACK_CODES.has(e?.data)) triggerFallback() },
           onReady: () => {
+            if (playerStateRef.current !== 'LOADING') return   // 폴백 후 늦게 온 onReady 무시
+            playerStateRef.current = 'READY'
+            if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null }
             timer = setInterval(() => {
               const p = playerRef.current
               if (!p || !p.getCurrentTime) return
@@ -227,8 +249,10 @@ export default function StudyVideoDemo({ isPlus = false }) {
           },
         },
       })
+      // 앱 전용 워치독: 153이 조용히(onReady 영영 안 옴) 나타나는 경우 대비 — 4초 내 준비 안 되면 폴백
+      if (IS_APP) watchdogRef.current = setTimeout(() => { if (playerStateRef.current === 'LOADING') triggerFallback() }, 4000)
     })
-    return () => { cancelled = true; if (timer) clearInterval(timer) }
+    return () => { cancelled = true; if (timer) clearInterval(timer); if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null } }
   }, [])
 
   useLayoutEffect(() => {
@@ -311,15 +335,29 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const videoBlock = (
     <div style={{ position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', boxShadow: '0 6px 22px rgba(0,0,0,0.18)',
       ...(isWide ? { width: '100%', aspectRatio: '16 / 9', maxHeight: '60vh' } : { aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))' }) }}>
-      {/* iframe을 직접 만들어 allow에 encrypted-media 포함(YouTube DRM 재생) → YT.Player가 이 iframe을 채택. iOS WKWebView 오류 153 방지 */}
+      {/* iframe 직접 생성(allow=encrypted-media=YouTube DRM) → YT.Player가 채택. JS API는 youtube.com 도메인으로 통일(host 일치) + referrer 힌트.
+          ※ iOS WKWebView는 합성 origin에서 Referer를 제거 → enablejsapi가 153을 받을 수 있음(아래 onError/워치독 폴백으로 Safari 전환) */}
       <iframe id="yt-player-demo" title={data.title}
-        src={`https://www.youtube-nocookie.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+        src={`https://www.youtube.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&widget_referrer=https%3A%2F%2Fwww.tickjapan.com&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen frameBorder="0"
+        referrerPolicy="strict-origin-when-cross-origin"
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
-      {capMode !== 'off' && cur && (
+      {capMode !== 'off' && cur && !showFallback && (
         <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
           {(capMode === 'both' || capMode === 'jp') && <div style={{ lineHeight: 1.45 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>}
           {(capMode === 'both' || capMode === 'kr') && <p style={{ margin: capMode === 'kr' ? 0 : '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4 }}>{cur.kr}</p>}
+        </div>
+      )}
+      {showFallback && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 22, textAlign: 'center', background: 'linear-gradient(180deg,#15171b,#0c0d10)', color: '#fff' }}>
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.92 }}><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+          <p style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>앱에서는 이 영상 재생이 제한돼요</p>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'rgba(255,255,255,0.78)', wordBreak: 'keep-all' }}>Safari에서 열면 자막·발음 그대로 끊김 없이 학습할 수 있어요.</p>
+          <button onClick={async () => { try { await AppLauncher.openUrl({ url: `${WEB_STUDY_BASE}?v=${vid}` }) } catch {} }}
+            style={{ marginTop: 4, height: 46, padding: '0 24px', borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 800, color: '#fff', background: 'linear-gradient(145deg,#6fb6d6,#5CA9CE 55%,#4f96bb)', boxShadow: `0 6px 18px ${PRIMARY}66` }}>
+            Safari에서 학습하기
+          </button>
+          <button onClick={() => navigate('/shadowing')} style={{ marginTop: 2, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, color: 'rgba(255,255,255,0.6)' }}>다른 영상 보기</button>
         </div>
       )}
     </div>

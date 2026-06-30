@@ -177,7 +177,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
           {/* 왜 TED 쉐도잉? — 첫 진입엔 펼침, 이후 접힘(누르면 다시) */}
           <div style={{ marginBottom: 18, border: '1px solid var(--bd,#e0e5e9)', borderRadius: 14, overflow: 'hidden', background: 'var(--surface,#f7f9fb)' }}>
             <button onClick={toggleWhy} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '13px 15px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>왜 TED로 쉐도잉할까요?</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>왜 TED로 쉐도잉을 해야 할까요?</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3,#9aa0a6)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform .18s' }}><polyline points="6 9 12 15 18 9" /></svg>
             </button>
             {whyOpen && (

@@ -174,6 +174,14 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const goPrev = () => seekLine(Math.max(0, (activeRef.current < 0 ? 0 : activeRef.current) - 1))
   const goNext = () => seekLine(Math.min(lines.length - 1, (activeRef.current < 0 ? -1 : activeRef.current) + 1))
   const replay = () => seekLine(activeRef.current < 0 ? 0 : activeRef.current)
+  // 영상 맨 처음으로 되돌아가기 (반복 해제 + 스크립트 상단으로)
+  const goStart = () => {
+    const p = playerRef.current
+    if (p && p.seekTo) { p.seekTo(0, true); if (p.playVideo) p.playVideo() }
+    if (loopRef.current >= 0) { loopRef.current = -1; setLoopIdx(-1) }
+    activeRef.current = -1; setActiveIdx(-1)
+    lineRefs.current[0]?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }
   const togglePlay = () => {
     const p = playerRef.current; if (!p || !p.getPlayerState) return
     if (p.getPlayerState() === 1) { p.pauseVideo(); return }
@@ -221,35 +229,59 @@ export default function StudyVideoDemo({ isPlus = false }) {
   // ── 플레이어 init + 폴링 ──────────────────────────
   useEffect(() => {
     let timer, cancelled = false
+    // 매 틱: 현재시간(t)으로 1분 게이트·활성 문장·반복 처리 (web/app 공용)
+    const tick = () => {
+      const p = playerRef.current
+      if (!p || !p.getCurrentTime) return
+      let t; try { t = p.getCurrentTime() } catch { return }
+      if (!isPlusRef.current && t >= PREVIEW_LIMIT && p.getPlayerState && p.getPlayerState() === 1) { try { p.pauseVideo() } catch {}; setGated(true) }
+      let idx = -1
+      for (let i = 0; i < lines.length; i++) { if (lines[i].t <= t + 0.15) idx = i; else break }
+      const li = loopRef.current
+      if (li >= 0) { const endT = lines[li + 1] ? lines[li + 1].t : Infinity; if (t >= endT - 0.12) { try { p.seekTo(lines[li].t, true) } catch {} } idx = li }
+      if (idx !== activeRef.current) { activeRef.current = idx; setActiveIdx(idx) }
+    }
+    const onReadyStart = () => {
+      if (playerStateRef.current !== 'LOADING') return   // 폴백 후 늦게 온 ready 무시
+      playerStateRef.current = 'READY'
+      if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null }
+      timer = setInterval(tick, 200)
+    }
+
+    if (IS_APP) {
+      // 앱: 원격 origin 제어형 플레이어(shadow-player.html)를 iframe으로 띄우고 postMessage로 제어 → 오류 153 회피(라이브캠과 동일 패턴).
+      // playerRef를 동일 API(shim)로 만들어 seekLine/togglePlay/goStart/폴링 로직을 그대로 재사용.
+      let cachedT = 0, cachedState = -1
+      const send = (msg) => { const f = document.getElementById('yt-player-demo'); try { f?.contentWindow?.postMessage({ src: 'tj-app', ...msg }, '*') } catch {} }
+      playerRef.current = {
+        seekTo: (t) => send({ cmd: 'seek', value: t }),
+        playVideo: () => send({ cmd: 'play' }),
+        pauseVideo: () => send({ cmd: 'pause' }),
+        setPlaybackRate: (r) => send({ cmd: 'rate', value: r }),
+        getCurrentTime: () => cachedT,
+        getPlayerState: () => cachedState,
+        destroy: () => {},
+      }
+      const onMsg = (e) => {
+        const d = e.data; if (!d || d.src !== 'tj-player') return
+        if (d.event === 'time') { cachedT = d.t; cachedState = d.state }
+        else if (d.event === 'state') { cachedState = d.state; setIsPlaying(d.state === 1) }
+        else if (d.event === 'ready') { onReadyStart() }
+        else if (d.event === 'error') { if (YT_FALLBACK_CODES.has(d.code)) triggerFallback() }
+      }
+      window.addEventListener('message', onMsg)
+      // 원격 페이지 로드+유튜브 준비가 로컬보다 느려 워치독 8초 (영영 ready 안 오면 웹 폴백)
+      watchdogRef.current = setTimeout(() => { if (playerStateRef.current === 'LOADING') triggerFallback() }, 8000)
+      return () => { cancelled = true; window.removeEventListener('message', onMsg); if (timer) clearInterval(timer); if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null } }
+    }
+
+    // 웹: 현재 origin이 실도메인이라 직접 YT.Player 채택이 정상 동작
     loadYT().then(YT => {
       if (cancelled || !YT) return
-      // 위 iframe(youtube.com·enablejsapi)을 YT.Player가 채택. host를 iframe 도메인과 일치시켜 제어 채널 origin 불일치 제거
       playerRef.current = new YT.Player('yt-player-demo', {
         host: 'https://www.youtube.com',
-        events: {
-          onStateChange: (e) => setIsPlaying(e.data === 1),
-          // 앱: 재생 불가(153 = Referer 없음 등) → Safari 폴백. web은 IS_APP=false라 무시
-          onError: (e) => { if (IS_APP && YT_FALLBACK_CODES.has(e?.data)) triggerFallback() },
-          onReady: () => {
-            if (playerStateRef.current !== 'LOADING') return   // 폴백 후 늦게 온 onReady 무시
-            playerStateRef.current = 'READY'
-            if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null }
-            timer = setInterval(() => {
-              const p = playerRef.current
-              if (!p || !p.getCurrentTime) return
-              let t; try { t = p.getCurrentTime() } catch { return }
-              if (!isPlusRef.current && t >= PREVIEW_LIMIT && p.getPlayerState && p.getPlayerState() === 1) { try { p.pauseVideo() } catch {}; setGated(true) }
-              let idx = -1
-              for (let i = 0; i < lines.length; i++) { if (lines[i].t <= t + 0.15) idx = i; else break }
-              const li = loopRef.current
-              if (li >= 0) { const endT = lines[li + 1] ? lines[li + 1].t : Infinity; if (t >= endT - 0.12) { try { p.seekTo(lines[li].t, true) } catch {} } idx = li }
-              if (idx !== activeRef.current) { activeRef.current = idx; setActiveIdx(idx) }
-            }, 200)
-          },
-        },
+        events: { onStateChange: (e) => setIsPlaying(e.data === 1), onReady: onReadyStart },
       })
-      // 앱 전용 워치독: 153이 조용히(onReady 영영 안 옴) 나타나는 경우 대비 — 4초 내 준비 안 되면 폴백
-      if (IS_APP) watchdogRef.current = setTimeout(() => { if (playerStateRef.current === 'LOADING') triggerFallback() }, 4000)
     })
     return () => { cancelled = true; if (timer) clearInterval(timer); if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null } }
   }, [])
@@ -334,10 +366,12 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const videoBlock = (
     <div style={{ position: 'relative', margin: '0 auto', borderRadius: 16, overflow: 'hidden', background: '#000', boxShadow: '0 6px 22px rgba(0,0,0,0.18)',
       ...(isWide ? { width: '100%', aspectRatio: '16 / 9', maxHeight: '60vh' } : { aspectRatio: '16 / 9', width: 'auto', maxWidth: '100%', height: 'min(42vh, calc((min(100vw, 720px) - 24px) * 0.5625))' }) }}>
-      {/* iframe 직접 생성(allow=encrypted-media=YouTube DRM) → YT.Player가 채택. JS API는 youtube.com 도메인으로 통일(host 일치) + referrer 힌트.
-          ※ iOS WKWebView는 합성 origin에서 Referer를 제거 → enablejsapi가 153을 받을 수 있음(아래 onError/워치독 폴백으로 Safari 전환) */}
+      {/* 앱: 실도메인 프록시 페이지(shadow-player.html)를 iframe으로 → 유튜브 입장 출처가 정상 웹사이트라 153 회피(라이브캠 검증 패턴). 제어는 postMessage.
+          웹: 현재 origin이 실도메인이라 직접 enablejsapi 임베드를 YT.Player가 채택. */}
       <iframe id="yt-player-demo" title={data.title}
-        src={`https://www.youtube.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&widget_referrer=https%3A%2F%2Fwww.tickjapan.com&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+        src={IS_APP
+          ? `https://tickjapan.com/shadow-player.html?v=${vid}`
+          : `https://www.youtube.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&widget_referrer=https%3A%2F%2Fwww.tickjapan.com&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen frameBorder="0"
         referrerPolicy="strict-origin-when-cross-origin"
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
@@ -361,6 +395,10 @@ export default function StudyVideoDemo({ isPlus = false }) {
         <CtrlBtn label="다음" sub="D" icon="next" onClick={goNext} showKey />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+        <button onClick={goStart} style={chip(false)} aria-label="처음으로" title="처음으로 (영상 맨 앞)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="6" x2="5" y2="18" /><polyline points="20 6 12 12 20 18" /><polyline points="12 6 6 12 12 18" /></svg>
+          <span style={{ marginLeft: 4, fontSize: 11.5, fontWeight: 700 }}>처음</span>
+        </button>
         <span data-tour="hide" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 4px 3px 10px', borderRadius: 11, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)', marginRight: 2 }}>가리기</span>
           <button onClick={() => setHideJp(v => !v)} style={segChip(hideJp)} title="일본어 가리기 (J)"><EyeIcon off={hideJp} /> 일</button>

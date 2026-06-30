@@ -24,7 +24,7 @@ export const STUDY_CATALOG = [
   "kr": "'난 못 해'에서 벗어나는 법",
   "ev": "TEDxTIU",
   "dur": "12:12",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "동기부여",
    "자기계발",
@@ -39,7 +39,7 @@ export const STUDY_CATALOG = [
   "kr": "어떻게든 된다 - 보이지 않는 큰 벽을 넘어서려면",
   "ev": "TEDxKagoshima",
   "dur": "9:11",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "동기부여",
    "도전",
@@ -69,7 +69,7 @@ export const STUDY_CATALOG = [
   "kr": "휩쓸리지 않는 삶",
   "ev": "TEDxGlobisU",
   "dur": "18:07",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "인생",
    "가치관",
@@ -84,7 +84,7 @@ export const STUDY_CATALOG = [
   "kr": "받아들인다는 삶의 방식",
   "ev": "TEDxNagoyaU",
   "dur": "17:57",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "인생",
    "가치관",
@@ -114,7 +114,7 @@ export const STUDY_CATALOG = [
   "kr": "호빵맨에게 배우는 인생의 의미",
   "ev": "TEDxICU",
   "dur": "18:11",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "인생",
    "삶",
@@ -144,7 +144,7 @@ export const STUDY_CATALOG = [
   "kr": "고신토에 전해지는 일본어의 비밀",
   "ev": "TEDxHimi",
   "dur": "9:33",
-  "lv": "N1",
+  "lv": "N2",
   "tags": [
    "언어",
    "일본어",
@@ -159,7 +159,7 @@ export const STUDY_CATALOG = [
   "kr": "새로운 아이디어를 만드는 법",
   "ev": "TEDxTokyo",
   "dur": "5:54",
-  "lv": "N4",
+  "lv": "N2",
   "tags": [
    "비즈니스",
    "창의성",
@@ -174,7 +174,7 @@ export const STUDY_CATALOG = [
   "kr": "세상에 없는 것은 당신 안에 있다",
   "ev": "TEDxHimi",
   "dur": "15:35",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "동기부여",
    "창의성",
@@ -189,7 +189,7 @@ export const STUDY_CATALOG = [
   "kr": "보는 방식을 바꾸면 내가 바뀐다",
   "ev": "TEDxKagoshima",
   "dur": "14:41",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "동기부여",
    "자기계발",
@@ -219,7 +219,7 @@ export const STUDY_CATALOG = [
   "kr": "음식에 대한 이미지와 다양성",
   "ev": "TEDxFukuoka",
   "dur": "13:39",
-  "lv": "N2",
+  "lv": "N3",
   "tags": [
    "문화",
    "음식",
@@ -234,7 +234,7 @@ export const STUDY_CATALOG = [
   "kr": "사랑이 담긴 요리가 세계의 아이들을 구한다",
   "ev": "TEDxHimi",
   "dur": "19:11",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "문화",
    "음식",
@@ -279,7 +279,7 @@ export const STUDY_CATALOG = [
   "kr": "하고 싶은 일을 찾는 세 가지 힌트",
   "ev": "TEDxYouth@Sapporo",
   "dur": "6:25",
-  "lv": "N4",
+  "lv": "N2",
   "tags": [
    "동기부여",
    "꿈",
@@ -308,7 +308,7 @@ export const STUDY_CATALOG = [
   "kr": "아이에게 배우는 밝은 미래 만드는 법",
   "ev": "TEDxFukuoka",
   "dur": "13:12",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "교육",
    "아이",
@@ -338,7 +338,7 @@ export const STUDY_CATALOG = [
   "kr": "팽이의 기적 - 믿는 힘이 만든 이야기",
   "ev": "TEDxHimi",
   "dur": "14:54",
-  "lv": "N3",
+  "lv": "N2",
   "tags": [
    "동기부여",
    "도전",
@@ -368,7 +368,7 @@ export const STUDY_CATALOG = [
   "kr": "홀로그래피와 혼합현실이 바꾸는 의료의 미래",
   "ev": "TEDxFukuoka",
   "dur": "12:02",
-  "lv": "N1",
+  "lv": "N2",
   "tags": [
    "과학",
    "의료",

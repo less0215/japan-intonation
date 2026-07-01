@@ -487,7 +487,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
         </span>
         <span style={{ flex: 1 }} />
         <button data-tour="rate" onClick={cycleRate} style={chip(rateIdx !== 2)} title="재생 속도 (Z 느리게 / X 빠르게)"><span style={{ fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span></button>
-        <button onClick={() => setSettingsOpen(true)} style={chip(false)} aria-label="표시 설정" title="자막·단어 표시 설정">
+        <button data-tour="settings" onClick={() => setSettingsOpen(true)} style={chip(false)} aria-label="표시 설정" title="자막·단어 표시 설정">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
         </button>
       </div>
@@ -856,6 +856,7 @@ const TOUR_STEPS = [
   { sel: 'play', title: '재생', desc: '재생하면 자막이 문장마다 따라 강조돼요. 스페이스바로도 돼요.' },
   { sel: 'loop', title: '문장 반복', desc: '한 문장을 반복 재생해 따라 말해보세요.\n이전·다시·다음은 A·S·D 키예요.' },
   { sel: 'rate', title: '배속', desc: '익숙해질 때까지 천천히 들어요.\nZ 느리게, X 빠르게.' },
+  { sel: 'settings', title: '자막·발음 표시 설정', desc: '⚙️을 누르면 영상 위 자막을 일본어·한국어·둘 다·끄기로 바꾸고, 한국어 발음 표시와 단어장도 켜고 끌 수 있어요.' },
   { sel: 'hide', title: '일본어·한국어 가리기', desc: '일본어를 가리면 작문 연습, 한국어를 가리면 받아쓰기. 번갈아 해보세요.' },
   { sel: 'line', title: '문장을 누르면 자세히', desc: '문장을 누르면 문장 분해와 단어 레벨을 볼 수 있어요. 히라가나만 알아도 이해되게 풀어드려요.' },
   { sel: 'bookmark', title: '북마크로 저장', desc: '마음에 든 문장은 북마크하세요. 저장함에서 다시 보고 그 장면으로 이동해요.' },

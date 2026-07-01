@@ -2755,7 +2755,8 @@ export const STUDY_CATALOG = [
    "재난",
    "인생",
    "교육"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "mAWk7oH1zKE",
@@ -2768,7 +2769,8 @@ export const STUDY_CATALOG = [
    "동기부여",
    "자기계발",
    "도전"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "0nNCXFT_Ots",
@@ -2781,7 +2783,8 @@ export const STUDY_CATALOG = [
    "도전",
    "가족",
    "기술"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "BjZNssQA4wg",
@@ -2794,7 +2797,8 @@ export const STUDY_CATALOG = [
    "사회",
    "리더십",
    "재난"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "RZJPKc_KyAI",
@@ -2807,7 +2811,8 @@ export const STUDY_CATALOG = [
    "기술",
    "예술",
    "창업"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "z6FgFpAFX5k",
@@ -2820,7 +2825,8 @@ export const STUDY_CATALOG = [
    "리더십",
    "교육",
    "도전"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "dsnpA-07EA8",
@@ -2833,7 +2839,8 @@ export const STUDY_CATALOG = [
    "우주",
    "여성",
    "과학"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "haNCWc4x4oI",
@@ -2846,7 +2853,8 @@ export const STUDY_CATALOG = [
    "재능",
    "인생",
    "자기계발"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "NG21ZWyyO0I",
@@ -2859,7 +2867,8 @@ export const STUDY_CATALOG = [
    "자연",
    "환경",
    "인생"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "O3CnWavAWzc",
@@ -2872,7 +2881,8 @@ export const STUDY_CATALOG = [
    "기술",
    "비즈니스",
    "사회"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "n7Z6KyTeouY",

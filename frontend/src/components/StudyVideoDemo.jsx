@@ -722,7 +722,6 @@ export default function StudyVideoDemo({ isPlus = false }) {
             </div>
           </div>
           <div style={{ flex: '1 1 0', minWidth: 340, maxWidth: 480 }}>
-            <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-2)', margin: '2px 0 8px' }}>스크립트 <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>· 문장을 누르면 분해·단어를 봐요</span></p>
             {transcriptBlock}
             {vocabBlock}
           </div>

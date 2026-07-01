@@ -3162,7 +3162,8 @@ export const STUDY_CATALOG = [
    "자기계발",
    "감정",
    "인생"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "IcxboKkA9Xc",
@@ -3175,7 +3176,8 @@ export const STUDY_CATALOG = [
    "도전",
    "동기부여",
    "인생"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "ZqvQgX5gvoM",
@@ -3188,7 +3190,8 @@ export const STUDY_CATALOG = [
    "가족",
    "사회",
    "건강"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "kPEwmwYt1x4",
@@ -3201,7 +3204,8 @@ export const STUDY_CATALOG = [
    "의료",
    "사회",
    "인생"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "ycYTUyE-U5k",
@@ -3214,7 +3218,8 @@ export const STUDY_CATALOG = [
    "과학",
    "심리",
    "자기계발"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "zwW9qvs2M50",
@@ -3227,7 +3232,8 @@ export const STUDY_CATALOG = [
    "창업",
    "도전",
    "사회"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "XL0SS8CChOQ",
@@ -3240,7 +3246,8 @@ export const STUDY_CATALOG = [
    "교육",
    "글로벌",
    "유학"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "EBN6JltuNQk",
@@ -3253,7 +3260,8 @@ export const STUDY_CATALOG = [
    "인생",
    "자기계발",
    "행복"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "uQva4c_YjCQ",
@@ -3266,7 +3274,8 @@ export const STUDY_CATALOG = [
    "인생",
    "가족",
    "예술"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "7GUhszccVEA",
@@ -3279,7 +3288,8 @@ export const STUDY_CATALOG = [
    "우주",
    "과학",
    "사회"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "O0FxgLshiE4",

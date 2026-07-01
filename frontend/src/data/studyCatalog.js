@@ -2742,7 +2742,8 @@ export const STUDY_CATALOG = [
    "환경",
    "해양오염",
    "연구"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "9Y9piHpWd2U",
@@ -3035,7 +3036,8 @@ export const STUDY_CATALOG = [
    "자기계발",
    "비즈니스",
    "인생"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "BtV1w5BPMCw",
@@ -3048,7 +3050,8 @@ export const STUDY_CATALOG = [
    "스포츠",
    "동기부여",
    "성장"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "exSjvRBNdbo",
@@ -3061,7 +3064,8 @@ export const STUDY_CATALOG = [
    "예술",
    "음식",
    "전통"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "Dp-w98IvqIo",
@@ -3074,7 +3078,8 @@ export const STUDY_CATALOG = [
    "예술",
    "전통",
    "문화"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "blbCggupMlY",
@@ -3087,7 +3092,8 @@ export const STUDY_CATALOG = [
    "비즈니스",
    "리더십",
    "혁신"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "ywkCBTptHg8",
@@ -3100,7 +3106,8 @@ export const STUDY_CATALOG = [
    "동기부여",
    "도전",
    "교육"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "1dhlapSqTXk",
@@ -3113,7 +3120,8 @@ export const STUDY_CATALOG = [
    "사회",
    "난민",
    "인권"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "jTHGqmznr68",
@@ -3126,7 +3134,8 @@ export const STUDY_CATALOG = [
    "리더십",
    "비즈니스",
    "경영"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "jRdHbHdC4tQ",
@@ -3139,7 +3148,8 @@ export const STUDY_CATALOG = [
    "사회",
    "지역",
    "전통"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "dHlkABlovV0",

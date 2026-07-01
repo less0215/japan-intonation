@@ -76,15 +76,23 @@ function RankCard({ v, rank, onOpen, onHover, onLeave }) {
   )
 }
 
-function Row({ title, items, onOpen, ratings, ranked, onHover, onLeave }) {
+function Row({ title, items, onOpen, ratings, ranked, onHover, onLeave, autoScroll }) {
   if (!items || !items.length) return null
+  // 자동 스크롤(마퀴): 아이템을 2벌 복제한 트랙을 -50%까지 무한 이동 → 이음매 없이 우→좌로 순환.
+  // hover 시 정지(카드 클릭·미리보기 여유를 위해). 모바일은 hover 없어 계속 흐르되 탭은 정상 동작.
+  const track = autoScroll ? [...items, ...items] : items
   return (
     <div style={{ marginBottom: 36 }}>
       <p style={{ margin: '0 2px 7px', fontSize: 15.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)', wordBreak: 'keep-all' }}>{title}</p>
-      <div style={{ display: 'flex', gap: ranked ? 4 : 10, overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -2px', padding: '0 2px 4px' }}>
-        {items.map((v, i) => ranked
-          ? <RankCard key={v.id} v={v} rank={i + 1} onOpen={onOpen} onHover={onHover} onLeave={onLeave} />
-          : <Card key={v.id} v={v} onOpen={onOpen} rating={ratings[v.id]} onHover={onHover} onLeave={onLeave} />)}
+      <div style={autoScroll
+        ? { overflow: 'hidden', margin: '0 -2px', padding: '0 2px 4px' }
+        : { display: 'flex', gap: ranked ? 4 : 10, overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -2px', padding: '0 2px 4px' }}>
+        <div className={autoScroll ? 'tj-marquee-track' : undefined}
+          style={{ display: 'flex', gap: ranked ? 4 : 10, width: 'max-content' }}>
+          {track.map((v, i) => ranked
+            ? <RankCard key={`${v.id}-${i}`} v={v} rank={(i % items.length) + 1} onOpen={onOpen} onHover={onHover} onLeave={onLeave} />
+            : <Card key={`${v.id}-${i}`} v={v} onOpen={onOpen} rating={ratings[v.id]} onHover={onHover} onLeave={onLeave} />)}
+        </div>
       </div>
     </div>
   )
@@ -161,7 +169,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
 
   return (
     <div>
-      <style>{`.ted-card{transition:transform .18s ease}@media (hover:hover){.ted-card:hover{transform:scale(1.045)}}@keyframes tjFadeS{from{opacity:0}to{opacity:1}}@keyframes tjUpS{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}@keyframes tjPv{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}`}</style>
+      <style>{`.ted-card{transition:transform .18s ease}@media (hover:hover){.ted-card:hover{transform:scale(1.045)}}@keyframes tjFadeS{from{opacity:0}to{opacity:1}}@keyframes tjUpS{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}@keyframes tjPv{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}@keyframes tjMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}.tj-marquee-track{animation:tjMarquee 46s linear infinite}@media (hover:hover){.tj-marquee-track:hover{animation-play-state:paused}}`}</style>
 
       {/* 탭: 헤드카피 + 히어로 + 필터 */}
       {isTab && (
@@ -246,13 +254,13 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
       ) : (
         <>
           {/* 홈: TOP10 최상단 */}
-          {!isTab && <Row title="쉐도잉 인기 TOP 10" items={top10} ranked {...rowProps} />}
+          {!isTab && <Row title="쉐도잉 인기 TOP 10" items={top10} ranked autoScroll {...rowProps} />}
 
           {isLoggedIn && watchedV.length > 0 && <Row title={`${userName || '회원'}님이 시청 중인 콘텐츠`} items={watchedV} {...rowProps} />}
           {isLoggedIn && likedV && similar.length > 0 && <Row title={`‘좋아요’한 〈${likedV.kr}〉과 비슷한 콘텐츠`} items={similar} {...rowProps} />}
 
           {/* 탭: TOP10 (개인화 다음) */}
-          {isTab && <Row title="쉐도잉 인기 TOP 10" items={top10} ranked {...rowProps} />}
+          {isTab && <Row title="쉐도잉 인기 TOP 10" items={top10} ranked autoScroll {...rowProps} />}
 
           {/* 주제 카테고리 (홈·탭 공통) */}
           {TAG_GROUPS.map(g => <Row key={g.tag} title={g.label} items={READY.filter(v => v.tags.includes(g.tag))} {...rowProps} />)}

@@ -21,7 +21,8 @@ function splitOkurigana(kanji, reading) {
  * 원문에 들어 있는 리터럴 괄호(예: "(ヨハネ1:12)", "(株)")는 읽기가 아니므로 그대로 평문 표시. */
 const RUBY_REGEX = /([^\s()（）]+?)\(([ぁ-ゖー]+)\)/g
 
-export default function RubyText({ text, fontSize = 15, fontWeight = 500 }) {
+/* furigana_html → 렌더 단위 파츠 배열. RubyText와 카라오케 자막(KaraokeText)이 공유. */
+export function parseFurigana(text) {
   const parts = []
   let last = 0, match
   const re = new RegExp(RUBY_REGEX.source, 'g')
@@ -34,7 +35,11 @@ export default function RubyText({ text, fontSize = 15, fontWeight = 500 }) {
     last = match.index + match[0].length
   }
   if (last < text.length) parts.push({ type: 'plain', text: text.slice(last) })
+  return parts
+}
 
+export default function RubyText({ text, fontSize = 15, fontWeight = 500 }) {
+  const parts = parseFurigana(text)
   const rtSize = Math.max(9, Math.round(fontSize * 0.72))
 
   return (

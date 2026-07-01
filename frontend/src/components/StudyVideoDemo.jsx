@@ -421,7 +421,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
           </div>
         )}
         {/* 확대/축소 버튼 — 확대 모드에선 자막을 영상 아래/옆에 표시(YouTube ToS: 플레이어 위 오버레이 금지) */}
-        <button onClick={() => setExpanded(v => !v)} aria-label={expanded ? '축소' : '크게 보기'} title={expanded ? '축소' : '크게 보기 (자막 함께)'}
+        <button onClick={() => setExpanded(v => !v)} aria-label={expanded ? '축소' : '크게 보기'} title={expanded ? '축소' : '크게 보기 (자막 함께)'} data-tour={!expanded ? 'expand' : undefined}
           style={{ position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 9, border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             {expanded
@@ -688,7 +688,9 @@ export default function StudyVideoDemo({ isPlus = false }) {
         {styleTag}
         <div style={{ marginBottom: 16 }}>{titleBlock}</div>
         <div style={{ display: 'flex', flexDirection: 'row', gap: 28, alignItems: 'stretch' }}>
-          <div style={{ flex: '1.7 1 0', minWidth: 0 }}>
+          {/* 확대 시 좌측 컬럼에 스태킹 컨텍스트 부여 — position:fixed 오버레이가 sticky 컨텍스트에 갇혀
+              우측(스크립트) 컬럼 밑으로 깔리는 문제 방지(가로모드 자막 침범 버그) */}
+          <div style={{ flex: '1.7 1 0', minWidth: 0, ...(expanded ? { position: 'relative', zIndex: 6001 } : {}) }}>
             <div ref={headRef} style={{ position: 'sticky', top: 14, alignSelf: 'flex-start' }}>
               <div style={{ marginBottom: 12 }}>{bannerBlock}</div>
               {videoBlock}
@@ -819,6 +821,7 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev
 // ── 첫 사용 가이드 ────────────────────────────────────
 const TOUR_STEPS = [
   { sel: 'level', title: '이 영상의 난이도', desc: '영상에 나온 단어로 JLPT 레벨을 추정했어요. ‘요약’에서 줄거리와 난이도 분석도 볼 수 있어요.' },
+  { sel: 'expand', title: '전체화면으로 크게 보기', desc: '영상 오른쪽 위 ⤢ 버튼을 누르면 영상이 커지고 자막·컨트롤이 나란히 떠서 훨씬 쾌적하게 볼 수 있어요. 휴대폰을 가로로 돌리면 더 좋아요.' },
   { sel: 'play', title: '재생', desc: '재생하면 자막이 문장마다 따라 강조돼요. 스페이스바로도 돼요.' },
   { sel: 'loop', title: '문장 반복', desc: '한 문장을 반복 재생해 따라 말해보세요.\n이전·다시·다음은 A·S·D 키예요.' },
   { sel: 'rate', title: '배속', desc: '익숙해질 때까지 천천히 들어요.\nZ 느리게, X 빠르게.' },

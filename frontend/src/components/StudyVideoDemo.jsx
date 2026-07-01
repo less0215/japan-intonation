@@ -652,6 +652,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
 
       {detailIdx != null && (
         <SentenceDetail ln={lines[detailIdx]} saved={isLineSaved(detailIdx)} isPlaying={isPlaying} isLooping={loopIdx === detailIdx} wide={isWide}
+          rateIdx={rateIdx} onCycleRate={cycleRate}
+          videoBottomInset={isWide ? 0 : (headRef.current ? headRef.current.getBoundingClientRect().bottom : headH)}
           onClose={() => setDetailIdx(null)}
           onPrev={() => detailGo(-1)}
           onNext={() => detailGo(1)}
@@ -728,9 +730,10 @@ export default function StudyVideoDemo({ isPlus = false }) {
 }
 
 // ── 바텀시트(모바일) / 센터 모달(PC) ──────────────────
-function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, wide = false, children }) {
+// topInset: 모바일에서 시트 배경(scrim)이 이 높이 위로는 올라가지 않게(sticky 영상 안 가리도록)
+function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, wide = false, topInset = 0, children }) {
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: z, background: `rgba(12,18,24,${wide ? 0.1 : scrim})`, display: 'flex', alignItems: 'center', justifyContent: wide ? 'flex-end' : 'center', padding: wide ? '16px 18px' : 0, animation: 'tjFade 0.18s ease' }}>
+    <div onClick={onClose} style={{ position: 'fixed', top: wide ? 0 : topInset, left: 0, right: 0, bottom: 0, zIndex: z, background: `rgba(12,18,24,${wide ? 0.1 : scrim})`, display: 'flex', alignItems: 'center', justifyContent: wide ? 'flex-end' : 'center', padding: wide ? '16px 18px' : 0, animation: 'tjFade 0.18s ease' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: wide ? 400 : 640, maxHeight: wide ? '92vh' : maxH, overflowY: 'auto', background: 'var(--bg)', border: wide ? '1px solid var(--bd)' : 'none', borderRadius: wide ? 18 : '22px 22px 0 0', padding: wide ? '18px 18px 20px' : '8px 18px 26px', boxShadow: '0 16px 48px rgba(0,0,0,0.4)', animation: wide ? 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' : 'tjUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
         {!wide && <div style={{ width: 38, height: 4, borderRadius: 2, background: 'var(--bd)', margin: '2px auto 16px' }} />}
         {children}
@@ -740,7 +743,7 @@ function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, wide = false, ch
 }
 
 // ── 문장 상세 — 분해는 '보기' 버튼으로 수동 실행 ──────
-function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev, onNext, onPlayLine, onLoopLine, onTogglePlay, onToggleSave, onOpenWord, onBreakdown }) {
+function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, rateIdx, onCycleRate, videoBottomInset, onClose, onPrev, onNext, onPlayLine, onLoopLine, onTogglePlay, onToggleSave, onOpenWord, onBreakdown }) {
   const [bd, setBd] = useState(null)
   const [state, setState] = useState('idle')   // idle → 사용자가 '문장 분해 보기' 누르면 loading
   const [wordsOpen, setWordsOpen] = useState(false)
@@ -757,7 +760,7 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev
   useEffect(() => { setState('idle'); setBd(null); setWordsOpen(false) }, [ln.jp])
 
   return (
-    <Sheet onClose={onClose} scrim={0.22} maxH="74vh" wide={wide}>
+    <Sheet onClose={onClose} scrim={0.22} maxH="74vh" wide={wide} topInset={videoBottomInset}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <span style={{ fontSize: 11, color: PRIMARY, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>문장 분석 · {fmtT(ln.t)}</span>
         <button onClick={onToggleSave} aria-label="문장 북마크" style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', padding: 4 }}><Bookmark filled={saved} color={saved ? GREEN : 'var(--text-3)'} /></button>
@@ -772,6 +775,12 @@ function SentenceDetail({ ln, saved, isPlaying, isLooping, wide, onClose, onPrev
         <MiniCtl icon="replay" label="다시" k="S" onClick={onPlayLine} />
         <MiniCtl icon="loop" label="반복" k="R" on={isLooping} onClick={onLoopLine} />
         <MiniCtl icon="next" label="다음" k="D" onClick={onNext} />
+        {onCycleRate && (
+          <button onClick={onCycleRate} title="재생 속도" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, height: 48, borderRadius: 11, cursor: 'pointer', fontFamily: 'inherit', border: `1px solid ${rateIdx !== 2 ? PRIMARY : 'var(--bd)'}`, background: rateIdx !== 2 ? `${PRIMARY}18` : 'transparent', color: rateIdx !== 2 ? PRIMARY : 'var(--text-1)' }}>
+            <span style={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{RATES[rateIdx]}×</span>
+            <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1 }}>배속</span>
+          </button>
+        )}
       </div>
 
       {/* 문장 분해 — 수동 실행 */}

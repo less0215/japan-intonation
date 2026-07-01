@@ -8,6 +8,15 @@ import { track } from '../App'
 const PRIMARY = '#5CA9CE'
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 
+const hasKanji = (s) => /[一-鿿々〆]/.test(s || '')
+
+/* ── 한자 단어 위에 히라가나 후리가나(전체 단어 단위 ruby) — 한자 없으면 그냥 텍스트 */
+function WordRuby({ w, reading, style }) {
+  if (hasKanji(w) && reading && reading !== w)
+    return <ruby style={style}>{w}<rt style={{ fontSize: '0.55em', color: 'var(--text-3)' }}>{reading}</rt></ruby>
+  return <span style={style}>{w}</span>
+}
+
 /* ── 활용 원리 단계 */
 export function ConjugationPanel({ steps }) {
   return (
@@ -38,7 +47,7 @@ export function ConjugationPanel({ steps }) {
               flexShrink: 0,
             }}>{s.step}</span>
             <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 15, fontWeight: 600, color: 'var(--text-strong)' }}>
-              {s.form}
+              <WordRuby w={s.form} reading={s.reading} />
             </span>
             <span style={{ fontSize: 12, color: 'var(--text-2)', background: 'var(--surface-2)', borderRadius: 6, padding: '1px 7px' }}>
               {s.label}
@@ -88,7 +97,7 @@ export function BreakdownTable({ breakdown, showDetail }) {
       {breakdown.map((row, i) => (
         <div key={i} style={{ backgroundColor: i % 2 === 1 ? 'var(--surface-2)' : 'transparent', borderTop: '0.5px solid var(--bd)' }}>
           <div className="breakdown-row">
-            <span className="breakdown-unit">{row.unit}</span>
+            <span className="breakdown-unit"><WordRuby w={row.unit} reading={row.hiragana} /></span>
             <span className="breakdown-cell">{row.hiragana}</span>
             <span className="breakdown-cell">{row.korean_pronunciation}</span>
             <span className="breakdown-cell"><span className="pos-badge">{row.part_of_speech}</span></span>
@@ -113,7 +122,7 @@ export function BreakdownCards({ breakdown, showDetail }) {
       {breakdown.map((row, i) => (
         <div key={i} className="breakdown-card-item">
           <div className="breakdown-card-top">
-            <span className="breakdown-card-unit">{row.unit}</span>
+            <span className="breakdown-card-unit"><WordRuby w={row.unit} reading={row.hiragana} /></span>
             <span className="pos-badge">{row.part_of_speech}</span>
           </div>
           <div className="breakdown-card-bottom">

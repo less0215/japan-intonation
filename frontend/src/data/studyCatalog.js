@@ -2895,7 +2895,8 @@ export const STUDY_CATALOG = [
    "인생",
    "자기계발",
    "예술"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "sHXg43rnqz0",
@@ -2908,7 +2909,8 @@ export const STUDY_CATALOG = [
    "도전",
    "창업",
    "동기부여"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "b8iZ78uqcgc",
@@ -2921,7 +2923,8 @@ export const STUDY_CATALOG = [
    "동기부여",
    "도전",
    "예술"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "TMjlO7UUubU",
@@ -2934,7 +2937,8 @@ export const STUDY_CATALOG = [
    "자기계발",
    "도전",
    "창업"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "3xs-XWk_oQA",
@@ -2947,7 +2951,8 @@ export const STUDY_CATALOG = [
    "과학",
    "역사",
    "고고학"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "rK7KKwheWjs",
@@ -2960,7 +2965,8 @@ export const STUDY_CATALOG = [
    "기술",
    "과학",
    "디자인"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "fYULEluRlxA",
@@ -2973,7 +2979,8 @@ export const STUDY_CATALOG = [
    "예술",
    "영화",
    "문화"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "ov_W2gNQdz8",
@@ -2986,7 +2993,8 @@ export const STUDY_CATALOG = [
    "사회",
    "환경",
    "지역"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "z9mT1pny6tc",
@@ -2999,7 +3007,8 @@ export const STUDY_CATALOG = [
    "교육",
    "사회",
    "도전"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "UtFqVUTDchg",
@@ -3012,7 +3021,8 @@ export const STUDY_CATALOG = [
    "전통",
    "창업",
    "문화"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "sd6OLoQW0hY",

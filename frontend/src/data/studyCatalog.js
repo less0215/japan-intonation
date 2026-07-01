@@ -1,7 +1,7 @@
 /* 영상 학습 카탈로그 — 실제 일본어 TEDx 강연 249편 (yt-dlp 수집 + 음성언어 ja 검증).
  * 썸네일=img.youtube.com/vi/<id>/hqdefault.jpg. 출처: 전부 공식 TEDx Talks 채널.
  * jp/kr/lv/tags는 제목 기반 자동 분류(워크플로 생성+검증). lv는 추정치.
- * ready:true = 타임라인 학습 스크립트 완비(현재 27편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
+ * ready:true = 타임라인 학습 스크립트 완비(현재 44편), 나머지는 카탈로그 등재(학습 데이터 준비중). */
 export const STUDY_CATALOG = [
  {
   "id": "cjtmDEG-B7U",
@@ -1904,7 +1904,8 @@ export const STUDY_CATALOG = [
    "다양성",
    "정체성",
    "가치관"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "wPXrtVps7r4",
@@ -1931,7 +1932,8 @@ export const STUDY_CATALOG = [
    "LGBT",
    "다양성",
    "인권"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "LTPRs73DVWU",
@@ -2228,7 +2230,8 @@ export const STUDY_CATALOG = [
    "역경",
    "꿈",
    "도전"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "cNt2GPWKD1U",
@@ -2467,7 +2470,8 @@ export const STUDY_CATALOG = [
    "디자인",
    "예술",
    "공간"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "oKUCpXOUK10",
@@ -2480,7 +2484,8 @@ export const STUDY_CATALOG = [
    "문화",
    "건축",
    "디자인"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "WKDRHUTqtiM",
@@ -2506,7 +2511,8 @@ export const STUDY_CATALOG = [
    "문화",
    "패션",
    "예술"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "jXDD9eD1cQU",

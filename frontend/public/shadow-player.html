@@ -49,12 +49,12 @@
         else if (d.cmd === 'rate' && player.setPlaybackRate) player.setPlaybackRate(d.value);
       } catch (err) {}
     });
-    // 플레이어 → 앱 현재시간/상태 (100ms 주기 — 카라오케 자막 하이라이트 싱크 지연 최소화)
+    // 플레이어 → 앱 현재시간/상태 (200ms 주기)
     setInterval(function () {
       if (ready && player && player.getCurrentTime) {
         try { post({ event: 'time', t: player.getCurrentTime(), state: player.getPlayerState() }); } catch (e) {}
       }
-    }, 100);
+    }, 200);
   })();
   </script>
 </body>

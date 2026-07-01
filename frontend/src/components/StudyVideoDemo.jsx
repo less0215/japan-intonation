@@ -9,7 +9,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { track } from '../App'
-import RubyText, { parseFurigana } from './RubyText'
+import RubyText from './RubyText'
+import { pronText } from '../utils/kana.mjs'
 import { BreakdownTable, BreakdownCards } from './BreakdownPanel'
 import { STUDY_DEMO } from '../data/studyDemo'
 import { STUDY_DATA } from '../data/studyData'
@@ -41,9 +42,6 @@ function logEv(video_id, kind, line_idx = null, meta = null) {
   if (_ev.length >= 15) flushEv(); else if (!_evT) _evT = setTimeout(flushEv, 12000)
 }
 const RATES = [0.5, 0.75, 1, 1.25, 1.5]
-// 카라오케 자막 리드타임 보정 — 폴링(100ms)+postMessage 왕복(앱)으로 실제 오디오보다 하이라이트가
-// 늘 뒤쳐지는 파이프라인 지연을 상쇄. 문장 전환·게이트 등 다른 로직엔 영향 없음(하이라이트 계산에만 적용).
-const CAP_LEAD = 0.15
 const SHOW_KEYS = typeof window !== 'undefined' && window.matchMedia
   ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : false
 
@@ -54,6 +52,15 @@ const BARGREY = { N5: '#c4cbd1', N4: '#9aa3ac', N3: '#727c86', N2: '#525b64', N1
 const LV_LABEL = { N5: '입문', N4: '초급', N3: '중급', N2: '중상급', N1: '상급' }
 const jcolor = (lv) => JLPT[lv] || '#9aa5b1'
 const hasKanji = (s) => /[一-鿿々〆]/.test(s || '')
+
+// furigana_html("僕(ぼく)は…")에서 순수 히라가나 읽기만 추출해 pronText(kana.mjs, 틱재팬 표준 발음 규칙)로 변환.
+// pronText는 /analyze 결과의 한국어 발음(ResultCard)과 동일 소스 — 별도 API 호출 없이 결정론적으로 즉시 계산.
+const FURIGANA_RE = /([^\s()（）]+?)\(([ぁ-ゖー]+)\)/g
+function krPronOf(furiganaHtml) {
+  if (!furiganaHtml) return ''
+  const plain = furiganaHtml.replace(FURIGANA_RE, '$2')
+  return pronText(plain, furiganaHtml)
+}
 
 const LS_LINES = 'tickjapan_study_saved_lines'
 const LS_WORDS = 'tickjapan_study_saved_words'
@@ -97,36 +104,6 @@ function Furi({ w, reading, size = 16 }) {
     return <ruby style={f}>{w}<rt style={{ fontSize: size * 0.52, color: 'var(--text-3)' }}>{reading}</rt></ruby>
   return <span style={f}>{w}</span>
 }
-/* 카라오케 자막 — 영상 오버레이 자막에 재생 진행률만큼 배경 하이라이트(랭플릭스 스타일).
- * 문장 단위 타임스탬프만 있어 단어별 실제 발화 시각은 추정치(다음 문장 시작까지 구간을 파츠 길이 비례 배분). */
-function KaraokeText({ text, progress = 0, fontSize = 16, color = '#5CA9CE' }) {
-  const parts = parseFurigana(text)
-  const weights = parts.map(p => (p.type === 'ruby' ? p.kanji.length : p.text.length) || 1)
-  const total = weights.reduce((a, b) => a + b, 0) || 1
-  const highlightUpTo = progress * total
-  let cum = 0, n = 0
-  for (let i = 0; i < parts.length; i++) {
-    const mid = cum + weights[i] / 2
-    if (mid <= highlightUpTo) n = i + 1
-    cum += weights[i]
-  }
-  const rtSize = Math.max(9, Math.round(fontSize * 0.72))
-  const renderPart = (p, key) => p.type === 'ruby' ? (
-    <span key={key}>{p.kanji}<span style={{ fontSize: rtSize, opacity: 0.75 }}>({p.reading})</span></span>
-  ) : (
-    <span key={key}>{p.text}</span>
-  )
-  return (
-    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight: 700, lineHeight: 1.9 }}>
-      {n > 0 && (
-        <span style={{ background: color, borderRadius: 5, padding: '1px 3px', boxDecorationBreak: 'clone', WebkitBoxDecorationBreak: 'clone' }}>
-          {parts.slice(0, n).map((p, i) => renderPart(p, i))}
-        </span>
-      )}
-      {n < parts.length && parts.slice(n).map((p, i) => renderPart(p, n + i))}
-    </span>
-  )
-}
 function Bookmark({ filled, color, size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -162,7 +139,6 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const [isLandscape, setIsLandscape] = useState(typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false)
   const [printing, setPrinting] = useState(false)   // 스크립트 PDF(인쇄→PDF로 저장)
   const [activeIdx, setActiveIdx] = useState(-1)
-  const [capFrac, setCapFrac] = useState(0)   // 카라오케 자막: 현재 문장 내 진행률(0~1, 다음 문장 타임스탬프 기준 추정)
   const [loopIdx, setLoopIdx] = useState(-1)
   const [isPlaying, setIsPlaying] = useState(false)
   const [rateIdx, setRateIdx] = useState(2)
@@ -173,6 +149,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const CAP_LABEL = { both: '일+한', jp: '일본어', kr: '한국어', off: '끔' }
   const cycleCap = () => setCapMode(m => CAP_ORDER[(CAP_ORDER.indexOf(m) + 1) % CAP_ORDER.length])
   const [showWords, setShowWords] = useState(true)
+  const [showKrPron, setShowKrPron] = useState(true)   // 영상 자막: 일본어 아래 한국어 발음 표시
   const [headH, setHeadH] = useState(0)
   const [openSummary, setOpenSummary] = useState(false)
   const [openVocab, setOpenVocab] = useState(false)
@@ -300,19 +277,11 @@ export default function StudyVideoDemo({ isPlus = false }) {
       const li = loopRef.current
       if (li >= 0) { const endT = lines[li + 1] ? lines[li + 1].t : Infinity; if (t >= endT - 0.12) { try { p.seekTo(lines[li].t, true) } catch {} } idx = li }
       if (idx !== activeRef.current) { activeRef.current = idx; setActiveIdx(idx) }
-      // 카라오케 자막: 현재 문장 시작~다음 문장 시작 구간에서의 진행률(다음 줄 없으면 4초 추정)
-      // + CAP_LEAD만큼 앞당겨 폴링·postMessage 지연으로 색이 오디오보다 늦게 칠해지는 것을 보정
-      if (idx >= 0) {
-        const lineStart = lines[idx].t
-        const lineEnd = lines[idx + 1] ? lines[idx + 1].t : lineStart + 4
-        const frac = lineEnd > lineStart ? Math.min(1, Math.max(0, (t + CAP_LEAD - lineStart) / (lineEnd - lineStart))) : 1
-        setCapFrac(frac)
-      }
       // 해자 로그: 최대 도달 문장 + 완주
       if (idx > maxIdxRef.current) maxIdxRef.current = idx
       if (idx >= 0 && idx === lines.length - 1 && !completedRef.current) { completedRef.current = true; logEv(vid, 'complete') }
     }
-    const onReadyStart = () => { if (started) return; started = true; timer = setInterval(tick, 100) }
+    const onReadyStart = () => { if (started) return; started = true; timer = setInterval(tick, 200) }
 
     if (IS_APP) {
       // 앱: 원격 origin 제어형 플레이어(shadow-player.html)를 iframe으로 띄우고 postMessage로 제어 → 오류 153 회피(라이브캠과 동일 패턴, 장치 검증 완료).
@@ -458,7 +427,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
         {!expanded && capMode !== 'off' && cur && (
           <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
-            {(capMode === 'both' || capMode === 'jp') && <div style={{ lineHeight: 1.45 }}><KaraokeText text={cur.furigana_html} progress={capFrac} color={PRIMARY} fontSize={16} /></div>}
+            {(capMode === 'both' || capMode === 'jp') && <div style={{ lineHeight: 1.45 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>}
+            {(capMode === 'both' || capMode === 'jp') && showKrPron && <p style={{ margin: '3px 0 0', fontSize: 12, color: 'rgba(255,255,255,0.72)' }}>{krPronOf(cur.furigana_html)}</p>}
             {(capMode === 'both' || capMode === 'kr') && <p style={{ margin: capMode === 'kr' ? 0 : '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4 }}>{cur.kr}</p>}
           </div>
         )}
@@ -476,7 +446,8 @@ export default function StudyVideoDemo({ isPlus = false }) {
         <div style={{ ...(isLandscape ? { flex: 1, minWidth: 0, maxWidth: 460, maxHeight: '92vh', overflowY: 'auto' } : { width: '100%', maxWidth: 560, padding: '0 18px' }), display: 'flex', flexDirection: 'column', gap: 14, color: '#fff' }}>
           <div style={{ textAlign: isLandscape ? 'left' : 'center' }}>
             {cur ? (<>
-              <div style={blurStyle(hideJp)}><KaraokeText text={cur.furigana_html} progress={capFrac} color={PRIMARY} fontSize={isLandscape ? 22 : 19} /></div>
+              <div style={blurStyle(hideJp)}><RubyText text={cur.furigana_html} fontSize={isLandscape ? 22 : 19} /></div>
+              {showKrPron && <p style={{ margin: '6px 0 0', fontSize: isLandscape ? 14 : 12.5, color: 'rgba(255,255,255,0.6)', ...blurStyle(hideJp) }}>{krPronOf(cur.furigana_html)}</p>}
               <p style={{ margin: '9px 0 0', fontSize: isLandscape ? 15.5 : 14, color: 'rgba(255,255,255,0.82)', lineHeight: 1.5, ...blurStyle(hideKr) }}>{cur.kr}</p>
             </>) : (
               <p style={{ margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.55)' }}>재생하면 자막이 여기에 표시돼요</p>
@@ -530,6 +501,15 @@ export default function StudyVideoDemo({ isPlus = false }) {
             <p style={{ margin: '0 0 7px', fontSize: 12, fontWeight: 700, color: 'var(--text-3)' }}>영상 위 자막</p>
             <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
               {CAP_ORDER.map(m => <button key={m} onClick={() => setCapMode(m)} style={{ ...segChip(capMode === m), flex: 1, height: 36, justifyContent: 'center' }}>{CAP_LABEL[m]}</button>)}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--text-strong)' }}>한국어 발음 표시</p>
+                <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'var(--text-3)' }}>일본어 자막 아래 한글 발음 표시</p>
+              </div>
+              <button onClick={() => setShowKrPron(v => !v)} style={{ width: 50, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer', background: showKrPron ? PRIMARY : 'var(--bd)', position: 'relative', transition: 'background .15s' }}>
+                <span style={{ position: 'absolute', top: 3, left: showKrPron ? 25 : 3, width: 22, height: 22, borderRadius: '50%', background: '#fff', transition: 'left .15s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+              </button>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>

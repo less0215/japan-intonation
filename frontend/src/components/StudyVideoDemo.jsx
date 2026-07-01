@@ -41,6 +41,9 @@ function logEv(video_id, kind, line_idx = null, meta = null) {
   if (_ev.length >= 15) flushEv(); else if (!_evT) _evT = setTimeout(flushEv, 12000)
 }
 const RATES = [0.5, 0.75, 1, 1.25, 1.5]
+// 카라오케 자막 리드타임 보정 — 폴링(100ms)+postMessage 왕복(앱)으로 실제 오디오보다 하이라이트가
+// 늘 뒤쳐지는 파이프라인 지연을 상쇄. 문장 전환·게이트 등 다른 로직엔 영향 없음(하이라이트 계산에만 적용).
+const CAP_LEAD = 0.15
 const SHOW_KEYS = typeof window !== 'undefined' && window.matchMedia
   ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : false
 
@@ -298,17 +301,18 @@ export default function StudyVideoDemo({ isPlus = false }) {
       if (li >= 0) { const endT = lines[li + 1] ? lines[li + 1].t : Infinity; if (t >= endT - 0.12) { try { p.seekTo(lines[li].t, true) } catch {} } idx = li }
       if (idx !== activeRef.current) { activeRef.current = idx; setActiveIdx(idx) }
       // 카라오케 자막: 현재 문장 시작~다음 문장 시작 구간에서의 진행률(다음 줄 없으면 4초 추정)
+      // + CAP_LEAD만큼 앞당겨 폴링·postMessage 지연으로 색이 오디오보다 늦게 칠해지는 것을 보정
       if (idx >= 0) {
         const lineStart = lines[idx].t
         const lineEnd = lines[idx + 1] ? lines[idx + 1].t : lineStart + 4
-        const frac = lineEnd > lineStart ? Math.min(1, Math.max(0, (t - lineStart) / (lineEnd - lineStart))) : 1
+        const frac = lineEnd > lineStart ? Math.min(1, Math.max(0, (t + CAP_LEAD - lineStart) / (lineEnd - lineStart))) : 1
         setCapFrac(frac)
       }
       // 해자 로그: 최대 도달 문장 + 완주
       if (idx > maxIdxRef.current) maxIdxRef.current = idx
       if (idx >= 0 && idx === lines.length - 1 && !completedRef.current) { completedRef.current = true; logEv(vid, 'complete') }
     }
-    const onReadyStart = () => { if (started) return; started = true; timer = setInterval(tick, 200) }
+    const onReadyStart = () => { if (started) return; started = true; timer = setInterval(tick, 100) }
 
     if (IS_APP) {
       // 앱: 원격 origin 제어형 플레이어(shadow-player.html)를 iframe으로 띄우고 postMessage로 제어 → 오류 153 회피(라이브캠과 동일 패턴, 장치 검증 완료).

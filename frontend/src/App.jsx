@@ -1108,7 +1108,14 @@ export default function App() {
           <Route path="/live"        element={<LiveCamLibrary />} />
           <Route path="/live/:city"  element={<LiveCamDetailPage />} />
           <Route path="/study-demo"  element={<StudyVideoDemo isPlus={subAdFree} />} />
-          <Route path="/shadowing"   element={<ShadowingBrowse variant="tab" isLoggedIn={!!user} userName={user?.name} onNavigate={navigate} />} />
+          <Route path="/shadowing"   element={<>
+            <PageSEO
+              title="일본어 쉐도잉 - 유튜브 영상 대본·한국어 번역·단어장"
+              description="유튜브 영상으로 일본어 쉐도잉을 연습하세요. 일본어 대본과 한국어 번역, 후리가나, 단어장을 한 화면에서 확인할 수 있습니다. TED·브이로그·인터뷰 등 레벨별 영상 수록."
+              path="/shadowing"
+            />
+            <ShadowingBrowse variant="tab" isLoggedIn={!!user} userName={user?.name} onNavigate={navigate} />
+          </>} />
           <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="/messages"    element={<MessageInbox />} />
           <Route path="/survey"      element={<SurveyPage onLogin={handleLoginClick} onSubRefresh={() => setSubTick(t => t + 1)} />} />

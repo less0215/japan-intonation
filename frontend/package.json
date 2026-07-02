@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node merge-prerendered.mjs",
-    "prerender": "vite build && node prerender.mjs && node merge-prerendered.mjs",
+    "prerender": "vite build && node prerender.mjs && node merge-prerendered.mjs --force",
     "preview": "vite preview"
   },
   "dependencies": {

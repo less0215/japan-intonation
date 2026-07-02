@@ -3558,10 +3558,94 @@ def nf_subs_put(req: NfSubsPutRequest, request: Request):
     payload = {"v": 1, "movieId": mid, "source": (req.source or "")[:20], "lines": clean}
     if len(json.dumps(payload, ensure_ascii=False)) > 2_500_000:
         raise HTTPException(status_code=413, detail="데이터가 너무 커요.")
-    if pcache_get_text("nfsub", f"v1:{mid}"):
-        return {"ok": True, "existing": True}   # 불변: 최초 저장본 유지
+    existing = pcache_get_text("nfsub", f"v1:{mid}")
+    if existing:
+        # 부분 준비 → 이어서 완성 지원: 더 많은 줄을 가진 버전만 교체 허용
+        if len(existing.get("lines") or []) >= len(clean):
+            return {"ok": True, "existing": True, "lines": len(existing.get("lines") or [])}
+        db = SessionLocal()
+        try:
+            row = db.query(CacheEntry).filter(CacheEntry.k_hash == _pcache_hash("nfsub", f"v1:{mid}")).first()
+            if row:
+                row.v_text = json.dumps(payload, ensure_ascii=False)
+                db.commit()
+        except Exception as e:
+            db.rollback()
+            print("[nf subs 교체] skip:", e)
+        finally:
+            db.close()
+        return {"ok": True, "replaced": True, "lines": len(clean)}
     pcache_put_text("nfsub", f"v1:{mid}", payload)
     return {"ok": True, "existing": False, "lines": len(clean)}
+
+
+# 구간 전사: 오디오(≤6MB WAV) + 그 구간의 공식 한국어 자막(문맥) → 실제 발화 일본어를 줄별 정렬
+class NfSegRequest(BaseModel):
+    audio_b64: str
+    mime_type: str = "audio/wav"
+    ko_lines: list = []
+
+
+@app.post("/nf/transcribe_seg")
+def nf_transcribe_seg(req: NfSegRequest, request: Request):
+    rate_guard(request)
+    b64 = req.audio_b64 or ""
+    if "," in b64[:80] and "base64" in b64[:80]:
+        b64 = b64.split(",", 1)[1]
+    try:
+        audio = base64.b64decode(b64)
+    except Exception:
+        raise HTTPException(status_code=400, detail="오디오를 읽을 수 없어요.")
+    if not audio:
+        raise HTTPException(status_code=400, detail="빈 오디오예요.")
+    if len(audio) > 6 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="오디오 구간이 너무 길어요.")
+    ko = [str(x or "").strip()[:300] for x in (req.ko_lines or [])]
+    ko = [x for x in ko if x]
+    if not (1 <= len(ko) <= 12):
+        raise HTTPException(status_code=400, detail="ko_lines는 1~12줄이어야 해요.")
+    mime = (req.mime_type or "audio/wav").split(";")[0].strip().lower()
+    if mime not in _AUDIO_MIME_OK:
+        mime = "audio/wav"
+
+    numbered = "\n".join(f"{i + 1}. {x}" for i, x in enumerate(ko))
+    prompt = (
+        "The audio is a segment from a Japanese film or drama. It contains spoken Japanese dialogue "
+        f"corresponding to exactly {len(ko)} subtitle lines. The official KOREAN subtitles for these lines, in order:\n"
+        f"{numbered}\n\n"
+        "Transcribe the ACTUAL spoken Japanese for each line, in the same order. Use the Korean lines only to "
+        "disambiguate names and unclear words — NEVER translate the Korean into Japanese; write only what is "
+        "actually spoken in the audio. Use standard Japanese orthography (kanji + kana). "
+        'If a line\'s speech is absent or unintelligible in the audio, use "" for that line. '
+        f'Respond with ONLY valid JSON: {{"lines": [{len(ko)} strings]}}'
+    )
+    client = get_gemini_client()
+    for attempt in range(3):
+        try:
+            resp = client.models.generate_content(
+                model=BASIC_MODEL,
+                contents=[prompt, genai.types.Part.from_bytes(data=audio, mime_type=mime)],
+            )
+            text = (resp.text or "").strip()
+            if "{" not in text or "}" not in text:
+                raise ValueError("no-json")
+            data = json.loads(text[text.index("{"): text.rindex("}") + 1])
+            lines = data.get("lines")
+            if not isinstance(lines, list) or len(lines) != len(ko):
+                raise ValueError("shape")
+            return {"lines": [str(x or "").strip()[:500] for x in lines]}
+        except Exception as e:
+            es = str(e)
+            if any(k in es for k in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED")) or "overloaded" in es.lower():
+                print(f"[nf seg 재시도 {attempt + 1}/3] {es[:80]}")
+                time.sleep(attempt + 1)
+                continue
+            if attempt < 2:   # 형식 오류도 짧게 재시도
+                time.sleep(1)
+                continue
+            print(f"[nf seg 오류] {es[:160]}")
+            raise HTTPException(status_code=502, detail="구간 전사에 실패했어요.")
+    raise HTTPException(status_code=503, detail="서버가 혼잡해요. 잠시 후 다시 시도해 주세요.")
 
 
 @app.post("/tts")

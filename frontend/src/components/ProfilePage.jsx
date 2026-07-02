@@ -71,6 +71,15 @@ export default function ProfilePage({ user, fastUnlimited, planLabel, onLogout, 
       {/* 관리자 전용 — 제휴 수익 대시보드 */}
       {user?.is_admin && (
         <>
+          {/* 쇼츠 100 제작 체크리스트 바로가기 */}
+          <button onClick={() => navigate('/lab/shorts100')}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%', textAlign: 'left', background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 14, padding: '13px 16px', marginBottom: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-strong)' }}>쇼츠 100 체크리스트</span>
+            </span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
+          </button>
           <AdminSection title="구독·회원 지표" defaultOpen={true}><AdminMetrics /></AdminSection>
           <AdminSection title="쉐도잉 분석 (해자)"><AdminStudy /></AdminSection>
           <AdminSection title="설문 결과"><AdminSurvey /></AdminSection>

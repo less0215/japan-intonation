@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { STUDY_CATALOG, STUDY_FEATURED, STUDY_TOP10, TAG_GROUPS } from '../data/studyCatalog'
 import { STUDY_DATA } from '../data/studyData'   // 검색: 대사(스크립트) 내용까지 매칭
 import { matchExpressions, sceneCount } from '../utils/expressions'   // 검색어가 표현이면 '표현으로 배우기' 카드
+import { EXPRESSION_SIGNATURES } from '../data/expressionSignatures'  // 표현 카드 로우(브라우징 발견 진입점)
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 // 좋아요/싫어요를 서버에 기록 → 전역 랭킹(수요)에 즉시 반영
@@ -344,6 +345,32 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
         </div>
       ) : (
         <>
+          {/* 탭: 표현으로 배우기 로우 — 브라우징 발견 진입점(검색·번역CTA·문법페이지 외 유일한 능동 노출).
+              카드 탭 → 해당 표현 장면 루프 학습(/lab/expression?p=). 장면 2개 미만 시그니처는 숨김. */}
+          {isTab && (() => {
+            const sigs = EXPRESSION_SIGNATURES
+              .map(s => ({ ...s, n: sceneCount(s.id) }))
+              .filter(s => s.n >= 2)
+              .sort((a, b) => b.n - a.n)
+            if (!sigs.length) return null
+            return (
+              <div style={{ marginBottom: 22 }}>
+                <p style={{ margin: '0 2px 10px', fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>이 표현, 원어민은 이렇게 써요</p>
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
+                  {sigs.map(s => (
+                    <button key={s.id} className="ted-card"
+                      onClick={() => { try { window.gtag && window.gtag('event', 'expr_row_click', { sig: s.id }) } catch {}; onNavigate(`/lab/expression?p=${s.id}`) }}
+                      style={{ flex: '0 0 auto', minWidth: 148, textAlign: 'left', padding: '13px 15px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', border: '1px solid rgba(92,169,206,0.45)', background: 'rgba(92,169,206,0.08)' }}>
+                      <p style={{ margin: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)', fontFamily: "'Noto Sans JP', sans-serif", whiteSpace: 'nowrap' }}>{s.label}</p>
+                      <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-2,#5b6470)', whiteSpace: 'nowrap' }}>{s.kr}</p>
+                      <p style={{ margin: '6px 0 0', fontSize: 11, fontWeight: 700, color: '#5CA9CE' }}>{s.n}개 장면 →</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* 홈: TOP10 최상단 */}
           {!isTab && <Row title="쉐도잉 인기 TOP 10" items={top10} ranked autoScroll {...rowProps} />}
 

@@ -7,6 +7,7 @@
 export const EXPRESSION_SIGNATURES = [
   {
     id: 'omou',
+    kr: '~하려고 하다',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'desire-you-to-omou',   // /grammar/desire-you-to-omou 상세 페이지와 연결
     label: '〜(よ)うと思う',
     reading: '(요)-토 오모우',
@@ -17,6 +18,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'yotei',
+    kr: '~할 예정',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'desire-yotei-da',   // /grammar/desire-yotei-da 상세 페이지와 연결
     label: '〜予定だ',
     reading: '요테-다',
@@ -27,6 +29,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'tsumori',
+    kr: '~할 작정',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'desire-tsumori-da',   // /grammar/desire-tsumori-da 상세 페이지와 연결
     label: '〜つもり',
     reading: '츠모리',
@@ -37,6 +40,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'tai-omou',
+    kr: '~하고 싶다',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'desire-tai',   // /grammar/desire-tai 상세 페이지와 연결
     label: '〜たいと思う',
     reading: '타이토 오모우',
@@ -47,6 +51,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'teiku',
+    kr: '~해 가다',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'te-iku',   // /grammar/te-iku 상세 페이지와 연결
     label: '〜ていく',
     reading: '테 이쿠',
@@ -57,6 +62,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'tekuru',
+    kr: '~해 오다',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'te-kuru',   // /grammar/te-kuru 상세 페이지와 연결
     label: '〜てくる',
     reading: '테 쿠루',
@@ -67,6 +73,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'nakereba',
+    kr: '~해야 한다',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'permission-nakereba-naranai',   // /grammar/permission-nakereba-naranai 상세 페이지와 연결
     label: '〜なければならない / なきゃ',
     reading: '나케레바 나라나이',
@@ -77,6 +84,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'tehoshii',
+    kr: '~해 줬으면',   // 카드·목록 표시용 짧은 뜻
     label: '〜てほしい',
     reading: '테 호시이',
     ko: ['해 줬으면', '해 주길 바라', '해 줘', '해 주면 좋겠다'],
@@ -86,6 +94,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'kamo',
+    kr: '~일지도 몰라',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'kamo-shirenai',   // /grammar/kamo-shirenai 상세 페이지와 연결
     label: '〜かもしれない',
     reading: '카모시레나이',
@@ -96,6 +105,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'hazu',
+    kr: '분명 ~일 거야',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'guess-hazu-da',   // /grammar/guess-hazu-da 상세 페이지와 연결
     label: '〜はず',
     reading: '하즈',
@@ -106,6 +116,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'rashii',
+    kr: '~인 것 같아',   // 카드·목록 표시용 짧은 뜻
     grammarId: 'rashii',   // /grammar/rashii 상세 페이지와 연결
     label: '〜らしい',
     reading: '라시이',

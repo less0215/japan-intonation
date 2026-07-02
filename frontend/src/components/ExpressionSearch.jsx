@@ -19,7 +19,7 @@ import { matchExpressions, hasJapanese, stripSp } from '../utils/expressions'
 
 const PRIMARY = '#5CA9CE'
 const GREEN = '#1D9E75'
-const MAX_PLAYS = 500   // 현재 장면만 렌더하므로 큰 값도 부담 없음 — 진입점들의 '장면 수' 표기와 일치시키기 위해 여유 있게
+const MAX_PLAYS = 1000   // 현재 장면만 렌더하므로 큰 값도 부담 없음 — 진입점들의 '장면 수' 표기와 일치(최대 시그니처 ていく 564)
 // 문장 저장 — 쉐도잉과 동일 키·형식({vid,idx,t,jp,furigana_html,kr})이라 저장탭(쉐도잉>저장한 문장)에 그대로 뜸
 const LS_LINES = 'tickjapan_study_saved_lines'
 const lsLoad = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]') } catch { return [] } }

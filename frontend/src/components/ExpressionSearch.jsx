@@ -1,122 +1,263 @@
-/* 표현 검색 (YouGlish식) — 한국어/일본어 표현을 입력하면 우리 쉐도잉 DB에서
- * 그 표현이 실제로 쓰인 대사들을 찾아, 같은 표현이 다른 맥락·억양으로 쓰이는 예시를
- * 여러 영상에서 보고/들을 수 있게 한다.
- * ⚠️ P1 프로토타입 — 숨김 라우트(/lab/expression). 정규식 시그니처 기반, 클라이언트 전용(백엔드 무관).
- * 매칭 로직: expressionSignatures.js. 자막 데이터: studyVideos.js(이미 번들에 존재). */
-import { useMemo, useState } from 'react'
+/* 표현 검색 (YouGlish식) — 한국어/일본어 표현 입력 → 쉐도잉 DB(2만여 대사)에서
+ * 그 표현이 실제로 쓰인 장면을 찾아, 미니 쉐도잉 플레이어로 보고/들려준다.
+ * ⚠️ P1 프로토타입 — 숨김 라우트(/lab/expression). 웹 전용, 클라이언트 전용(백엔드 무관).
+ *   프로덕션 StudyVideoDemo는 건드리지 않고, 같은 부품(RubyText·pronText·YT IFrame·오버레이 자막)만 재사용.
+ * 결과뷰 = 영상(오버레이 자막) + 해설(타임라인 자막) + 컨트롤 + 관련 예시 레일.
+ * 카라오케: 라인별 타임스탬프만 있어 '라인 단위 스윕'(구간 경과 비율만큼 좌→우 하이라이트)을 일·한 양쪽에 적용. */
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { STUDY_VIDEOS } from '../data/studyVideos'
+import RubyText, { parseFurigana } from './RubyText'
+import { pronText } from '../utils/kana.mjs'
+import { STUDY_DATA } from '../data/studyData'
 import { EXPRESSION_SIGNATURES } from '../data/expressionSignatures'
 
+const PRIMARY = '#5CA9CE'
 const thumb = (id) => `https://img.youtube.com/vi/${id}/mqdefault.jpg`
 const norm = (s) => (s || '').replace(/\s+/g, '').toLowerCase()
-const hasJapanese = (s) => /[぀-ヿ㐀-鿿]/.test(s) // 가나 + CJK 한자
-const fmtTime = (sec) => {
-  const m = Math.floor(sec / 60), s = Math.floor(sec % 60)
-  return `${m}:${String(s).padStart(2, '0')}`
-}
+const hasJapanese = (s) => /[぀-ヿ㐀-鿿]/.test(s)
+const fmtT = (sec) => { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${String(s).padStart(2, '0')}` }
 const EXAMPLES = ['하려고 해', '할 거야', '하고 싶어', '해 가다', '해야 해', '할지도 몰라', 'ていく', '思う']
-const MAX_RESULTS = 60
+const MAX_HITS = 80
+const RATES = [0.75, 1, 1.25, 1.5]
 
-// 자막 전체를 평평한 라인 인덱스로(한 번만 계산). 20,000여 개라도 즉시.
+const FURIGANA_RE = /([^\s()（）]+?)\(([ぁ-ゖー]+)\)/g
+function krPronOf(furiganaHtml) {
+  if (!furiganaHtml) return ''
+  const plain = furiganaHtml.replace(FURIGANA_RE, '$2')
+  return pronText(plain, furiganaHtml)
+}
+
+// ── YT IFrame API 로더(웹 전용) ──
+let _ytPromise = null
+function loadYT() {
+  if (typeof window === 'undefined') return Promise.resolve(null)
+  if (window.YT && window.YT.Player) return Promise.resolve(window.YT)
+  if (_ytPromise) return _ytPromise
+  _ytPromise = new Promise((resolve) => {
+    const prev = window.onYouTubeIframeAPIReady
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); resolve(window.YT) }
+    const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'
+    document.head.appendChild(s)
+  })
+  return _ytPromise
+}
+
+// ── 자막/대사 검색 ──
 function buildLineIndex() {
   const out = []
-  for (const v of Object.values(STUDY_VIDEOS)) {
+  for (const v of Object.values(STUDY_DATA)) {
     const lines = v.lines || []
-    for (let i = 0; i < lines.length; i++) {
-      out.push({ videoId: v.videoId, title: v.title, titleKr: v.titleKr, idx: i, t: lines[i].t, jp: lines[i].jp, kr: lines[i].kr })
-    }
+    for (let i = 0; i < lines.length; i++) out.push({ videoId: v.videoId, title: v.title, titleKr: v.titleKr, idx: i, t: lines[i].t, jp: lines[i].jp, kr: lines[i].kr })
   }
   return out
 }
-
-// 입력 → 후보 패턴들. 일본어면 시그니처 정규식이 걸리는 것, 한국어면 ko 별칭이 겹치는 것.
 function matchCandidates(query) {
   const q = norm(query)
   if (!q) return []
   if (hasJapanese(query)) return EXPRESSION_SIGNATURES.filter((s) => s.jpRe.test(query))
   return EXPRESSION_SIGNATURES.filter((s) => s.ko.some((a) => { const na = norm(a); return na.includes(q) || q.includes(na) }))
 }
+// 매칭 부분 위치(하이라이트용) — 평문 jp 기준 [start,end)
+function matchSpan(jp, matcher) {
+  if (matcher.jpRe) { const m = jp.match(matcher.jpRe); if (m) return [m.index, m.index + m[0].length] }
+  else if (matcher.raw) { const i = jp.indexOf(matcher.raw); if (i >= 0) return [i, i + matcher.raw.length] }
+  return null
+}
 
-// 한 대사에서 매칭 부분을 잘라 하이라이트용 세그먼트로.
-function splitHighlight(jp, matcher) {
-  let start = -1, len = 0
-  if (matcher.jpRe) { const m = jp.match(matcher.jpRe); if (m) { start = m.index; len = m[0].length } }
-  else if (matcher.raw) { const i = jp.indexOf(matcher.raw); if (i >= 0) { start = i; len = matcher.raw.length } }
-  if (start < 0) return [{ t: jp }]
-  return [{ t: jp.slice(0, start) }, { t: jp.slice(start, start + len), hl: true }, { t: jp.slice(start + len) }]
+// ── 매칭 표현을 굵게 ──
+// furigana_html엔 (요미)가 끼어 평문 jp 인덱스와 어긋남 → parseFurigana로 파트를 얻고,
+// 각 파트의 '평문 길이'(ruby=한자, plain=텍스트)로 오프셋을 재구성해 매칭 span과 겹치는 파트만 강조.
+// (예: 思(おも)う 는 [ruby 思/おも][plain う] → 평문 "思う"와 오프셋 일치 → "思う" 정확 강조)
+function EmphFurigana({ furiganaHtml, jp, matcher, fontSize }) {
+  const span = matchSpan(jp, matcher)
+  const parts = parseFurigana(furiganaHtml)
+  const rtSize = Math.max(9, Math.round(fontSize * 0.72))
+  const HL = { background: `${PRIMARY}30`, borderRadius: 3, boxShadow: `inset 0 -2px 0 ${PRIMARY}`, fontWeight: 700 }
+  const inSpan = (a, b) => span && b > span[0] && a < span[1]
+  let pos = 0
+  return (
+    <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight: 500, lineHeight: 1.8 }}>
+      {parts.map((p, i) => {
+        if (p.type === 'ruby') {
+          const s = pos, e = pos + p.kanji.length; pos = e
+          const hl = inSpan(s, e) ? HL : undefined  // 한자는 통째로(요미 분리 불가)
+          return <span key={i} style={hl}>{p.kanji}<span style={{ fontSize: rtSize, color: 'var(--text-3)', fontWeight: 400 }}>({p.reading})</span></span>
+        }
+        // 평문: span 경계에서 잘라 매칭 글자만 강조
+        const t = p.text, s = pos; pos += t.length
+        if (!span) return <span key={i}>{t}</span>
+        const a = Math.max(0, span[0] - s), b = Math.min(t.length, span[1] - s)
+        if (a >= b) return <span key={i}>{t}</span>   // 겹침 없음
+        return <span key={i}>{t.slice(0, a)}<span style={HL}>{t.slice(a, b)}</span>{t.slice(b)}</span>
+      })}
+    </span>
+  )
 }
 
 export default function ExpressionSearch() {
   const allLines = useMemo(buildLineIndex, [])
   const [query, setQuery] = useState('')
-  const [stage, setStage] = useState('idle') // idle | disambig | results | empty
+  const [stage, setStage] = useState('idle')      // idle | disambig | results | empty
   const [candidates, setCandidates] = useState([])
-  const [matcher, setMatcher] = useState(null) // 확정된 시그니처 or {raw}
-  const [hits, setHits] = useState([])
-  const [featured, setFeatured] = useState(0)
+  const [matcher, setMatcher] = useState(null)
+  const [groups, setGroups] = useState([])         // [{videoId,title,titleKr,hits:[{idx,t,jp,kr}]}]
+  const [totalHits, setTotalHits] = useState(0)
 
+  // 플레이어 상태
+  const [activeVid, setActiveVid] = useState(null)
+  const [activeIdx, setActiveIdx] = useState(-1)   // 현재 재생 중인 대사
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [rateIdx, setRateIdx] = useState(1)
+  const [hideJp, setHideJp] = useState(false)
+  const [hideKr, setHideKr] = useState(false)
+  const [capMode, setCapMode] = useState('both')   // both | jp | kr | off
+
+  const playerRef = useRef(null)
+  const hostRef = useRef(null)         // YT가 이 안의 자식 노드를 자기 iframe으로 교체(React는 이 div만 소유 → 충돌 방지)
+  const createdRef = useRef(false)     // 플레이어 1회 생성 가드
+  const loadedVidRef = useRef(null)    // 현재 플레이어에 로드된 영상
+  const activeVidRef = useRef(null)    // tick(1회 생성)이 최신 activeVid를 읽도록
+  const activeRef = useRef(-1)
+  const lineRefs = useRef([])
+  const jpFillRef = useRef(null)   // 오버레이 일본어 스윕
+  const krFillRef = useRef(null)   // 오버레이 한국어 스윕
+  const lineFillRef = useRef(null) // 해설 활성 줄 스윕
+
+  const activeData = activeVid ? STUDY_DATA[activeVid] : null
+  const lines = activeData?.lines || []
+  const cur = activeIdx >= 0 ? lines[activeIdx] : null
+
+  // ── 검색 ──
   const runSearch = (m) => {
     const test = m.jpRe ? (jp) => m.jpRe.test(jp) : (jp) => jp.includes(m.raw)
-    const found = allLines.filter((l) => test(l.jp)).slice(0, MAX_RESULTS)
-    setMatcher(m); setHits(found); setFeatured(0)
-    setStage(found.length ? 'results' : 'empty')
+    const byVid = new Map()
+    let total = 0
+    for (const l of allLines) {
+      if (!test(l.jp)) continue
+      total++
+      if (total > MAX_HITS) break
+      if (!byVid.has(l.videoId)) byVid.set(l.videoId, { videoId: l.videoId, title: l.title, titleKr: l.titleKr, hits: [] })
+      byVid.get(l.videoId).hits.push({ idx: l.idx, t: l.t, jp: l.jp, kr: l.kr })
+    }
+    const grouped = [...byVid.values()].sort((a, b) => b.hits.length - a.hits.length)
+    setMatcher(m); setGroups(grouped); setTotalHits(total)
+    if (grouped.length) {
+      const first = grouped[0]
+      openAt(first.videoId, first.hits[0].idx)
+      setStage('results')
+    } else setStage('empty')
   }
-
   const onSearch = (raw) => {
-    const q = (raw ?? query).trim()
-    setQuery(q)
+    const q = (raw ?? query).trim(); setQuery(q)
     if (!q) return
     const cands = matchCandidates(q)
     if (cands.length > 1) { setCandidates(cands); setStage('disambig'); return }
     if (cands.length === 1) { runSearch(cands[0]); return }
-    // 후보 없음: 일본어면 원문 그대로 부분검색(YouGlish식), 한국어면 미지원 표현
     if (hasJapanese(q)) runSearch({ raw: q, label: `"${q}"`, note: '입력한 일본어가 그대로 나오는 대사' })
-    else { setCandidates([]); setMatcher(null); setHits([]); setStage('empty') }
+    else setStage('empty')
   }
 
-  const videoCount = useMemo(() => new Set(hits.map((h) => h.videoId)).size, [hits])
-  const cur = hits[featured]
+  // ── 영상 열기 + 특정 대사로 점프 ──
+  const seekLine = (i) => {
+    const p = playerRef.current, ls = STUDY_DATA[activeVidRef.current]?.lines || []
+    if (!p || !p.seekTo || i < 0 || i >= ls.length) return
+    p.seekTo(Math.max(0, ls[i].t - 0.12), true); if (p.playVideo) p.playVideo()
+    activeRef.current = i; setActiveIdx(i)
+  }
+  const openAt = (vid, idx) => {
+    if (vid === activeVid) { seekLine(idx); return }
+    activeRef.current = idx; setActiveIdx(idx); setActiveVid(vid)   // 영상 전환은 아래 [activeVid] 효과가 loadVideoById로 처리
+  }
+
+  // ── 플레이어 생성(1회, 결과 진입 시). 영상 전환은 loadVideoById로만(언마운트 없음 → React↔YT 충돌 회피) ──
+  useEffect(() => {
+    if (stage !== 'results' || createdRef.current) return
+    createdRef.current = true
+    let timer, cancelled = false
+    const tick = () => {
+      const p = playerRef.current; if (!p || !p.getCurrentTime) return
+      let t; try { t = p.getCurrentTime() } catch { return }
+      const ls = STUDY_DATA[activeVidRef.current]?.lines || []
+      let idx = -1
+      for (let i = 0; i < ls.length; i++) { if (ls[i].t <= t + 0.12) idx = i; else break }
+      if (idx !== activeRef.current) { activeRef.current = idx; setActiveIdx(idx) }
+      if (idx >= 0) {
+        const start = ls[idx].t, end = ls[idx + 1] ? ls[idx + 1].t : start + 4
+        const prog = Math.max(0, Math.min(1, (t - start) / Math.max(0.4, end - start)))
+        const w = `${(prog * 100).toFixed(1)}%`
+        if (jpFillRef.current) jpFillRef.current.style.width = w
+        if (krFillRef.current) krFillRef.current.style.width = w
+        if (lineFillRef.current) lineFillRef.current.style.width = w
+      }
+    }
+    loadYT().then((YT) => {
+      if (cancelled || !YT || !hostRef.current) return
+      const el = document.createElement('div'); hostRef.current.appendChild(el)
+      const vid0 = activeVidRef.current
+      const start0 = activeRef.current >= 0 ? (STUDY_DATA[vid0]?.lines[activeRef.current]?.t ?? 0) : 0
+      loadedVidRef.current = vid0
+      playerRef.current = new YT.Player(el, {
+        videoId: vid0,
+        playerVars: { playsinline: 1, rel: 0, modestbranding: 1, cc_load_policy: 0, start: Math.max(0, Math.floor(start0)), origin: typeof window !== 'undefined' ? window.location.origin : '' },
+        events: { onStateChange: (e) => setIsPlaying(e.data === 1), onReady: () => { timer = setInterval(tick, 120) } },
+      })
+    })
+    return () => { cancelled = true; if (timer) clearInterval(timer); try { playerRef.current?.destroy?.() } catch {} playerRef.current = null; createdRef.current = false }
+  }, [stage])
+
+  // ── 영상 전환 — 언마운트 없이 loadVideoById(매칭 대사 지점부터) ──
+  useEffect(() => {
+    activeVidRef.current = activeVid
+    const p = playerRef.current
+    if (!p || !p.loadVideoById || !activeVid || loadedVidRef.current === activeVid) return
+    loadedVidRef.current = activeVid
+    const idx = activeRef.current >= 0 ? activeRef.current : 0
+    const t = STUDY_DATA[activeVid]?.lines[idx]?.t ?? 0
+    p.loadVideoById({ videoId: activeVid, startSeconds: Math.max(0, t - 0.12) })
+  }, [activeVid])
+
+  // 활성 대사로 해설 자동 스크롤
+  useEffect(() => { const el = lineRefs.current[activeIdx]; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }) }, [activeIdx])
+
+  // 컨트롤
+  const togglePlay = () => { const p = playerRef.current; if (!p) return; if (p.getPlayerState && p.getPlayerState() === 1) p.pauseVideo(); else p.playVideo?.() }
+  const goPrev = () => seekLine(Math.max(0, (activeRef.current < 0 ? 0 : activeRef.current) - 1))
+  const goNext = () => seekLine(Math.min(lines.length - 1, (activeRef.current < 0 ? -1 : activeRef.current) + 1))
+  const replay = () => seekLine(activeRef.current < 0 ? 0 : activeRef.current)
+  const cycleRate = () => setRateIdx((prev) => { const n = (prev + 1) % RATES.length; playerRef.current?.setPlaybackRate?.(RATES[n]); return n })
+  const CAP_ORDER = ['both', 'jp', 'kr', 'off']; const CAP_LABEL = { both: '일+한', jp: '일본어', kr: '한국어', off: '끔' }
+
+  const blur = (on) => ({ filter: on ? 'blur(6px)' : 'none', userSelect: on ? 'none' : 'auto', transition: 'filter .15s' })
+  const chip = (on) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 11px', borderRadius: 10, border: `1px solid ${on ? PRIMARY : 'var(--bd)'}`, background: on ? `${PRIMARY}1a` : 'var(--surface)', color: on ? PRIMARY : 'var(--text-2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' })
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px 60px', color: 'var(--text-1)' }}>
+    <div style={{ maxWidth: 1040, margin: '0 auto', padding: '18px 14px 60px', color: 'var(--text-1)' }}>
       <Helmet><meta name="robots" content="noindex, nofollow" /><title>표현 검색 (내부 프로토타입) | 틱재팬</title></Helmet>
 
-      <div style={{ marginBottom: 6 }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--on-primary)', background: 'var(--primary)', padding: '2px 8px', borderRadius: 6 }}>내부 프로토타입 · 비공개</span>
-      </div>
-      <h1 style={{ fontSize: 22, fontWeight: 800, margin: '8px 0 4px', color: 'var(--text-strong)' }}>표현 검색</h1>
-      <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: '0 0 16px', lineHeight: 1.5 }}>
-        한국어("하려고 해") 또는 일본어("ていく")를 입력하면, 쉐도잉 영상 속에서 그 표현이 실제로 쓰인 장면을
-        여러 개 찾아 줘요. 같은 표현이 맥락·억양에 따라 어떻게 다른지 보고 들어 보세요.
+      <div><span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: PRIMARY, padding: '2px 8px', borderRadius: 6 }}>내부 프로토타입 · 비공개</span></div>
+      <h1 style={{ fontSize: 21, fontWeight: 800, margin: '8px 0 4px', color: 'var(--text-strong)' }}>표현 검색</h1>
+      <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '0 0 14px', lineHeight: 1.5 }}>
+        한국어("하려고 해") 또는 일본어("ていく")를 입력하면, 쉐도잉 영상 속 실제 사용 장면을 찾아 줘요. 같은 표현이 맥락·억양에 따라 어떻게 다른지 보고 들어 보세요.
       </p>
 
       {/* 검색바 */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') onSearch() }}
-          placeholder="표현을 입력하세요 (예: 하려고 해 / ていく)"
-          style={{ flex: 1, padding: '11px 14px', fontSize: 15, borderRadius: 10, border: '1px solid var(--bd-2, #ccc)', background: 'var(--surface, #fff)', color: 'var(--text-1)', fontFamily: 'inherit', outline: 'none' }}
-        />
-        <button onClick={() => onSearch()} style={{ padding: '0 20px', fontSize: 15, fontWeight: 700, borderRadius: 10, border: 'none', background: 'var(--primary)', color: 'var(--on-primary)', cursor: 'pointer', fontFamily: 'inherit' }}>검색</button>
+        <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') onSearch() }}
+          placeholder="표현 입력 (예: 하려고 해 / ていく)"
+          style={{ flex: 1, padding: '11px 14px', fontSize: 15, borderRadius: 10, border: '1px solid var(--bd-2)', background: 'var(--surface)', color: 'var(--text-1)', fontFamily: 'inherit', outline: 'none' }} />
+        <button onClick={() => onSearch()} style={{ padding: '0 20px', fontSize: 15, fontWeight: 700, borderRadius: 10, border: 'none', background: PRIMARY, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>검색</button>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 18 }}>
+        {EXAMPLES.map((ex) => <button key={ex} onClick={() => onSearch(ex)} style={{ fontSize: 12.5, padding: '5px 11px', borderRadius: 999, border: '1px solid var(--bd)', background: 'var(--surface-2)', color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'inherit' }}>{ex}</button>)}
       </div>
 
-      {/* 예시 칩 */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
-        {EXAMPLES.map((ex) => (
-          <button key={ex} onClick={() => onSearch(ex)} style={{ fontSize: 12.5, padding: '5px 11px', borderRadius: 999, border: '1px solid var(--bd, #ddd)', background: 'var(--surface-2, #f3f4f6)', color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'inherit' }}>{ex}</button>
-        ))}
-      </div>
-
-      {/* 선택칩(같은 한국어가 여러 패턴을 가리킬 때) */}
+      {/* 선택칩 */}
       {stage === 'disambig' && (
-        <div style={{ background: 'var(--primary-tint, #eef6fb)', border: '1px solid var(--primary-tint-bd, #cfe4f0)', borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
-          <p style={{ margin: '0 0 10px', fontSize: 13.5, fontWeight: 700, color: 'var(--text-1)' }}>"{query}"은(는) 여러 표현으로 쓰여요. 어떤 걸 찾을까요?</p>
+        <div style={{ background: 'var(--primary-tint)', border: '1px solid var(--primary-tint-bd)', borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
+          <p style={{ margin: '0 0 10px', fontSize: 13.5, fontWeight: 700 }}>"{query}"은(는) 여러 표현으로 쓰여요. 어떤 걸 찾을까요?</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {candidates.map((s) => (
-              <button key={s.id} onClick={() => runSearch(s)} style={{ textAlign: 'left', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--bd, #ddd)', background: 'var(--surface, #fff)', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button key={s.id} onClick={() => runSearch(s)} style={{ textAlign: 'left', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--bd)', background: 'var(--surface)', cursor: 'pointer', fontFamily: 'inherit' }}>
                 <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP', sans-serif" }}>{s.label}</span>
                 <span style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 8 }}>{s.reading}</span>
                 <span style={{ display: 'block', fontSize: 12.5, color: 'var(--text-2)', marginTop: 3 }}>{s.note}</span>
@@ -126,66 +267,112 @@ export default function ExpressionSearch() {
         </div>
       )}
 
-      {/* 결과 없음 */}
-      {stage === 'empty' && (
-        <p style={{ fontSize: 14, color: 'var(--text-2)', padding: '20px 0' }}>
-          "{query}"에 대한 예시를 못 찾았어요. {hasJapanese(query) ? 'DB에 이 표현이 없는 것 같아요.' : '아직 등록되지 않은 표현이에요(프로토타입은 흔한 표현 위주).'} 예시 칩을 눌러 보세요.
-        </p>
-      )}
+      {stage === 'empty' && <p style={{ fontSize: 14, color: 'var(--text-2)', padding: '20px 0' }}>"{query}"에 대한 예시를 못 찾았어요. 예시 칩을 눌러 보세요.</p>}
 
-      {/* 결과 */}
-      {stage === 'results' && cur && (
+      {stage === 'results' && activeData && (
         <>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP', sans-serif" }}>{matcher.label}</span>
-            <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{videoCount}개 영상에서 {hits.length}개 예시{hits.length >= MAX_RESULTS ? '+' : ''}</span>
-          </div>
-          {matcher.note && <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '0 0 14px' }}>💡 {matcher.note}</p>}
-
-          {/* 자동재생 플레이어(선택된 예시 지점부터) */}
-          <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 12, overflow: 'hidden', background: '#000', marginBottom: 8 }}>
-            <iframe
-              key={`${cur.videoId}-${cur.t}`}
-              src={`https://www.youtube.com/embed/${cur.videoId}?start=${Math.max(0, Math.floor(cur.t))}&autoplay=1&rel=0&modestbranding=1`}
-              title="example"
-              allow="autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
-            />
-          </div>
-          <div style={{ background: 'var(--surface-2, #f3f4f6)', borderRadius: 10, padding: '12px 14px', marginBottom: 24 }}>
-            <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: 'var(--text-1)', fontFamily: "'Noto Sans JP', sans-serif" }}>
-              {splitHighlight(cur.jp, matcher).map((seg, i) => seg.hl
-                ? <mark key={i} style={{ background: 'var(--primary)', color: 'var(--on-primary)', padding: '0 2px', borderRadius: 3 }}>{seg.t}</mark>
-                : <span key={i}>{seg.t}</span>)}
-            </p>
-            <p style={{ margin: '6px 0 0', fontSize: 13.5, color: 'var(--text-2)' }}>{cur.kr}</p>
-            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--text-3)' }}>{cur.titleKr || cur.title} · {fmtTime(cur.t)}</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-strong)', fontFamily: "'Noto Sans JP', sans-serif" }}>{matcher.label}</span>
+            <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{groups.length}개 영상 · {totalHits}{totalHits >= MAX_HITS ? '+' : ''}개 예시</span>
+            {matcher.note && <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>· 💡 {matcher.note}</span>}
           </div>
 
-          {/* 다른 예시들 */}
-          <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-2)', margin: '0 0 10px' }}>다른 예시 — 클릭하면 그 지점부터 재생</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {hits.map((h, i) => (
-              <button
-                key={`${h.videoId}-${h.idx}`}
-                onClick={() => setFeatured(i)}
-                style={{ display: 'flex', gap: 12, alignItems: 'center', textAlign: 'left', padding: 8, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
-                  border: i === featured ? '2px solid var(--primary)' : '1px solid var(--bd, #e5e7eb)',
-                  background: i === featured ? 'var(--primary-tint, #eef6fb)' : 'var(--surface, #fff)' }}>
-                <div style={{ position: 'relative', flex: '0 0 108px', width: 108, aspectRatio: '16/9', borderRadius: 7, overflow: 'hidden', background: '#000' }}>
-                  <img src={thumb(h.videoId)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <span style={{ position: 'absolute', bottom: 4, right: 4, fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.65)', padding: '1px 5px', borderRadius: 4 }}>{fmtTime(h.t)}</span>
+          {/* 2단(데스크톱): 좌 영상+컨트롤 / 우 해설+관련 */}
+          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1.4 1 380px', minWidth: 320 }}>
+              {/* 영상 + 오버레이 자막 */}
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 14, overflow: 'hidden', background: '#000' }}>
+                {/* YT.Player가 이 div 안의 자식 노드를 자기 iframe으로 교체 — React는 이 div만 소유(리마운트/충돌 없음) */}
+                <div ref={hostRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+                {capMode !== 'off' && cur && (
+                  <div style={{ position: 'absolute', left: '50%', bottom: '7%', transform: 'translateX(-50%)', maxWidth: '96%', width: 'max-content', padding: '8px 16px', borderRadius: 12, textAlign: 'center', background: 'rgba(0,0,0,0.66)', backdropFilter: 'blur(3px)', color: '#fff', pointerEvents: 'none' }}>
+                    {(capMode === 'both' || capMode === 'jp') && !hideJp && (
+                      <div style={{ position: 'relative', lineHeight: 1.45, display: 'inline-block' }}>
+                        <div style={{ opacity: 0.5 }}><RubyText text={cur.furigana_html} fontSize={16} /></div>
+                        <div ref={jpFillRef} style={{ position: 'absolute', inset: 0, width: '0%', overflow: 'hidden', whiteSpace: 'nowrap', color: '#fff' }}><RubyText text={cur.furigana_html} fontSize={16} /></div>
+                      </div>
+                    )}
+                    {(capMode === 'both' || capMode === 'jp') && !hideJp && <p style={{ margin: '2px 0 0', fontSize: 11.5, color: 'rgba(255,255,255,0.6)' }}>{krPronOf(cur.furigana_html)}</p>}
+                    {(capMode === 'both' || capMode === 'kr') && !hideKr && (
+                      <div style={{ position: 'relative', display: 'inline-block', marginTop: 3 }}>
+                        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.4, opacity: 0.5 }}>{cur.kr}</p>
+                        <p ref={krFillRef} style={{ position: 'absolute', inset: 0, margin: 0, width: '0%', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: 13, lineHeight: 1.4, color: '#fff' }}>{cur.kr}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 컨트롤 */}
+              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                {[['이전', goPrev], ['다시', replay], [isPlaying ? '정지' : '재생', togglePlay], ['다음', goNext]].map(([lb, fn], i) => (
+                  <button key={i} onClick={fn} style={{ flex: 1, height: 44, borderRadius: 11, border: 'none', background: lb === '재생' || lb === '정지' ? PRIMARY : 'var(--surface-2)', color: lb === '재생' || lb === '정지' ? '#fff' : 'var(--text-1)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{lb}</button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 6px 0 10px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)' }}>가리기</span>
+                  <button onClick={() => setHideJp((v) => !v)} style={chip(hideJp)}>일</button>
+                  <button onClick={() => setHideKr((v) => !v)} style={chip(hideKr)}>한</button>
+                </span>
+                <button onClick={() => setCapMode((m) => CAP_ORDER[(CAP_ORDER.indexOf(m) + 1) % 4])} style={chip(capMode !== 'off')} title="영상 위 자막">자막 {CAP_LABEL[capMode]}</button>
+                <span style={{ flex: 1 }} />
+                <button onClick={cycleRate} style={chip(rateIdx !== 1)}>{RATES[rateIdx]}×</button>
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '10px 2px 0' }}>{activeData.titleKr || activeData.title}</p>
+            </div>
+
+            {/* 해설(타임라인 자막) */}
+            <div style={{ flex: '1 1 320px', minWidth: 300, maxHeight: '70vh', overflowY: 'auto', paddingRight: 4 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', margin: '0 0 8px' }}>해설 — 문장을 누르면 그 지점부터 재생</p>
+              {lines.map((ln, i) => {
+                const on = i === activeIdx
+                const span = matchSpan(ln.jp, matcher)
+                return (
+                  <div key={i} ref={(el) => (lineRefs.current[i] = el)} onClick={() => seekLine(i)}
+                    style={{ position: 'relative', cursor: 'pointer', padding: '10px 12px', borderRadius: 12, marginBottom: 2, background: on ? `${PRIMARY}14` : span ? 'var(--surface-2)' : 'transparent', boxShadow: on ? `inset 3px 0 0 ${PRIMARY}` : 'none', transition: 'background .18s' }}>
+                    <div style={{ fontSize: 10.5, color: on ? PRIMARY : 'var(--text-3)', marginBottom: 4, fontVariantNumeric: 'tabular-nums', fontWeight: on ? 700 : 400 }}>{fmtT(ln.t)}{span ? '  ● 표현' : ''}</div>
+                    {/* 일본어 — 활성 줄은 카라오케 스윕(밑줄 하이라이트가 좌→우로 차오름) */}
+                    <div style={{ position: 'relative', ...blur(hideJp) }}>
+                      {span
+                        ? <EmphFurigana furiganaHtml={ln.furigana_html} jp={ln.jp} matcher={matcher} fontSize={15.5} />
+                        : <RubyText text={ln.furigana_html} fontSize={15.5} />}
+                      {on && <div ref={lineFillRef} style={{ position: 'absolute', left: 0, bottom: -1, height: 2, width: '0%', background: PRIMARY, borderRadius: 2 }} />}
+                    </div>
+                    <p style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.5, color: on ? 'var(--text-1)' : 'var(--text-2)', fontWeight: on ? 600 : 400, ...blur(hideKr) }}>{ln.kr}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* 관련 예시 레일(다른 영상 포함) — 타임라인 스타일 */}
+          <div style={{ marginTop: 26 }}>
+            <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 12px' }}>이 표현이 나오는 다른 장면 · {totalHits}{totalHits >= MAX_HITS ? '+' : ''}개</p>
+            {groups.map((g) => (
+              <div key={g.videoId} style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
+                  <img src={thumb(g.videoId)} alt="" loading="lazy" style={{ width: 64, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 6, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: g.videoId === activeVid ? PRIMARY : 'var(--text-2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.titleKr || g.title}<span style={{ color: 'var(--text-3)', fontWeight: 400 }}> · {g.hits.length}개</span></span>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.45, color: 'var(--text-1)', fontFamily: "'Noto Sans JP', sans-serif" }}>
-                    {splitHighlight(h.jp, matcher).map((seg, k) => seg.hl
-                      ? <mark key={k} style={{ background: 'var(--primary-tint, #dceff8)', color: 'var(--primary-strong, #2b7aa3)', fontWeight: 700, padding: '0 1px', borderRadius: 2 }}>{seg.t}</mark>
-                      : <span key={k}>{seg.t}</span>)}
-                  </p>
-                  <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.kr}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 8, borderLeft: '2px solid var(--bd)' }}>
+                  {g.hits.map((h) => {
+                    const on = g.videoId === activeVid && h.idx === activeIdx
+                    return (
+                      <button key={h.idx} onClick={() => openAt(g.videoId, h.idx)}
+                        style={{ display: 'flex', gap: 10, alignItems: 'baseline', textAlign: 'left', padding: '7px 10px', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: on ? `${PRIMARY}14` : 'transparent' }}>
+                        <span style={{ fontSize: 11, color: on ? PRIMARY : 'var(--text-3)', fontVariantNumeric: 'tabular-nums', flexShrink: 0, fontWeight: on ? 700 : 400 }}>{fmtT(h.t)}</span>
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ display: 'block', fontSize: 13.5, color: 'var(--text-1)', fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.4 }}>
+                            <EmphFurigana furiganaHtml={STUDY_DATA[g.videoId].lines[h.idx].furigana_html} jp={h.jp} matcher={matcher} fontSize={13.5} />
+                          </span>
+                          <span style={{ display: 'block', fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{h.kr}</span>
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         </>

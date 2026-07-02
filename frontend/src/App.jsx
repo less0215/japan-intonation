@@ -47,6 +47,7 @@ import LegalPage from './components/LegalPage'
 import DeleteAccountModal from './components/DeleteAccountModal'
 import { useUser } from './context/UserContext'
 import PageSEO from './components/PageSEO'
+import ExpressionSearch from './components/ExpressionSearch'
 import { VERBS } from './data/verbs'
 import { ADJ_I, getRankTabs as getAdjITabs } from './data/adjI'
 import { ADJ_NA, getRankTabs as getAdjNaTabs } from './data/adjNa'
@@ -1118,6 +1119,8 @@ export default function App() {
           </>} />
           <Route path="/plans"       element={<SubscriptionPage />} />
           <Route path="/messages"    element={<MessageInbox />} />
+          {/* 내부 프로토타입(비공개·비링크·noindex) — 표현 검색 YouGlish식 */}
+          <Route path="/lab/expression" element={<ExpressionSearch />} />
           <Route path="/survey"      element={<SurveyPage onLogin={handleLoginClick} onSubRefresh={() => setSubTick(t => t + 1)} />} />
           <Route path="*" element={
             <>

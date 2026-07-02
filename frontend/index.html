@@ -20,6 +20,16 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
+    <!-- 테마를 첫 페인트 전에 적용 — JS 번들(main.jsx)만으로는 프리렌더된 콘텐츠가
+         라이트로 먼저 그려졌다가 다크로 바뀌는 깜빡임(FOUC)이 생긴다. main.jsx의 로직과 동일. -->
+    <script>
+      try {
+        var t = localStorage.getItem('tickjapan_theme')
+        var d = t ? t === 'dark' : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.setAttribute('data-theme', d ? 'dark' : 'light')
+      } catch (e) {}
+    </script>
+
     <!-- 기본 SEO -->
     <title>일본어 번역기 - 파파고 대신 쓰는 무료 번역기 | 틱재팬</title>
     <meta name="description" content="파파고 대신 쓰는 무료 한국어-일본어 번역기. 히라가나 독음·피치악센트·동사 활용표·조사 학습까지 한 번에." />

@@ -7,6 +7,7 @@
 export const EXPRESSION_SIGNATURES = [
   {
     id: 'omou',
+    grammarId: 'desire-you-to-omou',   // /grammar/desire-you-to-omou 상세 페이지와 연결
     label: '〜(よ)うと思う',
     reading: '(요)-토 오모우',
     ko: ['하려고 해', '하려고', '하려고 한다', '해야지', '할 거야', '할까 해'],
@@ -16,6 +17,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'yotei',
+    grammarId: 'desire-yotei-da',   // /grammar/desire-yotei-da 상세 페이지와 연결
     label: '〜予定だ',
     reading: '요테-다',
     ko: ['할 예정', '예정이야', '예정이다', '예정', '할 거야'],
@@ -25,6 +27,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'tsumori',
+    grammarId: 'desire-tsumori-da',   // /grammar/desire-tsumori-da 상세 페이지와 연결
     label: '〜つもり',
     reading: '츠모리',
     ko: ['할 생각', '할 작정', '하려는 생각', '할 거야'],
@@ -34,6 +37,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'tai-omou',
+    grammarId: 'desire-tai',   // /grammar/desire-tai 상세 페이지와 연결
     label: '〜たいと思う',
     reading: '타이토 오모우',
     ko: ['하고 싶다고', '하고 싶어', '싶다고 생각', '하고 싶습니다'],
@@ -43,6 +47,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'teiku',
+    grammarId: 'te-iku',   // /grammar/te-iku 상세 페이지와 연결
     label: '〜ていく',
     reading: '테 이쿠',
     ko: ['해 가다', '해 나가다', '하고 가다', '해 갈게'],
@@ -52,6 +57,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'tekuru',
+    grammarId: 'te-kuru',   // /grammar/te-kuru 상세 페이지와 연결
     label: '〜てくる',
     reading: '테 쿠루',
     ko: ['해 오다', '하고 오다', '해 왔다', '해 올게'],
@@ -61,6 +67,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'nakereba',
+    grammarId: 'permission-nakereba-naranai',   // /grammar/permission-nakereba-naranai 상세 페이지와 연결
     label: '〜なければならない / なきゃ',
     reading: '나케레바 나라나이',
     ko: ['해야 한다', '해야 해', '하지 않으면 안 된다', '해야만'],
@@ -79,6 +86,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'kamo',
+    grammarId: 'kamo-shirenai',   // /grammar/kamo-shirenai 상세 페이지와 연결
     label: '〜かもしれない',
     reading: '카모시레나이',
     ko: ['일지도 몰라', '할지도', '할지도 모른다', '~일 수도'],
@@ -88,6 +96,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'hazu',
+    grammarId: 'guess-hazu-da',   // /grammar/guess-hazu-da 상세 페이지와 연결
     label: '〜はず',
     reading: '하즈',
     ko: ['할 터', '분명', '~할 것이다', '~일 것이다', '~할 리'],
@@ -97,6 +106,7 @@ export const EXPRESSION_SIGNATURES = [
   },
   {
     id: 'rashii',
+    grammarId: 'rashii',   // /grammar/rashii 상세 페이지와 연결
     label: '〜らしい',
     reading: '라시이',
     ko: ['라는 것 같다', '답다', '라나 봐', '~라고 한다'],

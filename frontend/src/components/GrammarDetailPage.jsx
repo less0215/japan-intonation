@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { GRAMMAR } from '../data/grammar'
 import { useUser } from '../context/UserContext'
 import GrammarDetail from './GrammarDetail'
+import GrammarScenes from './GrammarScenes'
 import PageSEO from './PageSEO'
 import { track } from '../App'
 
@@ -35,6 +36,8 @@ export default function GrammarDetailPage() {
         path={`/grammar/${pattern.id}`}
       />
       <GrammarDetail pattern={pattern} />
+      {/* 이 문법이 영상 속에서 실제로 쓰인 장면(매핑된 문법만 노출) */}
+      <GrammarScenes grammarId={pattern.id} />
     </>
   )
 }

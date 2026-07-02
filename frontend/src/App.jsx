@@ -48,6 +48,7 @@ import DeleteAccountModal from './components/DeleteAccountModal'
 import { useUser } from './context/UserContext'
 import PageSEO from './components/PageSEO'
 import ExpressionSearch from './components/ExpressionSearch'
+import ExpressionCTA from './components/ExpressionCTA'
 import { VERBS } from './data/verbs'
 import { ADJ_I, getRankTabs as getAdjITabs } from './data/adjI'
 import { ADJ_NA, getRankTabs as getAdjNaTabs } from './data/adjNa'
@@ -1170,6 +1171,8 @@ export default function App() {
                   onBreakdownExpanded={() => setBreakdownExpanded(true)}
                 />
               )}
+              {/* 번역 결과에 아는 표현 패턴이 있으면 '표현으로 배우기' 전환 CTA */}
+              {result && <ExpressionCTA japanese={result.japanese} />}
               {/* 문장분해 팝업 제거 — 번역 버튼 밑 인라인 카드가 이미 동일 적합도로 노출되므로 중복 방지 */}
               {/* 동사 감지 시 인스타 강의 CTA — 결과 카드 아래 */}
               {result?.breakdown && (() => {

@@ -119,10 +119,13 @@ export default function ExpressionSearch() {
   const loadedVidRef = useRef(null)    // 현재 플레이어에 로드된 영상
   const activeVidRef = useRef(null)    // tick(1회 생성)이 최신 activeVid를 읽도록
   const activeRef = useRef(-1)
-  const lineRefs = useRef([])
+  const occurrencesRef = useRef([])  // 표현이 나오는 장면들의 평면 재생목록 [{vid,idx,t}]
+  const playIdxRef = useRef(0)       // 이어재생 중인 장면 인덱스
   const jpFillRef = useRef(null)   // 오버레이 일본어 스윕
   const krFillRef = useRef(null)   // 오버레이 한국어 스윕
-  const lineFillRef = useRef(null) // 해설 활성 줄 스윕
+  const lineFillRef = useRef(null) // 문장 카라오케 스윕
+  const [isWide, setIsWide] = useState(typeof window !== 'undefined' ? window.innerWidth >= 900 : false)
+  useEffect(() => { const f = () => setIsWide(window.innerWidth >= 900); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f) }, [])
 
   const activeData = activeVid ? STUDY_DATA[activeVid] : null
   const lines = activeData?.lines || []
@@ -141,6 +144,9 @@ export default function ExpressionSearch() {
       byVid.get(l.videoId).hits.push({ idx: l.idx, t: l.t, jp: l.jp, kr: l.kr })
     }
     const grouped = [...byVid.values()].sort((a, b) => b.hits.length - a.hits.length)
+    // 이어재생용 평면 재생목록(영상별 그룹 순 → 그룹 내 시간순)
+    occurrencesRef.current = grouped.flatMap((g) => g.hits.map((h) => ({ vid: g.videoId, idx: h.idx, t: h.t })))
+    playIdxRef.current = 0
     setMatcher(m); setGroups(grouped); setTotalHits(total)
     if (grouped.length) {
       const first = grouped[0]
@@ -166,6 +172,8 @@ export default function ExpressionSearch() {
     activeRef.current = i; setActiveIdx(i)
   }
   const openAt = (vid, idx) => {
+    const pi = occurrencesRef.current.findIndex((o) => o.vid === vid && o.idx === idx)
+    if (pi >= 0) playIdxRef.current = pi                           // 이어재생 위치를 클릭한 장면으로
     setSelectedIdx(idx)                                            // 화면과 기능 사이에 보여줄 '매칭 문장'
     if (vid === activeVid) { seekLine(idx); return }
     activeRef.current = idx; setActiveIdx(idx); setActiveVid(vid)   // 영상 전환은 아래 [activeVid] 효과가 loadVideoById로 처리
@@ -180,6 +188,21 @@ export default function ExpressionSearch() {
       const p = playerRef.current; if (!p || !p.getCurrentTime) return
       let t; try { t = p.getCurrentTime() } catch { return }
       const ls = STUDY_DATA[activeVidRef.current]?.lines || []
+      // ── 표현만 이어재생: 현재 매칭 장면이 끝나면 사이 구간을 건너뛰고 다음 매칭 장면으로 점프 ──
+      const occ = occurrencesRef.current[playIdxRef.current]
+      if (occ && occ.vid === activeVidRef.current) {
+        const endT = ls[occ.idx + 1] ? ls[occ.idx + 1].t : (ls[occ.idx]?.t ?? 0) + 6
+        if (t >= endT - 0.12) {
+          playIdxRef.current += 1
+          const next = occurrencesRef.current[playIdxRef.current]
+          if (next) {
+            activeRef.current = next.idx; setSelectedIdx(next.idx); setActiveIdx(next.idx)
+            if (next.vid === activeVidRef.current) { try { p.seekTo(Math.max(0, next.t - 0.12), true); p.playVideo?.() } catch {} }
+            else setActiveVid(next.vid)   // [activeVid] 효과가 loadVideoById(startSeconds)로 그 지점부터 재생
+          } else { try { p.pauseVideo() } catch {} }
+          return   // 이번 틱은 점프 처리만(사이 줄이 잠깐 보이는 깜빡임 방지)
+        }
+      }
       let idx = -1
       for (let i = 0; i < ls.length; i++) { if (ls[i].t <= t + 0.12) idx = i; else break }
       if (idx !== activeRef.current) { activeRef.current = idx; setActiveIdx(idx) }
@@ -279,8 +302,11 @@ export default function ExpressionSearch() {
             {matcher.note && <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>· 💡 {matcher.note}</span>}
           </div>
 
-          {/* 상단 고정(sticky): 화면 → 문장 → 기능. 관련 예시를 눌러도 영상이 항상 보이도록 */}
-          <div style={{ position: 'sticky', top: 0, zIndex: 5, background: 'var(--bg)', paddingBottom: 12, maxWidth: 640, margin: '0 auto' }}>
+          {/* 넓은 화면=2단(좌 영상+문장+기능 / 우 관련 예시=쉐도잉 스크립트 위치), 좁은 화면=세로 스택 */}
+          <div style={isWide ? { display: 'flex', gap: 28, alignItems: 'flex-start' } : undefined}>
+          {/* 좌: 화면 → 문장 → 기능 (sticky로 항상 노출) */}
+          <div style={isWide ? { flex: '1.4 1 0', minWidth: 0 } : undefined}>
+          <div style={{ position: 'sticky', top: isWide ? 14 : 0, zIndex: 5, background: 'var(--bg)', paddingBottom: 12, ...(isWide ? {} : { maxWidth: 640, margin: '0 auto' }) }}>
             {/* 화면 + 오버레이 자막 */}
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 14, overflow: 'hidden', background: '#000' }}>
               {/* YT.Player가 이 div 안의 자식 노드를 자기 iframe으로 교체 — React는 이 div만 소유(리마운트/충돌 없음) */}
@@ -334,9 +360,12 @@ export default function ExpressionSearch() {
             </div>
           </div>
 
-          {/* 관련 예시 — 쉐도잉 스크립트 자리에 세로로. 이 표현이 든 문장만 나열 */}
-          <div style={{ marginTop: 18, maxWidth: 640, margin: '18px auto 0' }}>
-            <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 12px' }}>이 표현이 나오는 다른 장면 · {totalHits}{totalHits >= MAX_HITS ? '+' : ''}개</p>
+          </div>{/* 좌 컬럼 끝 */}
+
+          {/* 우: 관련 예시 — 쉐도잉 스크립트 위치(넓은 화면=우측, 좁은 화면=아래). 이 표현이 든 문장만 나열 */}
+          <div style={isWide ? { flex: '1 1 0', minWidth: 300, maxWidth: 520 } : { maxWidth: 640, margin: '18px auto 0' }}>
+            <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 4px' }}>이 표현이 나오는 다른 장면 · {totalHits}{totalHits >= MAX_HITS ? '+' : ''}개</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '0 0 12px' }}>재생하면 이 장면들만 순서대로 이어서 재생돼요.</p>
             {groups.map((g) => (
               <div key={g.videoId} style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
@@ -362,7 +391,8 @@ export default function ExpressionSearch() {
                 </div>
               </div>
             ))}
-          </div>
+          </div>{/* 우 컬럼 끝 */}
+          </div>{/* 2단 래퍼 끝 */}
         </>
         )
       })()}

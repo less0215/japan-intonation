@@ -213,7 +213,7 @@ export default function ExpressionSearch() {
 
   // ── 공통 래퍼 ──
   const page = (children) => (
-    <div style={{ maxWidth: 560, margin: '0 auto', padding: '18px 16px 60px', color: 'var(--text-1)' }}>
+    <div style={{ maxWidth: 560, margin: '0 auto', padding: '18px 16px 22px', color: 'var(--text-1)' }}>
       <Helmet><meta name="robots" content="noindex, nofollow" /><title>표현으로 배우기 (프로토타입) | 틱재팬</title></Helmet>
       {children}
     </div>
@@ -313,7 +313,7 @@ export default function ExpressionSearch() {
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
         <button onClick={toggleSlow} style={{ fontSize: 12.5, fontWeight: 700, padding: '7px 14px', borderRadius: 999, border: `1px solid ${slow ? PRIMARY : 'var(--bd)'}`, background: slow ? `${PRIMARY}1a` : 'var(--surface)', color: slow ? PRIMARY : 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}>
-          🐢 천천히 {slow ? 'ON' : ''}
+          천천히 {slow ? 'ON' : ''}
         </button>
       </div>
       <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-3)', marginTop: 16 }}>이 장면은 자동으로 반복돼요 — 소리 내어 따라 해 보세요</p>

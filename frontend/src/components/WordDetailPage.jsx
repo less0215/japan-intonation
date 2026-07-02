@@ -6,6 +6,8 @@ import { ADJ_NA, CONJ_LABELS as ADJ_NA_LABELS } from '../data/adjNa'
 import { NOUNS } from '../data/nouns'
 import WordDetail from './WordDetail'
 import PageSEO from './PageSEO'
+import { UsageScenes } from './GrammarScenes'
+import { wordQuery } from '../utils/expressions'
 
 const DATA_MAP = {
   'adj-i':  { items: ADJ_I,  labels: ADJ_I_LABELS,  partOfSpeech: 'い형용사' },
@@ -50,6 +52,8 @@ export default function WordDetailPage({ wordType }) {
         conjLabels={config.labels}
         onBack={() => navigate(`/${wordType}`)}
       />
+      {/* 영상 속 실제 사용 — 쉐도잉 장면 연결(장면 2개 미만이면 자동 숨음) */}
+      <UsageScenes query={wordQuery(word.verb, wordType === 'adj-i' ? 'adj-i' : wordType)} />
     </>
   )
 }

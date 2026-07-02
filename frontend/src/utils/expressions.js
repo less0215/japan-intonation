@@ -48,3 +48,39 @@ export function sceneSamples(sig, n = 3) {
   }
   return out
 }
+
+// 원문 부분일치 기반 장면 수+샘플 — 시그니처가 없는 문법·단어를 쉐도잉과 연결할 때 사용
+export function querySceneStats(q, n = 3) {
+  const qq = stripSp(q)
+  if (!qq || qq.length < 2) return { total: 0, samples: [] }   // 1자 검색은 오탐이 많아 차단
+  let total = 0
+  const samples = []
+  for (const v of Object.values(STUDY_DATA)) {
+    const lines = v.lines || []
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i]
+      if (!stripSp(ln.jp).includes(qq)) continue
+      total++
+      if (samples.length < n) samples.push({ vid: v.videoId, titleKr: v.titleKr || v.title, idx: i, t: ln.t, jp: ln.jp, furigana_html: ln.furigana_html, kr: ln.kr })
+    }
+  }
+  return { total, samples }
+}
+
+// 단어(동사·형용사·명사) → 원문 검색용 문자열. 동사·い형용사는 활용 어미 1자를 떼서
+// 활용형까지 잡는다(어간이 2자 이상일 때만 — 1자 어간은 오탐이 많아 원형 그대로).
+export function wordQuery(word, type) {
+  const w = (word || '').trim()
+  if ((type === 'verbs' || type === 'adj-i') && w.length >= 3) return w.slice(0, -1)
+  return w
+}
+
+// 문법 패턴 표기('〜(よ)うと思う' 등) → 원문 검색용 문자열 자동 유도.
+// 유도 결과가 나쁘면(장면 0~1개) 섹션이 알아서 숨으므로 페일세이프.
+export function grammarQuery(pattern) {
+  let q = (pattern || '').replace(/[〜～]/g, '')
+  q = q.split(/[・/／]/)[0]                       // 복수 표기는 첫 항목만
+  q = q.replace(/（[^）]*）|\([^)]*\)/g, '')      // 괄호 삽입부 제거
+  q = q.replace(/(だ|です)$/, '')                 // 종결 だ/です 제거(예: 予定だ→予定)
+  return q.trim()
+}

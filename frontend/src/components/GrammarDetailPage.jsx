@@ -5,6 +5,7 @@ import { useUser } from '../context/UserContext'
 import GrammarDetail from './GrammarDetail'
 import GrammarScenes from './GrammarScenes'
 import PageSEO from './PageSEO'
+import { grammarQuery } from '../utils/expressions'
 import { track } from '../App'
 
 export default function GrammarDetailPage() {
@@ -35,9 +36,9 @@ export default function GrammarDetailPage() {
         description={`일본어 문법 ${pattern.pattern}(${pattern.meanings.join('·')})의 접속 규칙과 예문을 피치 악센트와 함께 정리했습니다.`}
         path={`/grammar/${pattern.id}`}
       />
+      {/* 영상 속 실제 사용 — 상단 배치. 시그니처 매핑이 없으면 패턴 표기에서 검색어 자동 유도(장면 없으면 숨음) */}
+      <GrammarScenes grammarId={pattern.id} query={grammarQuery(pattern.pattern)} />
       <GrammarDetail pattern={pattern} />
-      {/* 이 문법이 영상 속에서 실제로 쓰인 장면(매핑된 문법만 노출) */}
-      <GrammarScenes grammarId={pattern.id} />
     </>
   )
 }

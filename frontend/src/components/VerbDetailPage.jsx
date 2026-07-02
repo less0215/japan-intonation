@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { VERBS } from '../data/verbs'
 import VerbDetail from './VerbDetail'
 import PageSEO from './PageSEO'
+import { UsageScenes } from './GrammarScenes'
+import { wordQuery } from '../utils/expressions'
 import { track } from '../App'
 
 export default function VerbDetailPage() {
@@ -30,6 +32,8 @@ export default function VerbDetailPage() {
         path={`/verbs/${verb.id}`}
       />
       <VerbDetail verb={verb} onBack={() => navigate('/verbs')} />
+      {/* 영상 속 실제 사용 — 쉐도잉 장면 연결(장면 2개 미만이면 자동 숨음) */}
+      <UsageScenes query={wordQuery(verb.verb, 'verbs')} />
     </>
   )
 }

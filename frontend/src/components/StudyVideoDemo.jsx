@@ -421,7 +421,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
         <iframe id="yt-player-demo" title={data.title}
           src={IS_APP
             ? `https://tickjapan.com/shadow-player.html?v=${vid}`
-            : `https://www.youtube.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&widget_referrer=https%3A%2F%2Fwww.tickjapan.com&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+            : `https://www.youtube.com/embed/${vid}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&controls=0&disablekb=1&iv_load_policy=3&widget_referrer=https%3A%2F%2Fwww.tickjapan.com&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen frameBorder="0"
           referrerPolicy="strict-origin-when-cross-origin"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />

@@ -5,6 +5,7 @@
  * 평가/시청=localStorage. 모든 학습 → /study-demo. */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { STUDY_CATALOG, STUDY_FEATURED, STUDY_TOP10, TAG_GROUPS } from '../data/studyCatalog'
+import { STUDY_DATA } from '../data/studyData'   // 검색: 대사(스크립트) 내용까지 매칭
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 // 좋아요/싫어요를 서버에 기록 → 전역 랭킹(수요)에 즉시 반영
@@ -104,6 +105,7 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const [sel, setSel] = useState(null)
   const [lvF, setLvF] = useState('all')
   const [durF, setDurF] = useState('all')
+  const [q, setQ] = useState('')   // 영상 검색(제목·대사) — 한 글자마다 즉시 결과
   const [hover, setHover] = useState(null)   // { v, rect }
   const [filterOpen, setFilterOpen] = useState(false)
   const [savedVids, setSavedVids] = useState(() => load(LS_VIDS, []))
@@ -165,6 +167,41 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
   const durOk = (v) => durF === 'all' || (durF === 'short' ? durSec(v.dur) <= 600 : durF === 'mid' ? (durSec(v.dur) > 600 && durSec(v.dur) <= 1200) : durSec(v.dur) > 1200)
   const filtered = READY.filter(v => (lvF === 'all' || v.lv === lvF) && durOk(v))
 
+  // ── 영상 검색(제목·태그·대사) — 글자마다 즉시. 제목 매칭 우선, 대사 매칭은 스니펫 2개까지 표시 ──
+  const nq = q.trim().toLowerCase()
+  const searchResults = (() => {
+    if (!isTab || !nq) return null
+    const out = []; const seen = new Set()
+    const fmtT = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
+    for (const v of READY) {   // ① 제목·태그·연사 매칭
+      const hay = `${v.kr} ${v.jp} ${(v.tags || []).join(' ')} ${v.ev || ''}`.toLowerCase()
+      if (hay.includes(nq)) { out.push({ v, byTitle: true, snippets: [], count: 0 }); seen.add(v.id) }
+    }
+    for (const v of READY) {   // ② 대사(일본어·한국어) 매칭
+      const lines = STUDY_DATA[v.id]?.lines; if (!lines) continue
+      let entry = null
+      for (const ln of lines) {
+        const inKr = ln.kr && ln.kr.toLowerCase().includes(nq)
+        const inJp = !inKr && ln.jp && ln.jp.toLowerCase().includes(nq)
+        if (!inKr && !inJp) continue
+        if (!entry) {
+          entry = seen.has(v.id) ? out.find(r => r.v.id === v.id) : { v, byTitle: false, snippets: [], count: 0 }
+          if (!seen.has(v.id)) { out.push(entry); seen.add(v.id) }
+        }
+        entry.count++
+        if (entry.snippets.length < 2) entry.snippets.push({ text: inKr ? ln.kr : ln.jp, time: fmtT(ln.t) })
+      }
+    }
+    // 제목 매칭 먼저, 그다음 대사 매칭 많은 순
+    return out.sort((a, b) => (b.byTitle - a.byTitle) || (b.count - a.count)).slice(0, 30)
+  })()
+  // 스니펫에서 검색어만 강조
+  const Snip = ({ text }) => {
+    const i = text.toLowerCase().indexOf(nq)
+    if (i < 0) return <>{text}</>
+    return <>{text.slice(0, i)}<b style={{ color: 'var(--text-strong,#1f2937)', background: 'rgba(92,169,206,0.18)', borderRadius: 3, padding: '0 1px' }}>{text.slice(i, i + nq.length)}</b>{text.slice(i + nq.length)}</>
+  }
+
   const rowProps = { onOpen: setSel, ratings, onHover, onLeave }
 
   return (
@@ -203,6 +240,19 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
               )}
             </div>
           </div>
+          {/* 영상 검색 — 제목·대사 기반, 글자마다 즉시 결과 */}
+          <div style={{ position: 'relative', marginBottom: 16 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3,#9aa0a6)" strokeWidth="2.2" strokeLinecap="round" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.5" y2="16.5" /></svg>
+            <input
+              value={q} onChange={(e) => setQ(e.target.value)}
+              placeholder="영상 검색 — 제목이나 대사 속 단어로"
+              style={{ width: '100%', height: 44, padding: '0 40px', fontSize: 14.5, borderRadius: 12, border: '1px solid var(--bd,#e0e5e9)', background: 'var(--surface,#f7f9fb)', color: 'var(--text-1,#3a4250)', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+            />
+            {q && (
+              <button onClick={() => setQ('')} aria-label="검색 지우기" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'transparent', color: 'var(--text-3,#9aa0a6)', fontSize: 17, cursor: 'pointer', lineHeight: 1 }}>×</button>
+            )}
+          </div>
+          {!nq && <>
           <button className="ted-card" onClick={() => setSel(f)} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0, marginBottom: 18 }}>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', maxHeight: '46vh', borderRadius: 16, overflow: 'hidden', background: '#000' }}>
               <img src={thumb(f.id)} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -235,11 +285,39 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
               </div>
             )}
           </div>
+          </>}
         </>
       )}
 
-      {/* 필터 결과 (탭, 필터 활성) */}
-      {filtering ? (
+      {/* 검색 결과 (탭, 검색 중) — 제목 매칭 우선 + 대사 매칭(스니펫·타임스탬프) */}
+      {searchResults ? (
+        <div style={{ marginBottom: 22 }}>
+          <p style={{ margin: '0 2px 12px', fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>‘{q.trim()}’ 검색 결과 · {searchResults.length}편{searchResults.length >= 30 ? '+' : ''}</p>
+          {searchResults.length === 0
+            ? <p style={{ fontSize: 13, color: 'var(--text-3,#9aa0a6)', textAlign: 'center', padding: '24px 0' }}>‘{q.trim()}’이(가) 들어간 영상이 없어요.</p>
+            : <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {searchResults.map(({ v, snippets, count }) => (
+                  <button key={v.id} className="ted-card" onClick={() => setSel(v)} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: 'none', padding: 0 }}>
+                    <div style={{ position: 'relative', flex: '0 0 128px', width: 128, aspectRatio: '16/9', borderRadius: 9, overflow: 'hidden', background: '#000' }}>
+                      <img src={thumb(v.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <span style={{ position: 'absolute', top: 5, right: 5 }}><LvOnThumb lv={v.lv} /></span>
+                      <span style={{ position: 'absolute', bottom: 5, right: 5, fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '1px 5px', borderRadius: 4 }}>{v.dur}</span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--text-1,#3a4250)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.kr}</p>
+                      <p style={{ margin: '1px 0 0', fontSize: 11, color: 'var(--text-3,#9aa0a6)', fontFamily: "'Noto Sans JP', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.jp}</p>
+                      {snippets.map((s, i) => (
+                        <p key={i} style={{ margin: '4px 0 0', fontSize: 12, lineHeight: 1.5, color: 'var(--text-2,#5b6470)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span style={{ color: 'var(--text-3,#9aa0a6)', fontVariantNumeric: 'tabular-nums' }}>{s.time}</span> · <Snip text={s.text} />
+                        </p>
+                      ))}
+                      {count > 2 && <p style={{ margin: '3px 0 0', fontSize: 11, color: 'var(--text-3,#9aa0a6)' }}>대사 매칭 {count}곳</p>}
+                    </div>
+                  </button>
+                ))}
+              </div>}
+        </div>
+      ) : filtering ? (
         <div style={{ marginBottom: 22 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '0 2px 12px' }}>
             <p style={{ margin: 0, fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>필터 결과 · {filtered.length}편</p>

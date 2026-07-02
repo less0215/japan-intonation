@@ -43,7 +43,11 @@ export default function BottomNav({ onHome }) {
               if (!on) track('tab_nav', { tab: t.key })
               // 번역 탭은 항상 새 홈으로 초기화 (결과가 떠 있어도 리셋)
               if (t.key === 'translate' && onHome) onHome()
-              else navigate(t.path)
+              else {
+                navigate(t.path)
+                // 쉐도잉은 페이지가 길어 이전 스크롤이 남으면 불편 → 탭 진입 시 항상 상단부터
+                if (t.key === 'shadowing') window.scrollTo(0, 0)
+              }
             }}
             style={{ color: on ? PRIMARY : '#b3b8bd' }}
           >

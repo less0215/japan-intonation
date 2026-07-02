@@ -15,11 +15,11 @@ import { parseFurigana } from './RubyText'
 import { pronText } from '../utils/kana.mjs'
 import { STUDY_DATA } from '../data/studyData'
 import { EXPRESSION_SIGNATURES } from '../data/expressionSignatures'
-import { matchExpressions, hasJapanese } from '../utils/expressions'
+import { matchExpressions, hasJapanese, stripSp } from '../utils/expressions'
 
 const PRIMARY = '#5CA9CE'
 const GREEN = '#1D9E75'
-const MAX_PLAYS = 60
+const MAX_PLAYS = 500   // 현재 장면만 렌더하므로 큰 값도 부담 없음 — 진입점들의 '장면 수' 표기와 일치시키기 위해 여유 있게
 // 문장 저장 — 쉐도잉과 동일 키·형식({vid,idx,t,jp,furigana_html,kr})이라 저장탭(쉐도잉>저장한 문장)에 그대로 뜸
 const LS_LINES = 'tickjapan_study_saved_lines'
 const lsLoad = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]') } catch { return [] } }
@@ -60,13 +60,16 @@ function matchSpan(jp, matcher) {
 }
 
 // ── 후리가나 + 표현 하이라이트 (parseFurigana 오프셋 매핑으로 매칭 글자만 정밀 강조) ──
+// ⚠️ jp(평문)와 furigana_html은 어절 공백이 서로 다를 수 있다(예: jp는 붙고 후리가나는 띄움).
+//    그래서 매칭·오프셋 계산은 전부 "공백 제거" 기준으로 하고, 공백 문자는 강조하지 않는다.
+//    (과거 버그: 공백 수만큼 강조가 밀려 「ようと思」 대신 「繋げよう」가 칠해짐)
 function EmphFurigana({ furiganaHtml, jp, matcher, fontSize }) {
-  const span = matcher ? matchSpan(jp, matcher) : null
+  const span = matcher ? matchSpan(stripSp(jp), matcher) : null
   const parts = parseFurigana(furiganaHtml)
   const rtSize = Math.max(9, Math.round(fontSize * 0.62))
   const HL = { background: `${PRIMARY}26`, borderRadius: 4, boxShadow: `inset 0 -2px 0 ${PRIMARY}`, fontWeight: 700 }
   const inSpan = (a, b) => span && b > span[0] && a < span[1]
-  let pos = 0
+  let pos = 0   // 공백 제외 문자 인덱스
   return (
     <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize, fontWeight: 500, lineHeight: 1.9, color: 'var(--text-strong)' }}>
       {parts.map((p, i) => {
@@ -74,11 +77,17 @@ function EmphFurigana({ furiganaHtml, jp, matcher, fontSize }) {
           const s = pos, e = pos + p.kanji.length; pos = e
           return <span key={i} style={inSpan(s, e) ? HL : undefined}>{p.kanji}<span style={{ fontSize: rtSize, color: 'var(--text-3)', fontWeight: 400 }}>({p.reading})</span></span>
         }
-        const t = p.text, s = pos; pos += t.length
-        if (!span) return <span key={i}>{t}</span>
-        const a = Math.max(0, span[0] - s), b = Math.min(t.length, span[1] - s)
-        if (a >= b) return <span key={i}>{t}</span>
-        return <span key={i}>{t.slice(0, a)}<span style={HL}>{t.slice(a, b)}</span>{t.slice(b)}</span>
+        // 평문: 문자 단위로 세그먼트 구성 — 공백은 pos를 안 올리고 강조도 안 함
+        const segs = []
+        for (const ch of p.text) {
+          const isSp = /\s/.test(ch)
+          const hl = !isSp && inSpan(pos, pos + 1)
+          if (!isSp) pos++
+          const last = segs[segs.length - 1]
+          if (last && last.hl === hl) last.t += ch
+          else segs.push({ t: ch, hl })
+        }
+        return <span key={i}>{segs.map((sg, k) => sg.hl ? <span key={k} style={HL}>{sg.t}</span> : <span key={k}>{sg.t}</span>)}</span>
       })}
     </span>
   )
@@ -129,7 +138,8 @@ export default function ExpressionSearch() {
 
   // ── 검색 실행 → 학습 화면 ──
   const startStudy = (m) => {
-    const test = m.jpRe ? (jp) => m.jpRe.test(jp) : (jp) => jp.includes(m.raw)
+    // 공백 제거 기준으로 매칭 — 어절 공백이 패턴 중간에 끼어도 장면 누락 없음
+    const test = m.jpRe ? (jp) => m.jpRe.test(stripSp(jp)) : (jp) => stripSp(jp).includes(m.raw)
     const found = []
     for (const l of allLines) { if (test(l.jp)) { found.push(l); if (found.length >= MAX_PLAYS) break } }
     if (!found.length) { setNotFound(true); setScreen('home'); return }
@@ -147,7 +157,7 @@ export default function ExpressionSearch() {
       if (withCount.length === 1) { startStudy(withCount[0]); return }
       setCandidates(withCount); setScreen('choose'); return
     }
-    if (hasJapanese(q)) { startStudy({ raw: q, label: `“${q}”`, note: '' }); return }
+    if (hasJapanese(q)) { startStudy({ raw: stripSp(q), label: `“${q}”`, note: '' }); return }
     setNotFound(true)
   }
 

@@ -20,9 +20,13 @@ export default function GrammarScenes({ grammarId }) {
 
   return (
     <div style={{ marginTop: 22 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, margin: '0 2px 10px' }}>
-        <p style={{ margin: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--text-strong)' }}>영상 속 실제 사용 <span style={{ fontSize: 12.5, fontWeight: 400, color: 'var(--text-3)' }}>· {total}개 장면</span></p>
-      </div>
+      <p style={{ margin: '0 2px 10px', fontSize: 15.5, fontWeight: 800, color: 'var(--text-strong)' }}>영상 속 실제 사용 <span style={{ fontSize: 12.5, fontWeight: 400, color: 'var(--text-3)' }}>· {total}개 장면</span></p>
+      {/* CTA — 섹션 최상단(스크롤 전에 보이도록). 장면 미리보기는 아래 */}
+      <button onClick={() => navigate(`/lab/expression?p=${sig.id}`)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10, height: 50, padding: '0 16px', borderRadius: 14, border: 'none', background: PRIMARY, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <span style={{ fontSize: 14.5, fontWeight: 800 }}>원어민 장면으로 연습하기</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
+      </button>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--bd)', borderRadius: 16, overflow: 'hidden' }}>
         {samples.map((s, i) => (
           <button key={`${s.vid}-${s.idx}`} onClick={() => navigate(`/lab/expression?p=${sig.id}`)}
@@ -33,10 +37,6 @@ export default function GrammarScenes({ grammarId }) {
           </button>
         ))}
       </div>
-      <button onClick={() => navigate(`/lab/expression?p=${sig.id}`)}
-        style={{ width: '100%', marginTop: 10, height: 46, borderRadius: 13, border: `1px solid rgba(92,169,206,0.5)`, background: 'rgba(92,169,206,0.08)', color: PRIMARY, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
-        영상으로 따라 말하기 →
-      </button>
     </div>
   )
 }

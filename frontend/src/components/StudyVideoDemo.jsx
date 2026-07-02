@@ -753,9 +753,12 @@ export default function StudyVideoDemo({ isPlus = false }) {
 // ── 바텀시트(모바일) / 센터 모달(PC) ──────────────────
 // topInset: 모바일에서 시트 배경(scrim)이 이 높이 위로는 올라가지 않게(sticky 영상 안 가리도록)
 function Sheet({ onClose, scrim = 0.4, maxH = '80vh', z = 4000, wide = false, topInset = 0, children }) {
+  // 모바일 + topInset(영상·컨트롤 아래에서 시작): 시트 높이를 남은 공간으로 캡 + 하단 정렬.
+  // (수정 전 버그: 가운데 정렬 + maxH가 남은 공간보다 크면 시트가 위로 넘쳐 sticky 영상을 덮었음)
+  const mobileMaxH = topInset ? `min(${maxH}, calc(100vh - ${topInset}px))` : maxH
   return (
-    <div onClick={onClose} style={{ position: 'fixed', top: wide ? 0 : topInset, left: 0, right: 0, bottom: 0, zIndex: z, background: `rgba(12,18,24,${wide ? 0.1 : scrim})`, display: 'flex', alignItems: 'center', justifyContent: wide ? 'flex-end' : 'center', padding: wide ? '16px 18px' : 0, animation: 'tjFade 0.18s ease' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: wide ? 400 : 640, maxHeight: wide ? '92vh' : maxH, overflowY: 'auto', background: 'var(--bg)', border: wide ? '1px solid var(--bd)' : 'none', borderRadius: wide ? 18 : '22px 22px 0 0', padding: wide ? '18px 18px 20px' : '8px 18px 26px', boxShadow: '0 16px 48px rgba(0,0,0,0.4)', animation: wide ? 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' : 'tjUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
+    <div onClick={onClose} style={{ position: 'fixed', top: wide ? 0 : topInset, left: 0, right: 0, bottom: 0, zIndex: z, background: `rgba(12,18,24,${wide ? 0.1 : scrim})`, display: 'flex', alignItems: wide ? 'center' : (topInset ? 'flex-end' : 'center'), justifyContent: wide ? 'flex-end' : 'center', padding: wide ? '16px 18px' : 0, animation: 'tjFade 0.18s ease' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: wide ? 400 : 640, maxHeight: wide ? '92vh' : mobileMaxH, overflowY: 'auto', background: 'var(--bg)', border: wide ? '1px solid var(--bd)' : 'none', borderRadius: wide ? 18 : '22px 22px 0 0', padding: wide ? '18px 18px 20px' : '8px 18px 26px', boxShadow: '0 16px 48px rgba(0,0,0,0.4)', animation: wide ? 'tjPop 0.22s cubic-bezier(0.16,1,0.3,1)' : 'tjUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>
         {!wide && <div style={{ width: 38, height: 4, borderRadius: 2, background: 'var(--bd)', margin: '2px auto 16px' }} />}
         {children}
       </div>

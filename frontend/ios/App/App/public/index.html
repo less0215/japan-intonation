@@ -20,11 +20,23 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
+    <!-- 테마를 첫 페인트 전에 적용 — JS 번들(main.jsx)만으로는 프리렌더된 콘텐츠가
+         라이트로 먼저 그려졌다가 다크로 바뀌는 깜빡임(FOUC)이 생긴다. main.jsx의 로직과 동일. -->
+    <script>
+      try {
+        var t = localStorage.getItem('tickjapan_theme')
+        var d = t ? t === 'dark' : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.setAttribute('data-theme', d ? 'dark' : 'light')
+      } catch (e) {}
+    </script>
+
     <!-- 기본 SEO -->
     <title>일본어 번역기 - 파파고 대신 쓰는 무료 번역기 | 틱재팬</title>
     <meta name="description" content="파파고 대신 쓰는 무료 한국어-일본어 번역기. 히라가나 독음·피치악센트·동사 활용표·조사 학습까지 한 번에." />
     <meta name="keywords" content="일본어 번역기, 한일번역기, 파파고 대신, 히라가나 변환기, 일본어 번역기 추천, 무료 일본어 번역, 피치악센트, 일본어 동사 활용" />
-    <link rel="canonical" href="https://www.tickjapan.com/" />
+    <!-- canonical은 여기 하드코딩하지 않는다 — PageSEO(react-helmet)가 페이지별로 넣는다.
+         하드코딩하면 프리렌더 스냅샷마다 canonical이 2중이 되고, 모든 페이지가 "홈의 복사본"이라는
+         잘못된 신호를 크롤러에 보낸다(홈 canonical은 PageSEO path="/"가 담당). -->
 
     <!-- OG 태그 (카카오·슬랙·SNS 공유) -->
     <meta property="og:type" content="website" />
@@ -105,7 +117,7 @@
     }
     </script>
     <!-- End Meta Pixel Code -->
-    <script type="module" crossorigin src="/assets/index--cLzRLye.js"></script>
+    <script type="module" crossorigin src="/assets/index-8fKOUYO-.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-Mu8wISy4.css">
   </head>
   <body>

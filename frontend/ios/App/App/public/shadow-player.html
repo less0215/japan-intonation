@@ -52,7 +52,7 @@
     // 플레이어 → 앱 현재시간/상태 (200ms 주기)
     setInterval(function () {
       if (ready && player && player.getCurrentTime) {
-        try { post({ event: 'time', t: player.getCurrentTime(), state: player.getPlayerState() }); } catch (e) {}
+        try { post({ event: 'time', t: player.getCurrentTime(), state: player.getPlayerState(), d: player.getDuration() }); } catch (e) {}
       }
     }, 200);
   })();

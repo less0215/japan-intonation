@@ -49,6 +49,7 @@ import { useUser } from './context/UserContext'
 import PageSEO from './components/PageSEO'
 import ExpressionSearch from './components/ExpressionSearch'
 import ExpressionCTA from './components/ExpressionCTA'
+import Shorts100 from './components/Shorts100'
 import { VERBS } from './data/verbs'
 import { ADJ_I, getRankTabs as getAdjITabs } from './data/adjI'
 import { ADJ_NA, getRankTabs as getAdjNaTabs } from './data/adjNa'
@@ -1122,6 +1123,8 @@ export default function App() {
           <Route path="/messages"    element={<MessageInbox />} />
           {/* 내부 프로토타입(비공개·비링크·noindex) — 표현 검색 YouGlish식 */}
           <Route path="/lab/expression" element={<ExpressionSearch />} />
+          {/* 관리자 전용 — 쇼츠 100 제작 체크리스트 */}
+          <Route path="/lab/shorts100" element={<Shorts100 />} />
           <Route path="/survey"      element={<SurveyPage onLogin={handleLoginClick} onSubRefresh={() => setSubTick(t => t + 1)} />} />
           <Route path="*" element={
             <>

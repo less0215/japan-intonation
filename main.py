@@ -3475,11 +3475,20 @@ def transcribe(req: TranscribeRequest, request: Request):
     if mime not in _AUDIO_MIME_OK:
         mime = "audio/mp4"   # 미지원 컨테이너면 iOS 기본(mp4)으로 시도
 
-    prompt = (
-        "You are a Korean speech-to-text transcriber. Transcribe the spoken Korean in the audio "
-        "into natural written Korean text. Output ONLY the transcription as plain text — no quotes, "
-        "no labels, no commentary, no translation. If the audio is silent or unintelligible, output nothing."
-    )
+    if (req.lang or "ko").lower().startswith("ja"):
+        # 넷플릭스 확장 '학습 준비'용: 일본어 발화 받아쓰기
+        prompt = (
+            "You are a Japanese speech-to-text transcriber. Transcribe the spoken JAPANESE in the audio "
+            "into natural written Japanese (kanji + kana, standard orthography). Output ONLY the transcription "
+            "as plain text — no quotes, no labels, no romaji, no translation, no commentary. "
+            "If the audio is silent, music-only, or unintelligible, output nothing."
+        )
+    else:
+        prompt = (
+            "You are a Korean speech-to-text transcriber. Transcribe the spoken Korean in the audio "
+            "into natural written Korean text. Output ONLY the transcription as plain text — no quotes, "
+            "no labels, no commentary, no translation. If the audio is silent or unintelligible, output nothing."
+        )
     client = get_gemini_client()
     for attempt in range(3):
         try:
@@ -3498,6 +3507,61 @@ def transcribe(req: TranscribeRequest, request: Request):
             print(f"[transcribe 오류] {es[:160]}")
             raise HTTPException(status_code=502, detail="받아쓰기에 실패했어요. 다시 시도해 주세요.")
     raise HTTPException(status_code=503, detail="서버가 혼잡해요. 잠시 후 다시 시도해 주세요.")
+
+
+# ── 넷플릭스 확장: 타이틀별 일본어 스크립트 저장소 ─────────────────
+# 넷플릭스는 콘텐츠가 고정이므로 movieId당 1회만 생성(전사/외부자막)하고 전역 공유한다.
+# 저장은 기존 CacheEntry(pcache, 불변 write-once)를 재사용 — 스키마 변경 없음.
+# 공식 한국어 자막 텍스트는 저장하지 않는다(시청 시 클라이언트가 자기 세션에서 병합).
+class NfSubsPutRequest(BaseModel):
+    movie_id: str
+    lines: list = []          # [{t, end, jp, fh?}]
+    source: str = ""          # 'transcribe' | 'external'
+
+
+@app.get("/nf/subs/{movie_id}")
+def nf_subs_get(movie_id: str, request: Request):
+    rate_guard(request)
+    mid = (movie_id or "").strip()
+    if not mid.isdigit() or len(mid) > 12:
+        raise HTTPException(status_code=400, detail="movie_id가 올바르지 않아요.")
+    data = pcache_get_text("nfsub", f"v1:{mid}")
+    return {"found": bool(data), "data": data}
+
+
+@app.post("/nf/subs")
+def nf_subs_put(req: NfSubsPutRequest, request: Request):
+    rate_guard(request)
+    mid = (req.movie_id or "").strip()
+    if not mid.isdigit() or len(mid) > 12:
+        raise HTTPException(status_code=400, detail="movie_id가 올바르지 않아요.")
+    raw_lines = req.lines or []
+    if not (1 <= len(raw_lines) <= 4000):
+        raise HTTPException(status_code=400, detail="lines 개수가 올바르지 않아요.")
+    clean = []
+    for l in raw_lines:
+        if not isinstance(l, dict):
+            continue
+        jp = str(l.get("jp") or "").strip()
+        t, end = l.get("t"), l.get("end")
+        if not jp or not isinstance(t, (int, float)) or not isinstance(end, (int, float)):
+            continue
+        if not (0 <= float(t) < float(end) <= 60000):
+            continue
+        item = {"t": round(float(t), 2), "end": round(float(end), 2), "jp": jp[:500]}
+        fh = str(l.get("fh") or "").strip()
+        if fh:
+            item["fh"] = fh[:1000]
+        clean.append(item)
+    if not clean:
+        raise HTTPException(status_code=400, detail="유효한 줄이 없어요.")
+    payload = {"v": 1, "movieId": mid, "source": (req.source or "")[:20], "lines": clean}
+    if len(json.dumps(payload, ensure_ascii=False)) > 2_500_000:
+        raise HTTPException(status_code=413, detail="데이터가 너무 커요.")
+    if pcache_get_text("nfsub", f"v1:{mid}"):
+        return {"ok": True, "existing": True}   # 불변: 최초 저장본 유지
+    pcache_put_text("nfsub", f"v1:{mid}", payload)
+    return {"ok": True, "existing": False, "lines": len(clean)}
 
 
 @app.post("/tts")

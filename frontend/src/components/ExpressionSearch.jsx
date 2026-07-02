@@ -16,7 +16,11 @@ import { STUDY_DATA } from '../data/studyData'
 import { EXPRESSION_SIGNATURES } from '../data/expressionSignatures'
 
 const PRIMARY = '#5CA9CE'
+const GREEN = '#1D9E75'
 const MAX_PLAYS = 60
+// 문장 저장 — 쉐도잉과 동일 키·형식({vid,idx,t,jp,furigana_html,kr})이라 저장탭(쉐도잉>저장한 문장)에 그대로 뜸
+const LS_LINES = 'tickjapan_study_saved_lines'
+const lsLoad = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]') } catch { return [] } }
 const norm = (s) => (s || '').replace(/\s+/g, '').toLowerCase()
 const hasJapanese = (s) => /[぀-ヿ㐀-鿿]/.test(s)
 const fmtT = (sec) => { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${String(s).padStart(2, '0')}` }
@@ -113,6 +117,8 @@ export default function ExpressionSearch() {
   const [pos, setPos] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [slow, setSlow] = useState(false)
+  const [savedLines, setSavedLines] = useState(() => lsLoad(LS_LINES))
+  useEffect(() => { try { localStorage.setItem(LS_LINES, JSON.stringify(savedLines)) } catch {} }, [savedLines])
 
   const playerRef = useRef(null)
   const hostRef = useRef(null)
@@ -211,6 +217,15 @@ export default function ExpressionSearch() {
   const cur = plays[pos]
   const line = cur ? STUDY_DATA[cur.vid]?.lines[cur.idx] : null
 
+  // ── 문장 저장(쉐도잉과 동일 형식 → 저장탭 호환) ──
+  const isSaved = cur ? savedLines.some((s) => s.vid === cur.vid && s.idx === cur.idx) : false
+  const toggleSave = () => {
+    if (!cur || !line) return
+    setSavedLines((prev) => prev.some((s) => s.vid === cur.vid && s.idx === cur.idx)
+      ? prev.filter((s) => !(s.vid === cur.vid && s.idx === cur.idx))
+      : [...prev, { vid: cur.vid, idx: cur.idx, t: line.t, jp: line.jp, furigana_html: line.furigana_html, kr: line.kr }])
+  }
+
   // ── 공통 래퍼 ──
   const page = (children) => (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: '18px 16px 22px', color: 'var(--text-1)' }}>
@@ -224,7 +239,7 @@ export default function ExpressionSearch() {
     <div style={{ paddingTop: '10vh', textAlign: 'center' }}>
       <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: 'var(--text-3)', margin: '0 0 26px' }}>내부 프로토타입</p>
       <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 8px', wordBreak: 'keep-all' }}>이 말, 일본어로 어떻게 할까?</h1>
-      <p style={{ fontSize: 14, color: 'var(--text-2)', margin: '0 0 28px', lineHeight: 1.6, wordBreak: 'keep-all' }}>표현을 입력하면 실제 영상 속 장면으로 배워요.</p>
+      <p style={{ fontSize: 14, color: 'var(--text-2)', margin: '0 0 28px', lineHeight: 1.6, wordBreak: 'keep-all' }}>표현을 입력하면 실제 원어민이 어떻게 쓰는지 확인할 수 있어요</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <input
           autoFocus value={query}
@@ -286,11 +301,18 @@ export default function ExpressionSearch() {
 
       {/* 문장 — 학습 대상 하나만. 아래 얇은 진행바가 장면 싱크 */}
       {line && (
-        <div style={{ position: 'relative', overflow: 'hidden', marginTop: 14, padding: '18px 18px 20px', borderRadius: 18, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', marginTop: 14, padding: '18px 46px 20px 18px', borderRadius: 18, background: 'var(--surface)', border: '1px solid var(--bd)' }}>
           <EmphFurigana furiganaHtml={line.furigana_html} jp={line.jp} matcher={matcher} fontSize={20} />
           <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-3)' }}>{krPronOf(line.furigana_html)}</p>
           <p style={{ margin: '7px 0 0', fontSize: 14.5, lineHeight: 1.6, color: 'var(--text-2)', wordBreak: 'keep-all' }}>{line.kr}</p>
           <p style={{ margin: '10px 0 0', fontSize: 11.5, color: 'var(--text-3)' }}>{cur.titleKr} · {fmtT(cur.t)}</p>
+          {/* 문장 저장 — 저장탭(쉐도잉 > 저장한 문장)에서 확인 가능 */}
+          <button onClick={toggleSave} aria-label={isSaved ? '저장 취소' : '문장 저장'}
+            style={{ position: 'absolute', top: 12, right: 10, width: 34, height: 34, borderRadius: 10, border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill={isSaved ? GREEN : 'none'} stroke={isSaved ? GREEN : 'var(--text-3)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
           <div style={{ position: 'absolute', left: 0, bottom: 0, height: 3, width: '100%', background: 'var(--bd)' }} />
           <div ref={barRef} style={{ position: 'absolute', left: 0, bottom: 0, height: 3, width: '0%', background: PRIMARY, transition: 'width 0.12s linear' }} />
         </div>

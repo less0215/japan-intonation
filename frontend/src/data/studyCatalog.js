@@ -3302,7 +3302,8 @@ export const STUDY_CATALOG = [
    "건강",
    "의료",
    "사회"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "q1nKVytzBec",
@@ -3315,7 +3316,8 @@ export const STUDY_CATALOG = [
    "환경",
    "에너지",
    "지역"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "-IhtF44fZoA",
@@ -3328,7 +3330,8 @@ export const STUDY_CATALOG = [
    "과학",
    "의료",
    "도전"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "njxvkrCu8rY",
@@ -3341,7 +3344,8 @@ export const STUDY_CATALOG = [
    "동기부여",
    "도전",
    "스포츠"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "tDW6T9XTQbg",
@@ -3354,7 +3358,8 @@ export const STUDY_CATALOG = [
    "예술",
    "디자인",
    "행복"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "9_QS74NKTEo",
@@ -3367,7 +3372,8 @@ export const STUDY_CATALOG = [
    "도전",
    "탐험",
    "모험"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "EzXvih454dM",
@@ -3380,7 +3386,8 @@ export const STUDY_CATALOG = [
    "교육",
    "인생",
    "자기계발"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "-_J7Uf6QV4M",
@@ -3393,7 +3400,8 @@ export const STUDY_CATALOG = [
    "비즈니스",
    "경제",
    "투자"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "7vpmI7Vd6Us",
@@ -3406,7 +3414,8 @@ export const STUDY_CATALOG = [
    "예술",
    "사회",
    "환경"
-  ]
+  ],
+  "ready": true
  },
  {
   "id": "s1VcJLdrygw",
@@ -3419,7 +3428,8 @@ export const STUDY_CATALOG = [
    "예술",
    "문화",
    "사회"
-  ]
+  ],
+  "ready": true
  }
 ]
 

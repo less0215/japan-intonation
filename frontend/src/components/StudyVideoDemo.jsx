@@ -134,6 +134,13 @@ export default function StudyVideoDemo({ isPlus = false }) {
   const startedRef = useRef(false)    // 학습 시작 1회 기록
   const completedRef = useRef(false)  // 완주 1회 기록
   const maxIdxRef = useRef(-1)        // 최대 도달 문장(이탈 지점)
+  // 커스텀 진행바(controls=0이라 유튜브 자체 탐색바가 없음 — 클릭/드래그로 원하는 위치 이동)
+  const progressTrackRef = useRef(null)
+  const progressFillRef = useRef(null)
+  const progressThumbRef = useRef(null)
+  const durationRef = useRef(0)
+  const draggingRef = useRef(false)
+  const lastDragSeekRef = useRef(0)
   const [isWide, setIsWide] = useState(typeof window !== 'undefined' ? window.innerWidth >= 900 : false)
   const [expanded, setExpanded] = useState(false)   // 확대(유사 전체화면) 모드 — 자막은 영상 아래(ToS 안전)
   const [isLandscape, setIsLandscape] = useState(typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false)
@@ -215,6 +222,39 @@ export default function StudyVideoDemo({ isPlus = false }) {
     activeRef.current = i; setActiveIdx(i)
     if (loopRef.current >= 0) { loopRef.current = i; setLoopIdx(i) }
   }
+  // 커스텀 진행바 — controls=0이라 유튜브 자체 탐색바가 없어, 클릭/드래그로 원하는 위치로 이동.
+  // commit=false면 드래그 중 시각적 미리보기만(실제 seek는 120ms 간격으로만 커밋해 과도한 postMessage/seek 방지).
+  const seekFromClientX = (clientX, commit) => {
+    const track = progressTrackRef.current
+    if (!track || !durationRef.current) return
+    const rect = track.getBoundingClientRect()
+    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+    if (progressFillRef.current) progressFillRef.current.style.width = `${ratio * 100}%`
+    if (progressThumbRef.current) progressThumbRef.current.style.left = `${ratio * 100}%`
+    if (!commit) return
+    const t = ratio * durationRef.current
+    // 무료 미리보기 1분 제한 — 문장 클릭 이동(seekLine)과 동일하게 여기서도 지킨다(진행바로 우회 금지)
+    if (!unlimitedRef.current && t >= PREVIEW_LIMIT) { setGated(true); return }
+    const p = playerRef.current
+    if (p && p.seekTo) p.seekTo(t, true)
+  }
+  const onBarPointerDown = (e) => {
+    draggingRef.current = true
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+    seekFromClientX(e.clientX, true)
+  }
+  const onBarPointerMove = (e) => {
+    if (!draggingRef.current) return
+    const now = Date.now()
+    const commit = now - lastDragSeekRef.current > 120
+    if (commit) lastDragSeekRef.current = now
+    seekFromClientX(e.clientX, commit)
+  }
+  const onBarPointerUp = (e) => {
+    if (!draggingRef.current) return
+    draggingRef.current = false
+    seekFromClientX(e.clientX, true)
+  }
   const goPrev = () => seekLine(Math.max(0, (activeRef.current < 0 ? 0 : activeRef.current) - 1))
   const goNext = () => seekLine(Math.min(lines.length - 1, (activeRef.current < 0 ? -1 : activeRef.current) + 1))
   const replay = () => { const i = activeRef.current < 0 ? 0 : activeRef.current; logEv(vid, 'replay', i); seekLine(i) }
@@ -271,6 +311,13 @@ export default function StudyVideoDemo({ isPlus = false }) {
       const p = playerRef.current
       if (!p || !p.getCurrentTime) return
       let t; try { t = p.getCurrentTime() } catch { return }
+      if (!durationRef.current && p.getDuration) { try { const d = p.getDuration(); if (d) durationRef.current = d } catch {} }
+      // 진행바 위치 갱신 — 드래그 중엔 사용자가 잡고 있는 위치를 덮어쓰지 않음(리렌더 없이 DOM 직접 조작)
+      if (!draggingRef.current && durationRef.current > 0) {
+        const ratio = Math.min(1, Math.max(0, t / durationRef.current)) * 100
+        if (progressFillRef.current) progressFillRef.current.style.width = `${ratio}%`
+        if (progressThumbRef.current) progressThumbRef.current.style.left = `${ratio}%`
+      }
       if (!unlimitedRef.current && t >= PREVIEW_LIMIT && p.getPlayerState && p.getPlayerState() === 1) { try { p.pauseVideo() } catch {}; setGated(true) }
       let idx = -1
       for (let i = 0; i < lines.length; i++) { if (lines[i].t <= t + 0.15) idx = i; else break }
@@ -286,7 +333,7 @@ export default function StudyVideoDemo({ isPlus = false }) {
     if (IS_APP) {
       // 앱: 원격 origin 제어형 플레이어(shadow-player.html)를 iframe으로 띄우고 postMessage로 제어 → 오류 153 회피(라이브캠과 동일 패턴, 장치 검증 완료).
       // playerRef를 동일 API(shim)로 만들어 seekLine/togglePlay/goStart/폴링 로직을 그대로 재사용.
-      let cachedT = 0, cachedState = -1
+      let cachedT = 0, cachedState = -1, cachedD = 0
       const send = (msg) => { const f = document.getElementById('yt-player-demo'); try { f?.contentWindow?.postMessage({ src: 'tj-app', ...msg }, '*') } catch {} }
       playerRef.current = {
         seekTo: (t) => send({ cmd: 'seek', value: t }),
@@ -295,11 +342,12 @@ export default function StudyVideoDemo({ isPlus = false }) {
         setPlaybackRate: (r) => send({ cmd: 'rate', value: r }),
         getCurrentTime: () => cachedT,
         getPlayerState: () => cachedState,
+        getDuration: () => cachedD,
         destroy: () => {},
       }
       const onMsg = (e) => {
         const d = e.data; if (!d || d.src !== 'tj-player') return
-        if (d.event === 'time') { cachedT = d.t; cachedState = d.state }
+        if (d.event === 'time') { cachedT = d.t; cachedState = d.state; if (d.d) cachedD = d.d }
         else if (d.event === 'state') { cachedState = d.state; setIsPlaying(d.state === 1) }
         else if (d.event === 'ready') { onReadyStart() }
       }
@@ -432,6 +480,15 @@ export default function StudyVideoDemo({ isPlus = false }) {
             {(capMode === 'both' || capMode === 'kr') && <p style={{ margin: capMode === 'kr' ? 0 : '2px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.4 }}>{cur.kr}</p>}
           </div>
         )}
+        {/* 커스텀 진행바 — controls=0으로 유튜브 자체 탐색바를 껐으므로, 클릭·드래그로
+            원하는 위치로 이동할 수 있는 자체 진행바를 항상 노출(반복/시크 시 유튜브 UI 재노출 없이). */}
+        <div onPointerDown={onBarPointerDown} onPointerMove={onBarPointerMove} onPointerUp={onBarPointerUp} onPointerCancel={onBarPointerUp}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 18, zIndex: 4, display: 'flex', alignItems: 'flex-end', cursor: 'pointer', touchAction: 'none' }}>
+          <div ref={progressTrackRef} style={{ position: 'relative', width: '100%', height: 4, background: 'rgba(255,255,255,0.3)' }}>
+            <div ref={progressFillRef} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '0%', background: PRIMARY }} />
+            <div ref={progressThumbRef} style={{ position: 'absolute', top: '50%', left: '0%', width: 11, height: 11, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.5)', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }} />
+          </div>
+        </div>
         {/* 확대/축소 버튼 — 확대 모드에선 자막을 영상 아래/옆에 표시(YouTube ToS: 플레이어 위 오버레이 금지) */}
         <button onClick={() => setExpanded(v => !v)} aria-label={expanded ? '축소' : '크게 보기'} title={expanded ? '축소' : '크게 보기 (자막 함께)'} data-tour={!expanded ? 'expand' : undefined}
           style={{ position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 9, border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>

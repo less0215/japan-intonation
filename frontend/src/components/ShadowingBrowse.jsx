@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { STUDY_CATALOG, STUDY_FEATURED, STUDY_TOP10, TAG_GROUPS } from '../data/studyCatalog'
 import { STUDY_DATA } from '../data/studyData'   // 검색: 대사(스크립트) 내용까지 매칭
+import { matchExpressions, sceneCount } from '../utils/expressions'   // 검색어가 표현이면 '표현으로 배우기' 카드
 
 const API_URL = 'https://japan-intonation-production.up.railway.app'
 // 좋아요/싫어요를 서버에 기록 → 전역 랭킹(수요)에 즉시 반영
@@ -292,6 +293,18 @@ export default function ShadowingBrowse({ variant = 'home', isLoggedIn, userName
       {/* 검색 결과 (탭, 검색 중) — 제목 매칭 우선 + 대사 매칭(스니펫·타임스탬프) */}
       {searchResults ? (
         <div style={{ marginBottom: 22 }}>
+          {/* 검색어가 '표현'에 매칭되면 표현으로 배우기 카드를 최상단에 (예: "하려고 해" → 〜(よ)うと思う) */}
+          {matchExpressions(q.trim()).filter(s => sceneCount(s.id) > 0).slice(0, 3).map(s => (
+            <button key={s.id} onClick={() => onNavigate(`/lab/expression?p=${s.id}`)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '13px 15px', marginBottom: 10, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit', border: '1px solid rgba(92,169,206,0.45)', background: 'rgba(92,169,206,0.08)' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 10.5, fontWeight: 800, letterSpacing: '.04em', color: '#5CA9CE' }}>표현으로 배우기</p>
+                <p style={{ margin: '3px 0 0', fontSize: 16, fontWeight: 800, color: 'var(--text-strong,#1f2937)', fontFamily: "'Noto Sans JP', sans-serif" }}>{s.label}<span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-3,#9aa0a6)', marginLeft: 8 }}>{sceneCount(s.id)}개 장면</span></p>
+                <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-2,#5b6470)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.note}</p>
+              </div>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5CA9CE" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="9 6 15 12 9 18" /></svg>
+            </button>
+          ))}
           <p style={{ margin: '0 2px 12px', fontSize: 14.5, fontWeight: 800, color: 'var(--text-strong,#1f2937)' }}>‘{q.trim()}’ 검색 결과 · {searchResults.length}편{searchResults.length >= 30 ? '+' : ''}</p>
           {searchResults.length === 0
             ? <p style={{ fontSize: 13, color: 'var(--text-3,#9aa0a6)', textAlign: 'center', padding: '24px 0' }}>‘{q.trim()}’이(가) 들어간 영상이 없어요.</p>

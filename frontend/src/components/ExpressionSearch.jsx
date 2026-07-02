@@ -9,11 +9,13 @@
  * 군더더기 배제: 오버레이 자막·가리기·자막모드·관련목록 없음. 문장 카드 하나가 학습 대상.
  * 플레이어는 1회 생성 + loadVideoById로만 영상 전환(React↔YT iframe 충돌 회피, 검증된 패턴). */
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { parseFurigana } from './RubyText'
 import { pronText } from '../utils/kana.mjs'
 import { STUDY_DATA } from '../data/studyData'
 import { EXPRESSION_SIGNATURES } from '../data/expressionSignatures'
+import { matchExpressions, hasJapanese } from '../utils/expressions'
 
 const PRIMARY = '#5CA9CE'
 const GREEN = '#1D9E75'
@@ -21,8 +23,6 @@ const MAX_PLAYS = 60
 // 문장 저장 — 쉐도잉과 동일 키·형식({vid,idx,t,jp,furigana_html,kr})이라 저장탭(쉐도잉>저장한 문장)에 그대로 뜸
 const LS_LINES = 'tickjapan_study_saved_lines'
 const lsLoad = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]') } catch { return [] } }
-const norm = (s) => (s || '').replace(/\s+/g, '').toLowerCase()
-const hasJapanese = (s) => /[぀-ヿ㐀-鿿]/.test(s)
 const fmtT = (sec) => { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${String(s).padStart(2, '0')}` }
 const SUGGESTIONS = ['하려고 해', '하고 싶어', '해야 해', '할지도 몰라', '해 줬으면']
 
@@ -52,15 +52,6 @@ function buildLineIndex() {
     for (let i = 0; i < lines.length; i++) out.push({ vid: v.videoId, titleKr: v.titleKr || v.title, idx: i, t: lines[i].t, jp: lines[i].jp })
   }
   return out
-}
-function matchCandidates(q) {
-  const n = norm(q)
-  if (!n) return []
-  if (hasJapanese(q)) return EXPRESSION_SIGNATURES.filter((s) => s.jpRe.test(q))
-  return EXPRESSION_SIGNATURES.filter((s) => {
-    const aliases = [...(s.ko || []), ...(s.en || [])]
-    return aliases.some((a) => { const na = norm(a); return na.includes(n) || n.includes(na) })
-  })
 }
 function matchSpan(jp, matcher) {
   if (matcher.jpRe) { const m = jp.match(matcher.jpRe); if (m) return [m.index, m.index + m[0].length] }
@@ -120,6 +111,14 @@ export default function ExpressionSearch() {
   const [savedLines, setSavedLines] = useState(() => lsLoad(LS_LINES))
   useEffect(() => { try { localStorage.setItem(LS_LINES, JSON.stringify(savedLines)) } catch {} }, [savedLines])
 
+  // 진입 파라미터 — ?p=<시그니처id>(쉐도잉 검색·번역 CTA·문법 상세에서 직행) / ?q=<검색어>
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    const p = searchParams.get('p'), q0 = searchParams.get('q')
+    if (p) { const s = EXPRESSION_SIGNATURES.find((x) => x.id === p); if (s) { startStudy(s); return } }
+    if (q0) submit(q0)
+  }, [])  // 최초 진입 1회
+
   const playerRef = useRef(null)
   const hostRef = useRef(null)
   const loadedVidRef = useRef(null)
@@ -139,7 +138,7 @@ export default function ExpressionSearch() {
   const submit = (raw) => {
     const q = (raw ?? query).trim(); setQuery(q); setNotFound(false)
     if (!q) return
-    const cands = matchCandidates(q)
+    const cands = matchExpressions(q)
     if (cands.length === 1) { startStudy(cands[0]); return }
     if (cands.length > 1) {
       // 후보별 장면 수 미리 계산(선택 카드에 표시) — DB에 장면이 없는 후보는 제외
@@ -229,7 +228,7 @@ export default function ExpressionSearch() {
   // ── 공통 래퍼 ──
   const page = (children) => (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: '18px 16px 22px', color: 'var(--text-1)' }}>
-      <Helmet><meta name="robots" content="noindex, nofollow" /><title>표현으로 배우기 (프로토타입) | 틱재팬</title></Helmet>
+      <Helmet><meta name="robots" content="noindex, nofollow" /><title>표현으로 배우기 | 틱재팬</title></Helmet>
       {children}
     </div>
   )
@@ -237,7 +236,6 @@ export default function ExpressionSearch() {
   // ── ① 입력 ──
   if (screen === 'home') return page(
     <div style={{ paddingTop: '10vh', textAlign: 'center' }}>
-      <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: 'var(--text-3)', margin: '0 0 26px' }}>내부 프로토타입</p>
       <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 8px', wordBreak: 'keep-all' }}>이 말, 일본어로 어떻게 할까?</h1>
       <p style={{ fontSize: 14, color: 'var(--text-2)', margin: '0 0 28px', lineHeight: 1.6, wordBreak: 'keep-all' }}>표현을 입력하면 실제 원어민이 어떻게 쓰는지 확인할 수 있어요</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
